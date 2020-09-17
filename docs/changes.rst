@@ -32,6 +32,9 @@ Released: not yet
 
 * Windows install: Upgraded WinOpenSSL to 1.1.1h.
 
+* Test: Changed collection of .yaml files in function tests to address
+  DeprecationWarning issued by pytest (see issue #2430).
+
 **Enhancements:**
 
 * Removed dependency on package custom-inherit and removed package from
