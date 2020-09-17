@@ -29,6 +29,9 @@ Released: not yet
 * Test: Fixed dependency issues with 'pyrsistent' package on Python 2.7 and
   Python 3.4.
 
+* Test: Changed collection of .yaml files in function tests to address
+  DeprecationWarning issued by pytest (see issue #2430).
+
 **Enhancements:**
 
 **Cleanup:**
