@@ -1,4 +1,5 @@
 
+
 .. _`Change log`:
 
 Change log
@@ -87,6 +88,9 @@ Released: not yet
 * Mock: Cleaned up the output of repr(BaseProvider) to no longer show the
   CIM repository, and to include the other attributes that were not shown so
   far. (See issue #2432)
+
+* Complete pywbem_mock tests that were documented as missing in issue.
+  (see issue # 2327)
 
 * Removed dependency on package custom-inherit and removed package from
   pywbem.  (see issue # 2436)
