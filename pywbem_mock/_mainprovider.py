@@ -201,14 +201,6 @@ class MainProvider(ResolverMixin, BaseProvider):
     #####################################################################
 
     @staticmethod
-    def _make_tuple(rtn_value):
-        """
-        Change the return value from the value consistent with the definition
-        in cim_operations.py into a tuple in accord with _imethodcall
-        """
-        return [("IRETURNVALUE", {}, rtn_value)]
-
-    @staticmethod
     def _get_superclass_names(classname, class_store):
         """
         Get list of superclasses names from the class datastore for the

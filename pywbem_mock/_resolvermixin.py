@@ -184,7 +184,8 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                                      False, type_str)
                 continue
 
-            # If obj_name in superclass_objects
+            # Error if obj_name in superclass_objects and not override,
+            # except parameters which have no override concept.
             if 'Override' not in new_objects[obj_name].qualifiers:
                 if not isinstance(new_objects[obj_name], CIMParameter):
                     raise CIMError(
@@ -193,8 +194,6 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                                 "{3!A} without override.",
                                 type_str, obj_name, new_class.classname,
                                 superclass.classname))
-
-                # TODO need to finish this.  For now let parameter slide
                 continue
 
             # process object override

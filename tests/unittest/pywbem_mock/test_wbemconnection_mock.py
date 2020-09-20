@@ -31,6 +31,7 @@ import shutil
 import re
 from copy import deepcopy
 from datetime import datetime
+
 try:
     from collections import OrderedDict
 except ImportError:
@@ -38,7 +39,9 @@ except ImportError:
 import six
 from mock import Mock
 import pytest
+from nocaselist import NocaseList
 from testfixtures import OutputCapture
+
 
 from ...utils import skip_if_moftab_regenerated
 from ..utils.dmtf_mof_schema_def import TOTAL_QUALIFIERS, TOTAL_CLASSES, \
@@ -72,9 +75,6 @@ OK = True
 RUN = True
 FAIL = False
 
-# Indicator in testcases to indicate that the parameter should be built
-# instead of taken verbatim
-BUILDIT = 'buildit'
 
 # location of testsuite/schema dir used by all tests as test DMTF CIM Schema
 # This directory is permanent and should not be removed.
@@ -174,10 +174,15 @@ def assert_equal_ciminstances(insts1, insts2, pl=None):
     """
     Test if instances in two iterables are equal.
 
-    The instances in the iterables can by in any order. The in stances must have
+    The instances in the iterables can by in any order. The instances must have
     a non-empty path. Compared are classname, path, and the set of properties
     in the property list pl (if set).
     """
+
+    if isinstance(insts1, CIMInstance):
+        insts1 = [insts1]
+    if isinstance(insts2, CIMInstance):
+        insts2 = [insts2]
 
     assert len(insts1) == len(insts2)
 
@@ -733,13 +738,13 @@ def tst_assoc_qualdecl_mof():
 
 
 @pytest.fixture
-def tst_assoc_class_mof():
+def tst_assoc_class_mof(tst_assoc_qualdecl_mof):
     """
     Target, destination, and association classes used to define an
     association test model. This fixture assumes that qualifier declarations
-    consistent with tst_assoc_qualdelc fixture above.
+    have been defined consistent with tst_assoc_qualdecl fixture above.
     """
-    return """
+    assoc_classes_mof = """
         class TST_Person{
                 [Key, Description ("This is key prop")]
             string name;
@@ -772,15 +777,17 @@ def tst_assoc_class_mof():
         };
     """
 
+    return tst_assoc_qualdecl_mof + assoc_classes_mof
+
 
 @pytest.fixture
-def tst_assoc_mof(tst_assoc_qualdecl_mof, tst_assoc_class_mof):
+def tst_assoc_mof(tst_assoc_class_mof):
     """
-    Complete MOF definition of a simple set of classes and association class
+    Complete MOF definition of a simple set of classes and association instances
     to test associations and references. Includes qualifiers, classes,
     and instances.
     """
-    instances = """
+    assoc_instances = """
         instance of TST_Person as $Mike { name = "Mike"; };
         instance of TST_Person as $Saara { name = "Saara"; };
         instance of TST_Person as $Sofi { name = "Sofi"; };
@@ -852,7 +859,7 @@ def tst_assoc_mof(tst_assoc_qualdecl_mof, tst_assoc_class_mof):
             member = $Mike;
         };
     """
-    return tst_assoc_qualdecl_mof + tst_assoc_class_mof + instances
+    return tst_assoc_class_mof + assoc_instances
 
 
 # Counts of instances for tests of tst_assoc_mof fixture.
@@ -1289,8 +1296,8 @@ class TestRepoMethods(object):
 
         lo = False
 
-        # Issue # 2327 TODO : xpand test to use lo parameterized.
-        # since lo is deprecated with a default  and options in config.py
+        # Issue # 2327 TODO : expand test to use lo parameterized.
+        # since lo is deprecated with a default and options in config.py
         # we need to test all these options.
 
         assert ns is not None
@@ -1654,9 +1661,6 @@ class TestRepoMethods(object):
         """
         Test _remove_namespace()
         """
-        # Issue #2327 TODO: This test goes back and forth between the methods in
-        # wbemconnectionfake, mainprovider, and datastore. Make consistent
-
         conn = FakedWBEMConnection()
         conn.add_namespace(default_ns)
         for ns in additional_ns:
@@ -2138,7 +2142,7 @@ class TestRepoMethods(object):
         installed in the repo.
         """
         if not condition:
-            pytest.skip("This test marked to be skipped")
+            pytest.skip("This test marked to be skipped by condition")
 
         skip_if_moftab_regenerated()
 
@@ -2358,7 +2362,7 @@ class TestUserDefinedProviders(object):
         Test register_provider method.
         """
         if not condition:
-            pytest.skip("This test marked to be skipped")
+            pytest.skip("This test marked to be skipped by condition")
         skip_if_moftab_regenerated()
 
         if condition == "pdb":
@@ -2505,7 +2509,7 @@ class TestUserDefinedProviders(object):
         get_provider_registration for multiple inputs
         """
         if not condition:
-            pytest.skip("This test marked to be skipped")
+            pytest.skip("This test marked to be skippedby condition")
 
         if condition == "pdb":
             import pdb  # pylint: disable=import-outside-toplevel
@@ -2542,12 +2546,13 @@ class TestUserDefinedProviders(object):
                 conn.providerdispatcher.get_registered_provider(
                     get_ns, get_pt, get_cln)
 
+    # test_display_registered_providers
     @pytest.mark.parametrize(
         "desc, inputs, output, condition",
         [
             # desc: Description of testcase
             # input - list of lists where the inner lists contain the parameters
-            #         of a single request(testnamespaces, lclassnames
+            #         of a single request(testnamespaces, classnames
             #         provider_type, provider)
             #         * testnamespaces - Namespace or list of namespaces in
             #           which provider is to be registered
@@ -2564,7 +2569,7 @@ class TestUserDefinedProviders(object):
              "  CIM_Foo  instance-write  UserInstanceTestProvider\n",
              OK],
 
-            ["validate snamespace is None, etc.",
+            ["validate namespace is None, etc.",
              [
                  [None, UserInstanceTestProvider],
              ],
@@ -2629,7 +2634,7 @@ class TestUserDefinedProviders(object):
         Test register_provider method.
         """
         if not condition:
-            pytest.skip("This test marked to be skipped")
+            pytest.skip("This test marked to be skippedby condition")
         skip_if_moftab_regenerated()
 
         if condition == "pdb":
@@ -2645,7 +2650,6 @@ class TestUserDefinedProviders(object):
             if not isinstance(tst_ns, list):
                 tst_ns = [tst_ns]
             for ns in tst_ns:
-                # Issue #2327 TODO: Test with ns=None
                 add_objects_to_repo(conn, ns,
                                     tst_classeswqualifiersandinsts)
                 nss.append(ns)
@@ -2939,7 +2943,9 @@ def assert_resolved_classes_equal(conn, ns, exp_class, tst_class):
 
 class TestClassOperations(object):
     """
-    Test mocking of Class level operations including classname operations
+    Test mocking of Class level operations including getClass,
+    EnumerateClasses, EnumerateClassNames, CreateClass, DeleteClass.
+    Does not test the Associator or Reference operations.
     """
 
     @pytest.mark.parametrize(
@@ -3619,90 +3625,86 @@ class TestClassOperations(object):
              ),
              None, OK],
 
-            [
-                'Create valid 2nd level subclass with key override. '
-                ' Confirms key is set.',
-                ['CIM_Foo'],
-                CIMClass(
-                    'CIM_Foo_testOverride', superclass='CIM_Foo',
-                    properties={
-                        'InstanceID':
-                            CIMProperty(
-                                'InstanceID', None,
-                                qualifiers={
-                                    'Override': CIMQualifier(
-                                        'Override', 'InstanceID'),
-                                    'Description': CIMQualifier(
-                                        'Description', "blah Blah Blah")
-                                },
-                                type='string'),
-                    }
-                ),
-                CIMClass(
-                    'CIM_Foo_testOverride', superclass='CIM_Foo',
-                    properties={
-                        'InstanceID':
-                            CIMProperty(
-                                'InstanceID', None, type='string',
-                                class_origin='CIM_Foo', propagated=True,
-                                is_array=False, array_size=None,
-                                qualifiers={
-                                    'key': CIMQualifier('Key', True,
-                                                        propagated=True,
-                                                        tosubclass=True,
-                                                        overridable=False),
-                                    'Override': CIMQualifier(
-                                        'Override', 'InstanceID',
-                                        propagated=False,
-                                        tosubclass=False,
-                                        overridable=True),
-                                    'Description': CIMQualifier(
-                                        'Description', "blah Blah Blah",
-                                        propagated=False,
-                                        tosubclass=True,
-                                        overridable=True,
-                                        translatable=True)})
-                    },
-                    methods={
-                        'Delete': CIMMethod(
-                            'Delete', 'uint32',
-                            class_origin='CIM_Foo', propagated=True,
-                            qualifiers={
-                                'Description': CIMQualifier(
-                                    'Description', 'qualifier description',
-                                    propagated=True,
-                                    tosubclass=True,
-                                    overridable=True,
-                                    translatable=True)}),
-                        'Fuzzy': CIMMethod(
-                            'Fuzzy', 'string',
-                            class_origin='CIM_Foo', propagated=True,
-                            qualifiers={
-                                'Description': CIMQualifier(
-                                    'Description', 'qualifier description',
-                                    propagated=True,
-                                    tosubclass=True,
-                                    overridable=True,
-                                    translatable=True)}),
-                    },
-                ),
-                None, OK
-            ],
+            ['Create valid 2nd level subclass with key override. '
+             ' Confirms key is set.',
+             ['CIM_Foo'],
+             CIMClass(
+                 'CIM_Foo_testOverride', superclass='CIM_Foo',
+                 properties={
+                     'InstanceID':
+                         CIMProperty(
+                             'InstanceID', None,
+                             qualifiers={
+                                 'Override': CIMQualifier(
+                                     'Override', 'InstanceID'),
+                                 'Description': CIMQualifier(
+                                     'Description', "blah Blah Blah")
+                             },
+                             type='string'),
+                 }
+             ),
+             CIMClass(
+                 'CIM_Foo_testOverride', superclass='CIM_Foo',
+                 properties={
+                     'InstanceID':
+                         CIMProperty(
+                             'InstanceID', None, type='string',
+                             class_origin='CIM_Foo', propagated=True,
+                             is_array=False, array_size=None,
+                             qualifiers={
+                                 'key': CIMQualifier('Key', True,
+                                                     propagated=True,
+                                                     tosubclass=True,
+                                                     overridable=False),
+                                 'Override': CIMQualifier(
+                                     'Override', 'InstanceID',
+                                     propagated=False,
+                                     tosubclass=False,
+                                     overridable=True),
+                                 'Description': CIMQualifier(
+                                     'Description', "blah Blah Blah",
+                                     propagated=False,
+                                     tosubclass=True,
+                                     overridable=True,
+                                     translatable=True)})
+                 },
+                 methods={
+                     'Delete': CIMMethod(
+                         'Delete', 'uint32',
+                         class_origin='CIM_Foo', propagated=True,
+                         qualifiers={
+                             'Description': CIMQualifier(
+                                 'Description', 'qualifier description',
+                                 propagated=True,
+                                 tosubclass=True,
+                                 overridable=True,
+                                 translatable=True)}),
+                     'Fuzzy': CIMMethod(
+                         'Fuzzy', 'string',
+                         class_origin='CIM_Foo', propagated=True,
+                         qualifiers={
+                             'Description': CIMQualifier(
+                                 'Description', 'qualifier description',
+                                 propagated=True,
+                                 tosubclass=True,
+                                 overridable=True,
+                                 translatable=True)}),
+                 },
+             ),
+             None, OK],
 
-            [
-                'Fail create invalid subclass, dup property with no override',
-                ['CIM_Foo', 'CIM_Foo_sub'],
-                CIMClass(
-                    'CIM_Foo_sub_sub', superclass='CIM_Foo_sub',
-                    properties={
-                        'cimfoo_sub': CIMProperty(
-                            'cimfoo_sub', "blah",  # noqa: E121
-                            type='string',
-                            class_origin='CIM_Foo_sub_sub', propagated=False)
-                    }
-                ),
-                None, CIMError(CIM_ERR_INVALID_PARAMETER), OK
-            ],
+            ['Fail create invalid subclass, dup property with no override',
+             ['CIM_Foo', 'CIM_Foo_sub'],
+             CIMClass(
+                 'CIM_Foo_sub_sub', superclass='CIM_Foo_sub',
+                 properties={
+                     'cimfoo_sub': CIMProperty(
+                         'cimfoo_sub', "blah",  # noqa: E121
+                         type='string',
+                         class_origin='CIM_Foo_sub_sub', propagated=False)
+                 }
+             ),
+             None, CIMError(CIM_ERR_INVALID_PARAMETER), OK],
 
             ['Fail because superclass does not exist in namespace',
              None, 'CIM_Foo_sub', None, CIMError(CIM_ERR_INVALID_SUPERCLASS),
@@ -3715,6 +3717,8 @@ class TestClassOperations(object):
             ['Fail because class is incorrect type int',
              None, 42, None,
              TypeError(), OK],
+
+            # TODO: Add test for method with parameters.
 
             # No invalid namespace test defined because createclass creates
             # namespace
@@ -3731,7 +3735,7 @@ class TestClassOperations(object):
             namespace if it does not exist.
         """
         if not condition:
-            pytest.skip("This test marked to be skipped")
+            pytest.skip("This test marked to be skipped by condition")
         skip_if_moftab_regenerated()
 
         # preinstall required qualifiers
@@ -3828,8 +3832,8 @@ class TestClassOperations(object):
                                            IncludeQualifiers=True,
                                            IncludeClassOrigin=True,
                                            LocalOnly=False)
-            # Issue #2327, 18: TODO: We need more specific tests for the
-            # characteristics of resolving to assure that all resolved
+            # Issue #2327 FUTURE, 18: TODO: More specific tests for the
+            # characteristics of resolving classes to assure that all resolved
             # parameters are correct for each test case.
             if superclass:
                 for prop in superclass.properties:
@@ -3895,10 +3899,15 @@ class TestClassOperations(object):
                         else:
                             assert mvalue.propagated is False
                             assert mvalue.class_origin == get_cl.classname
-                # Issue# 2327: TODO: est each parameter also. Currently we stop
-                #              at methods
+                    for pname, pvalue in mvalue.parameters.items():
+                        assert pname in superclass.methods[mname].parameters
+                        assert pvalue == \
+                            superclass.methods[mname].parameters[pname]
+                else:
+                    assert mvalue.propagated is False
+                    assert mvalue.class_origin == get_cl.classname
 
-    # Issue # 2210, TODO: mplement a specifc test for ModifyClass
+    # Issue # 2210, TODO: implement a specifc test for ModifyClass
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
@@ -4115,6 +4124,7 @@ class TestInstanceOperations(object):
             assert rslt_prop.array_size == org_prop.array_size
             assert rslt_prop.reference_class == org_prop.reference_class
 
+    # Test enumerateInstances with PropertyList parameter.
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
     @pytest.mark.parametrize(
@@ -4163,21 +4173,22 @@ class TestInstanceOperations(object):
         assert rslt_inst.path == request_inst_path
 
         # Assert expected returned properties matches returned properties
-        assert set([x.lower() for x in exp_pl]) ==  \
-            set([x.lower() for x in rslt_inst.keys()])
+        assert set(NocaseList(exp_pl)) == set(NocaseList(rslt_inst.keys()))
 
-    # Issue #2327 KS TODO: Add error test to this group. cln, exp_cond
-    # and test for bad class, no class should pull in at least test below.
+    # test_enumerateinstancenames. Note that error tests are in separate test
+    # below
     @pytest.mark.parametrize(
         "ns", EXPANDED_NAMESPACES + [None])
     @pytest.mark.parametrize(
-        "cln", ['cim_foo', 'CIM_Foo'])
+        "cln", ['cim_foo', 'CIM_Foo', 'cim_foo_sub'])
     def test_enumerateinstancenames(self, conn, tst_classeswqualifiers,
                                     tst_instances, ns, cln):
         # pylint: disable=no-self-use
         """
         Test mock EnumerateInstanceNames against instances in tst_instances
-        fixture with both classes and instances in the repo.
+        fixture with both classes and instances in the repo.  This test
+        uses _get_subclass_names to get the names of the subclasses. Note that
+        there are no special parameters on EnumerateInstanceNames.
         """
 
         add_objects_to_repo(conn, ns, [tst_classeswqualifiers, tst_instances])
@@ -4187,6 +4198,7 @@ class TestInstanceOperations(object):
 
         namespace = conn.default_namespace if ns is None else ns
 
+        # get expected subclasses directly from repository.
         class_store = conn.cimrepository.get_class_store(namespace)
         # pylint: disable=protected-access
         exp_subclasses = conn._mainprovider._get_subclass_names(cln,
@@ -4208,6 +4220,8 @@ class TestInstanceOperations(object):
             assert inst_name in request_inst_names
             assert inst_name.classname in sub_class_dict
 
+    # test_enumerateinstancenames_ns_er
+    # See above for test of good return.
     @pytest.mark.parametrize(
         "tst_ns, cln, in_ns, exp_clns, exp_exc",
         [
@@ -4241,8 +4255,9 @@ class TestInstanceOperations(object):
         Test basic successful operation with namespaces and test for
         namespace and classname errors.
         """
-        conn.add_cimobjects(tst_classeswqualifiers, namespace=tst_ns)
-        conn.add_cimobjects(tst_instances, namespace=tst_ns)
+        add_objects_to_repo(conn, tst_ns, [tst_classeswqualifiers,
+                                           tst_instances])
+
         enum_classname = 'CIM_Foo'
         exp_clns = [enum_classname, 'CIM_Foo_sub', 'CIM_Foo_sub2',
                     'CIM_Foo_sub_sub']
@@ -4274,6 +4289,7 @@ class TestInstanceOperations(object):
             if isinstance(exp_exc, CIMError):
                 assert exc.status_code == exp_exc.status_code
 
+    # test_enumerateinstances
     @pytest.mark.parametrize(
         "ns", EXPANDED_NAMESPACES + [None])
     @pytest.mark.parametrize(
@@ -4328,11 +4344,14 @@ class TestInstanceOperations(object):
             if not di:
                 assert set(inst.keys()) == set(exp_pl)
             else:
-                # di so properties differ instances of each different class.
-                # Issue # 2327: 18 TODO: Improve algorithm so we define exactly
-                # what properties we should receive.
-                assert set(inst.keys()).issubset(exp_pl)
+                klass = conn.GetClass(inst.classname, namespace=ns,
+                                      LocalOnly=False)
+                cls_propnames = klass.properties.keys()
+                inst_propnames = inst.properties.keys()
+                assert sorted(NocaseList(cls_propnames)) == \
+                    sorted(NocaseList(inst_propnames))
 
+    # test_enumerateinstances_pl_di
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
     @pytest.mark.parametrize(
@@ -4419,36 +4438,41 @@ class TestInstanceOperations(object):
                 exp_pl = exp_pls[inst.classname]
             else:
                 exp_pl = exp_pls
-            exp_pl = [x.lower() for x in exp_pl]
-            rslt_pl = [x.lower() for x in inst.keys()]
-            assert set(rslt_pl) == set(exp_pl)
+            exp_pl = NocaseList(exp_pl)
+            result_pl = NocaseList(inst.keys())
+            assert set(result_pl) == set(exp_pl)
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
     @pytest.mark.parametrize(
-        "di, pl, exp_pl, exp_num_insts",
+        "cln, di, pl, exp_pl, exp_num_insts",
         [
+            # cln: EnumerationClass (Required)
             # di: DeepInheritance input parameter for EnumerateInstances()
+            #     NOTE: for None, mock_server uses True
             # pl: PropertyList input parameter for EnumerateInstances()
             # exp_pl: Expected list of property names in result instances
-            # exp_num_insts: Expected number of result instances
-
-            # [None, None, ['InstanceID', 'cimfoo_sub'], 8],
-            [False, None, ['InstanceID'], 8],
+            # exp_num_insts: Expected number of result instances. Should
+            # always be returning same number for a given class.
+            #  cln        di    pl     exp_pl        exp_num_insts
+            ['CIM_Foo', False, None, ['InstanceID'], 8],
+            ['CIM_Foo', None, None, ['InstanceID', 'cimfoo_sub'], 8],
+            ['CIM_Foo', True, None, ['InstanceID', 'cimfoo_sub'], 8],
+            ['CIM_Foo', True, ['InstanceID'], ['InstanceID'], 8],
+            ['CIM_Foo', None, ['cimfoo_sub'], ['cimfoo_sub'], 8],
+            ['CIM_Foo', True, None, ['InstanceID'], 8],
+            ['CIM_Foo', True, ['InstanceID'], ['InstanceID'], 8],
         ]
     )
     def test_enumerateinstances_di(self, conn, tst_classeswqualifiers,
-                                   tst_instances, ns, di, pl, exp_pl,
+                                   tst_instances, ns, cln, di, pl, exp_pl,
                                    exp_num_insts):
         # pylint: disable=no-self-use,unused-argument
         """
-        Test EnumerateInstances with DeepInheritance and propertylist opetions.
+        Test EnumerateInstances with DeepInheritance and propertylist options.
         """
         conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
         conn.add_cimobjects(tst_instances, namespace=ns)
-
-        cln = 'CIM_Foo'
-
         # The code to be tested
         rslt_insts = conn.EnumerateInstances(cln, namespace=ns,
                                              DeepInheritance=di,
@@ -4456,37 +4480,44 @@ class TestInstanceOperations(object):
 
         assert len(rslt_insts) == exp_num_insts
 
-        target_class = conn.GetClass(cln, namespace=ns, LocalOnly=False)
-        cl_props = sorted(list(target_class.properties.keys()))
-
-        tst_class_names = conn.EnumerateClassNames(ns, DeepInheritance=True)
+        target_class = conn.GetClass(cln, namespace=ns, LocalOnly=False,
+                                     PropertyList=pl)
+        target_cls_propnames = sorted(
+            NocaseList(target_class.properties.keys()))
+        tst_cls_names = conn.EnumerateClassNames(ns, DeepInheritance=True)
 
         for inst in rslt_insts:
             assert isinstance(inst, CIMInstance)
-            assert inst.classname in tst_class_names
+            assert inst.classname in tst_cls_names
+            exp_inst = conn.GetInstance(inst.path, PropertyList=pl)
+            # Create list of property names for t ests
+            inst_propnames = sorted(NocaseList(inst.properties.keys()))
 
-            # Test property names
-            inst_props = sorted(list(inst.properties.keys()))
-            if di is not True:
-                # inst_props should match cl_props
-                if len(inst_props) != len(cl_props):
-                    # Issue # 2327: TODO Still have issue with one test. and
-                    # am therefore displaying the following as a reminder
-                    print("test_enumerateinstances_di(): "
-                          "inst prop and class prop names should match:\n"
-                          "  inst  prop names ({}): {!r}\n"
-                          "  class prop names ({}): {!r}".
-                          format(len(inst_props), inst_props,
-                                 len(cl_props), cl_props))
-                assert inst_props == cl_props
+            # Force di to match server default
+            # amd create exp_inst as a test instance to compare with returns.
+            if di is None:
+                di = True
+            if di is False:
+                # inst_property names must match class property names
+                assert len(inst_propnames) == len(target_cls_propnames)
+                assert inst_propnames == target_cls_propnames
+
+                # Remove properties from exp_inst not in target_cls_propnames
+                deletes = [n for n in exp_inst.properties.keys() if n not in
+                           target_cls_propnames and n in exp_inst.properties]
+                for pname in deletes:
+                    del exp_inst.properties[pname]
             else:
+                # Properties must match properties in class for this instance
                 di_class = conn.GetClass(inst.classname, namespace=ns,
-                                         LocalOnly=False)
-                cl_props = sorted(list(di_class.properties.keys()))
-                assert inst_props == cl_props
+                                         LocalOnly=False,
+                                         PropertyList=pl)
+                assert inst_propnames == \
+                    sorted(NocaseList(di_class.properties.keys()))
+            # Test returned inst for equality with instance we built
+            assert exp_inst == inst
 
-            # Issue #2327 TODO Test actual instance returned, including exp_pl
-
+    # test_enumerateinstances_er
     @pytest.mark.parametrize(
         "tst_ns, cln, in_ns, exp_exc",
         [
@@ -4528,13 +4559,12 @@ class TestInstanceOperations(object):
         if isinstance(exp_exc, CIMError):
             assert exc.status_code == exp_exc.status_code
 
+    # Test CreateInstance
     @pytest.mark.parametrize(
         "ns", EXPANDED_NAMESPACES + [None])
     @pytest.mark.parametrize(
         "test, new_inst, exp_rslt",
         [
-            # Issue: 2327,17: TODOThis is a badly designed set of test
-            # parameters. It only allows testing against tst_classeswqualifiers
             # test: integer that defines special modification within test
             #      execution. 0. Use new_instance as defined,
             #                 1. Set namespace to bad namespace,
@@ -4618,9 +4648,11 @@ class TestInstanceOperations(object):
                             ns, test, new_inst, exp_rslt):
         # pylint: disable=no-self-use
         """
-        Test creating an instance.  Tests by creating an
-        instance and then getting that instance. This also includes error
-        tests if exp_exc is not None.
+        Test creating an instance based on the clases in tst_classwqualifiers.
+        Tests by creating an instance and then getting that instance.
+        This also includes error tests if exp_exc is not None.
+        This test is limited in scope because it starts with a set of simple
+        classes.
         """
 
         add_objects_to_repo(conn, ns, tst_classeswqualifiers)
@@ -4689,6 +4721,8 @@ class TestInstanceOperations(object):
             if isinstance(exp_exc, CIMError):
                 assert exc.status_code == exp_exc.status_code
 
+    # Issue 2327. Add test of CreateInstance with a complex class
+
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
     def test_createinstance_dup(self, conn, tst_classeswqualifiers,
@@ -4708,7 +4742,7 @@ class TestInstanceOperations(object):
         assert get_inst.path == new_inst.path
         assert get_inst == new_inst
 
-        # test add again
+        # test add a second time.  Should generate exception.
         with pytest.raises(CIMError) as exec_info:
 
             # The code to be tested
@@ -4768,8 +4802,8 @@ class TestInstanceOperations(object):
         Test the faked CreateInstance with a namespace instance to create ns.
         """
 
-        pytest.skip("This test marked to be skipped")
-        # Issue # 2327 TODO Fix testcase, it does not perform CreateInstance()
+        pytest.skip("This test marked to be skipped. See test_systemproviders")
+        # TODO: Future remove this test.
 
         schema = DMTFCIMSchema(DMTF_TEST_SCHEMA_VER, TESTSUITE_SCHEMA_DIR,
                                verbose=False)
@@ -4866,9 +4900,8 @@ class TestInstanceOperations(object):
                  CIMError(CIM_ERR_INVALID_PARAMETER))],
         ]
     )
-    def test_compile_instances_path(self, conn, tst_assoc_qualdecl_mof,
-                                    tst_assoc_class_mof, ns, tst_mof, exp_rslt,
-                                    exp_exc):
+    def test_compile_instances_path(self, conn, tst_assoc_class_mof, ns,
+                                    tst_mof, exp_rslt, exp_exc):
         # pylint: disable=no-self-use
         """
         Test variations of compile of CIMInstances to validate the
@@ -4877,15 +4910,13 @@ class TestInstanceOperations(object):
         good compile and errors
         """
 
-        classes_mof = tst_assoc_qualdecl_mof + tst_assoc_class_mof
-
         skip_if_moftab_regenerated()
 
-        # Test with instance that does not include
+        classes_mof = tst_assoc_class_mof + tst_mof
         if exp_exc is None:
 
             # The code to be tested
-            conn.compile_mof_string(classes_mof + tst_mof, namespace=ns)
+            conn.compile_mof_string(classes_mof, namespace=ns)
 
             exp_ns = ns or conn.default_namespace
             # Add namespace to any keybinding that is a CIMInstanceName
@@ -4904,7 +4935,7 @@ class TestInstanceOperations(object):
             with pytest.raises(type(exp_exc)) as exec_info:
 
                 # The code to be tested
-                conn.compile_mof_string(classes_mof + tst_mof, namespace=ns)
+                conn.compile_mof_string(classes_mof, namespace=ns)
 
             exc = exec_info.value
             if isinstance(exp_exc, CIMError):
@@ -4915,8 +4946,9 @@ class TestInstanceOperations(object):
     @pytest.mark.parametrize(
         "ns", EXPANDED_NAMESPACES + [None])
     @pytest.mark.parametrize(
-        "sp, nv, pl, exp_rslt, condition",
+        "desc, sp, nv, pl, exp_rslt, condition",
         [
+            # desc: Description of test
             # sp: Special test. integer. 0 means No special test.
             #     other positive integers demand instance mod before modify
             # nv: (new value) single list containing a property name/value or
@@ -4928,72 +4960,91 @@ class TestInstanceOperations(object):
             # condition: Condition. False, skip test, True, Run test,
             #                       'pdb'-debug
 
-            # change any property that is different
-            [0, ['cimfoo_sub', 'newval'], None, True, OK],
-            # change any property that is different with prop case different
-            [0, ['CIMFOO_SUB', 'newval'], None, True, OK],
-            # change this property only
-            [0, ['cimfoo_sub', 'newval'], ['cimfoo_sub'], True, OK],
-            # Duplicate in property list
-            [0, ['cimfoo_sub', 'newval'], ['cimfoo_sub', 'cimfoo_sub'], True,
-             OK],
-            # empty prop list, no change
-            [0, ['cimfoo_sub', 'newval'], [], False, OK],
-            # pl for prop that does not change
-            [0, ['cimfoo_sub', 'newval'], ['cimfoo_sub_sub'], False, OK],
-            # change any property that is different
-            [0, ['cimfoo_sub_sub', 'newval'], None, True, OK],
-            # change this property
-            [0, ['cimfoo_sub_sub', 'newval'], ['cimfoo_sub_sub'], True, OK],
-            # empty prop list, no change
-            [0, ['cimfoo_sub_sub', 'newval'], [], False, OK],
-            # pl for prop that does not change
-            [0, ['cimfoo_sub_sub', 'newval'], ['cimfoo_sub'], False, OK],
-            # Prop name not in class but in Property list
-            [0, ['cimfoo_sub', 'newval'], ['cimfoo_sub', 'not_in_class'],
-             CIMError(CIM_ERR_INVALID_PARAMETER), OK],
-            # change any property that is different, no prop list
-            [0, [('cimfoo_sub', 'newval'),
-                 ('cimfoo_sub_sub', 'newval2'), ], None, True, OK],
-            # change any property that is different, no prop list, p case diff
-            [0, [('CIMFOO_SUB', 'newvalx'),
-                 ('CIMFOO_SUB_sub', 'newval2x'), ], None, True, OK],
-            # Invalid change, Key property
-            [0, ['InstanceID', 'newval'], None, CIMError(CIM_ERR_NOT_FOUND),
-             OK],
-            # Bad namespace. Depends on special code in path
-            [2, ['cimfoo_sub', 'newval'], None,
-             CIMError(CIM_ERR_INVALID_NAMESPACE), OK],
-            # Path and instance classnames differ. Changes inst classname
-            [1, ['cimfoo_sub', 'newval'], None,
-             CIMError(CIM_ERR_INVALID_PARAMETER), OK],
-            # Do one where path has bad classname
-            [3, ['cimfoo_sub', 'newval'], None,
-             CIMError(CIM_ERR_INVALID_PARAMETER), OK],
-            # 4 path and inst classnames same but not in repo
-            [4, ['cimfoo_sub', 'newval'], None,
-             CIMError(CIM_ERR_INVALID_CLASS), OK],
-            # 5, no properties in modified instance
-            [5, [], None, False, OK],
-            # 6, Invalid type for modified_instance
-            [6, [], None, TypeError(), OK],
-            # 7, Invalid type for PropertyList
-            [7, [], None, TypeError(), OK],
+            ["1. change any property that is different",
+             0, ['cimfoo_sub', 'newval'], None, True, OK],
 
-            # Issue # 2327: TODO add additional tests.
-            # 1. only some properties in modifiedinstance and variations of
-            #    property list
+            ["2. change any property that is different with prop case "
+             "different",
+             0, ['CIMFOO_SUB', 'newval'], None, True, OK],
+
+            ["3. change any property that is different with PropertyList",
+             0, ['cimfoo_sub', 'newval'], ['cimfoo_sub'], True, OK],
+
+            ["4. Duplicate in property list",
+             0, ['cimfoo_sub', 'newval'], ['cimfoo_sub', 'cimfoo_sub'], True,
+             OK],
+
+            ["5. Empty prop list, no change",
+             0, ['cimfoo_sub', 'newval'], [], False, OK],
+
+            ["6. pl for prop that does not change",
+             0, ['cimfoo_sub', 'newval'], ['cimfoo_sub_sub'], False, OK],
+
+            ["7. Change any property that is different",
+             0, ['cimfoo_sub_sub', 'newval'], None, True, OK],
+
+            ["8. Change a property",
+             0, ['cimfoo_sub_sub', 'newval'], ['cimfoo_sub_sub'], True, OK],
+
+            ["9. Empty prop list, no change",
+             0, ['cimfoo_sub_sub', 'newval'], [], False, OK],
+
+            ["10. Property name not in class but in Property list",
+             0, ['cimfoo_sub', 'newval'], ['cimfoo_sub', 'not_in_class'],
+             CIMError(CIM_ERR_INVALID_PARAMETER), OK],
+
+            ["11. Change any property that is different, no prop list",
+             0, [('cimfoo_sub', 'newval'),
+                 ('cimfoo_sub_sub', 'newval2'), ], None, True, OK],
+
+            ["12. Change any property that is different, no prop list, "
+             "property casedifferences",
+             0, [('CIMFOO_SUB', 'newvalx'),
+                 ('CIMFOO_SUB_sub', 'newval2x'), ], None, True, OK],
+
+            ["13. Invalid change, Key property",
+             0, ['InstanceID', 'newval'], None, CIMError(CIM_ERR_NOT_FOUND),
+             OK],
+
+            ["14. Bad namespace. Depends on special code in path",
+             2, ['cimfoo_sub', 'newval'], None,
+             CIMError(CIM_ERR_INVALID_NAMESPACE), OK],
+
+            ["15. Path and instance classnames differ. Changes inst classname",
+             1, ['cimfoo_sub', 'newval'], None,
+             CIMError(CIM_ERR_INVALID_PARAMETER), OK],
+
+            ["Path has bad classname",
+             3, ['cimfoo_sub', 'newval'], None,
+             CIMError(CIM_ERR_INVALID_PARAMETER), OK],
+
+            ["16. Path has bad classname",
+             4, ['cimfoo_sub', 'newval'], None,
+             CIMError(CIM_ERR_INVALID_CLASS), OK],
+
+            ["17. no properties in modified instance",
+             5, [], None, False, OK],
+
+            ["18. Invalid type for modified_instance",
+             6, [], None, TypeError(), OK],
+
+            ["19. Invalid type for PropertyList",
+             7, [], None, TypeError(), OK],
         ]
     )
     def test_modifyinstance(self, conn, tst_classeswqualifiers, tst_instances,
-                            ns, sp, nv, pl, exp_rslt, condition):
+                            desc, ns, sp, nv, pl, exp_rslt, condition):
         # pylint: disable=no-self-use
         """
         Test the mock of modifying an existing instance. Gets the instance
-        from the repo, modifies a property and calls ModifyInstance
+        from the repo, modifies propertyiesand calls ModifyInstance. Allows
+        testing against a variety of errors with the sp parameter which
+        defines variations to the input parameters
+
+        Test a specific class
         """
         if not condition:
-            pytest.skip("This test marked to be skipped")
+            pytest.skip("This test marked to be skipped by condition")
 
         if condition == 'pdb':
             import pdb  # pylint: disable=import-outside-toplevel
@@ -5002,33 +5053,33 @@ class TestInstanceOperations(object):
         add_objects_to_repo(conn, ns, [tst_classeswqualifiers, tst_instances])
 
         insts = conn.EnumerateInstances('CIM_Foo_sub_sub', namespace=ns)
-        assert insts
+        assert insts, "desc {}".format(desc)
         orig_instance = insts[0]
         modify_instance = orig_instance.copy()
 
-        # property values from the nv parameter.
+        # Modify properties as defined in nv parameter
         if nv:
             if not isinstance(nv[0], (list, tuple)):
                 nv = [nv]
             for item in nv:
                 modify_instance[item[0]] = item[1]
 
-        # Code to change characteristics of modify_instance based on
-        # sp parameter
+        # Code to change characteristics of modify_instance test based on
+        # sp parameter. Changes classname, namespace name, etc.
 
-        if sp == 0:
+        if sp == 0:  # Basic ModifyInstanceTest. No params changed
             pass
-        elif sp == 1:
+        elif sp == 1:  # Test for class does not exist
             modify_instance.classname = 'CIM_NoSuchClass'
-        elif sp == 2:
+        elif sp == 2:  # submit invalid namespace
             modify_instance.path.namespace = 'BadNamespace'
-        elif sp == 3:
+        elif sp == 3:  # test modifies classname
             modify_instance.path.classname = 'changedpathclassname'
-        elif sp == 4:
+        elif sp == 4:  # Nonexistent class test
             modify_instance.path.classname = 'CIM_NoSuchClass'
             modify_instance.classname = 'CIM_NoSuchClass'
         elif sp == 5:
-            modify_instance.properties = NocaseDict()
+            modify_instance.properties = NocaseDict()  # No properties
         elif sp == 6:
             modify_instance = 42  # Invalid type
         elif sp == 7:
@@ -5046,8 +5097,8 @@ class TestInstanceOperations(object):
             exc = exec_info.value
             if isinstance(exp_exc, CIMError):
                 assert exc.status_code == exp_exc.status_code
-        else:
 
+        else:
             # The code to be tested
             conn.ModifyInstance(modify_instance, PropertyList=pl)
 
@@ -5230,8 +5281,9 @@ class TestInstanceOperations(object):
         """
 
         pytest.skip("This test marked to be skipped, superceeded")
-        # Issue # 2327: TODO Clarify which test supercedes it, and if test can
-        # be deleted
+        # Issue # 2327: TODO This Test can be deleted
+        # This test is superceeded by test of the namespace
+        # provider in the file test_system_providers.
 
         conn.add_namespace(interop_ns)
         conn.add_cimobjects(tst_qualifiers, namespace=interop_ns)
@@ -5639,8 +5691,14 @@ class TestPullOperations(object):
             rslt_paths = [inst.path for inst in result_tuple.instances]
 
             assert_equal_ciminstancenames(rslt_paths, exp_paths)
-            # Issue #2327: TODO Tst instances returned rather than just paths
-            # and test for propertylist specifically
+
+            for inst in result_tuple.instances:
+                exp_inst = conn.GetInstance(inst.path)
+                assert_equal_ciminstances(inst, exp_inst)
+
+            # TODO confirm we are testing for all assoc instances.  We
+            # are not since we also need to count the number of instances
+            # of corresponding reference classes.
 
         else:
             exp_exc = exp_rslt
@@ -5699,7 +5757,7 @@ class TestPullOperations(object):
             ['FQL', 'SELECT * FROM CIM_Foo', False,
              CIMError(CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED)],
 
-            # Invalid types
+            # Invalid types tests
 
             [42, 'SELECT * FROM CIM_Foo', False,
              TypeError()],
@@ -6107,6 +6165,7 @@ class TestReferenceOperations(object):
         assert len(conn.EnumerateInstanceNames("TST_Person", namespace=ns)) == \
             TST_PERSONWITH_SUB_INST_COUNT
 
+    # TestReferenceClassNames
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
     @pytest.mark.parametrize(
@@ -6183,8 +6242,8 @@ class TestReferenceOperations(object):
                                      host=conn.host)
                         for n in exp_rslt]
 
-            assert set(cln_.classname.lower() for cln_ in exp_clns) == \
-                set(cln_.classname.lower() for cln_ in rslt_clns)
+            assert sorted(exp_clns, key=lambda x: x.classname.lower()) == \
+                sorted(rslt_clns, key=lambda x: x.classname.lower())
 
         else:
             assert isinstance(exp_rslt, Exception)
@@ -6353,16 +6412,13 @@ class TestReferenceOperations(object):
             if isinstance(exp_exc, CIMError):
                 assert exc.status_code == exp_exc.status_code
 
-    # Issue # 2327 TODO: not sure we really need this testcase? Combine with
-    # next case. The only thing special about this test is it sets all
-    # parameters to default
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
     def test_reference_instances_min(self, conn, tst_assoc_mof, ns):
         # pylint: disable=no-self-use
         """
         Test getting reference instances from default namespace with
-        detault parameters
+        detault parameters. This is a minimal test of References with instances.
         """
         skip_if_moftab_regenerated()
 
@@ -6389,49 +6445,68 @@ class TestReferenceOperations(object):
         assert isinstance(rslt_insts, list)
         assert_equal_ciminstances(exp_insts, rslt_insts)
 
-    # Issue # 2327: TODO: Add test parameter for property list and do complete
-    # instance compare on result
-
+    # Test reference instance options
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
     @pytest.mark.parametrize(
-        "rc, role, exp_rslt",
+        "desc, rc, role, iq, ico, pl, exp_rslt",
         [
+            # description
             # rc: ResultClass parameter
             # role: Role parameter
+            # iq: IncludeQualifiers Flag
+            # ico: IncludeClassOrigin flag
+            # pl: PropertyList
             # exp_rslt: tuple of classname and tuple of keys
             # in expected return CIMInstanceNames. Used to build expected
             # return keys.
 
-            [None, None, (('TST_Lineage', ('InstanceID', 'MikeGabi')),
-                          ('TST_Lineage', ('InstanceID', 'MikeSofi')),
-                          ('TST_MemberOfFamilyCollection', (
-                              ('TST_FamilyCollection', 'family', 'name',
-                               "Family2"),
-                              ('TST_Person', 'member', 'name', 'Mike'))))],
+            ["1. References with all default parameters",
+             None, None, None, None, None,
+             (('TST_Lineage', ('InstanceID', 'MikeGabi')),
+              ('TST_Lineage', ('InstanceID', 'MikeSofi')),
+              ('TST_MemberOfFamilyCollection', (
+                  ('TST_FamilyCollection', 'family', 'name', "Family2"),
+                  ('TST_Person', 'member', 'name', 'Mike'))))],
 
-            ['TST_Lineage', None, (('TST_Lineage', ('InstanceID', 'MikeGabi')),
-                                   ('TST_Lineage',
-                                    ('InstanceID', 'MikeSofi')))],
-            ['tst_lineage', None, (('TST_Lineage', ('InstanceID', 'MikeGabi')),
-                                   ('TST_Lineage',
-                                    ('InstanceID', 'MikeSofi')))],
-            [None, 'parent', (('TST_Lineage', ('InstanceID', 'MikeGabi')),
-                              ('TST_Lineage', ('InstanceID', 'MikeSofi')))],
-            [None, 'PARENT', (('TST_Lineage', ('InstanceID', 'MikeGabi')),
-                              ('TST_Lineage', ('InstanceID', 'MikeSofi')))],
-            ['TST_Lineage', 'parent', (('TST_Lineage',
-                                        ('InstanceID', 'MikeGabi')),
-                                       ('TST_Lineage',
-                                        ('InstanceID', 'MikeSofi')))],
-            [None, 'friend', []],
+            ["2. Test with result class defined",
+             'TST_Lineage', None, None, None, None,
+             (('TST_Lineage', ('InstanceID', 'MikeGabi')),
+              ('TST_Lineage', ('InstanceID', 'MikeSofi')))],
+
+            ["3. Test with result class different case",
+             'tst_lineage', None, None, None, None,
+             (('TST_Lineage', ('InstanceID', 'MikeGabi')),
+              ('TST_Lineage', ('InstanceID', 'MikeSofi')))],
+
+            ["4. Test with role defined",
+             None, 'parent', None, None, None,
+             (('TST_Lineage', ('InstanceID', 'MikeGabi')),
+              ('TST_Lineage', ('InstanceID', 'MikeSofi')))],
+
+            ["5. Test with role defined with different case",
+             None, 'PARENT', None, None, None,
+             (('TST_Lineage', ('InstanceID', 'MikeGabi')),
+              ('TST_Lineage', ('InstanceID', 'MikeSofi')))],
+
+            ["6. Test with result class and role defined",
+             'TST_Lineage', 'parent', None, None, None,
+             (('TST_Lineage', ('InstanceID', 'MikeGabi')),
+              ('TST_Lineage', ('InstanceID', 'MikeSofi')))],
+
+            ["6. Test with unknown role defined",
+             None, 'friend', None, None, None, []],
+
+            # TODO add ico and property list tests.
+
         ]
     )
-    def test_reference_instances_opts(self, conn, tst_assoc_mof, ns, rc, role,
-                                      exp_rslt):
+    def test_reference_instances_opts(self, conn, tst_assoc_mof, ns,
+                                      desc, rc, role, iq, ico, pl, exp_rslt):
         # pylint: disable=no-self-use
         """
         Test getting reference instance names with rc and role options.
+        Tests agains the classes defined in tst_assoc_mof.
         """
         skip_if_moftab_regenerated()
 
@@ -6442,18 +6517,22 @@ class TestReferenceOperations(object):
                                     namespace=ns)
 
         # The code to be tested
-        insts = conn.References(inst_name, ResultClass=rc, Role=role)
+        insts = conn.References(inst_name, ResultClass=rc, Role=role,
+                                IncludeQualifiers=iq,
+                                IncludeClassOrigin=ico,
+                                PropertyList=pl)
 
         paths = [i.path for i in insts]
 
-        assert isinstance(insts, list)
-        assert len(insts) == len(exp_rslt)
+        assert isinstance(insts, list), "desc {}".format(desc)
+        assert len(insts) == len(exp_rslt), "desc {}".format(desc)
         for inst in insts:
-            assert isinstance(inst, CIMInstance)
+            assert isinstance(inst, CIMInstance), "desc {}".format(desc)
 
         exp_ns = ns or conn.default_namespace
 
         # create the expected paths from exp_rslt fixture.
+
         exp_paths = []
         for exp_path in exp_rslt:
             kbs = OrderedDict()
@@ -6473,6 +6552,7 @@ class TestReferenceOperations(object):
 
         assert_equal_ciminstancenames(exp_paths, paths)
 
+    # Test reference instance with source instance that is not an instance
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
     @pytest.mark.parametrize(
@@ -6482,11 +6562,10 @@ class TestReferenceOperations(object):
             CIMInstanceName('XXX_Blah', keybindings={'InstanceID': 3}),
         ]
     )
-    def test_reference_target_err(self, conn, tst_assoc_mof, ns, targ_obj):
+    def test_reference_source_err(self, conn, tst_assoc_mof, ns, targ_obj):
         # pylint: disable=no-self-use
         """
-        Test getting reference classnames with no options on call and default
-        namespace. Tests for both string and CIMClassName input
+        Separate test for error when source instance invalid type
         """
         skip_if_moftab_regenerated()
 
@@ -6504,7 +6583,7 @@ class TestAssociatorOperations(object):
     """
     Tests of Associator class and instance operations
     """
-
+    # Test associatornames operation with classnames
     @pytest.mark.parametrize(
         "ns", EXPANDED_NAMESPACES + [None])
     @pytest.mark.parametrize(
@@ -6604,6 +6683,7 @@ class TestAssociatorOperations(object):
             if isinstance(exp_exc, CIMError):
                 assert exc.status_code == exp_exc.status_code
 
+    # Test associatornames with instances operation
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
     @pytest.mark.parametrize(
@@ -6704,13 +6784,14 @@ class TestAssociatorOperations(object):
 
         # TODO: expand associator instance names tests
 
+    # Test Associators with operation with instances
     TESTCASES_ASSOCIATOR_INSTANCES = [
 
         # Testcases for test_associator_instances(), where each list item is
         # a tuple with these items:
         #
         # desc: Testcase description
-        # inst_name: ObjectName input parameter for the op., or BUILDIT
+        # inst_name: ObjectName input parameter for the op., or 'buildit' flag
         # role: Role input parameter for the operation
         # ac: AssocClass input parameter for the operation
         # rr: ResultRole input parameter for the operation
@@ -6722,8 +6803,8 @@ class TestAssociatorOperations(object):
         #           (classname, name key), or expected exception object.
 
         (
-            "Role, AssocClass parameters",
-            BUILDIT,
+            "1. Test Role, AssocClass parameters",
+            'buildit',
             'parent', 'TST_Lineage', None, None,
             None, None, None,
             (
@@ -6731,9 +6812,31 @@ class TestAssociatorOperations(object):
                 ('TST_person', 'Gabi'),
             )
         ),
+
         (
-            "Role, AssocClass, ResultRole, ResultClass parameters",
-            BUILDIT,
+            "2. Test Role, AssocClass parameters with pl",
+            'buildit',
+            'parent', 'TST_Lineage', None, None,
+            None, None, ['name'],
+            (
+                ('TST_person', 'Sofi'),
+                ('TST_person', 'Gabi'),
+            )
+        ),
+
+        (
+            "3. Test Role, AssocClass parameters with empty pl",
+            'buildit',
+            'parent', 'TST_Lineage', None, None,
+            None, None, "",
+            (
+                ('TST_person', 'Sofi'),
+                ('TST_person', 'Gabi'),
+            )
+        ),
+        (
+            "4. Role, AssocClass, ResultRole, ResultClass parameters",
+            'buildit',
             'parent', 'TST_Lineage', 'child', 'TST_Person',
             None, None, None,
             (
@@ -6742,48 +6845,49 @@ class TestAssociatorOperations(object):
             )
         ),
         (
-            "ObjectName is instance path with non-existing namespace",
+            "5. ObjectName is instance path with non-existing namespace",
             CIMInstanceName('TST_Lineage', namespace='BadNameSpaceName',
                             keybindings=dict(name='Mike')),
             None, None, None, None,
             None, None, None,
             CIMError(CIM_ERR_INVALID_NAMESPACE)
         ),
+
         (
-            "ObjectName has invalid type int",
+            "6. ObjectName has invalid type int",
             42, None, None, None, None, None, None, None, TypeError()
         ),
         (
-            "ObjectName has invalid value None",
+            "7. ObjectName has invalid value None",
             None, None, None, None, None, None, None, None, TypeError()
         ),
         (
-            "Role has invalid type int",
-            BUILDIT, 42, None, None, None, None, None, None, TypeError()
+            "8. Role has invalid type int",
+            'buildit', 42, None, None, None, None, None, None, TypeError()
         ),
         (
-            "AssocClass has invalid type int",
-            BUILDIT, None, 42, None, None, None, None, None, TypeError()
+            "9. AssocClass has invalid type int",
+            'buildit', None, 42, None, None, None, None, None, TypeError()
         ),
         (
-            "ResultRole has invalid type int",
-            BUILDIT, None, None, 42, None, None, None, None, TypeError()
+            "10. ResultRole has invalid type int",
+            'buildit', None, None, 42, None, None, None, None, TypeError()
         ),
         (
-            "ResultClass has invalid type int",
-            BUILDIT, None, None, None, 42, None, None, None, TypeError()
+            "11. ResultClass has invalid type int",
+            'buildit', None, None, None, 42, None, None, None, TypeError()
         ),
         (
-            "IncludeQualifiers has invalid type int",
-            BUILDIT, None, None, None, None, 42, None, None, TypeError()
+            "12. IncludeQualifiers has invalid type int",
+            'buildit', None, None, None, None, 42, None, None, TypeError()
         ),
         (
-            "IncludeClassOrigin has invalid type int",
-            BUILDIT, None, None, None, None, None, 42, None, TypeError()
+            "13. IncludeClassOrigin has invalid type int",
+            'buildit', None, None, None, None, None, 42, None, TypeError()
         ),
         (
-            "PropertyList has invalid type int",
-            BUILDIT, None, None, None, None, None, None, 42, TypeError()
+            "14. PropertyList has invalid type int",
+            'buildit', None, None, None, None, None, None, 42, TypeError()
         ),
     ]
 
@@ -6794,6 +6898,7 @@ class TestAssociatorOperations(object):
         [
             # cln: Class name used in the source instance path
             # name_key: 'name' key value used in the source instance path
+            # Used whan inst_name is 'buildit'
 
             ['TST_Person', 'Mike'],
             ['tst_person', 'Mike'],
@@ -6810,15 +6915,12 @@ class TestAssociatorOperations(object):
         """
         Test Associators() operation at instance level.
         """
-        # Issue #2327 TODO: Add test for IncludeQualifiers, PropertyList,
-        # IncludeClassOrigin
         skip_if_moftab_regenerated()
 
         conn.compile_mof_string(tst_assoc_mof, namespace=tst_ns)
 
         exp_ns = tst_ns or conn.default_namespace
-
-        if inst_name is BUILDIT:
+        if isinstance(inst_name, str) and inst_name == 'buildit':
             inst_name = CIMInstanceName(cln, namespace=exp_ns,
                                         keybindings=dict(name=name_key))
 
@@ -6848,53 +6950,151 @@ class TestAssociatorOperations(object):
             assert isinstance(rslt_insts, list)
             assert len(rslt_insts) == len(exp_rslt)
 
-            # Build the expected result list
+            for inst in rslt_insts:
+                assert not inst.qualifiers
+                for inst in inst.properties.values():
+                    assert not inst.qualifiers
+                    if ico:
+                        assert inst.class_origin
+                    else:
+                        assert inst.class_origin is None
+
+            if pl == "":
+                for inst in rslt_insts:
+                    assert len(inst.properties) == 0
+            elif pl:
+                for propname in pl:
+                    for inst in rslt_insts:
+                        assert propname in inst.properties, \
+                            "desc: {}".format(desc)
+                assert sorted(inst.properties) == sorted(pl)
+            elif pl is None:
+                for inst in rslt_insts:
+                    repo_inst = conn.GetInstance(inst.path)
+                    assert sorted(inst.properties) == \
+                        sorted(repo_inst.properties)
+            else:
+                assert False, "Invalid pl parameter {}".format(pl)
+
+            # Build the expected result instances list
             exp_insts = []
             for cln_, name_key_ in exp_rslt:
+                props = {} if pl == "" else {'name': name_key_}
                 exp_inst = CIMInstance(
-                    cln_, properties={'name': name_key_},
+                    cln_, properties=props,
                     path=CIMInstanceName(
                         cln_, keybindings={'name': name_key_},
                         namespace=exp_ns))
                 exp_insts.append(exp_inst)
 
-            assert_equal_ciminstances(exp_insts, rslt_insts, pl=['name'])
+            # TODO: this is a limited test today.  Need to expand so
+            # test pl covers all three cases for property list. Then we
+            # can drop above pl test.
+            tst_pl = None if pl == "" else ['name']
+            assert_equal_ciminstances(exp_insts, rslt_insts, pl=tst_pl)
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
     @pytest.mark.parametrize(
         "cln", ['TST_Person'])
     @pytest.mark.parametrize(
-        "role, ac, rr, rc, exp_rslt",
+        ", desc, role, ac, rr, rc, iq, ico, pl, exp_rslt",
         [
+            # Description: String describing test
             # role: associator role parameter
             # ac: associator operation AssocClass parameter
             # rr: associator operation ResultRole parameter
             # rc: associator operation ResultClass parameter
+            # iq: include qualifiers
+            # ico: include class origin
+            # pl: Property list to include in request
             # exp_rslt: Either list of names of expected classes returned,
             #           or expected exception object
-            # Issue # 2327 TODO:Review this and its results. I am uncomfortable
-            #       I have not covered all the essential options
 
-            [None, None, None, None, ['TST_Person']],
-            [None, 'TST_Lineage', None, None, ['TST_Person']],
-            ['Parent', 'TST_Lineage', None, None, ['TST_Person']],
-            ['parent', 'TST_Lineage', None, None, ['TST_Person']],
-            ['Parent', 'TST_Lineage', 'child', 'TST_Person', ['TST_Person']],
-            ['parent', 'TST_Lineage', 'Child', 'TST_Person', ['TST_Person']],
-            ['PARENT', 'TST_Lineage', 'CHILD', 'TST_Person', ['TST_Person']],
-            [None, None, 'child', 'TST_Person', ['TST_Person']],
-            ['Parent', 'TST_Lineage', 'child', 'TST_Person',
+            ["1.TTest all parameters None",
+             None, None, None, None,
+             None, None, None,
+             ['TST_Person']],
+
+            ["2. Test Role valid",
+             None, 'TST_Lineage', None, None,
+             None, None, None,
+             ['TST_Person']],
+
+            ["3. Test Role and ac valid",
+             'Parent', 'TST_Lineage', None, None,
+             None, None, None,
+             ['TST_Person']],
+
+            ["4. Test Role and ac valid, case inequality",
+             'parent', 'TST_Lineage', None, None,
+             None, None, None,
+             ['TST_Person']],
+
+            ["5. Test Role, ac, rr, rc",
+             'Parent', 'TST_Lineage', 'child', 'TST_Person',
+             None, None, None,
+             ['TST_Person']],
+
+            ["6.Test role, ac, rr, rc case inequalify",
+             'parent', 'TST_Lineage', 'Child', 'TST_Person',
+             None, None, None,
+             ['TST_Person']],
+
+            ["7.Test role, ac, rr, rc, case inqaulaity",
+             'PARENT', 'TST_Lineage', 'CHILD', 'TST_Person',
+             None, None, None,
+             ['TST_Person']],
+
+            ["8. Test rr, rc",
+             None, None, 'child', 'TST_Person',
+             None, None, None,
+             ['TST_Person']],
+
+            ["9.Test role does not exist",
+             'PARENTx', 'TST_Lineage', 'CHILD', 'TST_Person',
+             None, None, None,
+             []],
+
+            ["10.Test result role does not exist",
+             'PARENT', 'TST_Lineage', 'CHILDx', 'TST_Person',
+             None, None, None,
+             []],
+
+            ["11.Test result class does not part of association",
+             'PARENT', 'TST_Lineage', 'CHILD', 'TST_Lineage',
+             None, None, None,
+             []],
+
+            ["12.Test assoc class does not part of association",
+             'PARENT', 'TST_Person', 'CHILD', 'TST_Person',
+             None, None, None,
+             []],
+
+            ["13. Test all 4 roles",
+             'Parent', 'TST_Lineage', 'child', 'TST_Person',
+             None, None, None,
              CIMError(CIM_ERR_INVALID_NAMESPACE)],
-            # Invalid types
-            [42, None, None, None, TypeError()],
-            [None, 42, None, None, TypeError()],
-            [None, None, 42, None, TypeError()],
-            [None, None, None, 42, TypeError()],
+
+            # Invalid type (integer) for role, ac, rr, rc
+            ["14. Error, invalid role",
+             42, None, None, None, None, None, None, TypeError()],
+            ["15. Error, Invalid rr",
+             None, 42, None, None, None, None, None, TypeError()],
+            ["16. Error invalid assoc class",
+             None, None, 42, None, None, None, None, TypeError()],
+            ["17. Error, invalid rc",
+             None, None, None, 42, None, None, None, TypeError()],
+
+            ["18.Test rc is subclass. There are no instance of this subclass",
+             'PARENT', 'TST_Lineage', 'CHILD', 'TST_Personsub',
+             None, None, None,
+             []],
         ]
     )
-    def test_associator_classes(self, conn, tst_assoc_mof, ns, cln, role, rr,
-                                ac, rc, exp_rslt):
+    def test_associator_classes(self, conn, tst_assoc_mof, ns, cln,
+                                desc, role, rr, ac, rc,
+                                iq, ico, pl, exp_rslt):
         # pylint: disable=no-self-use
         """
         Test getting reference classnames with no options on call and default
@@ -6911,17 +7111,53 @@ class TestAssociatorOperations(object):
 
             # The code to be tested
             results = conn.Associators(cln, AssocClass=ac, Role=role,
-                                       ResultRole=rr, ResultClass=rc)
+                                       ResultRole=rr, ResultClass=rc,
+                                       IncludeQualifiers=iq,
+                                       IncludeClassOrigin=ico,
+                                       PropertyList=pl)
 
-            assert isinstance(results, list)
-            assert len(results) == len(exp_rslt)
+            assert isinstance(results, list), "desc: {}".format(desc)
+            assert len(results) == len(exp_rslt), "desc: {}".format(desc)
             for result in results:
                 assert isinstance(result, tuple)
                 assert isinstance(result[0], CIMClassName)
                 assert isinstance(result[1], CIMClass)
 
+            # Test for property lists matching
+            if pl == "":
+                for cls in results:
+                    assert len(cls.properties) == 0
+            elif pl:
+                for propname in pl:
+                    for cls in results:
+                        assert propname in cls.properties, \
+                            "desc: {}".format(desc)
+                        assert len(pl) == len(cls.properties), \
+                            "desc: {}".format(desc)
+            elif pl is None:
+                repo_cls = conn.GetClass(cln)
+                prop_count = len(repo_cls.properties)
+                for _, cls in results:
+                    assert len(cls.properties) == prop_count
+            else:
+                assert False, "Invalid pl parameter {}".format(pl)
+
+            if iq:
+                for _, cls in results:
+                    if iq:
+                        assert cls.qualifiers is not None
+                    else:
+                        assert not cls.qualifiers
+
+            for _, cls in results:
+                for prop in cls.properties.values():
+                    if ico:
+                        assert prop.class_origin
+                    else:
+                        assert prop.class_origin is None
+
             clns = [result[0].classname for result in results]
-            assert set(clns) == set(exp_rslt)
+            assert set(clns) == set(exp_rslt), "desc: {}".format(desc)
 
         else:
             assert isinstance(exp_rslt, Exception)
@@ -6942,10 +7178,8 @@ class TestAssociatorOperations(object):
 
             exc = exec_info.value
             if isinstance(exp_exc, CIMError):
-                assert exc.status_code == exp_exc.status_code
-
-        # Issue #2327: TODO: Expand associator classes test to test for correct
-        # properties in response
+                assert exc.status_code == exp_exc.status_code, \
+                    "desc: {}".format(desc)
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
@@ -7684,7 +7918,7 @@ class TestInvokeMethod(object):
         registration process.
         """
         if not condition:
-            pytest.skip("This test marked to be skipped")
+            pytest.skip("This test marked to be skipped by condition")
         skip_if_moftab_regenerated()
 
         conn.compile_mof_string(tst_instances_mof, namespace=ns)
@@ -7926,7 +8160,7 @@ class TestBaseProvider(object):
         Test BaseProvider.is_subclass().
         """
         if not condition:
-            pytest.skip("This test marked to be skipped")
+            pytest.skip("This test marked to be skipped by condition")
 
         if condition == 'pdb':
             import pdb  # pylint: disable=import-outside-toplevel
