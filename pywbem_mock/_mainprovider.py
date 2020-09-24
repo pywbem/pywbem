@@ -344,7 +344,7 @@ class MainProvider(ResolverMixin, BaseProvider):
 
              If `False` or `None` all properties are returned. This method
              maintains the code to implement local only consistent with
-             version 1.4 of DSP0004. However evert call to _get_instances
+             version 1.4 of DSP0004. However every call to _get_instances
              now sets the default `False` since that was the only way to
              get around issues between different versions of DSP0200 that
              defined incompatible behaviors to this request parameter.
@@ -355,7 +355,8 @@ class MainProvider(ResolverMixin, BaseProvider):
               returned object
 
               The value of this argument may be overridden by the
-              IGNORE_INSTANCE_ICO_PARAM config variable.
+              IGNORE_INSTANCE_ICO_PARAM config variable.  The default config
+              value is True(ignore this parameter and use False)
 
           include_qualifiers (:class:`pybool`):
               If `True`, any qualifiers in the stored instance the instance and
@@ -365,7 +366,8 @@ class MainProvider(ResolverMixin, BaseProvider):
               are returned.
 
               The value of this argument may be overridden by the
-              IGNORE_INSTANCE_IQ_PARAM config variable.
+              IGNORE_INSTANCE_IQ_PARAM config variable. The default config
+              value is True(ignore this parameter and use False)
 
         Returns:
 
@@ -1208,6 +1210,9 @@ class MainProvider(ResolverMixin, BaseProvider):
 
             This parameter has been deprecated in :term:`DSP0200`. Clients
             cannot rely on qualifiers to be returned in this operation.
+            The value of this argument may be overridden by the
+            IGNORE_INSTANCE_IQ_PARAM config variable. The default config
+            value is True(ignore this parameter and use False)
 
           IncludeClassOrigin (:class:`py:bool`):
             Indicates that class origin information is to be included on each
@@ -1216,6 +1221,10 @@ class MainProvider(ResolverMixin, BaseProvider):
             * If `False`, class origin information is not included.
             * If `True`, class origin information is included.
             * If `None`, uses :term:`DSP0200` server default `False`.
+
+            The value of this argument may be overridden by the
+            IGNORE_INSTANCE_ICO_PARAM config variable. The default config
+            value is True(ignore this parameter and use False)
 
           PropertyList (:term:`string` or :term:`py:iterable` of :term:`string`):
             An iterable specifying the names of the properties (or a string
@@ -1258,9 +1267,6 @@ class MainProvider(ResolverMixin, BaseProvider):
         self.validate_namespace(namespace)
         iname = InstanceName
 
-        # Set LocalOnly to False as fixed value.
-        LocalOnly = INSTANCE_RETRIEVE_LOCAL_ONLY
-
         instance_store = self.cimrepository.get_instance_store(namespace)
 
         if not self.class_exists(namespace, iname.classname):
@@ -1268,7 +1274,8 @@ class MainProvider(ResolverMixin, BaseProvider):
                 CIM_ERR_INVALID_CLASS,
                 _format("Class {0!A} for GetInstance of instance {1!A} "
                         "does not exist.", iname.classname, iname))
-
+        # Set LocalOnly to False as fixed value.
+        LocalOnly = INSTANCE_RETRIEVE_LOCAL_ONLY
         return self._get_instance(iname, instance_store,
                                   LocalOnly,
                                   IncludeClassOrigin,
@@ -1382,8 +1389,6 @@ class MainProvider(ResolverMixin, BaseProvider):
         instance_store = self.cimrepository.get_instance_store(namespace)
         class_store = self.cimrepository.get_class_store(namespace)
 
-        LocalOnly = INSTANCE_RETRIEVE_LOCAL_ONLY
-
         # If DeepInheritance False use only properties from the original
         # class. Modify property list to limit properties to those from this
         # class.  This only works if class exists. If class not in
@@ -1424,6 +1429,7 @@ class MainProvider(ResolverMixin, BaseProvider):
                                                       class_store)
 
         # get and process instances from the instance_store
+        LocalOnly = INSTANCE_RETRIEVE_LOCAL_ONLY
         insts = [self._get_instance(inst.path, instance_store,
                                     LocalOnly,
                                     IncludeClassOrigin,

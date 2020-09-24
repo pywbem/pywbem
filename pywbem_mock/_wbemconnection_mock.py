@@ -908,18 +908,11 @@ class FakedWBEMConnection(WBEMConnection):
         # Issue #2062: TODO/ks FUTURE Consider sorting to preserve order of
         # compile/add. Make this part of refactor to separate repository and
         # datastore because it may be data store dependent
-        if obj_type == 'Methods':
-            _uprint(dest,
-                    _format(u"{0}Namespace {1!A}: contains {2} {3}:{4}\n",
-                            cmt_begin, namespace,
-                            len(object_repo),
-                            obj_type, cmt_end))
-        else:
-            _uprint(dest,
-                    _format(u"{0}Namespace {1!A}: contains {2} {3} {4}\n",
-                            cmt_begin, namespace,
-                            object_repo.len(),
-                            obj_type, cmt_end))
+        _uprint(dest,
+                _format(u"{0}Namespace {1!A}: contains {2} {3} {4}\n",
+                        cmt_begin, namespace,
+                        object_repo.len(),
+                        obj_type, cmt_end))
         if summary:
             return
 
@@ -942,21 +935,6 @@ class FakedWBEMConnection(WBEMConnection):
                             _format(u"{0} Path={1} {2}\n{3}",
                                     cmt_begin, inst.path.to_wbem_uri(),
                                     cmt_end, inst.tomof()))
-
-        elif obj_type == 'Methods':
-            try:
-                methods = object_repo
-            except KeyError:
-                return
-
-            for cln in methods:
-                for method in methods[cln]:
-                    _uprint(dest,
-                            _format(u"{0}Class: {1}, method: {2}, "
-                                    u"callback: {3} {4}",
-                                    cmt_begin, cln, method,
-                                    methods[cln][method].__name__,
-                                    cmt_end))
 
         else:
             # Display classes and qualifier declarations sorted

@@ -74,19 +74,6 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
        attributes such as class_origin, and propagated properties.
 
     """
-    @staticmethod
-    def _test_qualifier_decl(qualifier, qualifier_store, namespace):
-        """
-        Test that qualifier is in repo and valid.
-        """
-        if qualifier_store is None:
-            return
-        if not qualifier_store.object_exists(qualifier.name):
-            raise CIMError(
-                CIM_ERR_INVALID_PARAMETER,
-                _format("Qualifier declaration {0!A} required by CreateClass "
-                        "not found in namespace {1!A}.",
-                        qualifier.name, namespace))
 
     @staticmethod
     def _validate_qualifiers(qualifier_list, qualifier_store, new_class, scope):
@@ -144,20 +131,6 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                 qualifier.overridable = qual_dict_entry.overridable
         if qualifier.translatable is None:
             qualifier.translatable = qual_dict_entry.translatable
-
-    @staticmethod
-    def _init_qualifier_decl(qualifier_decl, qualifier_store):
-        """
-        Initialize the flavors of a qualifier declaration if they are not
-        already set.
-        """
-        assert qualifier_store.object_exists(qualifier_decl.name)
-        if qualifier_decl.tosubclass is None:
-            qualifier_decl.tosubclass = True
-        if qualifier_decl.overridable is None:
-            qualifier_decl.overridable = True
-        if qualifier_decl.translatable is None:
-            qualifier_decl.translatable = False
 
     def _resolve_objects(self, new_objects, superclass_objects, new_class,
                          superclass, classrepo, qualifier_store, type_str,
