@@ -101,11 +101,6 @@ class ProviderDispatcher(BaseProvider):
                 self.cimrepository)
         return self._default_method_provider
 
-    @staticmethod
-    def _array_ness(is_array):
-        """Return text for array-ness"""
-        return "an array" if is_array else "a scalar"
-
     def _validate_property(
             self, prop_name, instance, creation_class, namespace, class_store):
         """
@@ -337,6 +332,7 @@ class ProviderDispatcher(BaseProvider):
         # creation class and have the correct type-related attributes.
         # Strictly, we would only need to verify the properties to be modified
         # as reduced by the PropertyList.
+
         for pn in ModifiedInstance.properties:
 
             self._validate_property(
@@ -344,7 +340,9 @@ class ProviderDispatcher(BaseProvider):
 
             prop_inst = ModifiedInstance.properties[pn]
             prop_cls = creation_class.properties[pn]
-
+            # See issue #2449. This test never executed since if the key
+            # properties changed, the original instance get would have already
+            # failed.
             if prop_cls.qualifiers.get('key', False) and \
                     prop_inst.value != instance[pn]:
                 raise CIMError(
