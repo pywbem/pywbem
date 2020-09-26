@@ -30,55 +30,72 @@ from mock import Mock
 from ...utils import import_installed
 pywbem = import_installed('pywbem')
 from pywbem import WBEMConnection, CIMInstance, CIMClass, CIMInstanceName, \
-    CIMProperty, CIMError, CIM_ERR_NOT_SUPPORTED  # noqa: E402
+    CIMClassName, CIMProperty, CIMError, CIM_ERR_NOT_SUPPORTED  # noqa: E402
 from pywbem.config import DEFAULT_ITER_MAXOBJECTCOUNT  # noqa: E402
 from pywbem._cim_operations import pull_inst_result_tuple, \
     pull_path_result_tuple, pull_query_result_tuple  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
-# TODO: ks Oct 17 Remove this pylint disable in the future when pylint or
-# the pylint plugin for pylint is fixed
-# Today it reports error "redefining name ..."
-# pylint: disable=redefined-outer-name
+@pytest.fixture
+def tst_class():
+    """
+    Pytest fixture to return a class.
+    """
+    cls = CIMClass(
+        'CIM_Foo',
+        properties=[
+            CIMProperty('InstanceID', None, type='string'),
+        ],
+    )
+    return cls
 
 
 @pytest.fixture
 def tst_insts():
     """
-    Pytest fixture to return an instance
+    Pytest fixture to return N instances of the class returned by tst_class.
     """
-    i = CIMInstance('CIM_Foo',
-                    properties={'Name': 'Foo', 'Chicken': 'Ham'},
-                    path=CIMInstanceName('CIM_Foo', {'Name': 'Foo'}))
-    return[i]
-
-
-@pytest.fixture
-def tst_class():
-    """
-    Pytest fixture to return an instance
-    """
-    cl = CIMClass('CIM_Foo', properties={'InstanceID':
-                                         CIMProperty('InstanceID', None,
-                                                     type='string')})
-    return cl
+    obj_count = 2
+    rtn = []
+    for i in six.moves.range(obj_count):
+        instanceid = str(i + 1000)
+        obj = CIMInstance(
+            'CIM_Foo',
+            properties=[
+                CIMProperty('InstanceID', instanceid, type='string'),
+                CIMProperty('Chicken', 'Ham', type='string'),
+            ],
+            path=CIMInstanceName(
+                'CIM_Foo',
+                keybindings={'InstanceID': instanceid},
+                host='woot.com',
+                namespace='root/cimv2',
+            ),
+        )
+        rtn.append(obj)
+    return rtn
 
 
 @pytest.fixture
 def tst_paths():
-    """ Pytest fixture to return an instance name. This creates a list
-        of CIMInstanceName objects and returns the list.
     """
-    inst_count = 1
+    Pytest fixture to return N instance paths of the class returned by
+    tst_class.
+    """
+    obj_count = 2
     rtn = []
-    for i in six.moves.range(inst_count):
-        i = CIMInstanceName('CIM_Foo',
-                            keybindings={'InstanceID': str(i + 1000)},
-                            host='woot.com',
-                            namespace='root/cimv2')
-        rtn.append(i)
+    for i in six.moves.range(obj_count):
+        instanceid = str(i + 1000)
+        obj = CIMInstanceName(
+            'CIM_Foo',
+            keybindings={'InstanceID': instanceid},
+            host='woot.com',
+            namespace='root/cimv2',
+        )
+        rtn.append(obj)
     return rtn
+
 
 ########################################################################
 #
@@ -86,14 +103,20 @@ def tst_paths():
 #
 ########################################################################
 
-
 class TestIterEnumerateInstances(object):
-    """Test IterEnumerateInstance Execution"""
+    """Test IterEnumerateInstances execution"""
+
     @pytest.mark.parametrize(
         "use_pull_param", [None, False]
     )
     @pytest.mark.parametrize(
         "ns", [None, 'test/testnamespace']
+    )
+    @pytest.mark.parametrize(
+        "cim_classname", [False, True]
+    )
+    @pytest.mark.parametrize(
+        "result_no_host_ns", [False, True]
     )
     @pytest.mark.parametrize(
         "lo, di, iq, ico", [[None, None, None, None],
@@ -103,23 +126,38 @@ class TestIterEnumerateInstances(object):
     @pytest.mark.parametrize(
         "pl", [None, 'pl1', ['pl1', 'pl2']]
     )
-    def test_orig_operation_success(self, use_pull_param, tst_insts, ns,
+    def test_trad_operation_success(self, use_pull_param, tst_insts, ns,
+                                    cim_classname, result_no_host_ns,
                                     di, iq, lo, ico, pl,):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-            Test Use of IterEnumerateInstances from IterEnumerateInstances.
-            This forces the enumerate by mocking NOT_Supported on the
-            OpenEnumerateInstancess.
-            It is parameterized to test variations on all parameters. Note
-            that it only tests legal parameters.
+        Test IterEnumerateInstances using the traditional operations,
+        either by requesting it via use_pull_operations=False, or by leaving it
+        to the implementation via use_pull_operations=None and raising
+        NOT_SUPPORTED in the Open operation. This must succeed.
 
-            It confirms that EnumerateInstances receives the correct parameter
-            for all parameters.
+        The test is parameterized to test variations on all parameters. Note
+        that it only tests legal parameters.
+
+        The test confirms that the traditional operation receives the correct
+        values for all parameters.
         """
         conn = WBEMConnection('dummy', use_pull_operations=use_pull_param)
 
+        if result_no_host_ns:
+            rtn_insts = []
+            for i in tst_insts:
+                rtn_inst = i.copy()
+                rtn_inst.path.host = None
+                rtn_inst.path.namespace = None
+                rtn_insts.append(rtn_inst)
+                i.path.namespace = ns or conn.default_namespace
+                i.path.host = conn.host
+        else:
+            rtn_insts = list(tst_insts)
+
         # mock original function works, open returns CIMError
-        conn.EnumerateInstances = Mock(return_value=tst_insts)
+        conn.EnumerateInstances = Mock(return_value=rtn_insts)
         conn.OpenEnumerateInstances = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
 
@@ -127,8 +165,13 @@ class TestIterEnumerateInstances(object):
         # pylint: disable=protected-access
         assert conn._use_enum_inst_pull_operations == use_pull_param
 
+        if cim_classname:
+            classname = CIMClassName('CIM_Foo', namespace=ns)
+        else:
+            classname = 'CIM_Foo'
+
         result = list(conn.IterEnumerateInstances(
-            'CIM_Foo',
+            classname,
             namespace=ns,
             LocalOnly=lo,
             DeepInheritance=di,
@@ -137,7 +180,7 @@ class TestIterEnumerateInstances(object):
             PropertyList=pl))
 
         conn.EnumerateInstances.assert_called_with(
-            'CIM_Foo',
+            classname,
             namespace=ns,
             LocalOnly=lo,
             DeepInheritance=di,
@@ -150,12 +193,11 @@ class TestIterEnumerateInstances(object):
         assert result == tst_insts
 
     def test_operation_fail(self, tst_insts):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-            Test operation with use_pull_operation=True and
-            pull operation returns exception.
-            This must fail since we force use of the pull operations but
-            they return error.
+        Test IterEnumerateInstances forcing the use of pull operations
+        via use_pull_operations=True, and the Open operation raises
+        NOT_SUPPORTED. This must fail.
         """
         conn = WBEMConnection('dummy', use_pull_operations=True)
 
@@ -201,12 +243,18 @@ class TestIterEnumerateInstances(object):
     def test_open_operation_success(self, use_pull_param, tst_insts, ns,
                                     lo, di, iq, ico, pl,
                                     fl, fq, ot, coe, moc):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-            Test call with forced pull operation and pull operation
-            returns exception. This tests with variations of all of the
-            input parameters from None to other valid values.  It does not
-            do any invalid values.
+        Test IterEnumerateInstances using the pull operations,
+        either by requesting it via use_pull_operations=True, or by leaving it
+        to the implementation via use_pull_operations=None and raising
+        NOT_SUPPORTED in the traditional operation. This must succeed.
+
+        The test is parameterized to test variations on all parameters. Note
+        that it only tests legal parameters.
+
+        The test confirms that the Open operation receives the correct
+        values for all parameters, and that the Close operation is not called.
         """
         conn = WBEMConnection('dummy', use_pull_operations=use_pull_param)
 
@@ -216,6 +264,7 @@ class TestIterEnumerateInstances(object):
             Mock(return_value=pull_inst_result_tuple(instances=tst_insts,
                                                      eos=True,
                                                      context=None))
+        conn.CloseEnumeration = Mock()
 
         assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
@@ -247,6 +296,8 @@ class TestIterEnumerateInstances(object):
             ContinueOnError=coe,
             MaxObjectCount=moc)
 
+        conn.CloseEnumeration.assert_not_called()
+
         # pylint: disable=protected-access
         assert conn._use_enum_inst_pull_operations is True
         assert conn.use_pull_operations == use_pull_param
@@ -256,18 +307,28 @@ class TestIterEnumerateInstances(object):
         "use_pull_param", [None, True]
     )
     def test_pull_operation_success(self, tst_insts, use_pull_param):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-            Test call with forced pull operation Open returns nothing and
-            pull returns the instance and eos
+        Test IterEnumerateInstances using the pull operations,
+        either by requesting it via use_pull_operations=True, or by leaving it
+        to the implementation via use_pull_operations=None and raising
+        NOT_SUPPORTED in the traditional operation. This must succeed.
+
+        The Open operation returns no result objects, and the Pull operation
+        returns all result objects and EOS.
+
+        This does not retest the variations of input parameters because it
+        is only confirming that the Pull operation executes.
         """
         conn = WBEMConnection('dummy', use_pull_operations=use_pull_param)
+
+        ctx = ('blah', conn.default_namespace)
 
         conn.EnumerateInstances = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
         conn.OpenEnumerateInstances = \
             Mock(return_value=pull_inst_result_tuple(instances=[], eos=False,
-                                                     context='blah'))
+                                                     context=ctx))
         conn.PullInstancesWithPath = \
             Mock(return_value=pull_inst_result_tuple(instances=tst_insts,
                                                      eos=True,
@@ -284,22 +345,90 @@ class TestIterEnumerateInstances(object):
         assert result == tst_insts
 
     @pytest.mark.parametrize(
-        "op_to, max_cnt, exp_exc",
+        "use_pull_param", [None, True]
+    )
+    @pytest.mark.parametrize(
+        "max_obj_count", [1, 2]
+    )
+    @pytest.mark.parametrize(
+        "close_after", [0, 1, 2]
+    )
+    def test_closed_operation_success(self, tst_insts, use_pull_param,
+                                      max_obj_count, close_after):
+        # pylint: disable=no-self-use,redefined-outer-name
+        """
+        Test IterEnumerateInstances using the pull operations,
+        either by requesting it via use_pull_operations=True, or by leaving it
+        to the implementation via use_pull_operations=None and raising
+        NOT_SUPPORTED in the traditional operation.
+
+        The iteration is closed after a number of retrievals, sometimes
+        prematurely and sometimes not.
+
+        This does not retest the variations of input parameters because it
+        is only confirming that the Close operation executes if needed.
+        """
+        conn = WBEMConnection('dummy', use_pull_operations=use_pull_param)
+
+        tst_insts_open = tst_insts[0:max_obj_count]
+        tst_insts_pull = tst_insts[max_obj_count:]
+        ctx = ('blah', conn.default_namespace)
+
+        conn.EnumerateInstances = \
+            Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
+        conn.OpenEnumerateInstances = \
+            Mock(return_value=pull_inst_result_tuple(instances=tst_insts_open,
+                                                     eos=False,
+                                                     context=ctx))
+        conn.PullInstancesWithPath = \
+            Mock(return_value=pull_inst_result_tuple(instances=tst_insts_pull,
+                                                     eos=True,
+                                                     context=None))
+        conn.CloseEnumeration = Mock()
+
+        assert conn.use_pull_operations == use_pull_param
+        # pylint: disable=protected-access
+        assert conn._use_enum_inst_pull_operations == use_pull_param
+
+        gen = conn.IterEnumerateInstances(
+            'CIM_Foo', MaxObjectCount=max_obj_count)
+        result = []
+        for _ in six.moves.range(close_after):
+            obj = next(gen)
+            result.append(obj)
+        gen.close()  # close prematurely
+
+        if close_after == 0 or close_after > max_obj_count:
+            # Pull has been called; enumeration is exhausted; enumeration was
+            # closed automatically within Pull.
+            conn.CloseEnumeration.assert_not_called()
+        else:
+            # Pull has not been called; enumeration is not exhausted;
+            # enumeration was closed by calling Close.
+            conn.CloseEnumeration.assert_called_with(ctx)
+            assert conn._use_enum_inst_pull_operations is True
+
+        assert conn.use_pull_operations == use_pull_param
+        assert result == tst_insts[0:close_after]
+
+    @pytest.mark.parametrize(
+        "kwargs, exp_exc",
         [
-            ['bla', 1, TypeError()],
-            [-1, 1, ValueError()],
-            [None, 0, ValueError()],
-            [None, -1, ValueError()],
-            [None, None, ValueError()],
-            [None, 'bla', TypeError()],
+            [dict(OperationTimeout='bla'), TypeError()],
+            [dict(OperationTimeout=-1), ValueError()],
+            [dict(MaxObjectCount=0), ValueError()],
+            [dict(MaxObjectCount=-1), ValueError()],
+            [dict(MaxObjectCount=None), ValueError()],
+            [dict(MaxObjectCount='bla'), TypeError()],
+            [dict(MaxObjectCount='bla'), TypeError()],
         ]
     )
-    def test_invalid_params(self, tst_insts, op_to, max_cnt, exp_exc):
-        # pylint: disable=no-self-use
+    def test_open_invalid_params(self, tst_insts, kwargs, exp_exc):
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-        Test for invalid value and types of those input parameters that are
-        actually checked in the Iter..() operation (i.e. OperationTimeout
-        and MaxObjectCount).
+        Test IterEnumerateInstances using the pull operations,
+        with invalid values and types of those input parameters that are
+        actually checked (i.e. OperationTimeout and MaxObjectCount).
         """
         conn = WBEMConnection('dummy', use_pull_operations=True)
 
@@ -310,8 +439,34 @@ class TestIterEnumerateInstances(object):
         with pytest.raises(type(exp_exc)):
             _ = list(conn.IterEnumerateInstances(
                 'CIM_Foo',
-                OperationTimeout=op_to,
-                MaxObjectCount=max_cnt))
+                **kwargs))
+
+    @pytest.mark.parametrize(
+        "kwargs, exp_exc",
+        [
+            [dict(FilterQueryLanguage='CQL'), ValueError()],
+            [dict(FilterQuery='Prop=42'), ValueError()],
+            [dict(ContinueOnError=True), ValueError()],
+        ]
+    )
+    def test_trad_invalid_params(self, tst_insts, kwargs, exp_exc):
+        # pylint: disable=no-self-use,redefined-outer-name
+        """
+        Test IterEnumerateInstances using the traditional operations,
+        with invalid values and types of those input parameters that are
+        actually checked (i.e. FilterQueryLanguage, FilterQuery,
+        ContinueOnError).
+        """
+        conn = WBEMConnection('dummy', use_pull_operations=False)
+
+        conn.EnumerateInstances = Mock(return_value=tst_insts)
+        conn.OpenEnumerateInstances = \
+            Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
+
+        with pytest.raises(type(exp_exc)):
+            _ = list(conn.IterEnumerateInstances(
+                'CIM_Foo',
+                **kwargs))
 
 
 ########################################################################
@@ -320,23 +475,51 @@ class TestIterEnumerateInstances(object):
 #
 ########################################################################
 
-
 class TestIterEnumerateInstancePaths(object):
-    """Test IterEnumerateInstanceNames execution"""
+    """Test IterEnumerateInstancePaths execution"""
+
     @pytest.mark.parametrize(
         "use_pull_param", [None, False]
     )
     @pytest.mark.parametrize(
         "ns", [None, 'test/testnamespace']
     )
-    def test_orig_operation_success(self, use_pull_param, tst_paths, ns):
-        # pylint: disable=no-self-use
+    @pytest.mark.parametrize(
+        "cim_classname", [False, True]
+    )
+    @pytest.mark.parametrize(
+        "result_no_host_ns", [False, True]
+    )
+    def test_trad_operation_success(self, use_pull_param, tst_paths, ns,
+                                    cim_classname, result_no_host_ns):
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-            Test call with no forcing
+        Test IterEnumerateInstancePaths using the traditional operations,
+        either by requesting it via use_pull_operations=False, or by leaving it
+        to the implementation via use_pull_operations=None and raising
+        NOT_SUPPORTED in the Open operation. This must succeed.
+
+        The test is parameterized to test variations on all parameters. Note
+        that it only tests legal parameters.
+
+        The test confirms that the traditional operation receives the correct
+        values for all parameters.
         """
         conn = WBEMConnection('dummy', use_pull_operations=use_pull_param)
 
-        conn.EnumerateInstanceNames = Mock(return_value=tst_paths)
+        if result_no_host_ns:
+            rtn_paths = []
+            for p in tst_paths:
+                rtn_path = p.copy()
+                rtn_path.host = None
+                rtn_path.namespace = None
+                rtn_paths.append(rtn_path)
+                p.namespace = ns or conn.default_namespace
+                p.host = conn.host
+        else:
+            rtn_paths = tst_paths
+
+        conn.EnumerateInstanceNames = Mock(return_value=rtn_paths)
         conn.OpenEnumerateInstancePaths = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
 
@@ -344,12 +527,17 @@ class TestIterEnumerateInstancePaths(object):
         # pylint: disable=protected-access
         assert conn._use_enum_path_pull_operations == use_pull_param
 
+        if cim_classname:
+            classname = CIMClassName('CIM_Foo', namespace=ns)
+        else:
+            classname = 'CIM_Foo'
+
         result = list(conn.IterEnumerateInstancePaths(
-            'CIM_Foo',
+            classname,
             namespace=ns))
 
         conn.EnumerateInstanceNames.assert_called_with(
-            'CIM_Foo',
+            classname,
             namespace=ns)
 
         # pylint: disable=protected-access
@@ -358,10 +546,11 @@ class TestIterEnumerateInstancePaths(object):
         assert result == tst_paths
 
     def test_operation_fail(self, tst_insts):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-            Test IterEnumerateInstances with forced pull operation and
-            pull operation returns exception
+        Test IterEnumerateInstancePaths forcing the use of pull operations
+        via use_pull_operations=True, and the Open operation raises
+        NOT_SUPPORTED. This must fail.
         """
         conn = WBEMConnection('dummy', use_pull_operations=True)
 
@@ -398,14 +587,18 @@ class TestIterEnumerateInstancePaths(object):
     )
     def test_open_operation_success(self, tst_paths, ns, fl, fq, ot,
                                     coe, moc, use_pull_param):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-            Test call with forced pull operation and pull operation
-            returns exception. This runs parametrized tests with all of the
-            input parameters for legal values.  It does not test for illegal
-            values.
-            It all tests the mocs OpenEnumerateInstances for correct
-            parameters.
+        Test IterEnumerateInstancePaths using the pull operations,
+        either by requesting it via use_pull_operations=True, or by leaving it
+        to the implementation via use_pull_operations=None and raising
+        NOT_SUPPORTED in the traditional operation. This must succeed.
+
+        The test is parameterized to test variations on all parameters. Note
+        that it only tests legal parameters.
+
+        The test confirms that the Open operation receives the correct
+        values for all parameters, and that the Close operation is not called.
         """
         conn = WBEMConnection('dummy', use_pull_operations=use_pull_param)
 
@@ -415,6 +608,7 @@ class TestIterEnumerateInstancePaths(object):
             Mock(return_value=pull_path_result_tuple(paths=tst_paths,
                                                      eos=True,
                                                      context=None))
+        conn.CloseEnumeration = Mock()
 
         assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
@@ -438,6 +632,8 @@ class TestIterEnumerateInstancePaths(object):
             ContinueOnError=coe,
             MaxObjectCount=moc)
 
+        conn.CloseEnumeration.assert_not_called()
+
         # pylint: disable=protected-access
         assert conn._use_enum_path_pull_operations is True
         assert conn.use_pull_operations == use_pull_param
@@ -447,18 +643,28 @@ class TestIterEnumerateInstancePaths(object):
         "use_pull_param", [None, True]
     )
     def test_pull_operation_success(self, tst_paths, use_pull_param):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-            Test call with forced pull operation Open returns nothing and
-            pull returns the instance and eos
+        Test IterEnumerateInstancePaths using the pull operations,
+        either by requesting it via use_pull_operations=True, or by leaving it
+        to the implementation via use_pull_operations=None and raising
+        NOT_SUPPORTED in the traditional operation. This must succeed.
+
+        The Open operation returns no result objects, and the Pull operation
+        returns all result objects and EOS.
+
+        This does not retest the variations of input parameters because it
+        is only confirming that the Pull operation executes.
         """
         conn = WBEMConnection('dummy', use_pull_operations=use_pull_param)
+
+        ctx = ('blah', conn.default_namespace)
 
         conn.EnumerateInstanceNames = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
         conn.OpenEnumerateInstancePaths = \
             Mock(return_value=pull_path_result_tuple(paths=[], eos=False,
-                                                     context='blah'))
+                                                     context=ctx))
         conn.PullInstancePaths = \
             Mock(return_value=pull_path_result_tuple(paths=tst_paths,
                                                      eos=True,
@@ -477,21 +683,90 @@ class TestIterEnumerateInstancePaths(object):
         assert result == tst_paths
 
     @pytest.mark.parametrize(
-        "op_to, max_cnt, exp_exc",
+        "use_pull_param", [None, True]
+    )
+    @pytest.mark.parametrize(
+        "max_obj_count", [1, 2]
+    )
+    @pytest.mark.parametrize(
+        "close_after", [0, 1, 2]
+    )
+    def test_closed_operation_success(self, tst_paths, use_pull_param,
+                                      max_obj_count, close_after):
+        # pylint: disable=no-self-use,redefined-outer-name
+        """
+        Test IterEnumerateInstancePaths using the pull operations,
+        either by requesting it via use_pull_operations=True, or by leaving it
+        to the implementation via use_pull_operations=None and raising
+        NOT_SUPPORTED in the traditional operation.
+
+        The iteration is closed after a number of retrievals, sometimes
+        prematurely and sometimes not.
+
+        This does not retest the variations of input parameters because it
+        is only confirming that the Close operation executes if needed.
+        """
+        conn = WBEMConnection('dummy', use_pull_operations=use_pull_param)
+
+        tst_paths_open = tst_paths[0:max_obj_count]
+        tst_paths_pull = tst_paths[max_obj_count:]
+        ctx = ('blah', conn.default_namespace)
+
+        conn.EnumerateInstanceNames = \
+            Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
+        conn.OpenEnumerateInstancePaths = \
+            Mock(return_value=pull_path_result_tuple(paths=tst_paths_open,
+                                                     eos=False,
+                                                     context=ctx))
+        conn.PullInstancePaths = \
+            Mock(return_value=pull_path_result_tuple(paths=tst_paths_pull,
+                                                     eos=True,
+                                                     context=None))
+        conn.CloseEnumeration = Mock()
+
+        assert conn.use_pull_operations == use_pull_param
+        # pylint: disable=protected-access
+        assert conn._use_enum_path_pull_operations == use_pull_param
+
+        gen = conn.IterEnumerateInstancePaths(
+            'CIM_Foo', MaxObjectCount=max_obj_count)
+        result = []
+        for _ in six.moves.range(close_after):
+            obj = next(gen)
+            result.append(obj)
+        gen.close()  # close prematurely
+
+        if close_after == 0 or close_after > max_obj_count:
+            # Pull has been called; enumeration is exhausted; enumeration was
+            # closed automatically within Pull.
+            conn.CloseEnumeration.assert_not_called()
+        else:
+            # Pull has not been called; enumeration is not exhausted;
+            # enumeration was closed by calling Close.
+            conn.CloseEnumeration.assert_called_with(ctx)
+            assert conn._use_enum_path_pull_operations is True
+
+        assert conn.use_pull_operations == use_pull_param
+        assert result == tst_paths[0:close_after]
+
+    @pytest.mark.parametrize(
+        "kwargs, exp_exc",
         [
-            ['bla', 1, TypeError()],
-            [-1, 1, ValueError()],
-            [None, 0, ValueError()],
-            [None, -1, ValueError()],
-            [None, None, ValueError()],
-            [None, 'bla', TypeError()],
+            [dict(OperationTimeout='bla'), TypeError()],
+            [dict(OperationTimeout=-1), ValueError()],
+            [dict(MaxObjectCount=0), ValueError()],
+            [dict(MaxObjectCount=-1), ValueError()],
+            [dict(MaxObjectCount=None), ValueError()],
+            [dict(MaxObjectCount='bla'), TypeError()],
+            [dict(MaxObjectCount='bla'), TypeError()],
         ]
     )
-    def test_invalid_params(self, tst_paths, op_to, max_cnt, exp_exc):
-        # pylint: disable=no-self-use
+    def test_open_invalid_params(self, tst_paths, kwargs, exp_exc):
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-        Test for invalid OperationTimeout, ContinueOnError, and MaxObjectCount
-        input parameters.
+        Test IterEnumerateInstancePaths using the pull operations,
+        with invalid values and types of those input parameters that are
+        actually checked (i.e. OperationTimeout and MaxObjectCount).
         """
         conn = WBEMConnection('dummy', use_pull_operations=True)
 
@@ -502,8 +777,34 @@ class TestIterEnumerateInstancePaths(object):
         with pytest.raises(type(exp_exc)):
             _ = list(conn.IterEnumerateInstancePaths(
                 'CIM_Foo',
-                OperationTimeout=op_to,
-                MaxObjectCount=max_cnt))
+                **kwargs))
+
+    @pytest.mark.parametrize(
+        "kwargs, exp_exc",
+        [
+            [dict(FilterQueryLanguage='CQL'), ValueError()],
+            [dict(FilterQuery='Prop=42'), ValueError()],
+            [dict(ContinueOnError=True), ValueError()],
+        ]
+    )
+    def test_trad_invalid_params(self, tst_paths, kwargs, exp_exc):
+        # pylint: disable=no-self-use,redefined-outer-name
+        """
+        Test IterEnumerateInstancePaths using the traditional operations,
+        with invalid values and types of those input parameters that are
+        actually checked (i.e. FilterQueryLanguage, FilterQuery,
+        ContinueOnError).
+        """
+        conn = WBEMConnection('dummy', use_pull_operations=False)
+
+        conn.EnumerateInstanceNames = Mock(return_value=tst_paths)
+        conn.OpenEnumeratePaths = \
+            Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
+
+        with pytest.raises(type(exp_exc)):
+            _ = list(conn.IterEnumerateInstancePaths(
+                'CIM_Foo',
+                **kwargs))
 
 
 ########################################################################
@@ -512,14 +813,13 @@ class TestIterEnumerateInstancePaths(object):
 #
 ########################################################################
 
-
 class TestIterReferenceInstances(object):
-    """Test IterReferenceInstance Execution"""
+    """Test IterReferenceInstances execution"""
 
     @staticmethod
     def target_path(ns):
         """
-            Return a valid target path for the calls
+        Return a valid target path for the calls
         """
         return CIMInstanceName('CIM_blah',
                                keybindings={'InstanceID': "1234"},
@@ -547,18 +847,20 @@ class TestIterReferenceInstances(object):
     @pytest.mark.parametrize(
         "pl", [None, 'pl1', ['pl1', 'pl2']]
     )
-    def test_orig_operation_success(self, use_pull_param, tst_insts, ns,
+    def test_trad_operation_success(self, use_pull_param, tst_insts, ns,
                                     rc, ro, iq, ico, pl,):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-            Test Use of IterReferenceInstances from IterReferenceInstances.
-            This forces the enumerate by mocking NOT_Supported on the
-            OpenReferenceInstancess.
-            It is parameterized to test variations on all parameters. Note
-            that it only tests legal parameters.
+        Test IterReferenceInstances using the traditional operations,
+        either by requesting it via use_pull_operations=False, or by leaving it
+        to the implementation via use_pull_operations=None and raising
+        NOT_SUPPORTED in the Open operation. This must succeed.
 
-            It confirms that ReferenceInstances receives the correct parameter
-            for all parameters.
+        The test is parameterized to test variations on all parameters. Note
+        that it only tests legal parameters.
+
+        The test confirms that the traditional operation receives the correct
+        values for all parameters.
         """
         conn = WBEMConnection('dummy', use_pull_operations=use_pull_param)
 
@@ -592,12 +894,11 @@ class TestIterReferenceInstances(object):
         assert result == tst_insts
 
     def test_operation_fail(self, tst_insts):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-            Test operation with use_pull_operation=True and
-            pull operation returns exception.
-            This must fail since we force use of the pull operations but
-            they return error.
+        Test IterReferenceInstances forcing the use of pull operations
+        via use_pull_operations=True, and the Open operation raises
+        NOT_SUPPORTED. This must fail.
         """
         conn = WBEMConnection('dummy', use_pull_operations=True)
 
@@ -651,12 +952,18 @@ class TestIterReferenceInstances(object):
     def test_open_operation_success(self, use_pull_param, tst_insts, ns,
                                     rc, ro, iq, ico, pl, fl, fq, ot, coe,
                                     moc):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-            Test call with forced pull operation and pull operation
-            returns exception. This tests with variations of all of the
-            input parameters from None to other valid values.  It does not
-            do any invalid values.
+        Test IterReferenceInstances using the pull operations,
+        either by requesting it via use_pull_operations=True, or by leaving it
+        to the implementation via use_pull_operations=None and raising
+        NOT_SUPPORTED in the traditional operation. This must succeed.
+
+        The test is parameterized to test variations on all parameters. Note
+        that it only tests legal parameters.
+
+        The test confirms that the Open operation receives the correct
+        values for all parameters, and that the Close operation is not called.
         """
         conn = WBEMConnection('dummy', use_pull_operations=use_pull_param)
 
@@ -666,6 +973,7 @@ class TestIterReferenceInstances(object):
             Mock(return_value=pull_inst_result_tuple(instances=tst_insts,
                                                      eos=True,
                                                      context=None))
+        conn.CloseEnumeration = Mock()
 
         assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
@@ -696,6 +1004,8 @@ class TestIterReferenceInstances(object):
             ContinueOnError=coe,
             MaxObjectCount=moc)
 
+        conn.CloseEnumeration.assert_not_called()
+
         # pylint: disable=protected-access
         assert conn._use_ref_inst_pull_operations is True
         assert conn.use_pull_operations == use_pull_param
@@ -705,20 +1015,28 @@ class TestIterReferenceInstances(object):
         "use_pull_param", [None, True]
     )
     def test_pull_operation_success(self, tst_insts, use_pull_param):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-            Test call with forced pull operation Open returns nothing and
-            pull returns the instance and eos. This does not retest the
-            variations of input parameters because it is only confirming
-            that the pull executes.
+        Test IterReferenceInstances using the pull operations,
+        either by requesting it via use_pull_operations=True, or by leaving it
+        to the implementation via use_pull_operations=None and raising
+        NOT_SUPPORTED in the traditional operation. This must succeed.
+
+        The Open operation returns no result objects, and the Pull operation
+        returns all result objects and EOS.
+
+        This does not retest the variations of input parameters because it
+        is only confirming that the Pull operation executes.
         """
         conn = WBEMConnection('dummy', use_pull_operations=use_pull_param)
+
+        ctx = ('blah', conn.default_namespace)
 
         conn.References = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
         conn.OpenReferenceInstances = \
             Mock(return_value=pull_inst_result_tuple(instances=[], eos=False,
-                                                     context='blah'))
+                                                     context=ctx))
         conn.PullInstancesWithPath = \
             Mock(return_value=pull_inst_result_tuple(instances=tst_insts,
                                                      eos=True,
@@ -736,21 +1054,90 @@ class TestIterReferenceInstances(object):
         assert result == tst_insts
 
     @pytest.mark.parametrize(
-        "op_to, max_cnt, exp_exc",
+        "use_pull_param", [None, True]
+    )
+    @pytest.mark.parametrize(
+        "max_obj_count", [1, 2]
+    )
+    @pytest.mark.parametrize(
+        "close_after", [0, 1, 2]
+    )
+    def test_closed_operation_success(self, tst_insts, use_pull_param,
+                                      max_obj_count, close_after):
+        # pylint: disable=no-self-use,redefined-outer-name
+        """
+        Test IterReferenceInstances using the pull operations,
+        either by requesting it via use_pull_operations=True, or by leaving it
+        to the implementation via use_pull_operations=None and raising
+        NOT_SUPPORTED in the traditional operation.
+
+        The iteration is closed after a number of retrievals, sometimes
+        prematurely and sometimes not.
+
+        This does not retest the variations of input parameters because it
+        is only confirming that the Close operation executes if needed.
+        """
+        conn = WBEMConnection('dummy', use_pull_operations=use_pull_param)
+
+        tst_insts_open = tst_insts[0:max_obj_count]
+        tst_insts_pull = tst_insts[max_obj_count:]
+        ctx = ('blah', conn.default_namespace)
+
+        conn.References = \
+            Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
+        conn.OpenReferenceInstances = \
+            Mock(return_value=pull_inst_result_tuple(instances=tst_insts_open,
+                                                     eos=False,
+                                                     context=ctx))
+        conn.PullInstancesWithPath = \
+            Mock(return_value=pull_inst_result_tuple(instances=tst_insts_pull,
+                                                     eos=True,
+                                                     context=None))
+        conn.CloseEnumeration = Mock()
+
+        assert conn.use_pull_operations == use_pull_param
+        # pylint: disable=protected-access
+        assert conn._use_ref_inst_pull_operations == use_pull_param
+
+        gen = conn.IterReferenceInstances(
+            self.target_path('root/cimv2'), MaxObjectCount=max_obj_count)
+        result = []
+        for _ in six.moves.range(close_after):
+            obj = next(gen)
+            result.append(obj)
+        gen.close()  # close prematurely
+
+        if close_after == 0 or close_after > max_obj_count:
+            # Pull has been called; enumeration is exhausted; enumeration was
+            # closed automatically within Pull.
+            conn.CloseEnumeration.assert_not_called()
+        else:
+            # Pull has not been called; enumeration is not exhausted;
+            # enumeration was closed by calling Close.
+            conn.CloseEnumeration.assert_called_with(ctx)
+            assert conn._use_ref_inst_pull_operations is True
+
+        assert conn.use_pull_operations == use_pull_param
+        assert result == tst_insts[0:close_after]
+
+    @pytest.mark.parametrize(
+        "kwargs, exp_exc",
         [
-            ['bla', 1, TypeError()],
-            [-1, 1, ValueError()],
-            [None, 0, ValueError()],
-            [None, -1, ValueError()],
-            [None, None, ValueError()],
-            [None, 'bla', TypeError()],
+            [dict(OperationTimeout='bla'), TypeError()],
+            [dict(OperationTimeout=-1), ValueError()],
+            [dict(MaxObjectCount=0), ValueError()],
+            [dict(MaxObjectCount=-1), ValueError()],
+            [dict(MaxObjectCount=None), ValueError()],
+            [dict(MaxObjectCount='bla'), TypeError()],
+            [dict(MaxObjectCount='bla'), TypeError()],
         ]
     )
-    def test_invalid_params(self, tst_insts, op_to, max_cnt, exp_exc):
-        # pylint: disable=no-self-use
+    def test_open_invalid_params(self, tst_insts, kwargs, exp_exc):
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-        Test for invalid OperationTimeout, ContinueOnError, and MaxObjectCount
-        input parameters.
+        Test IterReferenceInstances using the pull operations,
+        with invalid values and types of those input parameters that are
+        actually checked (i.e. OperationTimeout and MaxObjectCount).
         """
         conn = WBEMConnection('dummy', use_pull_operations=True)
 
@@ -761,8 +1148,34 @@ class TestIterReferenceInstances(object):
         with pytest.raises(type(exp_exc)):
             _ = list(conn.IterReferenceInstances(
                 self.target_path('root/x'),
-                OperationTimeout=op_to,
-                MaxObjectCount=max_cnt))
+                **kwargs))
+
+    @pytest.mark.parametrize(
+        "kwargs, exp_exc",
+        [
+            [dict(FilterQueryLanguage='CQL'), ValueError()],
+            [dict(FilterQuery='Prop=42'), ValueError()],
+            [dict(ContinueOnError=True), ValueError()],
+        ]
+    )
+    def test_trad_invalid_params(self, tst_insts, kwargs, exp_exc):
+        # pylint: disable=no-self-use,redefined-outer-name
+        """
+        Test IterEnumerateInstances using the traditional operations,
+        with invalid values and types of those input parameters that are
+        actually checked (i.e. FilterQueryLanguage, FilterQuery,
+        ContinueOnError).
+        """
+        conn = WBEMConnection('dummy', use_pull_operations=False)
+
+        conn.References = Mock(return_value=tst_insts)
+        conn.OpenReferenceInstances = \
+            Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
+
+        with pytest.raises(type(exp_exc)):
+            _ = list(conn.IterReferenceInstances(
+                self.target_path('root/x'),
+                **kwargs))
 
 
 ########################################################################
@@ -772,12 +1185,12 @@ class TestIterReferenceInstances(object):
 ########################################################################
 
 class TestIterReferenceInstancePaths(object):
-    """Test IterReferenceInstancePaths Execution"""
+    """Test IterReferenceInstancePaths execution"""
 
     @staticmethod
     def target_path(ns):
         """
-            Return a valid target path for the calls
+        Return a valid target path for the calls
         """
         return CIMInstanceName('CIM_blah',
                                keybindings={'InstanceID': "1234"},
@@ -797,19 +1210,20 @@ class TestIterReferenceInstancePaths(object):
                    ['RRole', None],
                    ['RRole', 'CIM_Blah']]
     )
-    def test_orig_operation_success(self, use_pull_param, tst_insts, ns, rc,
+    def test_trad_operation_success(self, use_pull_param, tst_insts, ns, rc,
                                     ro):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-            Test Use of IterReferenceInstancePaths from
-            IterReferenceInstancePaths.
-            This forces the enumerate by mocking NOT_Supported on the
-            OpenReferenceInstances.
-            It is parameterized to test variations on all parameters. Note
-            that it only tests legal parameters.
+        Test IterReferenceInstancePaths using the traditional operations,
+        either by requesting it via use_pull_operations=False, or by leaving it
+        to the implementation via use_pull_operations=None and raising
+        NOT_SUPPORTED in the Open operation. This must succeed.
 
-            It confirms that ReferenceInstances receives the correct parameter
-            for all parameters.
+        The test is parameterized to test variations on all parameters. Note
+        that it only tests legal parameters.
+
+        The test confirms that the traditional operation receives the correct
+        values for all parameters.
         """
         conn = WBEMConnection('dummy', use_pull_operations=use_pull_param)
 
@@ -837,12 +1251,11 @@ class TestIterReferenceInstancePaths(object):
         assert result == tst_insts
 
     def test_operation_fail(self, tst_insts):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-            Test operation with use_pull_operation=True and
-            pull operation returns exception.
-            This must fail since we force use of the pull operations but
-            they return error.
+        Test IterReferenceInstancePaths forcing the use of pull operations
+        via use_pull_operations=True, and the Open operation raises
+        NOT_SUPPORTED. This must fail.
         """
         conn = WBEMConnection('dummy', use_pull_operations=True)
 
@@ -887,12 +1300,18 @@ class TestIterReferenceInstancePaths(object):
     )
     def test_open_operation_success(self, use_pull_param, tst_paths, ns,
                                     rc, ro, fl, fq, ot, coe, moc):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-            Test call with forced pull operation and pull operation
-            returns exception. This tests with variations of all of the
-            input parameters from None to other valid values.  It does not
-            do any invalid values.
+        Test IterReferenceInstancePaths using the pull operations,
+        either by requesting it via use_pull_operations=True, or by leaving it
+        to the implementation via use_pull_operations=None and raising
+        NOT_SUPPORTED in the traditional operation. This must succeed.
+
+        The test is parameterized to test variations on all parameters. Note
+        that it only tests legal parameters.
+
+        The test confirms that the Open operation receives the correct
+        values for all parameters, and that the Close operation is not called.
         """
         conn = WBEMConnection('dummy', use_pull_operations=use_pull_param)
 
@@ -902,6 +1321,7 @@ class TestIterReferenceInstancePaths(object):
             Mock(return_value=pull_path_result_tuple(paths=tst_paths,
                                                      eos=True,
                                                      context=None))
+        conn.CloseEnumeration = Mock()
 
         assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
@@ -927,6 +1347,8 @@ class TestIterReferenceInstancePaths(object):
             ContinueOnError=coe,
             MaxObjectCount=moc)
 
+        conn.CloseEnumeration.assert_not_called()
+
         # pylint: disable=protected-access
         assert conn._use_ref_path_pull_operations is True
         assert conn.use_pull_operations == use_pull_param
@@ -936,20 +1358,28 @@ class TestIterReferenceInstancePaths(object):
         "use_pull_param", [None, True]
     )
     def test_pull_operation_success(self, tst_paths, use_pull_param):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-            Test call with forced pull operation Open returns nothing and
-            pull returns the instance and eos. This does not retest the
-            variations of input parameters because it is only confirming
-            that the pull executes.
+        Test IterReferenceInstancePaths using the pull operations,
+        either by requesting it via use_pull_operations=True, or by leaving it
+        to the implementation via use_pull_operations=None and raising
+        NOT_SUPPORTED in the traditional operation. This must succeed.
+
+        The Open operation returns no result objects, and the Pull operation
+        returns all result objects and EOS.
+
+        This does not retest the variations of input parameters because it
+        is only confirming that the Pull operation executes.
         """
         conn = WBEMConnection('dummy', use_pull_operations=use_pull_param)
+
+        ctx = ('blah', conn.default_namespace)
 
         conn.ReferenceNames = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
         conn.OpenReferenceInstancePaths = \
             Mock(return_value=pull_path_result_tuple(paths=[], eos=False,
-                                                     context='blah'))
+                                                     context=ctx))
         conn.PullInstancePaths = \
             Mock(return_value=pull_path_result_tuple(paths=tst_paths,
                                                      eos=True,
@@ -967,21 +1397,90 @@ class TestIterReferenceInstancePaths(object):
         assert result == tst_paths
 
     @pytest.mark.parametrize(
-        "op_to, max_cnt, exp_exc",
+        "use_pull_param", [None, True]
+    )
+    @pytest.mark.parametrize(
+        "max_obj_count", [1, 2]
+    )
+    @pytest.mark.parametrize(
+        "close_after", [0, 1, 2]
+    )
+    def test_closed_operation_success(self, tst_paths, use_pull_param,
+                                      max_obj_count, close_after):
+        # pylint: disable=no-self-use,redefined-outer-name
+        """
+        Test IterReferenceInstancePaths using the pull operations,
+        either by requesting it via use_pull_operations=True, or by leaving it
+        to the implementation via use_pull_operations=None and raising
+        NOT_SUPPORTED in the traditional operation.
+
+        The iteration is closed after a number of retrievals, sometimes
+        prematurely and sometimes not.
+
+        This does not retest the variations of input parameters because it
+        is only confirming that the Close operation executes if needed.
+        """
+        conn = WBEMConnection('dummy', use_pull_operations=use_pull_param)
+
+        tst_paths_open = tst_paths[0:max_obj_count]
+        tst_paths_pull = tst_paths[max_obj_count:]
+        ctx = ('blah', conn.default_namespace)
+
+        conn.ReferenceNames = \
+            Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
+        conn.OpenReferenceInstancePaths = \
+            Mock(return_value=pull_path_result_tuple(paths=tst_paths_open,
+                                                     eos=False,
+                                                     context=ctx))
+        conn.PullInstancePaths = \
+            Mock(return_value=pull_path_result_tuple(paths=tst_paths_pull,
+                                                     eos=True,
+                                                     context=None))
+        conn.CloseEnumeration = Mock()
+
+        assert conn.use_pull_operations == use_pull_param
+        # pylint: disable=protected-access
+        assert conn._use_ref_path_pull_operations == use_pull_param
+
+        gen = conn.IterReferenceInstancePaths(
+            self.target_path('root/cimv2'), MaxObjectCount=max_obj_count)
+        result = []
+        for _ in six.moves.range(close_after):
+            obj = next(gen)
+            result.append(obj)
+        gen.close()  # close prematurely
+
+        if close_after == 0 or close_after > max_obj_count:
+            # Pull has been called; enumeration is exhausted; enumeration was
+            # closed automatically within Pull.
+            conn.CloseEnumeration.assert_not_called()
+        else:
+            # Pull has not been called; enumeration is not exhausted;
+            # enumeration was closed by calling Close.
+            conn.CloseEnumeration.assert_called_with(ctx)
+            assert conn._use_ref_path_pull_operations is True
+
+        assert conn.use_pull_operations == use_pull_param
+        assert result == tst_paths[0:close_after]
+
+    @pytest.mark.parametrize(
+        "kwargs, exp_exc",
         [
-            ['bla', 1, TypeError()],
-            [-1, 1, ValueError()],
-            [None, 0, ValueError()],
-            [None, -1, ValueError()],
-            [None, None, ValueError()],
-            [None, 'bla', TypeError()],
+            [dict(OperationTimeout='bla'), TypeError()],
+            [dict(OperationTimeout=-1), ValueError()],
+            [dict(MaxObjectCount=0), ValueError()],
+            [dict(MaxObjectCount=-1), ValueError()],
+            [dict(MaxObjectCount=None), ValueError()],
+            [dict(MaxObjectCount='bla'), TypeError()],
+            [dict(MaxObjectCount='bla'), TypeError()],
         ]
     )
-    def test_invalid_params(self, tst_insts, op_to, max_cnt, exp_exc):
-        # pylint: disable=no-self-use
+    def test_open_invalid_params(self, tst_insts, kwargs, exp_exc):
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-        Test for invalid OperationTimeout, ContinueOnError, and MaxObjectCount
-        input parameters.
+        Test IterReferenceInstancePaths using the pull operations,
+        with invalid values and types of those input parameters that are
+        actually checked (i.e. OperationTimeout and MaxObjectCount).
         """
         conn = WBEMConnection('dummy', use_pull_operations=True)
 
@@ -992,8 +1491,35 @@ class TestIterReferenceInstancePaths(object):
         with pytest.raises(type(exp_exc)):
             _ = list(conn.IterReferenceInstancePaths(
                 self.target_path('dum'),
-                OperationTimeout=op_to,
-                MaxObjectCount=max_cnt))
+                **kwargs))
+
+    @pytest.mark.parametrize(
+        "kwargs, exp_exc",
+        [
+            [dict(FilterQueryLanguage='CQL'), ValueError()],
+            [dict(FilterQuery='Prop=42'), ValueError()],
+            [dict(ContinueOnError=True), ValueError()],
+        ]
+    )
+    def test_trad_invalid_params(self, tst_insts, kwargs, exp_exc):
+        # pylint: disable=no-self-use,redefined-outer-name
+        """
+        Test IterReferenceInstancePaths using the traditional operations,
+        with invalid values and types of those input parameters that are
+        actually checked (i.e. FilterQueryLanguage, FilterQuery,
+        ContinueOnError).
+        """
+        conn = WBEMConnection('dummy', use_pull_operations=False)
+
+        conn.ReferenceNames = Mock(return_value=tst_insts)
+        conn.OpenReferenceInstancePaths = \
+            Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
+
+        with pytest.raises(type(exp_exc)):
+            _ = list(conn.IterReferenceInstancePaths(
+                self.target_path('dum'),
+                **kwargs))
+
 
 ########################################################################
 #
@@ -1001,14 +1527,13 @@ class TestIterReferenceInstancePaths(object):
 #
 ########################################################################
 
-
 class TestIterAssociatorInstances(object):
-    """Test IterReferenceInstance Execution"""
+    """Test IterAssociatorInstances execution"""
 
     @staticmethod
     def target_path(ns):
         """
-            Return a valid target path for the calls
+        Return a valid target path for the calls
         """
         return CIMInstanceName('CIM_blah',
                                keybindings={'InstanceID': "1234"},
@@ -1036,18 +1561,20 @@ class TestIterAssociatorInstances(object):
     @pytest.mark.parametrize(
         "pl", [None, 'pl1', ['pl1', 'pl2']]
     )
-    def test_orig_operation_success(self, use_pull_param, tst_insts, ns,
+    def test_trad_operation_success(self, use_pull_param, tst_insts, ns,
                                     rc, ro, ac, rr, iq, ico, pl,):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-            Test Use of IterAssociatorInstances from IterAssociatorInstances.
-            This forces the enumerate by mocking NOT_Supported on the
-            OpenAssociatorInstancess.
-            It is parameterized to test variations on all parameters. Note
-            that it only tests legal parameters.
+        Test IterAssociatorInstances using the traditional operations,
+        either by requesting it via use_pull_operations=False, or by leaving it
+        to the implementation via use_pull_operations=None and raising
+        NOT_SUPPORTED in the Open operation. This must succeed.
 
-            It confirms that AssociatorInstances receives the correct parameter
-            for all parameters.
+        The test is parameterized to test variations on all parameters. Note
+        that it only tests legal parameters.
+
+        The test confirms that the traditional operation receives the correct
+        values for all parameters.
         """
         conn = WBEMConnection('dummy', use_pull_operations=use_pull_param)
 
@@ -1085,12 +1612,11 @@ class TestIterAssociatorInstances(object):
         assert result == tst_insts
 
     def test_operation_fail(self, tst_insts):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-            Test operation with use_pull_operation=True and
-            pull operation returns exception.
-            This must fail since we force use of the pull operations but
-            they return error.
+        Test IterAssociatorInstances forcing the use of pull operations
+        via use_pull_operations=True, and the Open operation raises
+        NOT_SUPPORTED. This must fail.
         """
         conn = WBEMConnection('dummy', use_pull_operations=True)
 
@@ -1144,12 +1670,18 @@ class TestIterAssociatorInstances(object):
     def test_open_operation_success(self, use_pull_param, tst_insts, ns,
                                     rc, ro, rr, ac, iq, ico, pl, fl, fq, ot,
                                     coe, moc):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-            Test call with forced pull operation and pull operation
-            returns exception. This tests with variations of all of the
-            input parameters from None to other valid values.  It does not
-            do any invalid values.
+        Test IterAssociatorInstances using the pull operations,
+        either by requesting it via use_pull_operations=True, or by leaving it
+        to the implementation via use_pull_operations=None and raising
+        NOT_SUPPORTED in the traditional operation. This must succeed.
+
+        The test is parameterized to test variations on all parameters. Note
+        that it only tests legal parameters.
+
+        The test confirms that the Open operation receives the correct
+        values for all parameters, and that the Close operation is not called.
         """
         conn = WBEMConnection('dummy', use_pull_operations=use_pull_param)
 
@@ -1159,6 +1691,7 @@ class TestIterAssociatorInstances(object):
             Mock(return_value=pull_inst_result_tuple(instances=tst_insts,
                                                      eos=True,
                                                      context=None))
+        conn.CloseEnumeration = Mock()
 
         assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
@@ -1193,6 +1726,8 @@ class TestIterAssociatorInstances(object):
             ContinueOnError=coe,
             MaxObjectCount=moc)
 
+        conn.CloseEnumeration.assert_not_called()
+
         # pylint: disable=protected-access
         assert conn._use_assoc_inst_pull_operations is True
         assert conn.use_pull_operations == use_pull_param
@@ -1202,20 +1737,28 @@ class TestIterAssociatorInstances(object):
         "use_pull_param", [None, True]
     )
     def test_pull_operation_success(self, tst_insts, use_pull_param):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-            Test call with forced pull operation Open returns nothing and
-            pull returns the instance and eos. This does not retest the
-            variations of input parameters because it is only confirming
-            that the pull executes.
+        Test IterAssociatorInstances using the pull operations,
+        either by requesting it via use_pull_operations=True, or by leaving it
+        to the implementation via use_pull_operations=None and raising
+        NOT_SUPPORTED in the traditional operation. This must succeed.
+
+        The Open operation returns no result objects, and the Pull operation
+        returns all result objects and EOS.
+
+        This does not retest the variations of input parameters because it
+        is only confirming that the Pull operation executes.
         """
         conn = WBEMConnection('dummy', use_pull_operations=use_pull_param)
+
+        ctx = ('blah', conn.default_namespace)
 
         conn.Associators = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
         conn.OpenAssociatorInstances = \
             Mock(return_value=pull_inst_result_tuple(instances=[], eos=False,
-                                                     context='blah'))
+                                                     context=ctx))
         conn.PullInstancesWithPath = \
             Mock(return_value=pull_inst_result_tuple(instances=tst_insts,
                                                      eos=True,
@@ -1233,21 +1776,90 @@ class TestIterAssociatorInstances(object):
         assert result == tst_insts
 
     @pytest.mark.parametrize(
-        "op_to, max_cnt, exp_exc",
+        "use_pull_param", [None, True]
+    )
+    @pytest.mark.parametrize(
+        "max_obj_count", [1, 2]
+    )
+    @pytest.mark.parametrize(
+        "close_after", [0, 1, 2]
+    )
+    def test_closed_operation_success(self, tst_insts, use_pull_param,
+                                      max_obj_count, close_after):
+        # pylint: disable=no-self-use,redefined-outer-name
+        """
+        Test IterAssociatorInstances using the pull operations,
+        either by requesting it via use_pull_operations=True, or by leaving it
+        to the implementation via use_pull_operations=None and raising
+        NOT_SUPPORTED in the traditional operation.
+
+        The iteration is closed after a number of retrievals, sometimes
+        prematurely and sometimes not.
+
+        This does not retest the variations of input parameters because it
+        is only confirming that the Close operation executes if needed.
+        """
+        conn = WBEMConnection('dummy', use_pull_operations=use_pull_param)
+
+        tst_insts_open = tst_insts[0:max_obj_count]
+        tst_insts_pull = tst_insts[max_obj_count:]
+        ctx = ('blah', conn.default_namespace)
+
+        conn.Associators = \
+            Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
+        conn.OpenAssociatorInstances = \
+            Mock(return_value=pull_inst_result_tuple(instances=tst_insts_open,
+                                                     eos=False,
+                                                     context=ctx))
+        conn.PullInstancesWithPath = \
+            Mock(return_value=pull_inst_result_tuple(instances=tst_insts_pull,
+                                                     eos=True,
+                                                     context=None))
+        conn.CloseEnumeration = Mock()
+
+        assert conn.use_pull_operations == use_pull_param
+        # pylint: disable=protected-access
+        assert conn._use_assoc_inst_pull_operations == use_pull_param
+
+        gen = conn.IterAssociatorInstances(
+            self.target_path('root/cimv2'), MaxObjectCount=max_obj_count)
+        result = []
+        for _ in six.moves.range(close_after):
+            obj = next(gen)
+            result.append(obj)
+        gen.close()  # close prematurely
+
+        if close_after == 0 or close_after > max_obj_count:
+            # Pull has been called; enumeration is exhausted; enumeration was
+            # closed automatically within Pull.
+            conn.CloseEnumeration.assert_not_called()
+        else:
+            # Pull has not been called; enumeration is not exhausted;
+            # enumeration was closed by calling Close.
+            conn.CloseEnumeration.assert_called_with(ctx)
+            assert conn._use_assoc_inst_pull_operations is True
+
+        assert conn.use_pull_operations == use_pull_param
+        assert result == tst_insts[0:close_after]
+
+    @pytest.mark.parametrize(
+        "kwargs, exp_exc",
         [
-            ['bla', 1, TypeError()],
-            [-1, 1, ValueError()],
-            [None, 0, ValueError()],
-            [None, -1, ValueError()],
-            [None, None, ValueError()],
-            [None, 'bla', TypeError()],
+            [dict(OperationTimeout='bla'), TypeError()],
+            [dict(OperationTimeout=-1), ValueError()],
+            [dict(MaxObjectCount=0), ValueError()],
+            [dict(MaxObjectCount=-1), ValueError()],
+            [dict(MaxObjectCount=None), ValueError()],
+            [dict(MaxObjectCount='bla'), TypeError()],
+            [dict(MaxObjectCount='bla'), TypeError()],
         ]
     )
-    def test_invalid_params(self, tst_insts, op_to, max_cnt, exp_exc):
-        # pylint: disable=no-self-use
+    def test_open_invalid_params(self, tst_insts, kwargs, exp_exc):
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-        Test for invalid OperationTimeout, ContinueOnError, and MaxObjectCount
-        input parameters.
+        Test IterAssociatorInstances using the pull operations,
+        with invalid values and types of those input parameters that are
+        actually checked (i.e. OperationTimeout and MaxObjectCount).
         """
         conn = WBEMConnection('dummy', use_pull_operations=True)
 
@@ -1258,8 +1870,35 @@ class TestIterAssociatorInstances(object):
         with pytest.raises(type(exp_exc)):
             _ = list(conn.IterAssociatorInstances(
                 self.target_path('root/x'),
-                OperationTimeout=op_to,
-                MaxObjectCount=max_cnt))
+                **kwargs))
+
+    @pytest.mark.parametrize(
+        "kwargs, exp_exc",
+        [
+            [dict(FilterQueryLanguage='CQL'), ValueError()],
+            [dict(FilterQuery='Prop=42'), ValueError()],
+            [dict(ContinueOnError=True), ValueError()],
+        ]
+    )
+    def test_trad_invalid_params(self, tst_insts, kwargs, exp_exc):
+        # pylint: disable=no-self-use,redefined-outer-name
+        """
+        Test IterAssociatorInstances using the traditional operations,
+        with invalid values and types of those input parameters that are
+        actually checked (i.e. FilterQueryLanguage, FilterQuery,
+        ContinueOnError).
+        """
+        conn = WBEMConnection('dummy', use_pull_operations=False)
+
+        conn.Associators = Mock(return_value=tst_insts)
+        conn.OpenAssociatorInstances = \
+            Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
+
+        with pytest.raises(type(exp_exc)):
+            _ = list(conn.IterAssociatorInstances(
+                self.target_path('root/x'),
+                **kwargs))
+
 
 ########################################################################
 #
@@ -1267,9 +1906,8 @@ class TestIterAssociatorInstances(object):
 #
 ########################################################################
 
-
-class TestIterAssociatorInstancePaths(object):  # pylint: disable=invalid-name
-    """Test IterAssociatorInstancePaths Execution."""
+class TestIterAssociatorInstancePaths(object):
+    """Test IterAssociatorInstancePaths execution"""
 
     @staticmethod
     def target_path(ns):
@@ -1294,19 +1932,20 @@ class TestIterAssociatorInstancePaths(object):  # pylint: disable=invalid-name
                            ['RRole', None, 'ARole', None],
                            ['RRole', 'CIM_Blah', 'ARole', 'AssocClass']]
     )
-    def test_orig_operation_success(self, use_pull_param, tst_paths, ns, rc,
+    def test_trad_operation_success(self, use_pull_param, tst_paths, ns, rc,
                                     ro, rr, ac):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-            Test Use of IterAssociatorInstancePaths from
-            IterAssociatorInstancePaths.
-            This forces the enumerate by mocking NOT_Supported on the
-            OpenReferenceInstances.
-            It is parameterized to test variations on all parameters. Note
-            that it only tests legal parameters.
+        Test IterAssociatorInstancePaths using the traditional operations,
+        either by requesting it via use_pull_operations=False, or by leaving it
+        to the implementation via use_pull_operations=None and raising
+        NOT_SUPPORTED in the Open operation. This must succeed.
 
-            It confirms that ReferenceInstances receives the correct parameter
-            for all parameters.
+        The test is parameterized to test variations on all parameters. Note
+        that it only tests legal parameters.
+
+        The test confirms that the traditional operation receives the correct
+        values for all parameters.
         """
         conn = WBEMConnection('dummy', use_pull_operations=use_pull_param)
 
@@ -1338,12 +1977,11 @@ class TestIterAssociatorInstancePaths(object):  # pylint: disable=invalid-name
         assert result == tst_paths
 
     def test_operation_fail(self, tst_paths):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-            Test operation with use_pull_operation=True and
-            pull operation returns exception.
-            This must fail since we force use of the pull operations but
-            they return error.
+        Test IterAssociatorInstancePaths forcing the use of pull operations
+        via use_pull_operations=True, and the Open operation raises
+        NOT_SUPPORTED. This must fail.
         """
         conn = WBEMConnection('dummy', use_pull_operations=True)
 
@@ -1388,12 +2026,18 @@ class TestIterAssociatorInstancePaths(object):  # pylint: disable=invalid-name
     )
     def test_open_operation_success(self, use_pull_param, tst_paths, ns,
                                     rc, ro, rr, ac, fl, fq, ot, coe, moc):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-            Test call with forced pull operation and pull operation
-            returns exception. This tests with variations of all of the
-            input parameters from None to other valid values.  It does not
-            do any invalid values.
+        Test IterAssociatorInstancePaths using the pull operations,
+        either by requesting it via use_pull_operations=True, or by leaving it
+        to the implementation via use_pull_operations=None and raising
+        NOT_SUPPORTED in the traditional operation. This must succeed.
+
+        The test is parameterized to test variations on all parameters. Note
+        that it only tests legal parameters.
+
+        The test confirms that the Open operation receives the correct
+        values for all parameters, and that the Close operation is not called.
         """
         conn = WBEMConnection('dummy', use_pull_operations=use_pull_param)
 
@@ -1403,6 +2047,7 @@ class TestIterAssociatorInstancePaths(object):  # pylint: disable=invalid-name
             Mock(return_value=pull_path_result_tuple(paths=tst_paths,
                                                      eos=True,
                                                      context=None))
+        conn.CloseEnumeration = Mock()
 
         assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
@@ -1432,6 +2077,8 @@ class TestIterAssociatorInstancePaths(object):  # pylint: disable=invalid-name
             ContinueOnError=coe,
             MaxObjectCount=moc)
 
+        conn.CloseEnumeration.assert_not_called()
+
         # pylint: disable=protected-access
         assert conn._use_assoc_path_pull_operations is True
         assert conn.use_pull_operations == use_pull_param
@@ -1441,20 +2088,28 @@ class TestIterAssociatorInstancePaths(object):  # pylint: disable=invalid-name
         "use_pull_param", [None, True]
     )
     def test_pull_operation_success(self, tst_paths, use_pull_param):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-            Test call with forced pull operation Open returns nothing and
-            pull returns the instance and eos. This does not retest the
-            variations of input parameters because it is only confirming
-            that the pull executes.
+        Test IterAssociatorInstancePaths using the pull operations,
+        either by requesting it via use_pull_operations=True, or by leaving it
+        to the implementation via use_pull_operations=None and raising
+        NOT_SUPPORTED in the traditional operation. This must succeed.
+
+        The Open operation returns no result objects, and the Pull operation
+        returns all result objects and EOS.
+
+        This does not retest the variations of input parameters because it
+        is only confirming that the Pull operation executes.
         """
         conn = WBEMConnection('dummy', use_pull_operations=use_pull_param)
+
+        ctx = ('blah', conn.default_namespace)
 
         conn.AssociatorNames = \
             Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
         conn.OpenAssociatorInstancePaths = \
             Mock(return_value=pull_path_result_tuple(paths=[], eos=False,
-                                                     context='blah'))
+                                                     context=ctx))
         conn.PullInstancePaths = \
             Mock(return_value=pull_path_result_tuple(paths=tst_paths,
                                                      eos=True,
@@ -1472,21 +2127,90 @@ class TestIterAssociatorInstancePaths(object):  # pylint: disable=invalid-name
         assert result == tst_paths
 
     @pytest.mark.parametrize(
-        "op_to, max_cnt, exp_exc",
+        "use_pull_param", [None, True]
+    )
+    @pytest.mark.parametrize(
+        "max_obj_count", [1, 2]
+    )
+    @pytest.mark.parametrize(
+        "close_after", [0, 1, 2]
+    )
+    def test_closed_operation_success(self, tst_paths, use_pull_param,
+                                      max_obj_count, close_after):
+        # pylint: disable=no-self-use,redefined-outer-name
+        """
+        Test IterAssociatorInstancePaths using the pull operations,
+        either by requesting it via use_pull_operations=True, or by leaving it
+        to the implementation via use_pull_operations=None and raising
+        NOT_SUPPORTED in the traditional operation.
+
+        The iteration is closed after a number of retrievals, sometimes
+        prematurely and sometimes not.
+
+        This does not retest the variations of input parameters because it
+        is only confirming that the Close operation executes if needed.
+        """
+        conn = WBEMConnection('dummy', use_pull_operations=use_pull_param)
+
+        tst_paths_open = tst_paths[0:max_obj_count]
+        tst_paths_pull = tst_paths[max_obj_count:]
+        ctx = ('blah', conn.default_namespace)
+
+        conn.AssociatorNames = \
+            Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
+        conn.OpenAssociatorInstancePaths = \
+            Mock(return_value=pull_path_result_tuple(paths=tst_paths_open,
+                                                     eos=False,
+                                                     context=ctx))
+        conn.PullInstancePaths = \
+            Mock(return_value=pull_path_result_tuple(paths=tst_paths_pull,
+                                                     eos=True,
+                                                     context=None))
+        conn.CloseEnumeration = Mock()
+
+        assert conn.use_pull_operations == use_pull_param
+        # pylint: disable=protected-access
+        assert conn._use_assoc_path_pull_operations == use_pull_param
+
+        gen = conn.IterAssociatorInstancePaths(
+            self.target_path('root/cimv2'), MaxObjectCount=max_obj_count)
+        result = []
+        for _ in six.moves.range(close_after):
+            obj = next(gen)
+            result.append(obj)
+        gen.close()  # close prematurely
+
+        if close_after == 0 or close_after > max_obj_count:
+            # Pull has been called; enumeration is exhausted; enumeration was
+            # closed automatically within Pull.
+            conn.CloseEnumeration.assert_not_called()
+        else:
+            # Pull has not been called; enumeration is not exhausted;
+            # enumeration was closed by calling Close.
+            conn.CloseEnumeration.assert_called_with(ctx)
+            assert conn._use_assoc_path_pull_operations is True
+
+        assert conn.use_pull_operations == use_pull_param
+        assert result == tst_paths[0:close_after]
+
+    @pytest.mark.parametrize(
+        "kwargs, exp_exc",
         [
-            ['bla', 1, TypeError()],
-            [-1, 1, ValueError()],
-            [None, 0, ValueError()],
-            [None, -1, ValueError()],
-            [None, None, ValueError()],
-            [None, 'bla', TypeError()],
+            [dict(OperationTimeout='bla'), TypeError()],
+            [dict(OperationTimeout=-1), ValueError()],
+            [dict(MaxObjectCount=0), ValueError()],
+            [dict(MaxObjectCount=-1), ValueError()],
+            [dict(MaxObjectCount=None), ValueError()],
+            [dict(MaxObjectCount='bla'), TypeError()],
+            [dict(MaxObjectCount='bla'), TypeError()],
         ]
     )
-    def test_invalid_params(self, tst_paths, op_to, max_cnt, exp_exc):
-        # pylint: disable=no-self-use
+    def test_open_invalid_params(self, tst_paths, kwargs, exp_exc):
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-        Test for invalid OperationTimeout, ContinueOnError, and MaxObjectCount
-        input parameters.
+        Test IterAssociatorInstancePaths using the pull operations,
+        with invalid values and types of those input parameters that are
+        actually checked (i.e. OperationTimeout and MaxObjectCount).
         """
         conn = WBEMConnection('dummy', use_pull_operations=True)
 
@@ -1497,8 +2221,34 @@ class TestIterAssociatorInstancePaths(object):  # pylint: disable=invalid-name
         with pytest.raises(type(exp_exc)):
             _ = list(conn.IterAssociatorInstancePaths(
                 self.target_path('dum'),
-                OperationTimeout=op_to,
-                MaxObjectCount=max_cnt))
+                **kwargs))
+
+    @pytest.mark.parametrize(
+        "kwargs, exp_exc",
+        [
+            [dict(FilterQueryLanguage='CQL'), ValueError()],
+            [dict(FilterQuery='Prop=42'), ValueError()],
+            [dict(ContinueOnError=True), ValueError()],
+        ]
+    )
+    def test_trad_invalid_params(self, tst_paths, kwargs, exp_exc):
+        # pylint: disable=no-self-use,redefined-outer-name
+        """
+        Test IterAssociatorInstancePaths using the traditional operations,
+        with invalid values and types of those input parameters that are
+        actually checked (i.e. FilterQueryLanguage, FilterQuery,
+        ContinueOnError).
+        """
+        conn = WBEMConnection('dummy', use_pull_operations=False)
+
+        conn.AssociatorNames = Mock(return_value=tst_paths)
+        conn.OpenAssociatorInstancePaths = \
+            Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
+
+        with pytest.raises(type(exp_exc)):
+            _ = list(conn.IterAssociatorInstancePaths(
+                self.target_path('dum'),
+                **kwargs))
 
 
 ########################################################################
@@ -1507,9 +2257,8 @@ class TestIterAssociatorInstancePaths(object):  # pylint: disable=invalid-name
 #
 ########################################################################
 
-
-class TestIterQueryInstances(object):  # pylint: disable=invalid-name
-    """Test IterAssociatorInstancePaths Execution."""
+class TestIterQueryInstances(object):
+    """Test IterQueryInstances execution"""
 
     @pytest.mark.parametrize(
         "use_pull_param", [None, False]
@@ -1520,11 +2269,20 @@ class TestIterQueryInstances(object):  # pylint: disable=invalid-name
     @pytest.mark.parametrize(
         "ql, query", [(None, None), ('CQL', 'SELECT from *')]
     )
-    def test_orig_operation_success(self, use_pull_param, tst_insts, ns,
+    def test_trad_operation_success(self, use_pull_param, tst_insts, ns,
                                     ql, query):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-            Test Use IterQueryInstances using the original ExecQuery op
+        Test IterQueryInstances using the traditional operations,
+        either by requesting it via use_pull_operations=False, or by leaving it
+        to the implementation via use_pull_operations=None and raising
+        NOT_SUPPORTED in the Open operation. This must succeed.
+
+        The test is parameterized to test variations on all parameters. Note
+        that it only tests legal parameters.
+
+        The test confirms that the traditional operation receives the correct
+        values for all parameters.
         """
         conn = WBEMConnection('dummy', use_pull_operations=use_pull_param)
 
@@ -1548,12 +2306,11 @@ class TestIterQueryInstances(object):  # pylint: disable=invalid-name
         assert result_insts == tst_insts
 
     def test_operation_fail(self, tst_insts):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-            Test operation with use_pull_operation=True and
-            pull operation returns exception.
-            This must fail since we force use of the pull operations but
-            they return error.
+        Test IterQueryInstances forcing the use of pull operations
+        via use_pull_operations=True, and the Open operation raises
+        NOT_SUPPORTED. This must fail.
         """
         conn = WBEMConnection('dummy', use_pull_operations=True)
 
@@ -1595,12 +2352,18 @@ class TestIterQueryInstances(object):  # pylint: disable=invalid-name
     def test_open_operation_success(self, use_pull_param, tst_insts, ns,
                                     ql, query, ot, coe, moc, rqrc_param,
                                     tst_class):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-            Test call with forced pull operation and pull operation
-            returns exception. This tests with variations of all of the
-            input parameters from None to other valid values.  It does not
-            do any invalid values.
+        Test IterQueryInstances using the pull operations,
+        either by requesting it via use_pull_operations=True, or by leaving it
+        to the implementation via use_pull_operations=None and raising
+        NOT_SUPPORTED in the traditional operation. This must succeed.
+
+        The test is parameterized to test variations on all parameters. Note
+        that it only tests legal parameters.
+
+        The test confirms that the Open operation receives the correct
+        values for all parameters, and that the Close operation is not called.
         """
         conn = WBEMConnection('dummy', use_pull_operations=use_pull_param)
 
@@ -1614,6 +2377,7 @@ class TestIterQueryInstances(object):  # pylint: disable=invalid-name
                                                       eos=True,
                                                       context=None,
                                                       query_result_class=qrc))
+        conn.CloseEnumeration = Mock()
 
         assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
@@ -1635,6 +2399,8 @@ class TestIterQueryInstances(object):  # pylint: disable=invalid-name
             ContinueOnError=coe,
             MaxObjectCount=moc)
 
+        conn.CloseEnumeration.assert_not_called()
+
         result_insts = list(q_result.generator)
 
         assert q_result.query_result_class == qrc
@@ -1653,12 +2419,21 @@ class TestIterQueryInstances(object):  # pylint: disable=invalid-name
     )
     def test_pull_operation_success(self, tst_insts, use_pull_param,
                                     rqrc_param):
-        # pylint: disable=no-self-use
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-            Test call with forced pull operation Open returns nothing and
-            pull returns the instance and eos. This does not retest the
-            variations of input parameters because it is only confirming
-            that the pull executes.
+        Test IterQueryInstances using the pull operations,
+        either by requesting it via use_pull_operations=True, or by leaving it
+        to the implementation via use_pull_operations=None and raising
+        NOT_SUPPORTED in the traditional operation. This must succeed.
+
+        The Open operation returns no result objects, and the Pull operation
+        returns all result objects and EOS.
+
+        This does not retest the variations of input parameters because it
+        is only confirming that the Pull operation executes.
+
+        The test confirms that the Open operation receives the correct
+        values for all parameters, and that the Close operation is not called.
         """
         conn = WBEMConnection('dummy', use_pull_operations=use_pull_param)
 
@@ -1678,6 +2453,7 @@ class TestIterQueryInstances(object):  # pylint: disable=invalid-name
                                                       eos=True,
                                                       context=None,
                                                       query_result_class=qrc))
+        conn.CloseEnumeration = Mock()
 
         assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
@@ -1697,6 +2473,8 @@ class TestIterQueryInstances(object):  # pylint: disable=invalid-name
             ContinueOnError=None,
             MaxObjectCount=DEFAULT_ITER_MAXOBJECTCOUNT)
 
+        conn.CloseEnumeration.assert_not_called()
+
         # TODO ks: This assert disabled.
         # assert(q_result.query_result_class == rc)
 
@@ -1706,21 +2484,88 @@ class TestIterQueryInstances(object):  # pylint: disable=invalid-name
         assert result_insts == tst_insts
 
     @pytest.mark.parametrize(
-        "op_to, max_cnt, exp_exc",
+        "use_pull_param", [None, True]
+    )
+    @pytest.mark.parametrize(
+        "max_obj_count", [1, 2]
+    )
+    @pytest.mark.parametrize(
+        "close_after", [0, 1, 2]
+    )
+    def test_closed_operation_success(self, tst_insts, use_pull_param,
+                                      max_obj_count, close_after):
+        # pylint: disable=no-self-use,redefined-outer-name
+        """
+        Test IterQueryInstances using the pull operations,
+        either by requesting it via use_pull_operations=True, or by leaving it
+        to the implementation via use_pull_operations=None and raising
+        NOT_SUPPORTED in the traditional operation.
+
+        The iteration is closed after a number of retrievals, sometimes
+        prematurely and sometimes not.
+
+        This does not retest the variations of input parameters because it
+        is only confirming that the Close operation executes if needed.
+        """
+        conn = WBEMConnection('dummy', use_pull_operations=use_pull_param)
+
+        tst_insts_open = tst_insts[0:max_obj_count]
+        tst_insts_pull = tst_insts[max_obj_count:]
+        ctx = ('blah', conn.default_namespace)
+
+        conn.ExecQuery = \
+            Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
+        conn.OpenQueryInstances = \
+            Mock(return_value=pull_query_result_tuple(instances=tst_insts_open,
+                                                      eos=False,
+                                                      context=ctx,
+                                                      query_result_class=None))
+        conn.PullInstances = \
+            Mock(return_value=pull_query_result_tuple(instances=tst_insts_pull,
+                                                      eos=True,
+                                                      context=None,
+                                                      query_result_class=None))
+        conn.CloseEnumeration = Mock()
+
+        assert conn.use_pull_operations == use_pull_param
+        # pylint: disable=protected-access
+        assert conn._use_query_pull_operations == use_pull_param
+
+        q_result = conn.IterQueryInstances(
+            'CQL', 'Select from *',
+            ReturnQueryResultClass=None, MaxObjectCount=max_obj_count)
+        gen = q_result.generator
+        result = []
+        for _ in six.moves.range(close_after):
+            obj = next(gen)
+            result.append(obj)
+        gen.close()  # close prematurely
+
+        # In the current implementation of IterQuery, the enumeration is
+        # always exhausted.
+        conn.CloseEnumeration.assert_not_called()
+
+        assert conn.use_pull_operations == use_pull_param
+        assert result == tst_insts[0:close_after]
+
+    @pytest.mark.parametrize(
+        "kwargs, exp_exc",
         [
-            ['bla', 1, TypeError()],
-            [-1, 1, ValueError()],
-            [None, 0, ValueError()],
-            [None, -1, ValueError()],
-            [None, None, ValueError()],
-            [None, 'bla', TypeError()],
+            [dict(OperationTimeout='bla'), TypeError()],
+            [dict(OperationTimeout=-1), ValueError()],
+            [dict(MaxObjectCount=0), ValueError()],
+            [dict(MaxObjectCount=-1), ValueError()],
+            [dict(MaxObjectCount=None), ValueError()],
+            [dict(MaxObjectCount='bla'), TypeError()],
+            [dict(MaxObjectCount='bla'), TypeError()],
         ]
     )
-    def test_invalid_params(self, tst_insts, op_to, max_cnt, exp_exc):
-        # pylint: disable=no-self-use
+    def test_open_invalid_params(self, tst_insts, kwargs, exp_exc):
+        # pylint: disable=no-self-use,redefined-outer-name
         """
-        Test for invalid OperationTimeout, ContinueOnError, and MaxObjectCount
-        input parameters.
+        Test IterQueryInstances using the pull operations,
+        with invalid values and types of those input parameters that are
+        actually checked (i.e. OperationTimeout and MaxObjectCount).
         """
         conn = WBEMConnection('dummy', use_pull_operations=True)
 
@@ -1734,5 +2579,32 @@ class TestIterQueryInstances(object):  # pylint: disable=invalid-name
         with pytest.raises(type(exp_exc)):
             conn.IterQueryInstances(
                 'CQL', 'Select from *',
-                OperationTimeout=op_to,
-                MaxObjectCount=max_cnt)
+                **kwargs)
+
+    @pytest.mark.parametrize(
+        "kwargs, exp_exc",
+        [
+            [dict(ContinueOnError=True), ValueError()],
+            [dict(ReturnQueryResultClass=True), ValueError()],
+        ]
+    )
+    def test_trad_invalid_params(self, tst_insts, kwargs, exp_exc):
+        # pylint: disable=no-self-use,redefined-outer-name
+        """
+        Test IterQueryInstances using the traditional operations,
+        with invalid values and types of those input parameters that are
+        actually checked (i.e. ContinueOnError).
+        """
+        conn = WBEMConnection('dummy', use_pull_operations=False)
+
+        conn.ExecQuery = \
+            Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
+        conn.OpenQueryInstances = \
+            Mock(return_value=pull_query_result_tuple(instances=tst_insts,
+                                                      eos=True,
+                                                      context=None,
+                                                      query_result_class=None))
+        with pytest.raises(type(exp_exc)):
+            conn.IterQueryInstances(
+                'CQL', 'Select from *',
+                **kwargs)

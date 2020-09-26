@@ -4641,11 +4641,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         # Common variable for pull result tuple used by pulls and finally:
         pull_result = None
-
-        try:                # try / finally block to allow iter.close()
-            if (self._use_enum_inst_pull_operations is None or
-                    self._use_enum_inst_pull_operations):
-
+        if (self._use_enum_inst_pull_operations is None or
+                self._use_enum_inst_pull_operations):
+            try:                # try / finally block to allow iter.close()
                 try:        # operation try block
                     pull_result = self.OpenEnumerateInstances(
                         ClassName, namespace=namespace,
@@ -4685,48 +4683,49 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     else:
                         raise
 
-            # Alternate request if Pull not implemented. This does not allow
-            # the FilterQuery or ContinueOnError
-            assert self._use_enum_inst_pull_operations is False
+            # Cleanup if caller closes the iterator before exhausting it
+            finally:
+                # Cleanup only required if the pull context is open and not
+                # complete
+                if pull_result is not None and not pull_result.eos:
+                    self.CloseEnumeration(pull_result.context)
+                    pull_result = None
 
-            if FilterQuery is not None or FilterQueryLanguage is not None:
-                raise ValueError('EnumerateInstances does not support'
-                                 ' FilterQuery.')
+        # Alternate request if Pull not implemented. This does not allow
+        # the FilterQuery or ContinueOnError
+        assert self._use_enum_inst_pull_operations is False
 
-            if ContinueOnError is not None:
-                raise ValueError('EnumerateInstances does not support '
-                                 'ContinueOnError.')
+        if FilterQuery is not None or FilterQueryLanguage is not None:
+            raise ValueError('EnumerateInstances does not support'
+                             ' FilterQuery.')
 
-            enum_rslt = self.EnumerateInstances(
-                ClassName,
-                namespace=namespace,
-                LocalOnly=LocalOnly,
-                DeepInheritance=DeepInheritance,
-                IncludeQualifiers=IncludeQualifiers,
-                IncludeClassOrigin=IncludeClassOrigin,
-                PropertyList=PropertyList)
+        if ContinueOnError is not None:
+            raise ValueError('EnumerateInstances does not support '
+                             'ContinueOnError.')
 
-            # get namespace for the operation
-            if namespace is None and isinstance(ClassName, CIMClassName):
-                namespace = ClassName.namespace
-            namespace = self._iparam_namespace_from_namespace(namespace)
+        enum_rslt = self.EnumerateInstances(
+            ClassName,
+            namespace=namespace,
+            LocalOnly=LocalOnly,
+            DeepInheritance=DeepInheritance,
+            IncludeQualifiers=IncludeQualifiers,
+            IncludeClassOrigin=IncludeClassOrigin,
+            PropertyList=PropertyList)
 
-            # Complete namespace and host components of the path
-            for inst in enum_rslt:
-                if inst.path.namespace is None:
-                    inst.path.namespace = namespace
-                if inst.path.host is None:
-                    inst.path.host = self.host
+        # get namespace for the operation
+        if namespace is None and isinstance(ClassName, CIMClassName):
+            namespace = ClassName.namespace
+        namespace = self._iparam_namespace_from_namespace(namespace)
 
-            for inst in enum_rslt:
-                yield inst
+        # Complete namespace and host components of the path
+        for inst in enum_rslt:
+            if inst.path.namespace is None:
+                inst.path.namespace = namespace
+            if inst.path.host is None:
+                inst.path.host = self.host
 
-        # Cleanup if caller closes the iterator before exhausting it
-        finally:
-            # Cleanup only required if the pull context is open and not complete
-            if pull_result is not None and not pull_result.eos:
-                self.CloseEnumeration(pull_result.context)
-                pull_result = None
+        for inst in enum_rslt:
+            yield inst
 
     def IterEnumerateInstancePaths(self, ClassName, namespace=None,
                                    FilterQueryLanguage=None, FilterQuery=None,
@@ -4912,13 +4911,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         _validate_MaxObjectCount_Iter(MaxObjectCount)
 
         # Common variable for pull result tuple used by pulls and finally:
-
         pull_result = None
-
-        try:                # try / finally block to allow iter.close()
-            if (self._use_enum_path_pull_operations is None or
-                    self._use_enum_path_pull_operations):
-
+        if (self._use_enum_path_pull_operations is None or
+                self._use_enum_path_pull_operations):
+            try:                # try / finally block to allow iter.close()
                 try:        # operation try block
                     pull_result = self.OpenEnumerateInstancePaths(
                         ClassName, namespace=namespace,
@@ -4954,42 +4950,43 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     else:
                         raise
 
-            # Alternate request if Pull not implemented. This does not allow
-            # the FilterQuery or ContinueOnError
-            assert self._use_enum_path_pull_operations is False
+            # Cleanup if caller closes the iterator before exhausting it
+            finally:
+                # Cleanup only required if the pull context is open and not
+                # complete
+                if pull_result is not None and not pull_result.eos:
+                    self.CloseEnumeration(pull_result.context)
+                    pull_result = None
 
-            if FilterQuery is not None or FilterQueryLanguage is not None:
-                raise ValueError('EnumerateInstanceNnames does not support'
-                                 ' FilterQuery.')
+        # Alternate request if Pull not implemented. This does not allow
+        # the FilterQuery or ContinueOnError
+        assert self._use_enum_path_pull_operations is False
 
-            if ContinueOnError is not None:
-                raise ValueError('EnumerateInstanceNames does not support '
-                                 'ContinueOnError.')
+        if FilterQuery is not None or FilterQueryLanguage is not None:
+            raise ValueError('EnumerateInstanceNnames does not support'
+                             ' FilterQuery.')
 
-            enum_rslt = self.EnumerateInstanceNames(
-                ClassName, namespace=namespace)
+        if ContinueOnError is not None:
+            raise ValueError('EnumerateInstanceNames does not support '
+                             'ContinueOnError.')
 
-            # get namespace for the operation
-            if namespace is None and isinstance(ClassName, CIMClassName):
-                namespace = ClassName.namespace
-            namespace = self._iparam_namespace_from_namespace(namespace)
+        enum_rslt = self.EnumerateInstanceNames(
+            ClassName, namespace=namespace)
 
-            # Complete namespace and host components of the path
-            for path in enum_rslt:
-                if path.namespace is None:
-                    path.namespace = namespace
-                if path.host is None:
-                    path.host = self.host
+        # get namespace for the operation
+        if namespace is None and isinstance(ClassName, CIMClassName):
+            namespace = ClassName.namespace
+        namespace = self._iparam_namespace_from_namespace(namespace)
 
-            for inst in enum_rslt:
-                yield inst
+        # Complete namespace and host components of the path
+        for path in enum_rslt:
+            if path.namespace is None:
+                path.namespace = namespace
+            if path.host is None:
+                path.host = self.host
 
-        # Cleanup if caller closes the iterator before exhausting it
-        finally:
-            # Cleanup only required if the pull context is open and not complete
-            if pull_result is not None and not pull_result.eos:
-                self.CloseEnumeration(pull_result.context)
-                pull_result = None
+        for inst in enum_rslt:
+            yield inst
 
     def IterAssociatorInstances(self, InstanceName, AssocClass=None,
                                 ResultClass=None,
@@ -5244,12 +5241,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         _validate_MaxObjectCount_Iter(MaxObjectCount)
 
         # Common variable for pull result tuple used by pulls and finally:
-
         pull_result = None
-        try:                # try / finally block to allow iter.close()
-            if (self._use_assoc_inst_pull_operations is None or
-                    self._use_assoc_inst_pull_operations):
-
+        if (self._use_assoc_inst_pull_operations is None or
+                self._use_assoc_inst_pull_operations):
+            try:                # try / finally block to allow iter.close()
                 try:        # operation try block
                     pull_result = self.OpenAssociatorInstances(
                         InstanceName,
@@ -5292,37 +5287,38 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     else:
                         raise
 
-            # Alternate request if Pull not implemented. This does not allow
-            # the FilterQuery or ContinueOnError
-            assert self._use_assoc_inst_pull_operations is False
+            # Cleanup if caller closes the iterator before exhausting it
+            finally:
+                # Cleanup only required if the pull context is open and not
+                # complete
+                if pull_result is not None and not pull_result.eos:
+                    self.CloseEnumeration(pull_result.context)
+                    pull_result = None
 
-            if FilterQuery is not None or FilterQueryLanguage is not None:
-                raise ValueError('Associators does not support'
-                                 ' FilterQuery.')
+        # Alternate request if Pull not implemented. This does not allow
+        # the FilterQuery or ContinueOnError
+        assert self._use_assoc_inst_pull_operations is False
 
-            if ContinueOnError is not None:
-                raise ValueError('Associators does not support '
-                                 'ContinueOnError.')
+        if FilterQuery is not None or FilterQueryLanguage is not None:
+            raise ValueError('Associators does not support'
+                             ' FilterQuery.')
 
-            enum_rslt = self.Associators(
-                InstanceName,
-                AssocClass=AssocClass,
-                ResultClass=ResultClass,
-                Role=Role,
-                ResultRole=ResultRole,
-                IncludeQualifiers=IncludeQualifiers,
-                IncludeClassOrigin=IncludeClassOrigin,
-                PropertyList=PropertyList)
+        if ContinueOnError is not None:
+            raise ValueError('Associators does not support '
+                             'ContinueOnError.')
 
-            for inst in enum_rslt:
-                yield inst
+        enum_rslt = self.Associators(
+            InstanceName,
+            AssocClass=AssocClass,
+            ResultClass=ResultClass,
+            Role=Role,
+            ResultRole=ResultRole,
+            IncludeQualifiers=IncludeQualifiers,
+            IncludeClassOrigin=IncludeClassOrigin,
+            PropertyList=PropertyList)
 
-        # Cleanup if caller closes the iterator before exhausting it
-        finally:
-            # Cleanup only required if the pull context is open and not complete
-            if pull_result is not None and not pull_result.eos:
-                self.CloseEnumeration(pull_result.context)
-                pull_result = None
+        for inst in enum_rslt:
+            yield inst
 
     def IterAssociatorInstancePaths(self, InstanceName, AssocClass=None,
                                     ResultClass=None,
@@ -5529,10 +5525,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         # Common variable for pull result tuple used by pulls and finally:
         pull_result = None
-        try:                # try / finally block to allow iter.close()
-            if (self._use_assoc_path_pull_operations is None or
-                    self._use_assoc_path_pull_operations):
-
+        if (self._use_assoc_path_pull_operations is None or
+                self._use_assoc_path_pull_operations):
+            try:                # try / finally block to allow iter.close()
                 try:        # Open operation try block
                     pull_result = self.OpenAssociatorInstancePaths(
                         InstanceName,
@@ -5571,35 +5566,35 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                         self._use_assoc_path_pull_operations = False
                     else:
                         raise
+            # Cleanup if caller closes the iterator before exhausting it
+            finally:
+                # Cleanup only required if the pull context is open and not
+                # complete
+                if pull_result is not None and not pull_result.eos:
+                    self.CloseEnumeration(pull_result.context)
+                    pull_result = None
 
-            # Alternate request if Pull not implemented. This does not allow
-            # the FilterQuery or ContinueOnError
-            assert self._use_assoc_path_pull_operations is False
+        # Alternate request if Pull not implemented. This does not allow
+        # the FilterQuery or ContinueOnError
+        assert self._use_assoc_path_pull_operations is False
 
-            if FilterQuery is not None or FilterQueryLanguage is not None:
-                raise ValueError('AssociatorNames does not support'
-                                 ' FilterQuery.')
+        if FilterQuery is not None or FilterQueryLanguage is not None:
+            raise ValueError('AssociatorNames does not support'
+                             ' FilterQuery.')
 
-            if ContinueOnError is not None:
-                raise ValueError('AssociatorNames does not support '
-                                 'ContinueOnError.')
+        if ContinueOnError is not None:
+            raise ValueError('AssociatorNames does not support '
+                             'ContinueOnError.')
 
-            enum_rslt = self.AssociatorNames(
-                InstanceName,
-                AssocClass=AssocClass,
-                ResultClass=ResultClass,
-                Role=Role,
-                ResultRole=ResultRole)
+        enum_rslt = self.AssociatorNames(
+            InstanceName,
+            AssocClass=AssocClass,
+            ResultClass=ResultClass,
+            Role=Role,
+            ResultRole=ResultRole)
 
-            for inst in enum_rslt:
-                yield inst
-
-        # Cleanup if caller closess the iterator before exhausting it
-        finally:
-            # Cleanup only required if the pull context is open and not complete
-            if pull_result is not None and not pull_result.eos:
-                self.CloseEnumeration(pull_result.context)
-                pull_result = None
+        for inst in enum_rslt:
+            yield inst
 
     def IterReferenceInstances(self, InstanceName, ResultClass=None,
                                Role=None, IncludeQualifiers=None,
@@ -5831,10 +5826,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         # Common variable for pull result tuple used by pulls and finally:
         pull_result = None
-        try:                # try / finally block to allow iter.close()
-            if (self._use_ref_inst_pull_operations is None or
-                    self._use_ref_inst_pull_operations):
-
+        if (self._use_ref_inst_pull_operations is None or
+                self._use_ref_inst_pull_operations):
+            try:                # try / finally block to allow iter.close()
                 try:        # operation try block
                     pull_result = self.OpenReferenceInstances(
                         InstanceName,
@@ -5873,35 +5867,36 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     else:
                         raise
 
-            # Alternate request if Pull not implemented. This does not allow
-            # the FilterQuery or ContinueOnError
-            assert self._use_ref_inst_pull_operations is False
+            # Cleanup if caller closes the iterator before exhausting it
+            finally:
+                # Cleanup only required if the pull context is open and not
+                # complete
+                if pull_result is not None and not pull_result.eos:
+                    self.CloseEnumeration(pull_result.context)
+                    pull_result = None
 
-            if FilterQuery is not None or FilterQueryLanguage is not None:
-                raise ValueError('References does not support'
-                                 ' FilterQuery.')
+        # Alternate request if Pull not implemented. This does not allow
+        # the FilterQuery or ContinueOnError
+        assert self._use_ref_inst_pull_operations is False
 
-            if ContinueOnError is not None:
-                raise ValueError('References does not support '
-                                 'ContinueOnError.')
+        if FilterQuery is not None or FilterQueryLanguage is not None:
+            raise ValueError('References does not support'
+                             ' FilterQuery.')
 
-            enum_rslt = self.References(
-                InstanceName,
-                ResultClass=ResultClass,
-                Role=Role,
-                IncludeQualifiers=IncludeQualifiers,
-                IncludeClassOrigin=IncludeClassOrigin,
-                PropertyList=PropertyList)
+        if ContinueOnError is not None:
+            raise ValueError('References does not support '
+                             'ContinueOnError.')
 
-            for inst in enum_rslt:
-                yield inst
+        enum_rslt = self.References(
+            InstanceName,
+            ResultClass=ResultClass,
+            Role=Role,
+            IncludeQualifiers=IncludeQualifiers,
+            IncludeClassOrigin=IncludeClassOrigin,
+            PropertyList=PropertyList)
 
-        # Cleanup if caller closes the iterator before exhausting it
-        finally:
-            # Cleanup only required if the pull context is open and not complete
-            if pull_result is not None and not pull_result.eos:
-                self.CloseEnumeration(pull_result.context)
-                pull_result = None
+        for inst in enum_rslt:
+            yield inst
 
     def IterReferenceInstancePaths(self, InstanceName, ResultClass=None,
                                    Role=None,
@@ -6091,10 +6086,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         # Common variable for pull result tuple used by pulls and finally:
         pull_result = None
-        try:                # try / finally block to allow iter.close()
-            if (self._use_ref_path_pull_operations is None or
-                    self._use_ref_path_pull_operations):
-
+        if (self._use_ref_path_pull_operations is None or
+                self._use_ref_path_pull_operations):
+            try:                # try / finally block to allow iter.close()
                 try:        # Open operation try block
                     pull_result = self.OpenReferenceInstancePaths(
                         InstanceName,
@@ -6132,32 +6126,33 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     else:
                         raise
 
-            # Alternate request if Pull not implemented. This does not allow
-            # the FilterQuery or ContinueOnError
-            assert self._use_ref_path_pull_operations is False
+            # Cleanup if caller closes the iterator before exhausting it
+            finally:
+                # Cleanup only required if the pull context is open and not
+                # complete
+                if pull_result is not None and not pull_result.eos:
+                    self.CloseEnumeration(pull_result.context)
+                    pull_result = None
 
-            if FilterQuery is not None or FilterQueryLanguage is not None:
-                raise ValueError('ReferenceInstanceNnames does not support'
-                                 ' FilterQuery.')
+        # Alternate request if Pull not implemented. This does not allow
+        # the FilterQuery or ContinueOnError
+        assert self._use_ref_path_pull_operations is False
 
-            if ContinueOnError is not None:
-                raise ValueError('ReferenceInstanceNames does not support '
-                                 'ContinueOnError.')
+        if FilterQuery is not None or FilterQueryLanguage is not None:
+            raise ValueError('ReferenceInstanceNnames does not support'
+                             ' FilterQuery.')
 
-            enum_rslt = self.ReferenceNames(
-                InstanceName,
-                ResultClass=ResultClass,
-                Role=Role)
+        if ContinueOnError is not None:
+            raise ValueError('ReferenceInstanceNames does not support '
+                             'ContinueOnError.')
 
-            for inst in enum_rslt:
-                yield inst
+        enum_rslt = self.ReferenceNames(
+            InstanceName,
+            ResultClass=ResultClass,
+            Role=Role)
 
-        # Cleanup if caller closess the iterator before exhausting it
-        finally:
-            # Cleanup only required if the pull context is open and not complete
-            if pull_result is not None and not pull_result.eos:
-                self.CloseEnumeration(pull_result.context)
-                pull_result = None
+        for inst in enum_rslt:
+            yield inst
 
     def IterQueryInstances(self, FilterQueryLanguage, FilterQuery,
                            namespace=None, ReturnQueryResultClass=None,
@@ -6365,11 +6360,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         # Common variable for pull result tuple used by pulls and finally:
         pull_result = None
-        try:                # try / finally block to allow iter.close()
-            _instances = []
-            if (self._use_query_pull_operations is None or
-                    self._use_query_pull_operations):
-
+        if (self._use_query_pull_operations is None or
+                self._use_query_pull_operations):
+            try:                # try / finally block to allow iter.close()
                 try:        # operation try block
                     pull_result = self.OpenQueryInstances(
                         FilterQueryLanguage,
@@ -6390,6 +6383,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     qrc = pull_result.query_result_class if \
                         ReturnQueryResultClass else None
 
+                    # TODO: Change to yield each Open/Pull instead of first
+                    #       calculating the total result and then yielding it.
                     if not pull_result.eos:
                         while not pull_result.eos:
                             pull_result = self.PullInstances(
@@ -6413,32 +6408,33 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     else:
                         raise
 
-            # Alternate request if Pull not implemented. This does not allow
-            # the ContinueOnError or ReturnQueryResultClass
-            assert self._use_query_pull_operations is False
+            # Cleanup if caller closes the iterator before exhausting it
+            finally:
+                # Cleanup only required if the pull context is open and not
+                # complete
+                if pull_result is not None and not pull_result.eos:
+                    self.CloseEnumeration(pull_result.context)
+                    pull_result = None
 
-            if ReturnQueryResultClass is not None:
-                raise ValueError('ExecQuery does not support'
-                                 ' ReturnQueryResultClass.')
+        # Alternate request if Pull not implemented. This does not allow
+        # the ContinueOnError or ReturnQueryResultClass
+        assert self._use_query_pull_operations is False
 
-            if ContinueOnError is not None:
-                raise ValueError('ExecQuery does not support '
-                                 'ContinueOnError.')
+        if ReturnQueryResultClass is not None:
+            raise ValueError('ExecQuery does not support'
+                             ' ReturnQueryResultClass.')
 
-            # The parameters are QueryLanguage and Query for ExecQuery
-            _instances = self.ExecQuery(FilterQueryLanguage,
-                                        FilterQuery,
-                                        namespace=namespace)
+        if ContinueOnError is not None:
+            raise ValueError('ExecQuery does not support '
+                             'ContinueOnError.')
 
-            rtn = IterQueryInstancesReturn(_instances)
-            return rtn
+        # The parameters are QueryLanguage and Query for ExecQuery
+        _instances = self.ExecQuery(FilterQueryLanguage,
+                                    FilterQuery,
+                                    namespace=namespace)
 
-        # Cleanup if caller closes the iterator before exhausting it
-        finally:
-            # Cleanup only required if the pull context is open and not complete
-            if pull_result is not None and not pull_result.eos:
-                self.CloseEnumeration(pull_result.context)
-                pull_result = None
+        rtn = IterQueryInstancesReturn(_instances)
+        return rtn
 
     def OpenEnumerateInstances(self, ClassName, namespace=None,
                                DeepInheritance=None,
