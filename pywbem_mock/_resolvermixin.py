@@ -76,7 +76,7 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
     """
 
     @staticmethod
-    def _validate_qualifiers(qualifier_list, qualifier_store, new_class, scope):
+    def _validate_qualifiers(qualifiers, qualifier_store, new_class, scope):
         """
         Validate a list of qualifiers against the Qualifier decl in the
         repository.
@@ -86,8 +86,23 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
         3. Whether the qualifier is valid for the given scope.
         4. Whether the qualifier can be overridden.
         5. Whether the qualifier should be propagated to the subclass.
+
+        Parameters:
+
+          qualifiers: (:class:`py:dict` or `NocaseDict`_):
+             Qualifiers to validate
+
+          qualifier_store ():
+
+          new_class (:class:`~pywbem.CIMClass`):
+            The class being validated
+
+        scope (:term:`string`):
+            The scope defined for the object containing the qualifiers.
+            May be 'CLASS', 'PROPERTY', 'METHOD', 'PARAMETER'
+
         """
-        for qname, qual in qualifier_list.items():
+        for qname, qual in qualifiers.items():
             if not qualifier_store.object_exists(qname):
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
@@ -103,7 +118,9 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                             "{3!A}).",
                             qname, new_class.classname, qual.type,
                             q_decl.type))
-            if scope not in q_decl.scopes and 'ANY' not in q_decl.scopes:
+
+            # Test for valid scope for this object type ot qualdecl ANY
+            if not q_decl.scopes[scope] and not q_decl.scopes['ANY']:
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
                     _format("Qualifier {0!A} in new class {1!A} is used in "
@@ -400,7 +417,7 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
                     _format("New class {0!A} derived from superclass {1!A} "
-                            "in namespace {3!A} which is not Association "
+                            "in namespace {2!A} which is not Association "
                             "Class .",
                             new_class.classname, new_class.superclass,
                             namespace))
@@ -418,13 +435,24 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
         for meth in new_class.methods.values():
             objects += list(meth.parameters.values())
 
-        # Validate the attributes of all qualifiers in the new class
+        # Validate the attributes of all qualifiers in the new class and that
+        # their value is True
         if qualifier_store:
+            if 'ASSOCIATION' in new_class.qualifiers and \
+                    new_class.qualifiers['ASSOCIATION']:
+                class_scope = 'ASSOCIATION'
+            elif 'INDICATION' in new_class.qualifiers and \
+                    new_class.qualifiers['INDICATION']:
+                class_scope = 'INDICATION'
+            else:
+                class_scope = 'CLASS'
             self._validate_qualifiers(new_class.qualifiers, qualifier_store,
-                                      new_class, 'CLASS')
+                                      new_class, class_scope)
             for prop in new_class.properties.values():
+                prop_scope = 'reference' if prop.type == 'reference' \
+                    else 'PROPERTY'
                 self._validate_qualifiers(prop.qualifiers, qualifier_store,
-                                          new_class, 'PROPERTY')
+                                          new_class, prop_scope)
             for meth in new_class.methods.values():
                 self._validate_qualifiers(meth.qualifiers, qualifier_store,
                                           new_class, 'METHOD')

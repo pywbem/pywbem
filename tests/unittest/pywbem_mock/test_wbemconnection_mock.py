@@ -61,7 +61,7 @@ from pywbem import CIMClass, CIMProperty, CIMInstance, CIMMethod, \
     CIM_ERR_ALREADY_EXISTS, CIM_ERR_INVALID_ENUMERATION_CONTEXT, \
     CIM_ERR_NAMESPACE_NOT_EMPTY, CIM_ERR_INVALID_SUPERCLASS, \
     CIM_ERR_NOT_SUPPORTED, CIM_ERR_METHOD_NOT_AVAILABLE, \
-    CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED  # noqa: E402
+    CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED, CIM_ERR_METHOD_NOT_FOUND  # noqa: E402
 from pywbem._nocasedict import NocaseDict  # noqa: E402
 from pywbem._utils import _format  # noqa: E402
 from pywbem._cim_operations import pull_path_result_tuple  # noqa: E402
@@ -972,9 +972,12 @@ class TestFakedWBEMConnection(object):
     @pytest.mark.parametrize(
         "set_on_init", [False, True])
     @pytest.mark.parametrize(
-        "disable", [False, None, True])
+        "disable, exp_exec", [[False, None],
+                              [None, None],
+                              [True, None],
+                              [1, ValueError]])
     def test_disable_pull(self, tst_classeswqualifiers, tst_instances,
-                          set_on_init, disable):
+                          set_on_init, disable, exp_exec):
         # pylint: disable=no-self-use
         """
         Test the disable_pull_operations property set both in init
@@ -991,61 +994,72 @@ class TestFakedWBEMConnection(object):
         # pylint: disable=protected-access
         FakedWBEMConnection._reset_logging_config()
 
-        if set_on_init:
-            conn = FakedWBEMConnection(disable_pull_operations=disable)
+        if exp_exec:
+            # Test for exception
+            with pytest.raises(exp_exec):
+                if set_on_init:
+                    conn = FakedWBEMConnection(disable_pull_operations=disable)
+                else:
+                    conn = FakedWBEMConnection()
+                    assert conn.disable_pull_operations is False
+                    conn.disable_pull_operations = disable
+
         else:
-            conn = FakedWBEMConnection()
-            assert conn.disable_pull_operations is False
-            conn.disable_pull_operations = disable
+            if set_on_init:
+                conn = FakedWBEMConnection(disable_pull_operations=disable)
+            else:
+                conn = FakedWBEMConnection()
+                assert conn.disable_pull_operations is False
+                conn.disable_pull_operations = disable
 
-        # Test if the attribute correctly set in conn
-        if disable:
-            assert conn.disable_pull_operations is True
-        elif disable is False:
-            assert conn.disable_pull_operations is False
-        else:
-            assert disable is None
-            assert conn.disable_pull_operations is False
+            # Test if the attribute correctly set in conn
+            if disable:
+                assert conn.disable_pull_operations is True
+            elif disable is False:
+                assert conn.disable_pull_operations is False
+            else:
+                assert disable is None
+                assert conn.disable_pull_operations is False
 
-        # Test if the attribute correctly set in conn._mainprovider
-        if disable:
-            assert conn._mainprovider.disable_pull_operations is True
-        elif disable is False:
-            assert conn._mainprovider.disable_pull_operations is False
-        else:
-            assert disable is None
-            assert conn._mainprovider.disable_pull_operations is False
+            # Test if the attribute correctly set in conn._mainprovider
+            if disable:
+                assert conn._mainprovider.disable_pull_operations is True
+            elif disable is False:
+                assert conn._mainprovider.disable_pull_operations is False
+            else:
+                assert disable is None
+                assert conn._mainprovider.disable_pull_operations is False
 
-        conn.add_cimobjects(tst_classeswqualifiers)
-        conn.add_cimobjects(tst_instances)
-        tst_class = 'CIM_Foo'
-        paths = conn.EnumerateInstanceNames(tst_class)
-        path = paths[0]
+            conn.add_cimobjects(tst_classeswqualifiers)
+            conn.add_cimobjects(tst_instances)
+            tst_class = 'CIM_Foo'
+            paths = conn.EnumerateInstanceNames(tst_class)
+            path = paths[0]
 
-        # The ExecQuery() operation of the main provider is not implemented.
-        # For this test, we don't care about that because we just want to
-        # verify disable_pull_operations. Therefore, the operation gets mocked
-        # to return an empty query result.
-        # pylint: disable=protected-access
-        conn._mainprovider.ExecQuery = Mock(return_value=[])
+            # The ExecQuery() operation of the main provider is not implemented.
+            # For this test, we don't care about that because we just want to
+            # verify disable_pull_operations. Therefore, the operation gets
+            # mocked to return an empty query result.
+            # pylint: disable=protected-access
+            conn._mainprovider.ExecQuery = Mock(return_value=[])
 
-        if conn.disable_pull_operations is True:
-            operation_fail(conn.OpenEnumerateInstances, tst_class)
-            operation_fail(conn.OpenEnumerateInstancePaths, tst_class)
-            operation_fail(conn.OpenReferenceInstances, path)
-            operation_fail(conn.OpenReferenceInstancePaths, path)
-            operation_fail(conn.OpenAssociatorInstancePaths, path)
-            operation_fail(conn.OpenAssociatorInstancePaths, path)
-            operation_fail(conn.OpenQueryInstances,
-                           'DMTF:FQL', "SELECT * FROM CIM_Foo")
-        else:
-            conn.OpenEnumerateInstances(tst_class)
-            conn.OpenEnumerateInstancePaths(tst_class)
-            conn.OpenReferenceInstances(path)
-            conn.OpenReferenceInstancePaths(path)
-            conn.OpenAssociatorInstancePaths(path)
-            conn.OpenAssociatorInstancePaths(path)
-            conn.OpenQueryInstances('DMTF:FQL', "SELECT * FROM CIM_Foo")
+            if conn.disable_pull_operations is True:
+                operation_fail(conn.OpenEnumerateInstances, tst_class)
+                operation_fail(conn.OpenEnumerateInstancePaths, tst_class)
+                operation_fail(conn.OpenReferenceInstances, path)
+                operation_fail(conn.OpenReferenceInstancePaths, path)
+                operation_fail(conn.OpenAssociatorInstancePaths, path)
+                operation_fail(conn.OpenAssociatorInstancePaths, path)
+                operation_fail(conn.OpenQueryInstances,
+                               'DMTF:FQL', "SELECT * FROM CIM_Foo")
+            else:
+                conn.OpenEnumerateInstances(tst_class)
+                conn.OpenEnumerateInstancePaths(tst_class)
+                conn.OpenReferenceInstances(path)
+                conn.OpenReferenceInstancePaths(path)
+                conn.OpenAssociatorInstancePaths(path)
+                conn.OpenAssociatorInstancePaths(path)
+                conn.OpenQueryInstances('DMTF:FQL', "SELECT * FROM CIM_Foo")
 
     def test_repr(self):
         # pylint: disable=no-self-use
@@ -3864,7 +3878,119 @@ class TestClassOperations(object):
              None, 42, None,
              TypeError(), OK],
 
-            # TODO add test for method with parameters.
+            ['Fail create invalid subclass, Class qualifier on property',
+             ['CIM_Foo', 'CIM_Foo_sub'],
+             CIMClass(
+                 'CIM_Foo_sub_sub', superclass='CIM_Foo_sub',
+                 properties={
+                     'cimfoo_sub': CIMProperty(
+                         'cimfoo_sub', "blah",
+                         qualifiers={'Abstract': CIMQualifier('Abstract',
+                                                              True)},
+                         type='string',
+                         class_origin='CIM_Foo_sub_sub',
+                         propagated=False)}
+             ),
+             None, CIMError(CIM_ERR_INVALID_PARAMETER), OK],
+
+            ['Fail create invalid subclass, Property qualifier (Key) on class',
+             ['CIM_Foo', 'CIM_Foo_sub'],
+             CIMClass(
+                 'CIM_Foo_sub_sub', superclass='CIM_Foo_sub',
+                 qualifiers={'Key': CIMQualifier('Key', True)},
+                 properties={
+                     'cimfoo_sub': CIMProperty(
+                         'cimfoo_sub', "blah",
+                         type='string',
+                         class_origin='CIM_Foo_sub_sub',
+                         propagated=False)}
+             ),
+             None, CIMError(CIM_ERR_INVALID_PARAMETER), OK],
+
+            ['OK create Association Qualifierr (False) on nonassociation class',
+             ['CIM_Foo', 'CIM_Foo_sub'],
+             CIMClass(
+                 'CIM_Foo_sub_sub', superclass='CIM_Foo_sub',
+                 qualifiers={'Association': CIMQualifier('Association', False)},
+                 properties={
+                     'cimfoo_sub': CIMProperty(
+                         'cimfoo_sub', "blah",
+                         type='string',
+                         class_origin='CIM_Foo_sub_sub',
+                         propagated=False)}
+             ),
+             None, CIMError(CIM_ERR_INVALID_PARAMETER), OK],
+
+            ['Validate CreateClass subclass from CIM_Foo with new method',
+             ['CIM_Foo'],
+             CIMClass(
+                 'CIM_Foo_newmethod', superclass='CIM_Foo',
+                 methods={
+                     'M1': CIMMethod(
+                         'M1', 'uint32',
+                         qualifiers={
+                             'Description': CIMQualifier(
+                                 'Description', "Method with parameter",
+                                 overridable=True,
+                                 tosubclass=True,
+                                 translatable=True,
+                                 propagated=True)},
+                         parameters={"P1": CIMParameter('P1', type='uint32')},
+                         class_origin='CIM_Foo',
+                         propagated=True), }
+
+             ),
+             # class to validate creation
+             CIMClass(
+                 'CIM_Foo_newmethod', superclass='CIM_Foo',
+                 qualifiers={
+                     'Description': CIMQualifier(
+                         'Description', "CIM_Foo description",
+                         overridable=True, tosubclass=True, translatable=True,
+                         propagated=False)},
+                 properties={
+                     'InstanceID': CIMProperty(
+                         'InstanceID', None,
+                         qualifiers={
+                             'Key': CIMQualifier(
+                                 'Key', True, type='boolean',
+                                 overridable=False, tosubclass=True,
+                                 propagated=False), },
+                         type='string', class_origin='CIM_Foo',
+                         propagated=True), },
+                 methods={
+                     'Delete': CIMMethod(
+                         'Delete', 'uint32',
+                         qualifiers={
+                             'Description': CIMQualifier(
+                                 'Description', "qualifier description",
+                                 overridable=True, tosubclass=True,
+                                 translatable=True, propagated=False)},
+                         class_origin='CIM_Foo',
+                         propagated=True),
+                     'Fuzzy': CIMMethod(
+                         'Fuzzy', 'string',
+                         qualifiers={
+                             'Description': CIMQualifier(
+                                 'Description', "qualifier description",
+                                 overridable=True, tosubclass=True,
+                                 translatable=True, propagated=False)},
+                         class_origin='CIM_Foo',
+                         propagated=True),
+                     'M1': CIMMethod(
+                         'M1', 'uint32',
+                         qualifiers={
+                             'Description': CIMQualifier(
+                                 'Description', "Method with parameter",
+                                 overridable=True, tosubclass=True,
+                                 translatable=True, propagated=True)},
+                         parameters={"P1": CIMParameter('P1', type='uint32')},
+                         class_origin='CIM_Foo_newmethod',
+                         propagated=False), },
+             ),
+             None, FAIL],
+
+
 
             # No invalid namespace test defined because createclass creates
             # namespace if one does not exist
@@ -8170,13 +8296,12 @@ class TestInvokeMethod(object):
             None, OK
         ),
         (
-            'Execution of (non-static) Method1 method on class specified as '
-            'objectname string',
+            'Failed Execution of (non-static) Method1 method on invalid class',
             {
-                'ObjectName': 'CIM_Foo_sub_sub',
+                'ObjectName': CIMClassName('CIM_ClassDoesNotExist'),
                 'Params': [('InputParam1', 'namespace')]},
             None,
-            CIMError(CIM_ERR_INVALID_PARAMETER), OK
+            CIMError(CIM_ERR_NOT_FOUND), OK
         ),
         (
             'Execution of (non-static) Method1 method on class specified as '
@@ -8186,6 +8311,27 @@ class TestInvokeMethod(object):
                 'Params': [('InputParam1', 'namespace')]},
             None,
             CIMError(CIM_ERR_INVALID_PARAMETER), OK
+        ),
+        (
+            'Execution of non-existend method on class specified as '
+            'objectname CIMClassName',
+            {
+                'ObjectName': CIMClassName('CIM_Foo_sub_sub'),
+                'MethodName': 'NonExistentMethodName',
+                'Params': [('InputParam1', 'namespace')]},
+            None,
+            CIMError(CIM_ERR_METHOD_NOT_FOUND), OK
+        ),
+        (
+            'Execution of Method1 method with invalid InstanceName',
+            {
+                'ObjectName':
+                    CIMInstanceName(
+                        'CIM_Foo_sub_sub',
+                        keybindings={'InstanceID': 'DoesNotExist'}),
+                'Params': [('InputParamx', 'bla')]},
+            None,
+            CIMError(CIM_ERR_NOT_FOUND), OK
         ),
         (
             'Execution of Method1 method with invalid input param name',

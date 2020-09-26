@@ -98,6 +98,9 @@ Released: not yet
 * Test: Changed collection of .yaml files in function tests to address
   DeprecationWarning issued by pytest (see issue #2430).
 
+* Fix issue where pywbem_mock would accept a CreateClass where the qualifier
+  scopes did not match the corresponding QualifierDeclarations (See issue #2451)
+
 **Known issues:**
 
 * See `list of open issues`_.
