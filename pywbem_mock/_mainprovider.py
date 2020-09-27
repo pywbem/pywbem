@@ -407,7 +407,7 @@ class MainProvider(ResolverMixin, BaseProvider):
         # If local_only remove properties where class_origin
         # differs from class of target instance
         if local_only:
-            for p in rtn_inst:
+            for p in list(rtn_inst):
                 class_origin = rtn_inst.properties[p].class_origin
                 if class_origin and class_origin != rtn_inst.classname:
                     del rtn_inst[p]
