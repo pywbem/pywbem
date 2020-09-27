@@ -489,7 +489,7 @@ def build_cimfoo_instance(id_):
     used to create the unique identity. The input parameter id_ is used
     to create the value for the key property InstanceID.
     """
-    iname = 'CIM_Foo%s' % id_
+    iname = 'CIM_Foo{}'.format(id_)
     return CIMInstance('CIM_Foo',
                        properties={'InstanceID': iname},
                        path=CIMInstanceName('CIM_Foo', {'InstanceID': iname}))
@@ -500,7 +500,7 @@ def build_cimfoosub_instance(id_):
     Build a single instance of an instance of CIM_Foo where id is
     used to create the unique identity.
     """
-    inst_id = 'CIM_Foo_sub%s' % id_
+    inst_id = 'CIM_Foo_sub{}'.format(id_)
     inst = CIMInstance('CIM_Foo_sub',
                        properties={
                            'InstanceID': inst_id,
@@ -515,11 +515,12 @@ def build_cimfoosub2_instance(id_):
     Build a single instance of an instance of CIM_Foo_sub2 where id is
     used to create the unique identity.
     """
-    inst_id = 'CIM_Foo_sub2%s' % id_
+    inst_id = 'CIM_Foo_sub{}'.format(id_)
     inst = CIMInstance('CIM_Foo_sub2',
                        properties={
                            'InstanceID': inst_id,
-                           'cimfoo_sub2': 'cimfoo_sub2 prop for %s' % inst_id},
+                           'cimfoo_sub2': 'cimfoo_sub2 prop for {}'.
+                                          format(inst_id)},
                        path=CIMInstanceName('CIM_Foo_sub2',
                                             {'InstanceID': inst_id}))
     return inst
@@ -530,12 +531,13 @@ def build_cimfoosub_sub_instance(id_):
     Build a single instance of an instance of CIM_Foo_sub2 where id is
     used to create the unique identity.
     """
-    inst_id = 'CIM_Foo_sub_sub%s' % id_
+    inst_id = 'CIM_Foo_sub_sub{}'.format(id_)
     inst = CIMInstance('CIM_Foo_sub_sub',
                        properties={
                            'InstanceID': inst_id,
-                           'cimfoo_sub': 'cimfoo_sub prop:  %s' % inst_id,
-                           'cimfoo_sub_sub': 'cimfoo_sub_sub: %s' % inst_id},
+                           'cimfoo_sub': 'cimfoo_sub prop:{}'.format(inst_id),
+                           'cimfoo_sub_sub': 'cimfoo_sub_sub:{}'.
+                                             format(inst_id)},
                        path=CIMInstanceName('CIM_Foo_sub_sub',
                                             {'InstanceID': inst_id}))
     return inst
@@ -557,14 +559,12 @@ def tst_instances():
     return them
     """
     rtn = []
-
-    for i in six.moves.range(1, 3):
+    # Build 3 instance of each of the classes useing the classname<integer) as
+    # the instance name
+    for i in six.moves.range(1, 4):
         rtn.append(build_cimfoo_instance(i))
-    for i in six.moves.range(4, 6):
         rtn.append(build_cimfoosub_instance(i))
-    for i in six.moves.range(7, 9):
         rtn.append(build_cimfoosub2_instance(i))
-    for i in six.moves.range(10, 12):
         rtn.append(build_cimfoosub_sub_instance(i))
     rtn.append(build_cimfoo_nokey_instance())
     return rtn
@@ -590,7 +590,7 @@ def tst_insts_big():
     list_size = 100
     big_list = []
 
-    for i in six.moves.range(3, list_size + 1):
+    for i in six.moves.range(4, list_size + 1):
         big_list.append(build_cimfoo_instance(i))
     return big_list
 
@@ -689,28 +689,40 @@ def tst_classes_mof(tst_qualifiers_mof):
 def tst_instances_mof(tst_classes_mof):
     """
     Adds the same instances as defined in tst_instances to
-    test_classes_mof
+    test_classes_mof.  The instance ids of these shoud match those in
+    def tst_instances()
     """
     inst_str = """
-        instance of CIM_Foo as $foo1 { InstanceID = "CIM_Foo1"; };
-        instance of CIM_Foo as $foo2 { InstanceID = "CIM_Foo2"; };
-        instance of CIM_Foo_sub as $foosub4 { InstanceID = "CIM_Foo_sub4";
-                                              cimfoo_sub = "data sub 4";};
-        instance of CIM_Foo_sub as $foosub5 { InstanceID = "CIM_Foo_sub5";
-                                              cimfoo_sub = "data sub5";};
-        instance of CIM_Foo_sub2 as $foosub21 { InstanceID = "CIM_Foo_sub21";
-                                                cimfoo_sub2 = "data sub 21";};
-        instance of CIM_Foo_sub2 as $foosub22 { InstanceID = "CIM_Foo_sub22";
-                                                cimfoo_sub2 = "data sub22";};
+        instance of CIM_Foo { InstanceID = "CIM_Foo1"; };
+        instance of CIM_Foo { InstanceID = "CIM_Foo2"; };
+        instance of CIM_Foo { InstanceID = "CIM_Foo3"; };
 
-        instance of CIM_Foo_sub_sub as $foosub21 {
-            InstanceID = "CIM_Foo_sub_sub21";
-            cimfoo_sub = "data sub 10";
-            cimfoo_sub_sub = "data sub 21";};
-        instance of CIM_Foo_sub_sub as $foosub22 {
-            InstanceID = "CIM_Foo_sub_sub22";
-            cimfoo_sub = "data sub 11";
-            cimfoo_sub_sub = "data sub_sub22";};
+        instance of CIM_Foo_sub { InstanceID = "CIM_Foo_sub1";
+                                  cimfoo_sub = "data sub1";};
+        instance of CIM_Foo_sub { InstanceID = "CIM_Foo_sub2";
+                                  cimfoo_sub = "data sub2";};
+        instance of CIM_Foo_sub { InstanceID = "CIM_Foo_sub3";
+                                  cimfoo_sub = "data sub3";};
+
+        instance of CIM_Foo_sub2 { InstanceID = "CIM_Foo_sub1";
+                                   cimfoo_sub2 = "data sub_sub1";};
+        instance of CIM_Foo_sub2 { InstanceID = "CIM_Foo_sub2";
+                                   cimfoo_sub2 = "data sub_sub2";};
+        instance of CIM_Foo_sub2 { InstanceID = "CIM_Foo_sub3";
+                                   cimfoo_sub2 = "data sub3";};
+
+        instance of CIM_Foo_sub_sub {
+            InstanceID = "CIM_Foo_sub_sub1";
+            cimfoo_sub = "data sub1";
+            cimfoo_sub_sub = "data sub1";};
+        instance of CIM_Foo_sub_sub {
+            InstanceID = "CIM_Foo_sub_sub2";
+            cimfoo_sub = "data sub2";
+            cimfoo_sub_sub = "data sub_sub2";};
+        instance of CIM_Foo_sub_sub {
+            InstanceID = "CIM_Foo_sub_sub3";
+            cimfoo_sub = "data sub3";
+            cimfoo_sub_sub = "data sub_sub3";};
     """
     return tst_classes_mof + '\n\n' + inst_str + '\n\n'
 
@@ -1299,43 +1311,81 @@ class TestRepoMethods(object):
     @pytest.mark.parametrize(
         "mof", [False, True])
     @pytest.mark.parametrize(
-        "cln, key, iq, ico, pl, exp_pl, exp_exc",
+        "cln, key, lo, iq, ico, pl, exp_pl, exp_exc",
         [
             # cln: classname input parameter for get_class()
             # key: value of InstanceID key property for the instance to use
+            # lo: local_only
             # iq: include_qualifiers input parameter for get_class()
             # ico: include_classorigin input parameter for get_class()
             # pl: property_list input parameter for get_class()
             # exp_pl: Expected list of property names in result class
             # exp_exc: None, or expected exception object
 
-            # cln       key         iq    ico   pl     exp_pl      exp_exc
-            ['CIM_Foo', 'CIM_Foo1', None, None, None, ['InstanceID'], None],
-            ['cim_foo', 'CIM_Foo1', None, None, None, ['InstanceID'], None],
-            ['CIM_Foo', 'CIM_Foo1', None, None, ['InstanceID'], ['InstanceID'],
+            # cln       key         lo,   iq    ico   pl     exp_pl      exp_exc
+            ['CIM_Foo', 'CIM_Foo1', False, None, None, None, ['InstanceID'],
              None],
-            ['CIM_Foo', 'CIM_Foo1', None, None, ['Instx'], [], None],
-            ['CIM_Foo', 'CIM_Foo1', True, None, None, ['InstanceID'], None],
-            ['CIM_Foo', 'CIM_Foo1', None, True, None, ['InstanceID'], None],
-            ['CIM_Foo', 'CIM_Foo1', None, None, "", [], None],
-            ['CIM_Foo', 'CIM_Foo2', None, None, None, ['InstanceID'], None],
-            ['CIM_Foo_sub', 'CIM_Foo_sub4', None, None, None, ['InstanceID',
-                                                               'cimfoo_sub'],
+            ['cim_foo', 'CIM_Foo1', False, None, None, None, ['InstanceID'],
+             None],
+            ['CIM_Foo', 'CIM_Foo1', False, None, None, ['InstanceID'],
+             ['InstanceID'],
+             None],
+            ['CIM_Foo', 'CIM_Foo1', False, None, None, ['Instx'], [], None],
+            ['CIM_Foo', 'CIM_Foo1', False, True, None, None, ['InstanceID'],
+             None],
+            ['CIM_Foo', 'CIM_Foo1', False, None, True, None, ['InstanceID'],
+             None],
+            ['CIM_Foo', 'CIM_Foo1', False, None, None, "", [], None],
+            ['CIM_Foo', 'CIM_Foo2', False, None, None, None, ['InstanceID'],
+             None],
+            ['CIM_Foo_sub', 'CIM_Foo_sub1', False, None, None, None,
+             ['InstanceID', 'cimfoo_sub'],
              None],
 
-            ['CIM_Foo_sub', 'CIM_Foo_sub99', None, None, None, None,
+            ['CIM_Foo_sub', 'CIM_Foo_sub99', None, None, None, None, None,
+             CIMError(CIM_ERR_NOT_FOUND)],
+
+            # Test with local_only True
+
+            ['CIM_Foo', 'CIM_Foo1', True, None, None, None,
+             ['InstanceID'], None],
+            ['cim_foo', 'CIM_Foo1', True, None, None, None,
+             ['InstanceID'], None],
+            ['CIM_Foo', 'CIM_Foo1', True, None, None,
+             ['InstanceID'], ['InstanceID'], None],
+            ['CIM_Foo', 'CIM_Foo1', True, None, None, ['Instx'], [], None],
+            ['CIM_Foo', 'CIM_Foo1', True, True, None, None,
+             ['InstanceID'], None],
+            ['CIM_Foo', 'CIM_Foo1', True, None, True, None,
+             ['InstanceID'], None],
+            ['CIM_Foo', 'CIM_Foo1', True, None, None, "", [], None],
+            ['CIM_Foo', 'CIM_Foo2', True, None, None, None,
+             ['InstanceID'], None],
+            ['CIM_Foo_sub', 'CIM_Foo_sub1', True, None, None, None,
+             ['cimfoo_sub'],
+             None],
+            ['CIM_Foo_sub_sub', 'CIM_Foo_sub_sub1', True, None, None, None,
+             ['cimfoo_sub_sub'], None],
+
+            ['CIM_Foo_sub', 'CIM_Foo_sub99', None, None, None, None, None,
              CIMError(CIM_ERR_NOT_FOUND)],
         ]
     )
-    def test_get_instance(self, conn, tst_classeswqualifiers, tst_instances,
-                          tst_instances_mof, ns, mof, cln, key, iq, ico, pl,
-                          exp_pl, exp_exc):
+    def test_get_instance_internal(self, conn, tst_classeswqualifiers,
+                                   tst_instances, tst_instances_mof, ns, mof,
+                                   cln, key, lo, iq, ico, pl, exp_pl, exp_exc):
         # pylint: disable=no-self-use
         """
         Test the internal _get_instance method.  Test for getting correct and
         error responses for both compiled and added objects including parameters
         of propertylist, include qualifiers, include class origin.
+
+        This allows us to easily test the options on local_only in addition
+        to the other parameters on this method
+
+        This method tests for correct number of properties
         """
+
         if mof:
             skip_if_moftab_regenerated()
             conn.compile_mof_string(tst_instances_mof, namespace=ns)
@@ -1343,12 +1393,7 @@ class TestRepoMethods(object):
             conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
             conn.add_cimobjects(tst_instances, namespace=ns)
 
-        lo = False
-
-        # Issue # 2327 TODO : expand test to use lo parameterized.
-        # since lo is deprecated with a default and options in config.py
-        # we need to test all these options.
-
+        # _get_instance_internal requires a namespace
         assert ns is not None
 
         iname = CIMInstanceName(cln,
@@ -1368,10 +1413,46 @@ class TestRepoMethods(object):
             assert inst.classname.lower() == cln.lower()
             assert inst.path.host is None
 
+            if IGNORE_INSTANCE_ICO_PARAM:
+                for prop in six.itervalues(inst.properties):
+                    assert not prop.class_origin
+            else:
+                if ico:
+                    for prop in six.itervalues(inst.properties):
+                        assert prop.class_origin
+                else:
+                    for prop in six.itervalues(inst.properties):
+                        assert not prop.class_origin
+
+            if IGNORE_INSTANCE_IQ_PARAM:
+                assert not inst.qualifiers
+                for prop in six.itervalues(inst.properties):
+                    assert not prop.qualifiers
+            else:
+                if not iq:
+                    assert not inst.qualifiers
+                    for prop in six.itervalues(inst.properties):
+                        assert not prop.qualifiers
+                else:
+                    bare_inst = conn._mainprovider._get_bare_instance(
+                        iname, instance_store)
+                    if bare_inst.qualifiers:
+                        assert inst.qualifiers
+                    for prop in six.itervalues(inst.properties):
+                        if bare_inst.properties[prop.name].qualifiers:
+                            assert prop.qualifiers
+
+            # TODO: There are no instances with qualifiers in tests so
+            # the else option is not tested.
+
             if pl == "":
                 assert not inst.properties
             else:
                 assert set(inst.keys()) == set(exp_pl)
+
+            # We do not do a complete compare because that means completely
+            # recreating the filtering done in_get_instance_internal
+            # for ico, iq and pl
 
         else:
             with pytest.raises(type(exp_exc)) as exec_info:
@@ -1402,7 +1483,7 @@ class TestRepoMethods(object):
             ['CIM_Foo', 'CIM_Foo1', True],
             ['CIM_Foo', 'CIM_Foo2', True],
             ['cim_foo', 'CIM_Foo2', True],
-            ['CIM_Foo_sub', 'CIM_Foo_sub4', True],
+            ['CIM_Foo_sub', 'CIM_Foo_sub1', True],
             ['CIM_Foo_sub', 'CIM_Foo_sub99', False],
         ]
     )
@@ -1491,7 +1572,7 @@ class TestRepoMethods(object):
         captured = capsys.readouterr()
 
         result = captured.out
-        # print('RESULT\n%s' % result)
+        print('RESULT\n%s' % result)
 
         assert result.startswith(
             "\n// ========Mock Repo Display fmt=mof namespaces=all")
@@ -1503,7 +1584,7 @@ class TestRepoMethods(object):
                 in result
             assert _format("// Namespace {0!A}: contains 5 Classes", ns) \
                 in result
-            assert _format("// Namespace {0!A}: contains 8 Instances", ns) \
+            assert _format("// Namespace {0!A}: contains 12 Instances", ns) \
                 in result
         assert "Qualifier Abstract : boolean = false," in result
 
@@ -1539,7 +1620,7 @@ class TestRepoMethods(object):
         result = captured.out
         assert "Mock Repo Display fmt=mof namespaces=all" in result
         assert "Namespace 'root/cimv2': contains 5 Classes" in result
-        assert "Namespace 'root/cimv2': contains 8 Instances" in result
+        assert "Namespace 'root/cimv2': contains 12 Instances" in result
 
     def test_display_repo_tofile(self, conn, tst_instances_mof):
         # pylint: disable=no-self-use
@@ -1573,8 +1654,8 @@ class TestRepoMethods(object):
         assert '[Description ( "blah blah" )]' in data
         assert "class CIM_Foo_nokey {" in data
         assert "class CIM_Foo_sub_sub : CIM_Foo_sub {" in data
-        assert "// Namespace 'root/cimv2': contains 8 Instances" in data
-        assert 'cimfoo_sub_sub = "data sub_sub22";' in data
+        assert "// Namespace 'root/cimv2': contains 12 Instances" in data
+        assert 'cimfoo_sub_sub = "data sub_sub3";' in data
         assert "// ============End Repository=================" in data
         os.remove(tst_file)
 
@@ -4483,20 +4564,20 @@ class TestInstanceOperations(object):
             # exp_pl: Expected list of property names in result instance
 
             # inst_cln  inst_id     pl     exp_pl
-            ['CIM_Foo', 'CIM_Foo1', None, ['InstanceID']],
-            ['CIM_Foo', 'CIM_Foo1', "", []],
-            ['CIM_Foo', 'CIM_Foo1', "blah", []],
-            ['CIM_Foo', 'CIM_Foo1', 'InstanceID', ['InstanceID']],
-            ['CIM_Foo', 'CIM_Foo1', ['InstanceID'], ['InstanceID']],
-            ['CIM_Foo', 'CIM_Foo1', ['INSTANCEID'], ['InstanceID']],
-            ['CIM_Foo_sub', 'CIM_Foo_sub4', None, ['InstanceID', 'cimfoo_sub']],
-            ['CIM_Foo_sub', 'CIM_Foo_sub4', "", []],
-            ['CIM_Foo_sub', 'CIM_Foo_sub4', 'cimfoo_sub', ['cimfoo_sub']],
-            ['CIM_Foo_sub', 'CIM_Foo_sub4', "blah", []],
-            ['CIM_Foo_sub', 'CIM_Foo_sub4', 'InstanceID', ['InstanceID']],
-            ['CIM_Foo_sub', 'CIM_Foo_sub4', ['INSTANCEID'], ['InstanceID']],
-            ['CIM_Foo_sub', 'CIM_Foo_sub4', ['instanceid'], ['InstanceID']],
-            ['CIM_Foo_sub', 'CIM_Foo_sub4', ['InstanceID', 'cimfoo_sub'],
+            # ['CIM_Foo', 'CIM_Foo1', None, ['InstanceID']],
+            # ['CIM_Foo', 'CIM_Foo1', "", []],
+            # ['CIM_Foo', 'CIM_Foo1', "blah", []],
+            # ['CIM_Foo', 'CIM_Foo1', 'InstanceID', ['InstanceID']],
+            # ['CIM_Foo', 'CIM_Foo1', ['InstanceID'], ['InstanceID']],
+            # ['CIM_Foo', 'CIM_Foo1', ['INSTANCEID'], ['InstanceID']],
+            ['CIM_Foo_sub', 'CIM_Foo_sub3', None, ['InstanceID', 'cimfoo_sub']],
+            ['CIM_Foo_sub', 'CIM_Foo_sub3', "", []],
+            ['CIM_Foo_sub', 'CIM_Foo_sub3', 'cimfoo_sub', ['cimfoo_sub']],
+            ['CIM_Foo_sub', 'CIM_Foo_sub3', "blah", []],
+            ['CIM_Foo_sub', 'CIM_Foo_sub3', 'InstanceID', ['InstanceID']],
+            ['CIM_Foo_sub', 'CIM_Foo_sub3', ['INSTANCEID'], ['InstanceID']],
+            ['CIM_Foo_sub', 'CIM_Foo_sub3', ['instanceid'], ['InstanceID']],
+            ['CIM_Foo_sub', 'CIM_Foo_sub3', ['InstanceID', 'cimfoo_sub'],
              ['InstanceID', 'cimfoo_sub']],
         ]
     )
@@ -4677,7 +4758,7 @@ class TestInstanceOperations(object):
 
         # Issue: 2327 TODO: Future compute number returned. Right now fixed
         # number
-        assert len(rslt_insts) == 8
+        assert len(rslt_insts) == 12
         for inst in rslt_insts:
             assert isinstance(inst, CIMInstance)
             assert inst.classname in exp_clns
@@ -4686,7 +4767,7 @@ class TestInstanceOperations(object):
             assert mp in tst_inst_dict
             tst_inst = tst_inst_dict[mp]
             assert tst_inst is not None
-            # if not di it reports fixed set of properties based parameterize
+            # if not di it reports fixed set of properties based parameters
             if not di:
                 assert set(inst.keys()) == set(exp_pl)
             else:
@@ -4800,13 +4881,13 @@ class TestInstanceOperations(object):
             # exp_num_insts: Expected number of result instances. Should
             # always be returning same number for a given class.
             #  cln        di    pl     exp_pl        exp_num_insts
-            ['CIM_Foo', False, None, ['InstanceID'], 8],
-            ['CIM_Foo', None, None, ['InstanceID', 'cimfoo_sub'], 8],
-            ['CIM_Foo', True, None, ['InstanceID', 'cimfoo_sub'], 8],
-            ['CIM_Foo', True, ['InstanceID'], ['InstanceID'], 8],
-            ['CIM_Foo', None, ['cimfoo_sub'], ['cimfoo_sub'], 8],
-            ['CIM_Foo', True, None, ['InstanceID'], 8],
-            ['CIM_Foo', True, ['InstanceID'], ['InstanceID'], 8],
+            ['CIM_Foo', False, None, ['InstanceID'], 12],
+            ['CIM_Foo', None, None, ['InstanceID', 'cimfoo_sub'], 12],
+            ['CIM_Foo', True, None, ['InstanceID', 'cimfoo_sub'], 12],
+            ['CIM_Foo', True, ['InstanceID'], ['InstanceID'], 12],
+            ['CIM_Foo', None, ['cimfoo_sub'], ['cimfoo_sub'], 12],
+            ['CIM_Foo', True, None, ['InstanceID'], 12],
+            ['CIM_Foo', True, ['InstanceID'], ['InstanceID'], 12],
         ]
     )
     def test_enumerateinstances_di(self, conn, tst_classeswqualifiers,
@@ -4835,7 +4916,7 @@ class TestInstanceOperations(object):
             assert isinstance(inst, CIMInstance)
             assert inst.classname in tst_cls_names
             exp_inst = conn.GetInstance(inst.path, PropertyList=pl)
-            # Create list of property names for t ests
+            # Create list of property names for tests
             inst_propnames = sorted(NocaseList(inst.properties.keys()))
 
             # Force di to match server default
@@ -7546,7 +7627,7 @@ class TestAssociatorOperations(object):
             # exp_rslt: Either list of names of expected classes returned,
             #           or expected exception object
 
-            ["1.TTest all parameters None",
+            ["1.Test all parameters None",
              None, None, None, None,
              None, None, None,
              ['TST_Person']],
@@ -8037,7 +8118,7 @@ class TestInvokeMethod(object):
                 'ObjectName':
                     CIMInstanceName(
                         'cim_foo_sub_sub',
-                        keybindings={'instanceid': 'CIM_Foo_sub_sub21'}),
+                        keybindings={'instanceid': 'CIM_Foo_sub_sub1'}),
                 'Params': [('InputParam1', 'namespace')]},
             {
                 'return': 0,
@@ -8051,7 +8132,7 @@ class TestInvokeMethod(object):
                 'ObjectName':
                     CIMInstanceName(
                         'CIM_Foo_sub_sub',
-                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub1'}),
                 'MethodName': 'method1',
                 'Params': [('InputParam1', 'namespace')]},
             {
@@ -8066,7 +8147,7 @@ class TestInvokeMethod(object):
                 'ObjectName':
                     CIMInstanceName(
                         'CIM_Foo_sub_sub',
-                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub1'}),
                 'Params': (('InputParam1', 'namespace'),)},
             {
                 'return': 0,
@@ -8080,7 +8161,7 @@ class TestInvokeMethod(object):
                 'ObjectName':
                     CIMInstanceName(
                         'CIM_Foo_sub_sub',
-                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub1'}),
                 'Params': [('InputParam1', 'namespace')]},
             {
                 'return': 0,
@@ -8094,7 +8175,7 @@ class TestInvokeMethod(object):
                 'ObjectName':
                     CIMInstanceName(
                         'CIM_Foo_sub_sub',
-                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub1'}),
                 'Params': [
                     CIMParameter(
                         'InputParam1', type='string', value='namespace')]
@@ -8111,7 +8192,7 @@ class TestInvokeMethod(object):
                 'ObjectName':
                     CIMInstanceName(
                         'CIM_Foo_sub_sub',
-                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub1'}),
                 'Params': (
                     CIMParameter(
                         'InputParam1', type='string', value='namespace'),)
@@ -8128,7 +8209,7 @@ class TestInvokeMethod(object):
                 'ObjectName':
                     CIMInstanceName(
                         'CIM_Foo_sub_sub',
-                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub1'}),
                 'Params': [('InputParam1', 'namespace_tuple')]},
             {
                 'return': 0,
@@ -8142,7 +8223,7 @@ class TestInvokeMethod(object):
                 'ObjectName':
                     CIMInstanceName(
                         'CIM_Foo_sub_sub',
-                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub1'}),
                 'Params': [('InputParam1', 'namespace_dict_value')]},
             {
                 'return': 0,
@@ -8156,7 +8237,7 @@ class TestInvokeMethod(object):
                 'ObjectName':
                     CIMInstanceName(
                         'CIM_Foo_sub_sub',
-                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub1'}),
                 'Params': [('InputParam1', 'namespace_dict_cimparm')]},
             {
                 'return': 0,
@@ -8170,7 +8251,7 @@ class TestInvokeMethod(object):
                 'ObjectName':
                     CIMInstanceName(
                         'CIM_Foo_sub_sub',
-                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub1'}),
                 'Params': [('InputParam1', 'namespace_nocasedict_value')]},
             {
                 'return': 0,
@@ -8184,7 +8265,7 @@ class TestInvokeMethod(object):
                 'ObjectName':
                     CIMInstanceName(
                         'CIM_Foo_sub_sub',
-                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub1'}),
                 'Params': [('InputParam1',
                             'namespace_nocasedict_cimparm')]},
             {
@@ -8199,7 +8280,7 @@ class TestInvokeMethod(object):
                 'ObjectName':
                     CIMInstanceName(
                         'CIM_Foo_sub_sub',
-                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub1'}),
                 'Params': [],
                 'params': {'InputParam1': 'namespace'}},
             {
@@ -8214,7 +8295,7 @@ class TestInvokeMethod(object):
                 'ObjectName':
                     CIMInstanceName(
                         'CIM_Foo_sub_sub',
-                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub1'}),
                 'Params': [('InputParam1', 'localobject')]},
             {
                 'return': 0,
@@ -8222,7 +8303,7 @@ class TestInvokeMethod(object):
                     'OutputParam1':
                         CIMInstanceName(
                             'CIM_Foo_sub_sub',
-                            keybindings={'InstanceID': 'CIM_Foo_sub_sub21'},
+                            keybindings={'InstanceID': 'CIM_Foo_sub_sub1'},
                             namespace='root/cimv2')}
             },
             None, OK
@@ -8234,7 +8315,7 @@ class TestInvokeMethod(object):
                 'ObjectName':
                     CIMInstanceName(
                         'CIM_Foo_sub_sub',
-                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub1'}),
                 'Params': [('InputParam1', 'methodname')]},
             {
                 'return': 0,
@@ -8248,7 +8329,7 @@ class TestInvokeMethod(object):
                 'ObjectName':
                     CIMInstanceName(
                         'CIM_Foo_sub_sub',
-                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub1'}),
                 'Params': [('InputParam1', 'returnvalue')]},
             {
                 'return': 1,
@@ -8262,7 +8343,7 @@ class TestInvokeMethod(object):
                 'ObjectName':
                     CIMInstanceName(
                         'CIM_Foo_sub_sub',
-                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub1'}),
                 'MethodName': 'StaticMethod1',
                 'Params': [('InputParam1', 'namespace')]},
             {
@@ -8339,7 +8420,7 @@ class TestInvokeMethod(object):
                 'ObjectName':
                     CIMInstanceName(
                         'CIM_Foo_sub_sub',
-                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub1'}),
                 'Params': [('InputParamx', 'bla')]},
             None,
             CIMError(CIM_ERR_INVALID_PARAMETER), OK
@@ -8351,7 +8432,7 @@ class TestInvokeMethod(object):
                 'ObjectName':
                     CIMInstanceName(
                         'CIM_Foo_sub_sub',
-                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub1'}),
                 'Params': [('InputParam1', Uint32(42))]},
             None,
             CIMError(CIM_ERR_INVALID_PARAMETER), OK
@@ -8363,7 +8444,7 @@ class TestInvokeMethod(object):
                 'ObjectName':
                     CIMInstanceName(
                         'CIM_Foo_sub_sub',
-                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub1'}),
                 'Params': [('InputParam1', ['namespace'])]},
             None,
             CIMError(CIM_ERR_INVALID_PARAMETER), OK
@@ -8375,7 +8456,7 @@ class TestInvokeMethod(object):
                 'ObjectName':
                     CIMInstanceName(
                         'CIM_Foo_sub_sub',
-                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub1'}),
                 'Params': [
                     CIMParameter(
                         'InputParam1', type='string',
@@ -8389,7 +8470,7 @@ class TestInvokeMethod(object):
                 'ObjectName':
                     CIMInstanceName(
                         'CIM_Foo_sub_sub',
-                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub1'}),
                 'Params': [('OutputParam1', 'bla')]},
             None,
             CIMError(CIM_ERR_INVALID_PARAMETER), OK
@@ -8401,7 +8482,7 @@ class TestInvokeMethod(object):
                 'ObjectName':
                     CIMInstanceName(
                         'CIM_Foo_sub_sub',
-                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub1'}),
                 'Params': [('InputParam1', 'outparam_invalid1_typeerror')]},
             None,
             TypeError(), OK
@@ -8413,7 +8494,7 @@ class TestInvokeMethod(object):
                 'ObjectName':
                     CIMInstanceName(
                         'CIM_Foo_sub_sub',
-                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub1'}),
                 'Params': [('InputParam1', 'outparam_invalid2_valueerror')]},
             None,
             ValueError(), OK
@@ -8425,7 +8506,7 @@ class TestInvokeMethod(object):
                 'ObjectName':
                     CIMInstanceName(
                         'CIM_Foo_sub_sub',
-                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub1'}),
                 'Params': [('InputParam1', 'outparam_invalid3_typeerror')]},
             None,
             TypeError(), OK
@@ -8437,7 +8518,7 @@ class TestInvokeMethod(object):
                 'ObjectName':
                     CIMInstanceName(
                         'CIM_Foo_sub_sub',
-                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub1'}),
                 'Params': [('InputParam1', 'outparam_invalid4_typeerror')]},
             None,
             TypeError(), OK
@@ -8449,7 +8530,7 @@ class TestInvokeMethod(object):
                 'ObjectName':
                     CIMInstanceName(
                         'CIM_Foo_sub_sub',
-                        keybindings={'InstanceID': 'CIM_Foo_sub_sub21'}),
+                        keybindings={'InstanceID': 'CIM_Foo_sub_sub1'}),
                 'Params': [('InputParam1', 'outparam_invalid5_typeerror')]},
             None,
             TypeError(), OK
