@@ -3607,7 +3607,7 @@ class TestClassOperations(object):
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
     @pytest.mark.parametrize(
-        "desc, pre_tst_classes, in_cl, exp_get_cl, exp_exc, condition",
+        "desc, pre_tst_classes, tst_cls, exp_rslt, exp_exc, condition",
         [
             # desc: Description of testcase
             # pre_tst_classes: Create the defined class or classes before the
@@ -3617,9 +3617,9 @@ class TestClassOperations(object):
             #                   * pywbem CIMClass definition,
             #                   * string defining name of class in tst_classes
             #                   * list of class/classnames
-            # in_cl: Either string defining test class name in tst_classes or
-            #        CIMClass to be passed to CreateClass
-            # exp_get_cl: None or expected CIMClass returned from GetClass for
+            # tst_cls: Either string defining test class name in tst_classes or
+            #         CIMClass to be passed to CreateClass
+            # exp_rstl: None or expected CIMClass returned from GetClass for
             #             verifying the created class
             # exp_exc: None or expected exception object
             # condition: If False, skip this test
@@ -3946,7 +3946,6 @@ class TestClassOperations(object):
              ),
              None, CIMError(CIM_ERR_INVALID_PARAMETER), OK],
 
-
             ['Fail because superclass does not exist in namespace',
              None, 'CIM_Foo_sub', None, CIMError(CIM_ERR_INVALID_SUPERCLASS),
              OK],
@@ -3968,9 +3967,7 @@ class TestClassOperations(object):
                          'cimfoo_sub', "blah",
                          qualifiers={'Abstract': CIMQualifier('Abstract',
                                                               True)},
-                         type='string',
-                         class_origin='CIM_Foo_sub_sub',
-                         propagated=False)}
+                         type='string',)}
              ),
              None, CIMError(CIM_ERR_INVALID_PARAMETER), OK],
 
@@ -3982,9 +3979,7 @@ class TestClassOperations(object):
                  properties={
                      'cimfoo_sub': CIMProperty(
                          'cimfoo_sub', "blah",
-                         type='string',
-                         class_origin='CIM_Foo_sub_sub',
-                         propagated=False)}
+                         type='string',)}
              ),
              None, CIMError(CIM_ERR_INVALID_PARAMETER), OK],
 
@@ -3996,9 +3991,7 @@ class TestClassOperations(object):
                  properties={
                      'cimfoo_sub': CIMProperty(
                          'cimfoo_sub', "blah",
-                         type='string',
-                         class_origin='CIM_Foo_sub_sub',
-                         propagated=False)}
+                         type='string',)}
              ),
              None, CIMError(CIM_ERR_INVALID_PARAMETER), OK],
 
@@ -4011,15 +4004,9 @@ class TestClassOperations(object):
                          'M1', 'uint32',
                          qualifiers={
                              'Description': CIMQualifier(
-                                 'Description', "Method with parameter",
-                                 overridable=True,
-                                 tosubclass=True,
-                                 translatable=True,
-                                 propagated=True)},
-                         parameters={"P1": CIMParameter('P1', type='uint32')},
-                         class_origin='CIM_Foo',
-                         propagated=True), }
-
+                                 'Description', "Method M1 with parameter")},
+                         parameters={"P1": CIMParameter('P1',
+                                                        type='uint32')}, ), },
              ),
              # class to validate creation
              CIMClass(
@@ -4028,7 +4015,7 @@ class TestClassOperations(object):
                      'Description': CIMQualifier(
                          'Description', "CIM_Foo description",
                          overridable=True, tosubclass=True, translatable=True,
-                         propagated=False)},
+                         propagated=True)},
                  properties={
                      'InstanceID': CIMProperty(
                          'InstanceID', None,
@@ -4036,17 +4023,27 @@ class TestClassOperations(object):
                              'Key': CIMQualifier(
                                  'Key', True, type='boolean',
                                  overridable=False, tosubclass=True,
-                                 propagated=False), },
+                                 propagated=True), },
                          type='string', class_origin='CIM_Foo',
                          propagated=True), },
                  methods={
+                     'M1': CIMMethod(
+                         'M1', 'uint32',
+                         qualifiers={
+                             'Description': CIMQualifier(
+                                 'Description', "Method M1 with parameter",
+                                 overridable=True, tosubclass=True,
+                                 translatable=True, propagated=False)},
+                         parameters={"P1": CIMParameter('P1', type='uint32')},
+                         class_origin='CIM_Foo_newmethod',
+                         propagated=False),
                      'Delete': CIMMethod(
                          'Delete', 'uint32',
                          qualifiers={
                              'Description': CIMQualifier(
                                  'Description', "qualifier description",
                                  overridable=True, tosubclass=True,
-                                 translatable=True, propagated=False)},
+                                 translatable=True, propagated=True)},
                          class_origin='CIM_Foo',
                          propagated=True),
                      'Fuzzy': CIMMethod(
@@ -4055,30 +4052,87 @@ class TestClassOperations(object):
                              'Description': CIMQualifier(
                                  'Description', "qualifier description",
                                  overridable=True, tosubclass=True,
-                                 translatable=True, propagated=False)},
-                         class_origin='CIM_Foo',
-                         propagated=True),
-                     'M1': CIMMethod(
-                         'M1', 'uint32',
-                         qualifiers={
-                             'Description': CIMQualifier(
-                                 'Description', "Method with parameter",
-                                 overridable=True, tosubclass=True,
                                  translatable=True, propagated=True)},
-                         parameters={"P1": CIMParameter('P1', type='uint32')},
-                         class_origin='CIM_Foo_newmethod',
-                         propagated=False), },
+                         class_origin='CIM_Foo',
+                         propagated=True), },
              ),
              None, FAIL],
 
+            ['Fails Create assoc class with no reference class',
+             [],
 
+             CIMClass("TST_Assoc",
+                      qualifiers={'Association':
+                                  CIMQualifier('Association', value=True)},
+                      properties={CIMProperty('R1', None, type='reference',
+                                              reference_class='NotExist'),
+                                  CIMProperty('R2', None, type='reference',
+                                              reference_class='NotExist')},
+                      ),
+
+             None, CIMError(CIM_ERR_INVALID_PARAMETER), OK],
+
+            ['Fails Create assoc class with embedded instance, invalid class',
+             ['CIM_Foo'],
+             CIMClass(
+                 'CIM_Foo_EmbeddedInstance', superclass='CIM_Foo',
+                 properties={
+                     'EmbeddInstContainer':
+                         CIMProperty(
+                             'EmbeddInstContainer', None,
+                             qualifiers={
+                                 'EmbeddedInstance': CIMQualifier(
+                                     'EmbeddedInstance', 'NonExistantClass'),
+                             },
+                             type='string'),
+                 }
+             ),
+             None, CIMError(CIM_ERR_INVALID_PARAMETER), OK],
+
+            ['Create class with embedded instance, class None. Passes',
+             [],
+             CIMClass(
+                 'CIM_Foo_EmbeddedInstance',
+                 properties={
+                     'InstanceID':
+                         CIMProperty('InstanceID', "Blah", type='string',
+                                     qualifiers={'Key':
+                                                 CIMQualifier('Key', True)}, ),
+                     'EmbeddInstContainer':
+                         CIMProperty(
+                             'EmbeddInstContainer', None,
+                             qualifiers={
+                                 'EmbeddedInstance': CIMQualifier(
+                                     'EmbeddedInstance', None, type='string'),
+                             },
+                             type='string'),
+                 }
+             ),
+             None, None, FAIL],
+
+            ['Create subclass with embedded instance, class None. Passes',
+             ['CIM_Foo'],
+             CIMClass(
+                 'CIM_Foo_EmbeddedInstance', superclass='CIM_Foo',
+                 properties={
+                     'EmbeddInstContainer':
+                         CIMProperty(
+                             'EmbeddInstContainer', None,
+                             qualifiers={
+                                 'EmbeddedInstance': CIMQualifier(
+                                     'EmbeddedInstance', None, type='string'),
+                             },
+                             type='string'),
+                 }
+             ),
+             None, None, FAIL],  # TODO: Fails in test resolve (override)
 
             # No invalid namespace test defined because createclass creates
             # namespace if one does not exist
         ],
     )
     def test_createclass(self, conn, tst_qualifiers_mof, tst_classes, ns, desc,
-                         pre_tst_classes, in_cl, exp_get_cl, exp_exc,
+                         pre_tst_classes, tst_cls, exp_rslt, exp_exc,
                          condition):
         # pylint: disable=no-self-use,protected-access,unused-argument
         """
@@ -4094,18 +4148,24 @@ class TestClassOperations(object):
         # preinstall required qualifiers
         conn.compile_mof_string(tst_qualifiers_mof, namespace=ns)
 
+        # Added when we added tests for compiling embeddedinstance qualifier
+        # TODO Future: Merge this qual decl into tst_qualifiers_mof
+        conn.compile_mof_string("Qualifier EmbeddedInstance : string = null, "
+                                "Scope(property, method, parameter);")
+
         # if pretcl, create/install the pre test class.  Installs the
         # prerequisite classes into the repository.
         self.process_pretcl(conn, pre_tst_classes, ns, tst_classes)
 
         # Create the new_class to send to CreateClass from the
-        # existing tst_classes or class defined for this test
-        if isinstance(in_cl, six.string_types):
+        # existing tst_classes (if tst_cls is a string) or class defined
+        # for this test
+        if isinstance(tst_cls, six.string_types):
             for cl_ in tst_classes:
-                if cl_.classname == in_cl:
+                if cl_.classname == tst_cls:
                     new_class = cl_
         else:
-            new_class = in_cl
+            new_class = tst_cls
 
         if exp_exc is not None:
             with pytest.raises(type(exp_exc)) as exec_info:
@@ -4118,11 +4178,10 @@ class TestClassOperations(object):
                 assert exc.status_code == exp_exc.status_code
 
         else:
-
             # The code to be tested
             conn.CreateClass(new_class, namespace=ns)
 
-            # Get class with localonly set and confirm against the
+            # Get class with LocalOnly=False and confirm against the
             # test class.
             get_cl = conn.GetClass(new_class.classname,
                                    namespace=ns,
@@ -4142,28 +4201,31 @@ class TestClassOperations(object):
                     assert mvalue.class_origin == new_class.classname
 
             # if expected rtn is a CIMClass, compare the classes
-            if isinstance(exp_get_cl, CIMClass):
-                assert_classes_equal(get_cl, exp_get_cl)
+            if isinstance(exp_rslt, CIMClass):
+                assert_classes_equal(get_cl, exp_rslt)
 
-            elif isinstance(exp_get_cl, six.string_types):
+            # if exp_rslt is string, resolve item from tst_classes
+            elif isinstance(exp_rslt, six.string_types):
                 for cl_ in tst_classes:
-                    if cl_.classname == exp_get_cl:
+                    if cl_.classname == exp_rslt:
                         clsr = resolve_class(conn, cl_, ns)
                         assert_classes_equal(clsr, get_cl)
 
-            else:
-                if isinstance(in_cl, CIMClass):
-                    assert_classes_equal(in_cl, get_cl)
-
-                    # in_cl does not have propagated False on override qualifier
-                    in_cl_resolved = resolve_class(conn, in_cl, ns)
-                    assert_classes_equal(in_cl_resolved, get_cl)
+            # if exp_rslt is None, resolve tst_cls or clean it up
+            elif exp_rslt is None:
+                if isinstance(tst_cls, CIMClass):
+                    tst_cls_resolved = resolve_class(conn, tst_cls, ns)
+                    assert_classes_equal(tst_cls_resolved, get_cl)
                 else:
                     assert set(get_cl.properties) == \
                         set(new_class.properties)
                     assert set(get_cl.methods) == set(new_class.methods)
                     assert set(get_cl.qualifiers) == \
                         set(new_class.qualifiers)
+
+            else:
+                assert False, "test_create_class invalid test definition {}". \
+                    format(desc)
 
             # Get the class with local only False. and test for valid
             # ico, lo and non-lo properties/methods.

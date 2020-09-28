@@ -808,10 +808,11 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         Creates a new class in the CIM repository.  Nothing is returned.
 
-        Classes that are in the CIM repository contain only the properties in
-        the new_class, not any properties from inheritated classes.  The
-        corresponding _get_class resolves any inherited properties to create
-        a complete class with both local and inherited properties.
+        Classes that are in the CIM repository contain the qualifiers,
+        properties, and methods of that class and the propagated properties of
+        the superclasses.  The NewClass object contains only the qualifiers,
+        properties, and methods of the new class including any override
+        qualifiers necessary to allow the complete class to be created.
 
         Parameters:
 
@@ -851,6 +852,42 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         # Create copy because resolve_class modifies elements of class
         new_class = deepcopy(NewClass)
+
+        # Validate that dependent classes exist
+        objects = list(new_class.properties.values())
+        new_class_namelc = new_class.classname.lower()
+        for meth in new_class.methods.values():
+            objects += list(meth.parameters.values())
+
+        for obj in objects:
+            # Validate that reference_class exists in repo
+            if obj.type == 'reference':
+                if obj.reference_class.lower() == new_class_namelc:
+                    continue
+                if not class_store.object_exists(obj.reference_class):
+                    raise CIMError(
+                        CIM_ERR_INVALID_PARAMETER,
+                        _format("Class {0!A} referenced by element {1!A} "
+                                "of class {2!A} in namespace {3!A} does "
+                                "not exist",
+                                obj.reference_class, obj.name,
+                                NewClass.classname, namespace))
+            elif obj.type == 'string':
+                if 'EmbeddedInstance' in obj.qualifiers:
+                    eiqualifier = obj.qualifiers['EmbeddedInstance']
+                    # The DMTF spec allows the value to be None
+                    if eiqualifier.value is None or \
+                            eiqualifier.value.lower() == new_class_namelc:
+                        continue
+                    if not class_store.object_exists(eiqualifier.value):
+                        raise CIMError(
+                            CIM_ERR_INVALID_PARAMETER,
+                            _format("Class {0!A} specified by "
+                                    "EmbeddInstance qualifier on element "
+                                    "{1!A} of class {2!A} in namespace "
+                                    "{3!A} does not exist",
+                                    eiqualifier.value, obj.name,
+                                    NewClass.classname, namespace))
 
         qualifier_store = self.cimrepository.get_qualifier_store(namespace)
         self._resolve_class(new_class, namespace, qualifier_store,

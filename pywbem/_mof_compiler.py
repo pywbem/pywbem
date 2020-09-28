@@ -73,7 +73,7 @@ import sys
 import os
 import re
 import tempfile
-# import logging
+
 from abc import ABCMeta, abstractmethod
 try:
     from collections import OrderedDict
@@ -82,6 +82,8 @@ except ImportError:
 
 import six
 from ply import yacc, lex
+
+from nocaselist import NocaseList
 
 from ._nocasedict import NocaseDict
 from ._cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMProperty, \
@@ -651,11 +653,12 @@ def p_mp_createClass(p):
                     for meth in cc.methods.values():
                         objects += list(meth.parameters.values())
 
-                    dep_classnames = []
+                    dep_classnames = NocaseList()
+                    ccname = cc.classname.lower()
                     for obj in objects:
-                        # TODO: The following does not process method parameters
                         if obj.type == 'reference':
-                            if obj.reference_class not in dep_classnames:
+                            if obj.reference_class not in dep_classnames and \
+                                    obj.reference_class.lower() != ccname:
                                 dep_classnames.append(obj.reference_class)
                         elif obj.type == 'string':
                             try:
@@ -663,9 +666,9 @@ def p_mp_createClass(p):
                                     obj.qualifiers['embeddedinstance']
                             except KeyError:
                                 continue
-                            if embedded_inst.value not in dep_classnames:
+                            if embedded_inst.value not in dep_classnames and \
+                                    embedded_inst.value.lower() != ccname:
                                 dep_classnames.append(embedded_inst.value)
-
                     for cln in dep_classnames:
                         if cln in p.parser.classnames[ns]:
                             continue
@@ -2422,6 +2425,9 @@ class MOFWBEMConnection(BaseRepositoryConnection):
             elif obj.type == 'string':
                 if 'EmbeddedInstance' in obj.qualifiers:
                     eiqualifier = obj.qualifiers['EmbeddedInstance']
+                    # The DMTF spec allows the value to be None
+                    if eiqualifier.value is None:
+                        continue
                     try:
                         self.GetClass(eiqualifier.value, namespace=ns,
                                       LocalOnly=True,

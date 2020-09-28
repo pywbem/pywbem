@@ -101,6 +101,13 @@ Released: not yet
 * Fix issue where pywbem_mock would accept a CreateClass where the qualifier
   scopes did not match the corresponding QualifierDeclarations (See issue #2451)
 
+* Fixed issue where pywbem_mock CreateClass was not testing for class
+  dependencies (reference classes and EmbeddedObject classes). (see issue
+  #2455)
+
+* Fixed issue where compiler would fail of a EmbeddedObject qualifier
+  defined Null (None) as the embedded object class.
+
 **Known issues:**
 
 * See `list of open issues`_.
