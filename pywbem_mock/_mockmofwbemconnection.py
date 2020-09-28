@@ -288,6 +288,9 @@ class _MockMOFWBEMConnection(ResolverMixin, BaseRepositoryConnection):
             elif obj.type == 'string':
                 if 'EmbeddedInstance' in obj.qualifiers:
                     eiqualifier = obj.qualifiers['EmbeddedInstance']
+                    # The DMTF spec allows the value to be None
+                    if eiqualifier.value is None:
+                        continue
                     try:
                         self.GetClass(eiqualifier.value, namespace=ns,
                                       LocalOnly=True,
@@ -309,7 +312,6 @@ class _MockMOFWBEMConnection(ResolverMixin, BaseRepositoryConnection):
                         # Only delete when total failure
                         del self.classes[ns][cc.classname]
                         raise
-
         self.conn.CreateClass(cc, namespace=ns)
 
     def ModifyClass(self, *args, **kwargs):
