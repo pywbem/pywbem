@@ -1910,7 +1910,7 @@ Examples:
         'servers', metavar='servers', nargs='*', type=str,
         default=['default'],
         help='R|Define by nickname zero or more specific servers to\n'
-             'test. If  no servers are specified, the default\n'
+             'test. If no servers are specified, the default\n'
              'group is tested. If there is no default group defined,\n'
              'all servers are tested.')
 
@@ -1921,20 +1921,20 @@ Examples:
         '-l', '--list_servers', dest='list_servers',
         action='store_true',
         default=False,
-        help='List servers nicknames defined by the servers arguement. If '
-             'there are no servers defined by the servers argument, list '
-             'the servers defined by the group "default". If there is no '
-             'default group. list all servers')
+        help='R|List servers nicknames defined by the servers arguement. If\n'
+             'there are no servers defined by the servers argument, list\n'
+             'the servers defined by the group "default". If there is no\n'
+             'default group, list all servers')
 
     general_arggroup.add_argument(
         '--tests', dest='tests', default=None, nargs='*',
         choices=['overview', 'tree', 'profiles', 'insts', 'centralinsts'],
-        help='List the tests to be executed. Default  is all tests')
+        help='List the tests to be executed. Default is all tests')
 
     general_arggroup.add_argument(
         '-d', '--direction', dest='direction', default=None,
         choices=['dmtf', 'snia'],
-        help='Define a particular reference direction for the test. If this '
+        help='R|Define a particular reference direction for the test. If this\n'
              'is not specified, the direction algorithm is used, all of them.')
 
     general_arggroup.add_argument(
