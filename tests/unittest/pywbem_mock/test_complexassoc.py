@@ -336,7 +336,7 @@ def test_complexref_classnames(conn, ns, target, r, rc, mof, exp_rslt,
     if cond == 'pdb':
         # pylint: disable=import-outside-toplevel
         import pdb
-        pdb.set_trace()
+        pdb.set_trace()  # pylint: disable=no-member
 
     rtn_clns = conn.ReferenceNames(target, ResultClass=rc, Role=r)
     exp_ns = ns or conn.default_namespace
@@ -488,7 +488,7 @@ def test_complexref_instnames(conn, ns, target, r, rc, mof, exp_rslt,
     if cond == 'pdb':
         # pylint: disable=import-outside-toplevel
         import pdb
-        pdb.set_trace()
+        pdb.set_trace()  # pylint: disable=no-member
 
     target_inst = CIMInstanceName(target[0],
                                   keybindings={'InstanceID': target[1]},
@@ -621,7 +621,7 @@ def test_complexassoc_classnames(conn, ns, target, r, rr, ac,
     if cond == 'pdb':
         # pylint: disable=import-outside-toplevel
         import pdb
-        pdb.set_trace()
+        pdb.set_trace()  # pylint: disable=no-member
 
     rtn_clns = conn.AssociatorNames(target,
                                     AssocClass=ac,
@@ -1146,7 +1146,7 @@ def test_complexassoc_instnames(conn, ns, target, r, rr, ac,
     if cond == 'pdb':
         # pylint: disable=import-outside-toplevel
         import pdb
-        pdb.set_trace()
+        pdb.set_trace()  # pylint: disable=no-member
 
     skip_if_moftab_regenerated()
 
