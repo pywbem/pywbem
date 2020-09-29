@@ -22,8 +22,8 @@ from tabulate import tabulate
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from tests.utils import import_installed
 pywbem = import_installed('pywbem')
-from pywbem._cliutils import SmartFormatter as _SmartFormatter  # noqa: E402
 from pywbem import WBEMConnection, Error, Uint64, __version__  # noqa: E402
+from pywbem._cliutils import SmartFormatter as _SmartFormatter  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 # In pywbem 0.13, parse_cim() changed from a function to a method:
@@ -320,7 +320,8 @@ pywbem for performance.
 """
     epilog = """
 Examples:
-  %s http://blah  --response-count 10000 --pull-size 100 1000 --response-size 100 1000
+  %s http://blah  --response-count 10000 --pull-size 100 1000 \\
+    --response-size 100 1000
 
   Test against server blah with the number of responses instances to a
   single request set to 10,000, the size of the maxObjectCnt request variable
@@ -369,7 +370,7 @@ Examples:
         'Specify user name and password or certificates and keys')
     security_arggroup.add_argument(
         '-u', '--user', dest='user', metavar='user',
-        help='User name for authenticating with the WBEM server.\n'
+        help='R|User name for authenticating with the WBEM server.\n'
              'Default: No user name.')
     security_arggroup.add_argument(
         '-p', '--password', dest='password', metavar='password',
@@ -424,11 +425,11 @@ Examples:
         '--pull-size', dest='pull_size', nargs='+',
         metavar='int', type=int,
         action='store', default=DEFAULT_PULL_SIZE,
-        help='The maxObjectCount defined for each pull operation  that will\n'
+        help='R|The maxObjectCount defined for each pull operation that will\n'
              'be tested. This defines the MaxObjectCount for each open and \n'
              'pull request for each test. May be multiple integers. The test\n'
              'will be executed for each integer defined. The format is:\n'
-             '    --pull-size 100 200 300\n'
+             '  --pull-size 100 200 300\n'
              'Default: %s' % DEFAULT_PULL_SIZE)
 
     tests_arggroup.add_argument(
@@ -436,10 +437,10 @@ Examples:
         metavar='int', type=int,
         action='store', default=DEFAULT_RESPONSE_SIZE,
         help='R|The response sizes that will be tested. This defines the size\n'
-             'of each response in bytes to be returned from the server.'
+             'of each response in bytes to be returned from the server.\n'
              'May be multiple integers. The test will be executed for each\n'
              'integer defined. The format is:\n'
-             '   --response-size 100 200 300\n'
+             '  --response-size 100 200 300\n'
              'Default: %s' % DEFAULT_RESPONSE_SIZE)
 
     tests_arggroup.add_argument(
@@ -448,7 +449,7 @@ Examples:
         action='store', default=None,
         help='R|A Optional string that is included in the output report to \n'
              'identify this test run. It is concatenated with the pywbem\n'
-             'version.'
+             'version.\n'
              'Default: %s' % None)
 
     general_arggroup = argparser.add_argument_group(
@@ -457,8 +458,8 @@ Examples:
     general_arggroup.add_argument(
         '-v', '--verbose', dest='verbose',
         action='store_true', default=False,
-        help='Print more messages while processing. Displays detailed counts'
-             'for each pull operation.')
+        help='R|Print more messages while processing. Displays detailed\n'
+             'counts for each pull operation.')
     general_arggroup.add_argument(
         '-h', '--help', action='help',
         help='Show this help message and exit')

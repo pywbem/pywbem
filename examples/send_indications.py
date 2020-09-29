@@ -13,7 +13,6 @@ import datetime
 import argparse as _argparse
 import re
 from random import randint
-from pywbem._cliutils import SmartFormatter as _SmartFormatter
 import requests
 # The following disables the urllib3 InsecureRequestWarning that gets
 # generated for every send when server cert verification is disabled.
@@ -119,7 +118,7 @@ def send_indication(url, headers, payload, verbose, verify=None, keyfile=None,
       None if there is no client verification or either a single
       file containing the cert amd private key file or a pair of files
       containing both (key, cert)
-    
+
     Returns:
 
       True if response code = 200. Otherwise False
@@ -172,7 +171,7 @@ Examples:
 
     argparser = _argparse.ArgumentParser(
         prog=prog, usage=usage, description=desc, epilog=epilog,
-        add_help=False, formatter_class=_SmartFormatter)
+        add_help=False)
 
     pos_arggroup = argparser.add_argument_group(
         'Positional arguments')
@@ -210,15 +209,15 @@ Examples:
         'Specify user name and password or certificates and keys')
     security_arggroup.add_argument(
         '--certfile', '-c', dest='cert_file', metavar='certfile',
-        help='R|Client certificate file for authenticating with the\n' \
-             'WBEM listener. If option specified the client attempts\n' \
-             'to execute server authentication.\n'
+        help='Client certificate file for authenticating with the '
+             'WBEM listener. If option specified the client attempts '
+             'to execute server authentication. '
              'Default: None so that there is no verification of server cert.')
     security_arggroup.add_argument(
         '--keyfile', '-k', dest='key_file', metavar='keyfile',
-        help='R|Client private key file for authenticating with the\n' \
-             'WBEM listener. Specify as a single file (containing private ' \
-             ' key and certificate or a tuple of key and certificate files')
+        help='Client private key file for authenticating with the '
+             'WBEM listener. Specify as a single file (containing private '
+             'key and certificate or a tuple of key and certificate files')
 
     args = argparser.parse_args()
 

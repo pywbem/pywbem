@@ -19,7 +19,6 @@ from __future__ import print_function
 import sys
 import argparse as _argparse
 from pywbem import WBEMConnection, CIMError, Error
-from pywbem._cliutils import SmartFormatter as _SmartFormatter
 
 def _str_to_bool(str_):
     """Convert string to bool (in argparse context)."""
@@ -56,28 +55,16 @@ Examples:
 
     argparser = _argparse.ArgumentParser(
         prog=prog, usage=usage, description=desc, epilog=epilog,
-        add_help=False, formatter_class=_SmartFormatter)
+        add_help=False)
 
     pos_arggroup = argparser.add_argument_group(
         'Positional arguments')
     pos_arggroup.add_argument(
         'server', metavar='server', nargs='?',
-        help='R|Host name or url of the WBEM server in this format:\n'
-             '    [{scheme}://]{host}[:{port}]\n'
-             '- scheme: Defines the protocol to use;\n'
-             '    - "https" for HTTPs protocol\n'
-             '    - "http" for HTTP protocol.\n'
-             '  Default: "https".\n'
-             '- host: Defines host name as follows:\n'
-             '     - short or fully qualified DNS hostname,\n'
-             '     - literal IPV4 address(dotted)\n'
-             '     - literal IPV6 address (RFC 3986) with zone\n'
-             '       identifier extensions(RFC 6874)\n'
-             '       supporting "-" or %%25 for the delimiter.\n'
-             '- port: Defines the WBEM server port to be used\n'
-             '  Defaults:\n'
-             '     - HTTP  - 5988\n'
-             '     - HTTPS - 5989\n')
+        help='Host name or URL of the WBEM server in format: '
+             '"[{scheme}://]{host}[:{port}]", where '
+             'scheme can be "https" (default) or "http", and '
+             'port defaults to 5988 for http and 5989 for https.')
 
     server_arggroup = argparser.add_argument_group(
         'Server related options',
@@ -85,22 +72,21 @@ Examples:
     server_arggroup.add_argument(
         '-n', '--namespace', dest='namespace', metavar='namespace',
         default='root/cimv2',
-        help='R|Default namespace in the WBEM server for operation\n'
-             'requests when namespace option not supplied with\n'
-             'operation request.\n'
+        help='Default namespace in the WBEM server for operation '
+             'requests when namespace option not supplied with '
+             'operation request. '
              'Default: %(default)s')
     server_arggroup.add_argument(
         '-t', '--timeout', dest='timeout', metavar='timeout', type=int,
         default=None,
-        help='R|Timeout of the completion of WBEM Server operation\n'
-             'in seconds(integer between 0 and 300).\n'
+        help='Timeout of the completion of WBEM Server operation '
+             'in seconds (integer between 0 and 300). '
              'Default: No timeout')
 
     server_arggroup.add_argument(
         '-c', '--classname', dest='classname', metavar='classname',
         default='CIM_ManagedElement',
-        help='R|Classname in the WBEM server for operation\n'
-             'request.\n'
+        help='Classname in the WBEM server for operation request. '
              'Default: %(default)s')
 
     security_arggroup = argparser.add_argument_group(
@@ -108,12 +94,12 @@ Examples:
         'Specify user name and password or certificates and keys')
     security_arggroup.add_argument(
         '-u', '--user', dest='user', metavar='user',
-        help='R|User name for authenticating with the WBEM server.\n'
+        help='User name for authenticating with the WBEM server. '
              'Default: No user name.')
     security_arggroup.add_argument(
         '-p', '--password', dest='password', metavar='password',
-        help='R|Password for authenticating with the WBEM server.\n'
-             'Default: Will be prompted for, if user name\nspecified.')
+        help='Password for authenticating with the WBEM server. '
+             'Default: Will be prompted for, if user name specified.')
     security_arggroup.add_argument(
         '-nvc', '--no-verify-cert', dest='no_verify_cert',
         action='store_true',
@@ -124,23 +110,23 @@ Examples:
              ' client does not have certificates.')
     security_arggroup.add_argument(
         '--cacerts', dest='ca_certs', metavar='cacerts',
-        help='R|File or directory containing certificates that will be\n'
-             'matched against a certificate received from the WBEM\n'
-             'server. Set the --no-verify-cert option to bypass\n'
-             'client verification of the WBEM server certificate.\n')
+        help='File or directory containing certificates that will be '
+             'matched against a certificate received from the WBEM '
+             'server. Set the --no-verify-cert option to bypass '
+             'client verification of the WBEM server certificate. ')
 
     security_arggroup.add_argument(
         '--certfile', dest='cert_file', metavar='certfile',
-        help='R|Client certificate file for authenticating with the\n'
-             'WBEM server. If option specified the client attempts\n'
-             'to execute mutual authentication.\n'
+        help='Client certificate file for authenticating with the '
+             'WBEM server. If option specified the client attempts '
+             'to execute mutual authentication. '
              'Default: Simple authentication.')
     security_arggroup.add_argument(
         '--keyfile', dest='key_file', metavar='keyfile',
-        help='R|Client private key file for authenticating with the\n'
-             'WBEM server. Not required if private key is part of the\n'
-             'certfile option. Not allowed if no certfile option.\n'
-             'Default: No client key file. Client private key should\n'
+        help='Client private key file for authenticating with the '
+             'WBEM server. Not required if private key is part of the '
+             'certfile option. Not allowed if no certfile option. '
+             'Default: No client key file. Client private key should '
              'then be part  of the certfile')
 
     general_arggroup = argparser.add_argument_group(
@@ -153,7 +139,7 @@ Examples:
     general_arggroup.add_argument(
         '-m', '--MaxObjectCount', dest='max_object_count',
         metavar='MaxObjectCount', default=100,
-        help='R|Maximum object count in pull responses.\n'
+        help='Maximum object count in pull responses. '
              'Default: 100.')
 
     add_nullable_boolean_argument(
@@ -238,7 +224,7 @@ def main():
                   % (len(paths), len(paths)))
         for path in paths:
             found = False
-            for inst_path in inst_paths:                
+            for inst_path in inst_paths:
                 if path == inst_path:
                     found = True
                     break

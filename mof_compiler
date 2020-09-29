@@ -73,8 +73,7 @@ Example:
     server_arggroup = argparser.add_argument_group(
         'Server related options',
         'Specify the WBEM server and namespace the MOF compiler '
-        'works against, for looking up existing elements, and '
-        'for applying the MOF compilation results to.')
+        'works against.')
     server_arggroup.add_argument(
         '-s', '--server', dest='url', metavar='url',
         help='R|Host name or URL of the WBEM server (required),\n'
@@ -102,7 +101,7 @@ Example:
 
     security_arggroup = argparser.add_argument_group(
         'Connection security related options',
-        'Specify user name and password or certificates and keys')
+        'Specify user name and password or certificates and keys.')
     security_arggroup.add_argument(
         '-u', '--user', dest='user', metavar='user',
         help='R|User name for authenticating with the WBEM server.\n'
@@ -110,15 +109,15 @@ Example:
     security_arggroup.add_argument(
         '-p', '--password', dest='password', metavar='password',
         help='R|Password for authenticating with the WBEM server.\n'
-             'Default: Will be prompted for, if user name\nspecified.')
+             'Default: Will be prompted for, if user name specified.')
     security_arggroup.add_argument(
         '-nvc', '--no-verify-cert', dest='no_verify_cert',
         action='store_true',
-        help='Client will not verify certificate returned by the WBEM'
-             ' server (see cacerts). This bypasses the client-side'
-             ' verification of the server identity, but allows'
-             ' encrypted communication with a server for which the'
-             ' client does not have certificates.')
+        help='R|Client will not verify certificate returned by the WBEM\n'
+             'server (see cacerts). This bypasses the client-side\n'
+             'verification of the server identity, but allows encrypted\n'
+             'communication with a server for which the client does not have\n'
+             'certificates.')
     security_arggroup.add_argument(
         '--cacerts', dest='ca_certs', metavar='cacerts',
         # pylint: disable=bad-continuation
@@ -140,31 +139,30 @@ Example:
              'WBEM server. Not required if private key is part of the\n'
              'certfile option. Not allowed if no certfile option.\n'
              'Default: No client key file. Client private key should\n'
-             'then be part  of the certfile')
+             'then be part of the certfile.')
 
     action_arggroup = argparser.add_argument_group(
         'Action related options',
-        'Specify actions against the WBEM server\'s namespace. '
-        'Default: Create/update elements.')
+        'Specify actions against the WBEM server\'s namespace.')
     action_arggroup.add_argument(
         '-r', '--remove', dest='remove',
         action='store_true', default=False,
-        help='Removal mode: Remove elements (found in the MOF files) from the '
-             'WBEM server\'s namespace, instead of creating or updating them')
+        help='R|Removal mode: Remove elements (found in the MOF files) from\n'
+             'the WBEM server\'s namespace, instead of creating or updating\n'
+             'them.')
     action_arggroup.add_argument(
         '-d', '--dry-run', dest='dry_run',
         action='store_true', default=False,
-        help='Dry-run mode: Don\'t actually modify the WBEM server\'s '
-             'namespace, just check MOF syntax. '
-             'Connection to WBEM server is still required to check '
-             'qualifiers.')
+        help='R|Dry-run mode: Don\'t actually modify the WBEM server\'s\n'
+             'namespace, just check MOF syntax. Connection to WBEM server is\n'
+             'still required to check qualifiers.')
 
     general_arggroup = argparser.add_argument_group(
         'General options')
     general_arggroup.add_argument(
         '-I', '--include', dest='include_dirs', metavar='dir',
         action='append',
-        help='Path name of a MOF include directory. Can be specified\n'
+        help='R|Path name of a MOF include directory. Can be specified\n'
              'multiple times.')
     general_arggroup.add_argument(
         '-v', '--verbose', dest='verbose',

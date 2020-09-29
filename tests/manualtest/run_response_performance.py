@@ -503,7 +503,8 @@ Examples:
      Execute a minimal test with default input arguments and display time to
      execute. It does not use either of the profilers.
 
-  %s  -p cprofile --response-count 10000 20000 --response-size 100 1000
+  %s  -p cprofile --response-count 10000 20000 \\
+    --response-size 100 1000
 
      Execute the test for all combinations of response counts of 10,000 and
      20,000 and for response sizes of 500 and 1000 bytes using cprofile
@@ -574,8 +575,8 @@ Examples:
     tests_arggroup.add_argument(
         '-i', '--individual', dest='individual',
         action='store_true', default=False,
-        help='Run each of the response_count/response_size tests as a '
-             'completely individual test with separate profile and separate '
+        help='R|Run each of the response_count/response_size tests as a\n'
+             'completely individual test with separate profile and separate\n'
              'output displays and log files.')
 
     general_arggroup = argparser.add_argument_group(
@@ -584,14 +585,14 @@ Examples:
     general_arggroup.add_argument(
         '-l', '--log', dest='log',
         action='store_true', default=False,
-        help='Log the trace for each either the complete execution or each '
+        help='R|Log the trace for each either the complete execution or each\n'
              'test if --individual set to a log file.')
 
     general_arggroup.add_argument(
         '-v', '--verbose', dest='verbose',
         action='store_true', default=False,
-        help='Print more messages while processing. Displays detailed counts'
-             'for each pull operation.')
+        help='R|Print more messages while processing. Displays detailed\n'
+             'counts for each pull operation.')
     general_arggroup.add_argument(
         '-h', '--help', action='help',
         help='Show this help message and exit')
