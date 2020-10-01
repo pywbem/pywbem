@@ -24,6 +24,8 @@ Released: not yet
 
 **Bug fixes:**
 
+* Windows install: Upgraded WinOpenSSL to 1.1.1h.
+
 **Enhancements:**
 
 **Cleanup:**

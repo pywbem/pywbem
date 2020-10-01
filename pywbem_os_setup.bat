@@ -149,8 +149,8 @@ echo %myname%: Installing Win32OpenSSL ...
 :: Note that the Win32OpenSSL project at https://slproweb.com/ removes
 :: the previously available version when a new version is released. Whenever
 :: that happens, this version here must be updated.
-set _WIN32OPENSSL_VERSION_UNDERSCORED=1_1_0L
-set _WIN32OPENSSL_VERSION_DASHED=1-1-0L
+set _WIN32OPENSSL_VERSION_UNDERSCORED=1_1_1h
+set _WIN32OPENSSL_VERSION_DASHED=1-1-1h
 
 :: The bit size of Win32OpenSSL must match the bit size of the Python env.
 set _WIN32OPENSSL_BITSIZE=%PYTHON_ARCH%
