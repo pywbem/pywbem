@@ -124,9 +124,11 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
                     _format("Qualifier {0!A} in new class {1!A} is used in "
-                            "invalid scope {2!A} (Qualifier declaration "
-                            "scopes: {3})",
-                            qname, new_class.classname, scope, q_decl.scopes))
+                            "invalid scope: {2!A}. (QualifierDeclaration "
+                            "scopes: ({3})",
+                            qname, new_class.classname, scope,
+                            ", ".join(
+                                [s for s, v in q_decl.scopes.items() if v])))
 
     @staticmethod
     def _init_qualifier(qualifier, qualifier_store):

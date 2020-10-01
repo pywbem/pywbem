@@ -110,6 +110,10 @@ Released: not yet
 * Fixed issue where compiler would fail of a EmbeddedObject qualifier
   defined Null (None) as the embedded object class.
 
+* Fixed issue where mof compiler asserts if the creation of new class fails
+  because of reference or embedded object depency failures. Changed to
+  a MOFDependencyError exception (see issue # 2458)
+
 **Known issues:**
 
 * See `list of open issues`_.
