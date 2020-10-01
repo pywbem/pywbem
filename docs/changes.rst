@@ -30,6 +30,8 @@ Released: not yet
 * Increased minimum versions of nocasedict to 1.0.0 and nocaselist to 1.0.2
   to pick up fixes needed for pywbem.
 
+* Windows install: Upgraded WinOpenSSL to 1.1.1h.
+
 **Enhancements:**
 
 * Removed dependency on package custom-inherit and removed package from
