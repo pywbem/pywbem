@@ -632,7 +632,18 @@ def p_mp_createClass(p):
                 if errcode in [CIM_ERR_INVALID_PARAMETER,
                                CIM_ERR_NOT_FOUND,
                                CIM_ERR_FAILED]:
-                    assert not fixedRefs  # Should not happen if we fixed it
+                    # Should not happend if we fixed the issues
+                    if fixedRefs:
+                        raise MOFDependencyError(
+                            msg=_format(
+                                "Cannot compile class {0!A} because "
+                                "errorcode={1} ({2!A}) was returned from "
+                                "CreateClass. The CreateClass exception was "
+                                "{3!A}",
+                                cc.classname, errcode, ce.status_code_name,
+                                ce),
+                            parser_token=p)
+
                     if not p.parser.qualcache[ns]:
                         for fname in ['qualifiers', 'qualifiers_optional']:
                             qualfile = p.parser.mofcomp.find_mof(fname)
@@ -673,7 +684,7 @@ def p_mp_createClass(p):
                         if cln in p.parser.classnames[ns]:
                             continue
                         try:
-                            # don't limit it with LocalOnly=True,
+                            # Don't limit it with LocalOnly=True,
                             # PropertyList, IncludeQualifiers=False, ...
                             # because of caching in case we're using the
                             # special WBEMConnection subclass used for

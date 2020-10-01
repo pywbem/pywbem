@@ -56,7 +56,7 @@ pywbem = import_installed('pywbem')
 from pywbem import CIMClass, CIMProperty, CIMInstance, CIMMethod, \
     CIMParameter, Uint32, MOFCompileError, MOFRepositoryError, \
     CIMInstanceName, CIMClassName, CIMQualifier, CIMQualifierDeclaration, \
-    CIMError, DEFAULT_NAMESPACE, CIM_ERR_INVALID_CLASS, \
+    CIMError, MOFDependencyError, DEFAULT_NAMESPACE, CIM_ERR_INVALID_CLASS, \
     CIM_ERR_INVALID_NAMESPACE, CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_PARAMETER, \
     CIM_ERR_ALREADY_EXISTS, CIM_ERR_INVALID_ENUMERATION_CONTEXT, \
     CIM_ERR_NAMESPACE_NOT_EMPTY, CIM_ERR_INVALID_SUPERCLASS, \
@@ -2162,7 +2162,7 @@ class TestRepoMethods(object):
               'CIM_Error', 'CIM_RegisteredSpecification',
               'CIM_ReferencedSpecification', 'CIM_WBEMService'],
              None,
-             True],
+             OK],
 
             ["Test with single classes. Broken",
              ['CIM_ObjectManager'],
@@ -2171,39 +2171,39 @@ class TestRepoMethods(object):
               'CIM_ManagedSystemElement', 'CIM_Service',
               'CIM_ManagedElement', 'CIM_Job'],
              None,
-             True],
+             OK],
 
             ["Test with simple group of classes",
              ['CIM_ElementConformsToProfile'],
              ['CIM_ManagedElement',
               'CIM_RegisteredSpecification', 'CIM_RegisteredProfile'],
              None,
-             True],
+             OK],
 
             ["Test with single class",
              ['CIM_RegisteredProfile'],
              ['CIM_ManagedElement', 'CIM_RegisteredSpecification'],
              None,
-             True],
+             OK],
 
             ["Test with single association. Confirms assoc dependents",
              ['CIM_ProductComponent'],
              ['CIM_Component', 'CIM_ManagedElement', 'CIM_ProductComponent',
               'CIM_Product'],
              None,
-             True],
+             OK],
 
             ["Test with class that passes Caption",
              ['CIM_FileServerCapabilities'],
              ['CIM_ManagedElement', 'CIM_Capabilities', 'CIM_SettingData'],
              None,
-             True],
+             OK],
 
             ["Test with class that has embeddedinstance (CIM_SettingData",
              ['CIM_Capabilities'],
              ['CIM_ManagedElement', 'CIM_SettingData'],
              None,
-             True],
+             OK],
 
             ["Test compile of Association subclass",
              ['CIM_HostedDependency'],
@@ -2306,7 +2306,7 @@ class TestRepoMethods(object):
                  path=CIMClassName(classname='CIM_HostedDependency',
                                    namespace='root/cimv2',
                                    host='FakedUrl:5988')),
-             True],
+             OK],
         ]
     )
     def test_compile_schema_classes(self, conn, desc, classnames,
@@ -3624,7 +3624,7 @@ class TestClassOperations(object):
             # exp_exc: None or expected exception object
             # condition: If False, skip this test
 
-            ['Create simple class correctly',
+            ['Create simple class  CIM_Foo correctly',
              None, 'CIM_Foo',
              CIMClass(
                  'CIM_Foo', superclass=None,
@@ -3889,7 +3889,6 @@ class TestClassOperations(object):
                  }
              ),
              None, CIMError(CIM_ERR_INVALID_PARAMETER), OK],
-
 
             ['Fail create invalid subclass, dup property with no override',
              ['CIM_Foo', 'CIM_Foo_sub'],
@@ -4321,6 +4320,120 @@ class TestClassOperations(object):
                 else:
                     assert mvalue.propagated is False
                     assert mvalue.class_origin == rslt_cls.classname
+
+    @pytest.mark.parametrize(
+        "ns", INITIAL_NAMESPACES + [None])
+    @pytest.mark.parametrize(
+        "desc, pre_tst_mof, tst_cls_mof, exp_rslt, exp_exc, condition",
+        [
+            # desc: Description of testcase
+            # pre_tst_classes: Create the defined class or classes before the
+            #                  test. These are the superclasses for the new
+            #                  class to be created
+            #                  May be:
+            #                   * pywbem CIMClass definition,
+            #                   * string defining name of class in tst_classes
+            #                   * list of class/classnames
+            # tst_cls: MOF defining class to create
+            # exp_rstl: None or expected CIMClass returned from GetClass for
+            #             verifying the created class
+            # exp_exc: None or expected exception object
+            # condition: If False, skip this test
+
+            ['Create class wherequalifier wrong scope, fails (Key on class)',
+             [],
+             """
+             [Key]
+             class TST_Class1
+                 {
+                     string InstanceID;
+                 };
+             """,
+             None, MOFDependencyError(''), OK],
+
+            ['Create class where qualifier wrong scope, fails (Association '
+             'on property)',
+             [],
+             """
+             class TST_Class1
+                 {
+                     [Association]
+                     string InstanceID;
+                 };
+             """,
+             None, MOFDependencyError(''), OK],
+
+            ['Create class where dependent class Embedded Obj does not exist)',
+             [],
+             '''
+             class TST_Class1
+                 {
+                     [Key]
+                     string InstanceID;
+                     [EmbeddedObject("TST_BLAH")]
+                     string ebo;
+                 };
+             ''',
+             None, MOFDependencyError(''), OK],
+
+
+            ['Create class where dependent class does not exist)',
+             [],
+             '''
+             [Association]
+             class TST_Class1
+                 {
+                     [Key]
+                     string InstanceID;
+                     TST_MISSING REF Target;
+                     TST_MISSING2 REF Initiator;
+                 };
+             ''',
+             None, MOFDependencyError(''), OK],
+
+        ],
+    )
+    def test_createclass_mof_er(self, conn, tst_qualifiers_mof,
+                                ns, desc, pre_tst_mof, tst_cls_mof, exp_rslt,
+                                exp_exc, condition):
+        # pylint: disable=no-self-use
+
+        """
+        Test for errors with compiled mof.  This tests for specific errors
+        that can occur between the compiler and CreateClass.
+        TODO:Future; merge this and previous test method into single method
+        to make test of compiled mof and Pywbem CIM objects to CreateClass
+        a single test.
+        """
+        if not condition:
+            pytest.skip("This test marked to be skipped by condition")
+        skip_if_moftab_regenerated()
+
+        # preinstall required qualifiers
+        conn.compile_mof_string(tst_qualifiers_mof, namespace=ns)
+
+        # Added when we added tests for compiling embeddedinstance qualifier
+        # TODO Future: Merge this qual decl into tst_qualifiers_mof
+        conn.compile_mof_string("Qualifier EmbeddedInstance : string = null, "
+                                "Scope(property, method, parameter);")
+
+        # if pretcl, create/install the pre test class.  Installs the
+        # prerequisite classes into the repository.
+        if pre_tst_mof:
+            conn.compile_mof_string(pre_tst_mof, namespace=ns)
+        if exp_exc is not None:
+            with pytest.raises(type(exp_exc)) as exec_info:
+
+                # The code to be tested
+                conn.compile_mof_string(tst_cls_mof, namespace=ns)
+
+            exc = exec_info.value
+            if isinstance(exp_exc, CIMError):
+                assert exc.status_code == exp_exc.status_code, "{}".format(desc)
+
+        else:
+            assert exp_rslt is None
+            assert False, "This part of test_createclass_mof_err not implemente"
 
     # Issue # 2210, TODO: implement a specifc test for ModifyClass
 
