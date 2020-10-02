@@ -5604,9 +5604,15 @@ class TestInstanceOperations(object):
              0, [('CIMFOO_SUB', 'newvalx'),
                  ('CIMFOO_SUB_sub', 'newval2x'), ], None, True, OK],
 
-            # TODO: see issue #2449 for possible change to this test.
-            ["13. Invalid change, Instance does not exist",
+            ["13. Invalid change, change key property",
+             # This fails with NOT_FOUND because modify instance property
+             # also modifies path.
              0, ['InstanceID', 'newval'], None, CIMError(CIM_ERR_NOT_FOUND),
+             OK],
+
+            ["13a. Invalid change, key property. test 8 sets instance path",
+             8, ['InstanceID', 'newval'], None,
+             CIMError(CIM_ERR_INVALID_PARAMETER),
              OK],
 
             ["14. Bad namespace. Depends on special code in path",
@@ -5655,6 +5661,7 @@ class TestInstanceOperations(object):
 
         add_objects_to_repo(conn, ns, [tst_classeswqualifiers, tst_instances])
 
+        # Get an instance from the CIM_Foo_sub_sub class to use as orig_instance
         insts = conn.EnumerateInstances('CIM_Foo_sub_sub', namespace=ns)
         assert insts, "desc {}".format(desc)
         orig_instance = insts[0]
@@ -5667,6 +5674,7 @@ class TestInstanceOperations(object):
             if isinstance(nv[0], six.string_types):
                 nv = [nv]
             for property_def in nv:
+                # NOTE: If key property changes, the path is also changed
                 modified_instance[property_def[0]] = property_def[1]
 
         # Code to change characteristics of modify_instance test based on
@@ -5689,6 +5697,9 @@ class TestInstanceOperations(object):
             modified_instance = 42  # Invalid type
         elif sp == 7:
             pl = 42  # Invalid type
+        elif sp == 8:
+            if orig_instance.path != modified_instance.path:
+                modified_instance.path = orig_instance.path
         else:
             assert False
 
