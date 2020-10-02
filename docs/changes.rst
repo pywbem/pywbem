@@ -45,6 +45,8 @@ Released: not yet
 
 * Windows install: Upgraded WinOpenSSL to 1.1.1h.
 
+* Docs: Pinned Jinja2 (used by Sphinx) to <2.11 on Python 3.4.
+
 **Enhancements:**
 
 * Mock: Added load() methods to the ProviderRegistry and InMemoryRepository
