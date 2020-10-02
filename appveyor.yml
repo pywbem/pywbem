@@ -183,6 +183,11 @@ install:
   - 'if "%UNIX_PATH%"=="C:\cygwin\bin" ( C:\cygwin\setup-x86.exe --no-shortcuts --quiet-mode )'
   - 'if "%UNIX_PATH%"=="C:\cygwin64\bin" ( C:\cygwin64\setup-x86_64.exe --no-shortcuts --quiet-mode )'
 
+  # List Python packages in host environment of tox
+  - 'if "%UNIX_PATH%"=="none" ( %PIP_CMD% --version & %PIP_CMD% list )'
+  - 'if "%UNIX_PATH%"=="C:\cygwin\bin" ( bash -c "%PIP_CMD% --version && %PIP_CMD% list" )'
+  - 'if "%UNIX_PATH%"=="C:\cygwin64\bin" ( bash -c "%PIP_CMD% --version && %PIP_CMD% list" )'
+
 build: false
 
 before_test:
