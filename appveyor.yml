@@ -183,6 +183,16 @@ install:
   - 'if "%UNIX_PATH%"=="C:\cygwin\bin" ( C:\cygwin\setup-x86.exe --no-shortcuts --quiet-mode )'
   - 'if "%UNIX_PATH%"=="C:\cygwin64\bin" ( C:\cygwin64\setup-x86_64.exe --no-shortcuts --quiet-mode )'
 
+  - # Mitigate issue https://github.com/pypa/virtualenv/issues/1962 by excluding virtualenv 20.0.32
+  - 'if "%UNIX_PATH%"=="none" ( pip install virtualenv!=20.0.32 )'
+  - 'if "%UNIX_PATH%"=="C:\cygwin\bin" ( bash -c "pip install virtualenv!=20.0.32" )'
+  - 'if "%UNIX_PATH%"=="C:\cygwin64\bin" ( bash -c "pip install virtualenv!=20.0.32" )'
+
+  # List Python packages in host environment of tox
+  - 'if "%UNIX_PATH%"=="none" ( pip --version & pip list )'
+  - 'if "%UNIX_PATH%"=="C:\cygwin\bin" ( bash -c "pip --version && pip list" )'
+  - 'if "%UNIX_PATH%"=="C:\cygwin64\bin" ( bash -c "pip --version && pip list" )'
+
 build: false
 
 before_test:
