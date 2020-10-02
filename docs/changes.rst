@@ -114,6 +114,9 @@ Released: not yet
   because of reference or embedded object depency failures. Changed to
   a MOFDependencyError exception (see issue # 2458)
 
+* Added test with mocker to demonstrate that a ModifiedInstance with
+  key property modified results in PARAMETER_ERROR. (see issue #2449)
+
 **Known issues:**
 
 * See `list of open issues`_.
