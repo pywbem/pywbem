@@ -2,9 +2,9 @@
 environment:
   matrix:
 
-    - TOX_ENV: win64_py27_32
-      UNIX_PATH: none
-      PYTHON_CMD: python
+#    - TOX_ENV: win64_py27_32
+#      UNIX_PATH: none
+#      PYTHON_CMD: python
 
 #    - TOX_ENV: win64_py27_64
 #      UNIX_PATH: none
@@ -57,11 +57,11 @@ environment:
 #   this system or executable".
 # - On Python 3.6 and upwards, Tox returns success but does not do anything.
 
-#    - TOX_ENV: cygwin64_py27
-#      UNIX_PATH: C:\cygwin64\bin
-#      PYTHON_CMD: python2.7
-#      PIP_CMD: pip
-#      CYGWIN_PYTHON_DEVEL: python27-devel
+    - TOX_ENV: cygwin64_py27
+      UNIX_PATH: C:\cygwin64\bin
+      PYTHON_CMD: python2.7
+      PIP_CMD: pip
+      CYGWIN_PYTHON_DEVEL: python27-devel
 
 #    - TOX_ENV: cygwin64_py36
 #      UNIX_PATH: C:\cygwin64\bin
@@ -191,6 +191,7 @@ install:
 build: false
 
 before_test:
+  - 'if "%UNIX_PATH%"=="C:\cygwin64\bin" ( bash --noprofile --norc -c "%PYTHON_CMD% -m virtualenv -vvv --with-traceback --no-download --python %PYTHON_CMD% test_py38" )'
 
 test_script:
   - 'if "%UNIX_PATH%"=="none" ( where tox & tox -vv -e %TOX_ENV% & echo appveyor.yml: tox rc=%errorlevel% )'
