@@ -252,7 +252,7 @@ class _MockMOFWBEMConnection(ResolverMixin, BaseRepositoryConnection):
             # The following generates an exception for each new ns
             self.classes[ns][cc.classname] = cc
         except KeyError:
-            self.classes[ns] = NocaseDict({cc.classname: cc})
+            self.classes[ns] = NocaseDict([(cc.classname, cc)])
 
         # Validate that references and embedded instance properties, methods,
         # etc. have classes that exist in repo. This  also institates the

@@ -85,6 +85,12 @@ Released: not yet
   pywbemtools project to validate whether its mock cache is up to date w.r.t.
   these files.
 
+* Test: The testcases using the ``simplified_test_function`` decorator
+  now verify that no warnings are issued. Previously, not expecting warnings
+  in a testcase caused warnings that occurred to be tolerated.
+  Adjusted some code in pywbem and in testcases to accomodate that. Fixed the
+  ResourceWarning in validate.py.
+
 **Cleanup:**
 
 * Mock: Cleaned up the output of repr(BaseProvider) to no longer show the

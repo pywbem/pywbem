@@ -3205,12 +3205,10 @@ class CIMInstance(_CIMComparisonMixin):
 
         if property_values is None:
             property_values = NocaseDict()
-        # if not a NoCaseDict, map the input to NoCaseDict
+        # if not a NocaseDict, map the input to NocaseDict
         if not isinstance(property_values, NocaseDict):
             if isinstance(property_values, dict):
-                ncd = NocaseDict()
-                ncd.update(property_values)
-                property_values = ncd
+                property_values = NocaseDict(property_values.items())
             else:
                 raise TypeError(
                     _format("property_values param must be a dictionary. "
