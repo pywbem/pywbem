@@ -148,23 +148,38 @@ def simplified_test_function(test_func):
                     test_func(testcase, **kwargs)  # not expecting an exception
 
                     ret = None  # Debugging hint
-                    assert len(rec_warnings) >= 1
+                    assert len(rec_warnings) >= 1, \
+                        "Expected warning(s) missing: {}".format(exp_warn_types)
         else:
-            if exp_exc_types:
-                with pytest.raises(exp_exc_types):
+            with pytest.warns(None) as rec_warnings:
+                if exp_exc_types:
+                    with pytest.raises(exp_exc_types):
+                        if condition == 'pdb':
+                            pdb.set_trace()
+
+                        test_func(testcase, **kwargs)  # expecting an exception
+
+                    ret = None  # Debugging hint
+                else:
                     if condition == 'pdb':
                         pdb.set_trace()
 
-                    test_func(testcase, **kwargs)  # expecting an exception
+                    test_func(testcase, **kwargs)  # not expecting an exception
 
-                ret = None  # Debugging hint
-            else:
-                if condition == 'pdb':
-                    pdb.set_trace()
+                    ret = None  # Debugging hint
 
-                test_func(testcase, **kwargs)  # not expecting an exception
-
-                ret = None  # Debugging hint
+                    # Verify that no warnings have occurred
+                    if exp_warn_types is None and rec_warnings:
+                        lines = []
+                        for w in rec_warnings.list:
+                            tup = (w.filename, w.lineno, w.category.__name__,
+                                   str(w.message))
+                            line = "{t[0]}:{t[1]}: {t[2]}: {t[3]}".format(t=tup)
+                            if line not in lines:
+                                lines.append(line)
+                        msg = "Unexpected warnings:\n{}".format(
+                            '\n'.join(lines))
+                        raise AssertionError(msg)
         return ret
 
     # Needed because the decorator is signature-changin

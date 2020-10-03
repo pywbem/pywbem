@@ -136,8 +136,11 @@ def validate_cim_xml(cim_xml_str, root_elem_name=None):
     status = p.wait()
     if status != 0:
         out_lines = p.stdout.readlines()
+        p.stdout.close()
         output = _ensure_unicode(b'\n'.join(out_lines))
         raise CIMXMLValidationError(output)
+
+    p.stdout.close()
 
 
 def _xml_semantic_compare(left_xml_str, right_xml_str):
