@@ -25,6 +25,26 @@ Released: not yet
 
 **Deprecations:**
 
+* Deprecated the propagation of key property value changes to corresponding
+  path keybindings in `CIMInstance` objects. A DeprecationWarning is now
+  issued in that case. A future release of pywbem will remove the propagation.
+  If you change key property values of a CIMInstance object that has a path set
+  and depend on the corresponding keybinding values in the path to also change,
+  then you should now change these keybindings values in your code instead of
+  relying on the automatic propagation.
+
+  Reasons for this deprecation are:
+
+  - There are valid scenarios to have the keybindings different from the key
+    properties, for example when passing an instance to the ModifyInstance
+    operation that attempts to modify the key property values of an instance.
+
+  - A propagation in the opposite direction was missing, so the approach did
+    not ensure consistency of the `CIMInstance` object anyway.
+
+  - Propagating the update of a key property value to the path is a hidden
+    side effect and complicates an otherwise simple operation.
+
 **Bug fixes:**
 
 * Fixed erronously raised HeaderParseError when WBEM server returns
