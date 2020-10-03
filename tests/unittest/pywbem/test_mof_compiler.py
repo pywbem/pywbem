@@ -959,6 +959,18 @@ class TestInstCompile(CIMObjectMixin, MOFTest):
 
         self.assertEqual(len(instances), 4)
 
+        # Get the embedded instance/object instancesand prepare them for
+        # test against the the corresponding properties.
+        instance_peo = None
+        instance_pei = None
+        for i in instances:
+            if i['k1'] == 9924 and i['k2'] == 'SampleLabelZeroes':
+                instance_peo = i
+                instance_peo.path = None
+            elif i['k1'] == 9923 and i['k2'] == 'SampleLabelValues1':
+                instance_pei = i
+                instance_pei.path = None
+
         for i in instances:
             # both keys must exist
             self.assertTrue('k1' in i)
@@ -999,8 +1011,8 @@ class TestInstCompile(CIMObjectMixin, MOFTest):
                 self.assertEqual(i['pb'], True)
                 self.assertEqual(i['pdt'],
                                  CIMDateTime("20160409061213.123456+120"))
-                # self.assertEqual(i['peo'], None)
-                # self.assertEqual(i['pei'], None)
+                self.assertEqual(i['peo'], instance_peo)
+                self.assertEqual(i['pei'], instance_pei)
 
             elif i['k1'] == 9923 and i['k2'] == 'SampleLabelValues1':
                 self.assertEqual(i['pui8'], 0b101)
