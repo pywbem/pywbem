@@ -1,12 +1,10 @@
 // A class with all CIM data types
-
-#pragma include ("qualifiers.mof")
+// Test for correct embedded instances of the CIM data types
 
 #pragma include("test_types.mof")
 
-
 //
-instance of EX_AllTypes as $inner
+instance of EX_AllTypes
 {
     k1 = 9921;
     k2 = "SampleLabelInner";
@@ -28,7 +26,7 @@ instance of EX_AllTypes as $inner
     pei   = Null;
 };
 
-instance of EX_AllTypes as $outer
+instance of EX_AllTypes
 {
     k1 = 9922;
     k2 = "SampleLabelOuter";
@@ -46,12 +44,37 @@ instance of EX_AllTypes as $outer
     pc    = 'a';
     pb    = true;
     pdt   = "20160409061213.123456+120";
-    // TODO add the peo and pe1 EmbeddedInstance and EmbeddedObject
-    // values to to this test mof. That means creating a string definition
-    // based on the instance of Ex_AllTypes as $inner below.
+    peo   = "instance of EX_AllTypes {\n"
+            "    k1 = 9924;\n"
+            "    k2 = \"SampleLabelZeroes\";\n"
+            "    pui8 = 0;\n"
+            "    pui16 = 0;\n"
+            "    pui32 = 0;\n"
+            "    pui64 = 0;\n"
+            "    psi8 = 0;\n"
+            "    psi16 = NULL;\n"
+            "    psi32 = NULL;\n"
+            "    psi64 = NULL;\n"
+            "    pr32 = 0.0;\n"
+            "    pr64 = -0.0;\n};\n";
+    pei   = "instance of EX_AllTypes { "
+            "   k1 = 9923;"
+            "   k2 = \"SampleLabelValues1\";"
+            "   pui8 = 5;"
+            "   pui16 = 63;"
+            "   pui32 = 88;"
+            "   pui64 = 2748;"
+            "   psi8 = -5;"
+            "   psi16 = -63;"
+            "   psi32 = -88;"
+            "   psi64 = -3567;"
+            "   pr32 = 0.1;"
+            "   pr64 = -1.1e-15;"
+            "   };";
 };
 
-instance of EX_AllTypes as $values1
+// Instances to be used to compare with peo and pei properties
+instance of EX_AllTypes
 {
     k1 = 9923;
     k2 = "SampleLabelValues1";
@@ -67,7 +90,7 @@ instance of EX_AllTypes as $values1
     pr64  = -1.1e-15;
 };
 
-instance of EX_AllTypes as $zeroes
+instance of EX_AllTypes
 {
     k1 = 9924;
     k2 = "SampleLabelZeroes";

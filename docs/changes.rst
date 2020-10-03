@@ -117,6 +117,8 @@ Released: not yet
 * Added test with mocker to demonstrate that a ModifiedInstance with
   key property modified results in PARAMETER_ERROR. (see issue #2449)
 
+* Complete test of embedded instances. (see issue #464)
+
 **Known issues:**
 
 * See `list of open issues`_.
