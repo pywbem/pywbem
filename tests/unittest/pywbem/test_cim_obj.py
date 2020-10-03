@@ -6205,12 +6205,12 @@ TESTCASES_CIMINSTANCE_INIT = [
                 path=CIMInstanceName(
                     'CIM_Foo',
                     keybindings=NocaseDict([
-                        ('K1', 'Ham'),  # keybinding value has been updated
+                        ('K1', 'Ham'),  # keybinding has been updated
                     ])
                 ),
             )
         ),
-        None, None, True
+        None, DeprecationWarning, True
     ),
 
     # Exception testcases
@@ -6937,11 +6937,11 @@ TESTCASES_CIMINSTANCE_UPDATE_PROPERTY = [
                 ),
                 path=CIMInstanceName(
                     'C1',
-                    keybindings=dict(K1='V2')  # keybinding also updated
+                    keybindings=dict(K1='V2')  # keybinding has been updated
                 ),
             ),
         ),
-        None, None, True
+        None, DeprecationWarning, True
     ),
     (
         "Update existing property that does not exist in keybindings",
@@ -6989,11 +6989,11 @@ TESTCASES_CIMINSTANCE_UPDATE_PROPERTY = [
                 ),
                 path=CIMInstanceName(
                     'C1',
-                    keybindings=dict(K1='V2')  # also updated
+                    keybindings=dict(K1='V2')  # keybinding has been updated
                 ),
             ),
         ),
-        None, None, True
+        None, DeprecationWarning, True
     ),
 ]
 

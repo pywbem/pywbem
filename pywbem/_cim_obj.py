@@ -266,7 +266,8 @@ from ._cim_types import _CIMComparisonMixin, type_from_name, cimtype, \
 from ._nocasedict import NocaseDict
 from ._utils import _ensure_unicode, _ensure_bool, \
     _hash_name, _hash_item, _hash_dict, _format, _integerValue_to_int, \
-    _realValue_to_float, _to_unicode, _eq_name, _eq_item, _eq_dict
+    _realValue_to_float, _to_unicode, _eq_name, _eq_item, _eq_dict, \
+    _stacklevel_above_module
 
 
 __all__ = ['CIMClassName', 'CIMProperty', 'CIMInstanceName', 'CIMInstance',
@@ -2354,9 +2355,10 @@ class CIMInstance(_CIMComparisonMixin):
           properties (:term:`properties input object`):
             The property values for the instance.
 
-            If the specified path has keybindings that correspond to these
-            properties, the values of these keybindings will be updated to
-            match the property values.
+            Deprecated: Providing key property values will cause the
+            corresponding keybindings in the instance path (if set) to be
+            updated accordingly. This behavior has been deprecated in pywbem
+            1.1.0 and will be removed in a future version of pywbem.
 
           qualifiers (:term:`qualifiers input object`):
             The qualifiers for the instance.
@@ -2369,10 +2371,6 @@ class CIMInstance(_CIMComparisonMixin):
 
             The provided object will be copied before being stored in the
             :class:`~pywbem.CIMInstance` object.
-
-            If this path has keybindings that correspond to the specified
-            properties, the values of the keybindings in (the copy of) this
-            path will be updated to match the property values.
 
             `None` means that the instance path is unspecified, and the
             :attr:`~pywbem.CIMInstance.path` attribute
@@ -2436,10 +2434,15 @@ class CIMInstance(_CIMComparisonMixin):
         The order of properties in the CIM instance is preserved.
 
         This attribute is settable; setting it will cause the current CIM
-        properties to be replaced with the new properties, and will also cause
-        the values of corresponding keybindings in the instance path (if set)
-        to be updated. For details, see the description of the same-named
-        init parameter. Note that the property value may be specified as
+        properties to be replaced with the new properties.
+
+        Deprecated: Updating a key property will cause the corresponding
+        keybinding in the instance path (if set) to be updated accordingly.
+        This behavior has been deprecated in pywbem 1.1.0 and will be removed
+        in a future version of pywbem.
+
+        For details, see the description of the same-named init parameter.
+        Note that the property value may be specified as
         a :term:`CIM data type` or as a :class:`~pywbem.CIMProperty` object.
 
         The CIM property values can also be accessed and manipulated one by one
@@ -2458,9 +2461,7 @@ class CIMInstance(_CIMComparisonMixin):
         In addition, the CIM properties can be accessed and manipulated one by
         one by using the entire :class:`~pywbem.CIMInstance` object like a
         dictionary. In that case, the provided input value may be specified as
-        a :term:`CIM data type` or as a :class:`~pywbem.CIMProperty` object.
-        The value of a corresponding keybinding in the instance path (if set)
-        will be updated to the new property value::
+        a :term:`CIM data type` or as a :class:`~pywbem.CIMProperty` object::
 
             inst = CIMInstance(...)
             p2 = Uint32(...)  # may be CIM data type or CIMProperty
@@ -2661,7 +2662,13 @@ class CIMInstance(_CIMComparisonMixin):
     def __setitem__(self, key, value):
         prop = _cim_property_value(key, value)
         self.properties[key] = prop
-        if self.path is not None and key in self.path.keybindings:
+        if self.path is not None and key in self.path.keybindings and \
+                self.path[key] != prop.value:
+            warnings.warn(
+                "The propagation of key property values of pywbem.CIMInstance "
+                "to its path keybindings is deprecated and will be removed in "
+                "a future version of pywbem",
+                DeprecationWarning, _stacklevel_above_module(__name__))
             self.path[key] = prop.value
 
     def __delitem__(self, key):
