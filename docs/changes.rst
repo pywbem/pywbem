@@ -35,6 +35,9 @@ Released: not yet
 * Test: Changed collection of .yaml files in function tests to address
   DeprecationWarning issued by pytest (see issue #2430).
 
+* Upgraded the minimum versions of nocasedict to 1.0.3 and of nocaselist to
+  1.0.1, to pick up fixes in these packages.
+
 **Enhancements:**
 
 * Removed dependency on package custom-inherit and removed package from
