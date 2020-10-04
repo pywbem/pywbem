@@ -65,6 +65,9 @@ Released: not yet
 
 * Windows install: Upgraded WinOpenSSL to 1.1.1h.
 
+* Upgraded the minimum versions of nocasedict to 1.0.3 and of nocaselist to
+  1.0.1, to pick up fixes in these packages.
+
 **Enhancements:**
 
 * Mock: Added load() methods to the ProviderRegistry and InMemoryRepository
