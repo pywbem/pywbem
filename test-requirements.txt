@@ -38,10 +38,14 @@ pytz>=2016.10
 pluggy>=0.7.1; python_version >= '2.7' and python_version <= '3.6'
 pluggy>=0.13.0; python_version >= '3.7'
 decorator>=4.0.11
-yamlloader>=0.5.5
 backports.statistics>=0.1.0; python_version == '2.7'
 # FormEncode is used for xml comparisons in unit test
 FormEncode>=1.3.1
+# PyYAML 5.3 has removed support for Python 3.4; fixes narrow build error
+PyYAML>=5.3; python_version == '2.7'
+PyYAML>=5.1,<5.3; python_version == '3.4'
+PyYAML>=5.1; python_version > '3.4'
+yamlloader>=0.5.5
 
 # Lxml
 # lxml 4.4.0 removed Python 3.4 support.
