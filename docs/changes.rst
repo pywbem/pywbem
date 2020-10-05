@@ -13,14 +13,10 @@ Change log
       :revisions: 1
 
 
-pywbem 0.17.6.dev1
-------------------
+pywbem 0.17.6
+-------------
 
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
+Released: 2020-10-05
 
 **Bug fixes:**
 
@@ -31,16 +27,6 @@ Released: not yet
 
 * Test: Changed collection of .yaml files in function tests to address
   DeprecationWarning issued by pytest (see issue #2430).
-
-**Enhancements:**
-
-**Cleanup:**
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 0.17.5
