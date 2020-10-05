@@ -114,6 +114,10 @@ Released: not yet
   Adjusted some code in pywbem and in testcases to accomodate that. Fixed the
   ResourceWarning in validate.py.
 
+* Test: When testing with latest package levels, the package versions of
+  indirect dependencies are now also upgraded to the latest compatible
+  version from Pypi. (see issue #2485)
+
 **Cleanup:**
 
 * Mock: Cleaned up the output of repr(BaseProvider) to no longer show the

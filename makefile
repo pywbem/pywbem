@@ -47,7 +47,7 @@ ifeq ($(PACKAGE_LEVEL),minimum)
   pip_level_opts := -c minimum-constraints.txt
 else
   ifeq ($(PACKAGE_LEVEL),latest)
-    pip_level_opts := --upgrade
+    pip_level_opts := --upgrade --upgrade-strategy eager
   else
     $(error Error: Invalid value for PACKAGE_LEVEL variable: $(PACKAGE_LEVEL))
   endif
