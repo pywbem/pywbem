@@ -68,6 +68,9 @@ Released: not yet
 * Upgraded the minimum versions of nocasedict to 1.0.3 and of nocaselist to
   1.0.1, to pick up fixes in these packages.
 
+* Test: Fixed ResourceWarning that was issued due to not closing a MOF compiler
+  log file used during tests. (see issue #2487)
+
 **Enhancements:**
 
 * Mock: Added load() methods to the ProviderRegistry and InMemoryRepository
