@@ -175,7 +175,7 @@ before_install:
   # ended up being too difficult, so we go with a manually updated env var
   # for now.
 
-  - export STABLE_BRANCH=stable_1.0
+  - export STABLE_BRANCH=stable_1.1
 
   - echo TRAVIS_BRANCH=$TRAVIS_BRANCH
   - echo TRAVIS_PULL_REQUEST_BRANCH=$TRAVIS_PULL_REQUEST_BRANCH

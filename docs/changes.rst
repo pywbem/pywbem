@@ -14,14 +14,12 @@ Change log
       :revisions: 1
 
 
-pywbem 1.1.0.dev1
------------------
+pywbem 1.1.0
+------------
 
-This version contains all fixes up to pywbem 1.0.x.
+This version contains all fixes up to pywbem 1.0.3.
 
-Released: not yet
-
-**Incompatible changes:**
+Released: 2020-10-05
 
 **Deprecations:**
 
@@ -154,12 +152,6 @@ Released: not yet
   key property modified results in PARAMETER_ERROR. (see issue #2449)
 
 * Complete test of embedded instances. (see issue #464)
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 1.0.0

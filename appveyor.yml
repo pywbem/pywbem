@@ -106,7 +106,7 @@ install:
   # rebase the 'manual-ci-*' branches on the target branch of their PR, for
   # consistency with the Travis setup.
 
-  - set STABLE_BRANCH=stable_1.0
+  - set STABLE_BRANCH=stable_1.1
 
   - echo APPVEYOR_REPO_BRANCH=%APPVEYOR_REPO_BRANCH%
   - echo APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH=%APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH%
