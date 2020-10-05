@@ -81,11 +81,31 @@ class MOFTest(unittest.TestCase):
             verbose=False,
             log_func=moflog)
 
+        # Set up a second MOF compiler for recompile.
+        # Using a second MOF compiler object avoids changing the data in the
+        # first MOF compiler object. Classes, etc. from the first MOF compiler
+        # are needed for compare with recompile.
+
+        def moflog2(msg):
+            """Display message to moflog2"""
+            print(msg, file=self.logfile2)
+
+        moflog_file2 = os.path.join(TEST_DIR, 'moflog2.txt')
+        self.logfile2 = open(moflog_file2, 'w')
+        self.mofcomp2 = MOFCompiler(
+            MOFWBEMConnection(),
+            search_paths=None, verbose=False,
+            log_func=moflog2)
+
         self.partial_schema_file = None
 
     def tearDown(self):
         """Close the log file and any partial schema file."""
+
         self.logfile.close()
+
+        self.logfile2.close()
+
         if self.partial_schema_file:
             if os.path.exists(self.partial_schema_file):
                 os.remove(self.partial_schema_file)
@@ -2117,24 +2137,6 @@ class TestFullSchema(MOFTest):
         mof file. Tests have numbers to control ordering.
     """
 
-    def setupCompilerForReCompile(self, debug=False):
-        """Setup a second compiler instance for recompile. Result is
-           mofcomp2
-        """
-        def moflog2(msg):
-            """Display message to moflog2"""
-            print(msg, file=self.logfile2)
-
-        moflog_file2 = os.path.join(TEST_DIR, 'moflog2.txt')
-        # pylint: disable=attribute-defined-outside-init
-        self.logfile2 = open(moflog_file2, 'w')
-
-        # pylint: disable=attribute-defined-outside-init
-        self.mofcomp2 = MOFCompiler(
-            MOFWBEMConnection(),
-            search_paths=None, verbose=debug,
-            log_func=moflog2)
-
     def test_mof_schema_roundtrip(self):
         """ Test compile, of the schema, write of a new mof output file
             and recompile of that file
@@ -2175,11 +2177,6 @@ class TestFullSchema(MOFTest):
         mof_out_hndl.close()
 
         # Recompile the created mof output file.
-        # Setup new compiler instance to avoid changing the data in
-        # the first instance. Classes, etc. from the first are
-        # needed for compare with recompile
-        self.setupCompilerForReCompile(False)
-
         repo2 = self.mofcomp2.handle
 
         # print('Start recompile file= %s' % mofout_filename)
