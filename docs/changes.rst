@@ -13,14 +13,10 @@ Change log
       :revisions: 1
 
 
-pywbem 1.0.3.dev1
------------------
+pywbem 1.0.3
+------------
 
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
+Released: 2020-10-05
 
 **Bug fixes:**
 
@@ -42,14 +38,6 @@ Released: not yet
 
 * Removed dependency on package custom-inherit and removed package from
   pywbem.  (see issue #2436)
-
-**Cleanup:**
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 1.0.2
