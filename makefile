@@ -320,6 +320,7 @@ help:
 	@echo "  test       - Run unit and function tests (in tests/unittest and tests/functiontest)"
 	@echo "  leaktest   - Run memory leak tests (in tests/leaktest)"
 	@echo "  all        - Do all of the above"
+	@echo "  todo       - Check for TODOs in Python and docs sources"
 	@echo "  end2endtest - Run end2end tests (in tests/end2endtest)"
 	@echo "  develop_os - Install OS-level development prereqs"
 	@echo "  upload     - build + upload the distribution archive files to PyPI"
@@ -475,6 +476,10 @@ check: flake8_$(pymn).done safety_$(pymn).done
 
 .PHONY: pylint
 pylint: pylint_$(pymn).done
+	@echo "makefile: Target $@ done."
+
+.PHONY: todo
+todo: todo_$(pymn).done
 	@echo "makefile: Target $@ done."
 
 .PHONY: all
@@ -676,6 +681,22 @@ ifdef TEST_INSTALLED
   test_deps =
 else
   test_deps = develop_$(pymn).done $(moftab_files)
+endif
+
+todo_$(pymn).done: develop_$(pymn).done Makefile $(pylint_rc_file) $(py_src_files)
+ifeq ($(python_m_version),2)
+	@echo "makefile: Warning: Skipping checking for TODOs on Python $(python_version)" >&2
+else
+ifeq ($(python_mn_version),3.4)
+	@echo "makefile: Warning: Skipping checking for TODOs on Python $(python_version)" >&2
+else
+	@echo "makefile: Checking for TODOs"
+	-$(call RM_FUNC,$@)
+	pylint --exit-zero --reports=n --disable=all --enable=fixme $(py_src_files)
+	-grep TODO $(doc_conf_dir) -r --include="*.rst"
+	echo "done" >$@
+	@echo "makefile: Done checking for TODOs"
+endif
 endif
 
 .PHONY: test
