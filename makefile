@@ -164,6 +164,9 @@ python_mn_version := $(shell $(PYTHON_CMD) tools/python_version.py 2)
 python_m_version := $(shell $(PYTHON_CMD) tools/python_version.py 1)
 pymn := py$(python_mn_version)
 
+# OpenSSL version used by Python's ssl
+openssl_version := $(shell $(PYTHON_CMD) -c "import ssl; print(ssl.OPENSSL_VERSION)")
+
 # Directory for the generated distribution files
 dist_dir := dist
 
@@ -377,6 +380,7 @@ platform:
 	@echo "Python version: $(python_version)"
 	@$(PYTHON_CMD) tools/python_bitsize.py
 	@$(PYTHON_CMD) tools/python_unicodesize.py
+	@echo "OpenSSL version used by Python ssl: $(openssl_version)"
 	@echo "Pip command name: $(PIP_CMD)"
 	@echo "Pip command location: $(shell $(WHICH) $(PIP_CMD))"
 	@echo "Pip command version: $(shell $(PIP_CMD) --version)"
