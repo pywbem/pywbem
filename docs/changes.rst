@@ -31,6 +31,9 @@ Released: not yet
 
 **Cleanup:**
 
+* Test: Fixed ResourceWarning issued in test_mof_compiler.py.
+  (part of issue #86)
+
 **Known issues:**
 
 * See `list of open issues`_.
