@@ -347,8 +347,6 @@ class TestRemove(MOFTest):
 
         ns = 'root/test'
         conn = FakedWBEMConnection(default_namespace=ns)
-        moflog_file = os.path.join(TEST_DIR, 'moflog.txt')
-        self.logfile = open(moflog_file, 'w')
 
         # Create compiler using FakedWBEMConnection as conn
         # This compiler writes new classes and instances to conn
@@ -637,19 +635,19 @@ class TestSchemaSearch(MOFTest):
         Test search_paths with single string as path definition.  Compiles
         a single file and tests that file compiled
         """
+
         def moflog(msg):
             """Display message to moflog"""
             print(msg, file=self.logfile)
 
         skip_if_moftab_regenerated()
 
-        moflog_file = os.path.join(TEST_DIR, 'moflog.txt')
-        open(moflog_file, 'w')
         mofcomp = MOFCompiler(
             MOFWBEMConnection(),
             search_paths=TEST_DMTF_CIMSCHEMA_MOF_DIR,
             verbose=False,
             log_func=moflog)
+
         mofcomp.compile_file(os.path.join(TEST_DMTF_CIMSCHEMA_MOF_DIR,
                                           'System',
                                           'CIM_ComputerSystem.mof'),
@@ -665,18 +663,18 @@ class TestSchemaSearch(MOFTest):
         Test search_paths with single string as path definition.  Compiles
         a single file and tests that file compiled
         """
+
         def moflog(msg):
             """Display message to moflog"""
             print(msg, file=self.logfile)
 
         skip_if_moftab_regenerated()
 
-        moflog_file = os.path.join(TEST_DIR, 'moflog.txt')
-        open(moflog_file, 'w')
         mofcomp = MOFCompiler(
             MOFWBEMConnection(),
             verbose=False,
             log_func=moflog)
+
         try:
             mofcomp.compile_file(os.path.join(TEST_DMTF_CIMSCHEMA_MOF_DIR,
                                               'System',
@@ -2480,7 +2478,7 @@ class TestPartialSchema(MOFTest):
             self.assertTrue(cln in clsrepo)
 
 
-class TestFileErrors(object):
+class TestFileErrors(MOFTest):
     """
     Test for IO errors in compile where file does not exist either
     direct compile or expected in search path.
@@ -2493,10 +2491,6 @@ class TestFileErrors(object):
             """Display message to moflog"""
             print(msg, file=self.logfile)
 
-        moflog_file = os.path.join(TEST_DIR, 'moflog.txt')
-        # pylint: disable=attribute-defined-outside-init
-        self.logfile = open(moflog_file, 'w')
-        # pylint: disable=attribute-defined-outside-init
         self.mofcomp = MOFCompiler(
             MOFWBEMConnection(),
             verbose=False,
@@ -2544,6 +2538,7 @@ class TestFileErrors(object):
 #  Test for duplicate inst in CreateInstance mof compiler logic
 #
 ######################################################################
+
 class MOFWBEMConnectionInstDups(MOFWBEMConnection):
     """
     An adaptation of MOFWBEMConnection class that changes the instance to test
@@ -2552,8 +2547,8 @@ class MOFWBEMConnectionInstDups(MOFWBEMConnection):
     It changes the instance repository to a dictionary, adds a tests for
     duplicate instance names in CreateInstance, and enables a very simple
     ModifyInstance.
-
     """
+
     def __init__(self, conn=None):
         """
         Parameters:
