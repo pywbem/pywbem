@@ -134,6 +134,7 @@ import doctest
 import socket
 import re
 import traceback
+import warnings
 import threading
 from collections import namedtuple
 try:
@@ -420,7 +421,13 @@ def obj(value, tc_name):
                 if arg_name == "pywbem_object":
                     continue
                 ctor_args[arg_name] = obj(value[arg_name], tc_name)
-            obj_ = ctor_call(**ctor_args)
+            with pytest.warns(None) as rec_warnings:
+                obj_ = ctor_call(**ctor_args)
+            if rec_warnings:
+                for w in rec_warnings.list:
+                    # Ignore DeprecationWarnings, re-issue any others
+                    if w.category != DeprecationWarning:
+                        warnings.warn(w.message, w.category, 1)
         else:
             obj_ = OrderedDict()
             for key in value:
