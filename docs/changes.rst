@@ -29,10 +29,13 @@ Released: not yet
 
 **Enhancements:**
 
+* Logging: Added a value 'off' for the log destination in the
+  ``pywbem.configure_logging()`` function that disables logging.
+  (part of issue #86)
+
 **Cleanup:**
 
-* Test: Fixed ResourceWarning issued in test_mof_compiler.py.
-  (part of issue #86)
+* Test: Fixed all remaining ResourceWarnings during test. (issue #86)
 
 **Known issues:**
 

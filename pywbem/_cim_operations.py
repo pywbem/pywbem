@@ -1424,12 +1424,21 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 _format("Invalid simple logger name: {0!A}; must be one of: "
                         "{1!A}", simple_name, LOGGER_SIMPLE_NAMES))
 
-        handler = cls._configure_logger_handler(log_dest, log_filename)
+        if log_dest == 'off':
+            logger = logging.getLogger(logger_name)
+            for handler in logger.handlers:
+                handler.close()
+                logger.removeHandler(handler)
+            logger.setLevel(logging.ERROR)
+            logger.propagate = False
 
-        detail_level = cls._configure_detail_level(detail_level)
-
-        cls._activate_logger(logger_name, simple_name, detail_level, handler,
-                             connection, propagate)
+            # Don't activate logging on future connections
+            cls._reset_logging_config()
+        else:
+            detail_level = cls._configure_detail_level(detail_level)
+            handler = cls._configure_logger_handler(log_dest, log_filename)
+            cls._activate_logger(logger_name, simple_name, detail_level,
+                                 handler, connection, propagate)
 
     @classmethod
     def _configure_detail_level(cls, detail_level):
@@ -1506,7 +1515,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
           `propagate` attribute of the logger is set according to the
           `propagate` parameter.
 
-        The 'connection' paraneter controls activation and setting of the
+        The 'connection' parameter controls activation and setting of the
         detail level:
         * If None, nothing is done.
         * If bool=True, log activation and log detail information is stored for

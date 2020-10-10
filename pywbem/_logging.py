@@ -257,8 +257,9 @@ LOGGER_SIMPLE_NAMES = ['api', 'http', 'all']
 #:
 #: * `'file'` - Log to a file (requires filename to be specified). The file
 #:   logger appends to the logger file defined by filename.
-#: * `'stderr'` - Log to the standard error stream of the Python process
-LOG_DESTINATIONS = ['file', 'stderr']
+#: * `'stderr'` - Log to the standard error stream of the Python process.
+#: * `'off'` - Disable logging.
+LOG_DESTINATIONS = ['file', 'stderr', 'off']
 
 #: Default log destination if not supplied to the logging configuration
 #: functions.
@@ -315,6 +316,8 @@ def configure_logger(simple_name, log_dest=None,
         parameters of the loggers will be configured accordingly for their
         log handler, message format, and with a logging level of
         :attr:`py:logging.DEBUG`.
+
+        The value `'off'` disables logging for the affected pywbem loggers.
 
         If `None`, the Python logging parameters of the loggers will not be
         changed.
@@ -461,6 +464,8 @@ def configure_loggers_from_string(log_configuration_str,
         'api=stderr,http=file'  # Set 'pywbem.api' logger to stderr output and
                                 # 'pywbem.http' logger to file output, both
                                 # with default detail level.
+
+        'all=off'               # Disables logging for both pywbem loggers.
     """  # noqa: E501
     # pylint: enable=line-too-long
 
