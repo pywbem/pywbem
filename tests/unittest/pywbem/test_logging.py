@@ -137,11 +137,10 @@ class TestLoggingConfigure(object):
             ['stderr', None, TEST_OUTPUT_LOG, None],
             # Error tests
             ['blah', 'all', TEST_OUTPUT_LOG, ValueError],
-            ['blah', 'all', TEST_OUTPUT_LOG, ValueError],
             ['file', 'blah', TEST_OUTPUT_LOG, ValueError],
-            ['file', 'all', None, ValueError],
             ['file', -9, TEST_OUTPUT_LOG, ValueError],
             ['file', [-9], TEST_OUTPUT_LOG, ValueError],
+            ['file', 'all', None, ValueError],
         ]
     )
     def test_configure_logger(self, log_name, log_dest, detail_level,
@@ -154,7 +153,6 @@ class TestLoggingConfigure(object):
                 configure_logger(log_name, log_dest=log_dest,
                                  detail_level=detail_level,
                                  log_filename=log_filename)
-
         else:
             configure_logger(log_name, log_dest=log_dest,
                              detail_level=detail_level,
@@ -162,6 +160,9 @@ class TestLoggingConfigure(object):
 
             self.logger_validate(log_name, log_dest, detail_level,
                                  log_filename=log_filename)
+
+            # Disable logger to get log file closed.
+            configure_logger(log_name, log_dest='off')
 
 
 TESTCASES_TEST_LOGGERS_FROM_STRING = [
@@ -426,7 +427,7 @@ class BaseLoggingExecutionTests(object):
 
     def teardown_method(self):
         LogCapture.uninstall_all()
-        logging.shutdown()
+        configure_loggers_from_string('all=off', connection=True)
         if os.path.isfile(TEST_OUTPUT_LOG):
             os.remove(TEST_OUTPUT_LOG)
 

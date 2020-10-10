@@ -255,7 +255,7 @@ endif
 pytest_end2end_opts := -v --tb=short $(pytest_opts)
 
 ifeq ($(python_m_version),3)
-  pytest_warning_opts := -W default -W ignore::PendingDeprecationWarning -W ignore::ResourceWarning
+  pytest_warning_opts := -W default -W ignore::PendingDeprecationWarning
   pytest_end2end_warning_opts := $(pytest_warning_opts)
 else
   ifeq ($(python_mn_version),2.6)
