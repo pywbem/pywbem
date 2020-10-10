@@ -37,6 +37,9 @@ Released: not yet
 
 * Test: Fixed all remaining ResourceWarnings during test. (issue #86)
 
+* Test: Cleaned up DeprecationWarning for the propagation of key property values
+  introduced in pywbem 1.1.0. (see issue #2498)
+
 **Known issues:**
 
 * See `list of open issues`_.

@@ -5612,8 +5612,7 @@ class TestInstanceOperations(object):
 
             ["13a. Invalid change, key property. test 8 sets instance path",
              8, ['InstanceID', 'newval'], None,
-             CIMError(CIM_ERR_INVALID_PARAMETER),
-             OK],
+             CIMError(CIM_ERR_INVALID_PARAMETER), OK],
 
             ["14. Bad namespace. Depends on special code in path",
              2, ['cimfoo_sub', 'newval'], None,
@@ -5674,8 +5673,12 @@ class TestInstanceOperations(object):
             if isinstance(nv[0], six.string_types):
                 nv = [nv]
             for property_def in nv:
-                # NOTE: If key property changes, the path is also changed
-                modified_instance[property_def[0]] = property_def[1]
+                # NOTE: If key property changes, the path is also changed.
+                # Since pywbem 1.1.0, this issues a DeprecationWarning.
+                # The following does not expect any warnings, but catches
+                # and tolerates all warnings.
+                with pytest.warns(None):
+                    modified_instance[property_def[0]] = property_def[1]
 
         # Code to change characteristics of modify_instance test based on
         # sp parameter. Changes classname, namespace name, etc.
@@ -5713,8 +5716,8 @@ class TestInstanceOperations(object):
             exc = exec_info.value
             if isinstance(exp_exc, CIMError):
                 assert exc.status_code == exp_exc.status_code
-
         else:
+
             # The code to be tested
             conn.ModifyInstance(modified_instance, PropertyList=pl)
 
