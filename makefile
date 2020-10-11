@@ -322,6 +322,7 @@ help:
 	@echo "  installtest - Run install tests"
 	@echo "  test       - Run unit and function tests (in tests/unittest and tests/functiontest)"
 	@echo "  leaktest   - Run memory leak tests (in tests/leaktest)"
+	@echo "  resourcetest - Run resource consumption tests (in tests/resourcetest)"
 	@echo "  all        - Do all of the above"
 	@echo "  todo       - Check for TODOs in Python and docs sources"
 	@echo "  end2endtest - Run end2end tests (in tests/end2endtest)"
@@ -487,7 +488,7 @@ todo: todo_$(pymn).done
 	@echo "makefile: Target $@ done."
 
 .PHONY: all
-all: install develop build builddoc check pylint installtest test leaktest
+all: install develop build builddoc check pylint installtest test leaktest resourcetest
 	@echo "makefile: Target $@ done."
 
 .PHONY: clobber
@@ -730,6 +731,16 @@ end2endtest: develop_$(pymn).done $(moftab_files)
 	@echo "makefile: Running end2end tests"
 	py.test --color=yes $(pytest_end2end_warning_opts) $(pytest_end2end_opts) $(test_dir)/end2endtest -s
 	@echo "makefile: Done running end2end tests"
+
+.PHONY: resourcetest
+resourcetest: develop_$(pymn).done $(moftab_files)
+ifeq ($(python_m_version),2)
+	@echo "makefile: Warning: Skipping resource consumption tests on Python $(python_version)" >&2
+else
+	@echo "makefile: Running resource consumption tests"
+	py.test --color=yes $(pytest_warning_opts) $(pytest_opts) $(test_dir)/resourcetest -s
+	@echo "makefile: Done running resource consumption tests"
+endif
 
 $(doc_conf_dir)/mof_compiler.help.txt: mof_compiler $(package_name)/_mof_compiler.py
 	@echo "makefile: Creating mof_compiler script help message file"
