@@ -2025,6 +2025,45 @@ class TestRepoMethods(object):
         assert len(cls) == 5
         assert set(clns) == set([cl_.classname for cl_ in cls])
 
+    def test_compile_classes_multiple_ns(self, conn, tst_classes_mof):
+        # pylint: disable=no-self-use
+        """
+        Test compile of classes into multiple namespaces where the input
+        is both the qualifier declarations and the classes
+        """
+        skip_if_moftab_regenerated()
+
+        # The code to be tested
+        ns = conn.default_namespace
+        conn.compile_mof_string(tst_classes_mof, namespace=ns)
+
+        assert conn.GetClass('CIM_Foo', namespace=ns).classname == 'CIM_Foo'
+        assert conn.GetClass('CIM_Foo_sub',
+                             namespace=ns).classname == 'CIM_Foo_sub'
+        assert conn.GetClass('CIM_Foo_sub2',
+                             namespace=ns).classname == 'CIM_Foo_sub2'
+        assert conn.GetClass('CIM_Foo_sub_sub',
+                             namespace=ns).classname == 'CIM_Foo_sub_sub'
+
+        clns = conn.EnumerateClassNames(namespace=ns)
+        assert len(clns) == 2
+        clns = conn.EnumerateClassNames(namespace=ns, DeepInheritance=True)
+        assert len(clns) == 5
+        cls = conn.EnumerateClasses(namespace=ns, DeepInheritance=True)
+        assert len(cls) == 5
+        assert set(clns) == set([cl_.classname for cl_ in cls])
+
+        quals = conn.EnumerateQualifiers()
+
+        # Compile into second repository
+        ns = 'interop'
+        conn.add_namespace(ns)
+        conn.compile_mof_string(tst_classes_mof, namespace=ns)
+
+        assert conn.EnumerateQualifiers(namespace=ns) == quals
+        assert clns == conn.EnumerateClassNames(namespace=ns,
+                                                DeepInheritance=True)
+
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
     def test_compile_instances(self, conn, tst_classes_mof, ns):
@@ -2347,6 +2386,60 @@ class TestRepoMethods(object):
                                    IncludeClassOrigin=True,
                                    LocalOnly=False)
             assert get_cl == exp_class
+
+    def test_compile_part_schema_multiple_ns(self, conn):
+        # pylint: disable=no-self-use
+        """
+        Test compiling schema components in multiple namespaces. This tests
+        the capability to install a simple schema model into the
+        default and other namespaces. Compares a single class from each
+        namespace for equality
+        """
+        skip_if_moftab_regenerated()
+
+        schema = DMTFCIMSchema(DMTF_TEST_SCHEMA_VER, TESTSUITE_SCHEMA_DIR,
+                               verbose=True)
+
+        test_class = 'CIM_ComputerSystem'
+        classnames = [test_class]
+
+        # Compile into first namespace, the default
+        ns = conn.default_namespace
+        # The code to be tested
+        conn.compile_schema_classes(classnames,
+                                    schema.schema_pragma_file,
+                                    namespace=ns)
+        cls_rtn1 = conn.GetClass(test_class)
+        cls_rtn1.path = None
+        class_count1 = len(conn.EnumerateClassNames())
+        quals = conn.EnumerateQualifiers()
+
+        # Compile into second namespace
+        ns = 'interop'
+        # The namespace must exist before compile_schema_classes called.
+        conn.add_namespace(ns)
+        conn.compile_schema_classes(classnames,
+                                    schema.schema_pragma_file,
+                                    namespace=ns)
+
+        cls_rtn2 = conn.GetClass(test_class, namespace=ns)
+        cls_rtn2.path = None
+        assert cls_rtn1 == cls_rtn2
+        assert quals == conn.EnumerateQualifiers(namespace=ns)
+
+        assert len(conn.EnumerateClassNames(namespace=ns)) == class_count1
+
+        ns = 'sampleuser'
+        # The namespace must exist before compile_schema_classes called.
+        conn.add_namespace(ns)
+        conn.compile_schema_classes(classnames,
+                                    schema.schema_pragma_file,
+                                    namespace=ns)
+        assert quals == conn.EnumerateQualifiers(namespace=ns)
+
+        cls_rtn3 = conn.GetClass(test_class, namespace=ns)
+        cls_rtn3.path = None
+        assert cls_rtn3 == cls_rtn1
 
     def test_compile_err(self, conn):
         # pylint: disable=no-self-use
