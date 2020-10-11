@@ -816,7 +816,8 @@ def p_mp_setQualifier(p):
     ns = p.parser.target_namespace
     if p.parser.verbose:
         p.parser.log(
-            _format("Setting qualifier {0!A}", qualdecl.name))
+            _format("Setting qualifier {0!A} namespace {0!A}",
+                    qualdecl.name, ns))
     try:
         p.parser.handle.SetQualifier(qualdecl, namespace=ns)
     except CIMError as ce:
@@ -1015,7 +1016,7 @@ def p_qualifier(p):
         qualdecl = p.parser.qualcache[ns][qname]
     except KeyError:
         try:
-            quals = p.parser.handle.EnumerateQualifiers()
+            quals = p.parser.handle.EnumerateQualifiers(namespace=ns)
         except CIMError as ce:
             if ce.status_code != CIM_ERR_INVALID_NAMESPACE:
                 raise MOFRepositoryError(
