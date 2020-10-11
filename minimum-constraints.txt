@@ -221,7 +221,7 @@ tabulate==0.8.3
 # Performance profiling tools
 pyinstrument==3.0.1
 pyinstrument-cext==0.2.0  # from pyinstrument
-
+psutil==5.0.0; sys_platform != 'cygwin'
 
 # Indirect dependencies for develop (not in dev-requirements.txt)
 
