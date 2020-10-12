@@ -123,10 +123,27 @@ def kids(tup_tree):
     filtered out.
     """
     k = tup_tree[2]
-    if k is None:
-        return []
+    assert k is not None
     # pylint: disable=unidiomatic-typecheck
     return [x for x in k if type(x) == tuple]
+
+
+def pcdata(tup_tree):
+    """
+    Return the concatenated character data within the child nodes of a
+    tuple tree node, as a unicode string. Whitespace is preserved.
+
+    The child nodes must be text nodes (no element nodes).
+    """
+    k = tup_tree[2]
+
+    # The join() raises TypeError if the tuple tree has child elements.
+    # The callers have already ensured that that is not the case.
+    # The following assertion has been verified and disabled again for
+    # performance reasons:
+    # assert all([isinstance(n, six.string_types) for n in k])
+
+    return u''.join(k)
 
 
 class TupleParser(object):
@@ -140,26 +157,6 @@ class TupleParser(object):
           exceptions that may be raised.
         """
         self.conn_id = conn_id
-
-    def pcdata(self, tup_tree):
-        """
-        Return the concatenated character data within the child nodes of a
-        tuple tree node, as a unicode string. Whitespace is preserved.
-
-        The child nodes must be text nodes (no element nodes).
-        """
-        try:
-            data = u''.join(tup_tree[2])
-        except TypeError:
-            new_exc = CIMXMLParseError(
-                _format("Element {0!A} has unexpected child elements: "
-                        "{1!A} (allowed is only text content)",
-                        name(tup_tree), tup_tree[2]),
-                conn_id=self.conn_id)
-            new_exc.__cause__ = None
-            raise new_exc
-
-        return data
 
     # pylint: disable=too-many-arguments
     def check_node(self, tup_tree, nodename, required_attrs=None,
@@ -488,7 +485,7 @@ class TupleParser(object):
 
         self.check_node(tup_tree, 'VALUE', (), (), (), allow_pcdata=True)
 
-        return self.pcdata(tup_tree)
+        return pcdata(tup_tree)
 
     def parse_value_array(self, tup_tree):
         """
@@ -813,7 +810,7 @@ class TupleParser(object):
 
         self.check_node(tup_tree, 'HOST', (), (), (), allow_pcdata=True)
 
-        return self.pcdata(tup_tree)
+        return pcdata(tup_tree)
 
     def parse_namespace(self, tup_tree):
         """
@@ -1132,7 +1129,7 @@ class TupleParser(object):
         self.check_node(tup_tree, 'KEYVALUE', (), ('VALUETYPE', 'TYPE'), (),
                         allow_pcdata=True)
 
-        data = self.pcdata(tup_tree)
+        data = pcdata(tup_tree)
         attrl = attrs(tup_tree)
 
         valuetype = attrl.get('VALUETYPE', None)
