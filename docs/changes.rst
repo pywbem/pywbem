@@ -27,6 +27,10 @@ Released: not yet
 
 **Bug fixes:**
 
+* MOF compiler: Fixed bug where MOF compiler did not correctly install a CIM schema
+  in a non-default namespace because it tried to get the qualifiers from the
+  default namespace. (see issue #2502)
+
 **Enhancements:**
 
 * Logging: Added a value 'off' for the log destination in the
