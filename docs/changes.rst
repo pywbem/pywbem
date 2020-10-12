@@ -14,30 +14,16 @@ Change log
       :revisions: 1
 
 
-pywbem 1.1.1.dev1
------------------
+pywbem 1.1.1
+------------
 
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
+Released: 2020-10-12
 
 **Bug fixes:**
 
 * MOF compiler: Fixed bug where MOF compiler did not correctly install a CIM schema
   in a non-default namespace because it tried to get the qualifiers from the
   default namespace. (see issue #2502)
-
-**Enhancements:**
-
-**Cleanup:**
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 1.1.0
