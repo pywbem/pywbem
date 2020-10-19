@@ -111,6 +111,8 @@ class _CIMComparisonMixin(object):  # pylint: disable=too-few-public-methods
     Therefore, implementing the rich comparison operators works in both.
     """
 
+    __slots__ = []
+
     def __eq__(self, other):
         """
         Equality test for two CIM objects.
@@ -166,7 +168,42 @@ class _CIMComparisonMixin(object):  # pylint: disable=too-few-public-methods
         raise NotImplementedError
 
 
-class MinutesFromUTC(tzinfo):
+class SlottedPickleMixin(object):
+    """
+    On Python 2, the built-in 'pickle' module uses pickle protocol 0 by default.
+    Using protocol 0 causes pickle to raise TypeError for objects with slots
+    that do not define methods __getstate__() and __setstate__().
+
+    In Python 3.0, the default pickle protocol changed to protocol 3 and in
+    Python 3.8 to protocol 4, both of which support objects with slots by
+    default, without requiring that they define methods __getstate__() and
+    __setstate__().
+
+    This mixin class provides these methods when running on Python 2. The
+    methods support classes with both slotted and non-slotted attributes.
+    Support for non-slottted attributes is needed for example when users
+    define classes derived from CIM object or CIM tape classes.
+    """
+
+    __slots__ = []
+
+    if six.PY2:
+        def __getstate__(self):
+            dct = dict()
+            for attr in self.__slots__:
+                dct[attr] = getattr(self, attr)
+            if hasattr(self, '__dict__'):
+                for attr in self.__dict__:
+                    dct[attr] = getattr(self, attr)
+            return dct
+
+    if six.PY2:
+        def __setstate__(self, dct):
+            for attr in dct:
+                setattr(self, attr, dct[attr])
+
+
+class MinutesFromUTC(SlottedPickleMixin, tzinfo):
     """
     Timezone information (an implementation of :class:`py:datetime.tzinfo`)
     that represents a fixed offset in +/- minutes from UTC and is thus suitable
@@ -203,6 +240,8 @@ class MinutesFromUTC(tzinfo):
         cim_dt = pywbem.CIMDateTime.fromtimestamp(posix_ts,
                                                   pywbem.MinutesFromUTC(-300))
     """
+
+    __slots__ = ['_offset']
 
     def __init__(self, offset):  # pylint: disable=super-init-not-called
         """
@@ -275,8 +314,10 @@ class MinutesFromUTC(tzinfo):
         return "{sign}{hh:02d}:{mm:02d}".format(sign=sign, hh=hh, mm=mm)
 
 
-class CIMType(object):  # pylint: disable=too-few-public-methods
+class CIMType(SlottedPickleMixin):  # pylint: disable=too-few-public-methods
     """Base type for all CIM data types defined in this package."""
+
+    __slots__ = []
 
     #: The name of the CIM datatype, as a :term:`string`. See
     #: :ref:`CIM data types` for details.
@@ -297,6 +338,8 @@ class Char16(CIMType, six.text_type):
     KEYVALUE elements when creating the CIM-XML representation for a keybinding.
     """
 
+    __slots__ = []
+
     #: The name of the CIM datatype ``"char16"``
     cimtype = 'char16'
 
@@ -316,6 +359,8 @@ class CIMDateTime(_CIMComparisonMixin, CIMType):
     equal. Objects of this class are immutable and :term:`hashable`, with the
     hash value being based on their public attributes.
     """
+
+    __slots__ = ['__timedelta', '__datetime', '__precision']
 
     #: The name of the CIM datatype ``"datetime"``
     cimtype = 'datetime'
@@ -782,6 +827,8 @@ class CIMInt(CIMType, _Longint):
         TypeError: int() can't convert non-string with explicit base
     """
 
+    __slots__ = []
+
     #: The minimum valid value for the integer, according to the capabilities
     #: of its CIM data type. See :ref:`CIM data types` for a list of CIM
     #: integer data types.
@@ -833,6 +880,9 @@ class Uint8(CIMInt):
 
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
     """
+
+    __slots__ = []
+
     #: The name of the CIM datatype
     cimtype = 'uint8'
     #: The minimum valid value for the CIM datatype
@@ -847,6 +897,9 @@ class Sint8(CIMInt):
 
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
     """
+
+    __slots__ = []
+
     #: The name of the CIM datatype
     cimtype = 'sint8'
     #: The minimum valid value for the CIM datatype
@@ -861,6 +914,9 @@ class Uint16(CIMInt):
 
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
     """
+
+    __slots__ = []
+
     #: The name of the CIM datatype
     cimtype = 'uint16'
     #: The minimum valid value for the CIM datatype
@@ -875,6 +931,9 @@ class Sint16(CIMInt):
 
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
     """
+
+    __slots__ = []
+
     #: The name of the CIM datatype
     cimtype = 'sint16'
     #: The minimum valid value for the CIM datatype
@@ -889,6 +948,9 @@ class Uint32(CIMInt):
 
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
     """
+
+    __slots__ = []
+
     #: The name of the CIM datatype
     cimtype = 'uint32'
     #: The minimum valid value for the CIM datatype
@@ -903,6 +965,9 @@ class Sint32(CIMInt):
 
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
     """
+
+    __slots__ = []
+
     #: The name of the CIM datatype
     cimtype = 'sint32'
     #: The minimum valid value for the CIM datatype
@@ -917,6 +982,9 @@ class Uint64(CIMInt):
 
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
     """
+
+    __slots__ = []
+
     #: The name of the CIM datatype
     cimtype = 'uint64'
     #: The minimum valid value for the CIM datatype
@@ -931,6 +999,9 @@ class Sint64(CIMInt):
 
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
     """
+
+    __slots__ = []
+
     #: The name of the CIM datatype
     cimtype = 'sint64'
     #: The minimum valid value for the CIM datatype
@@ -963,6 +1034,8 @@ class CIMFloat(CIMType, float):
     in sets.
     """
 
+    __slots__ = []
+
     # Note: __str__() is added later, for Python 3.
 
     def __repr__(self):
@@ -982,6 +1055,9 @@ class Real32(CIMFloat):
     class, or to use them as dictionary keys or as members in sets. See
     :class:`~pywbem.CIMFloat` for details.
     """
+
+    __slots__ = []
+
     #: The name of the CIM datatype
     cimtype = 'real32'
 
@@ -994,6 +1070,9 @@ class Real64(CIMFloat):
     class, or to use them as dictionary keys or as members in sets. See
     :class:`~pywbem.CIMFloat` for details.
     """
+
+    __slots__ = []
+
     #: The name of the CIM datatype
     cimtype = 'real64'
 

@@ -57,6 +57,9 @@ Released: not yet
   element without keybindings. This is motivated by the fact that DSP0004 does
   not allow instance paths without keys (section 8.2.5). (See issue #2514)
 
+* Reduced memory consumption of CIM objects and CIM types by defining their
+  attributes to use Python slots. (see issue #2509)
+
 **Cleanup:**
 
 * Test: Fixed all remaining ResourceWarnings during test. (issue #86)
