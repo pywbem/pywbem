@@ -262,7 +262,7 @@ from .config import SEND_VALUE_NULL
 from . import config
 from ._cim_types import _CIMComparisonMixin, type_from_name, cimtype, \
     atomic_to_cim_xml, CIMType, CIMDateTime, number_types, CIMInt, \
-    CIMFloat, _Longint, Char16
+    CIMFloat, _Longint, Char16, SlottedPickleMixin
 from ._nocasedict import NocaseDict
 from ._utils import _ensure_unicode, _ensure_bool, \
     _hash_name, _hash_item, _hash_dict, _format, _integerValue_to_int, \
@@ -1099,7 +1099,7 @@ def _cim_qualifier(key, value):
     return qual
 
 
-class CIMInstanceName(_CIMComparisonMixin):
+class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
     """
     A CIM instance path (aka *CIM instance name*).
 
@@ -1112,6 +1112,8 @@ class CIMInstanceName(_CIMComparisonMixin):
     class can be used as members in a set (or as dictionary keys) only during
     periods in which their public attributes remain unchanged.
     """
+
+    __slots__ = ['_classname', '_keybindings', '_host', '_namespace']
 
     def __init__(self, classname, keybindings=None, host=None, namespace=None):
         # pylint: disable=line-too-long
@@ -2347,7 +2349,7 @@ class CIMInstanceName(_CIMComparisonMixin):
                                host=host)
 
 
-class CIMInstance(_CIMComparisonMixin):
+class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
     """
     A representation of a CIM instance in a CIM namespace in a WBEM server,
     optionally including its instance path.
@@ -2358,6 +2360,8 @@ class CIMInstance(_CIMComparisonMixin):
     class can be used as members in a set (or as dictionary keys) only during
     periods in which their public attributes remain unchanged.
     """
+
+    __slots__ = ['_classname', '_properties', '_qualifiers', '_path']
 
     # pylint: disable=too-many-arguments
     def __init__(self, classname, properties=None, qualifiers=None,
@@ -3275,7 +3279,7 @@ class CIMInstance(_CIMComparisonMixin):
         return inst
 
 
-class CIMClassName(_CIMComparisonMixin):
+class CIMClassName(_CIMComparisonMixin, SlottedPickleMixin):
     """
     A CIM class path (aka *CIM class name*).
 
@@ -3288,6 +3292,8 @@ class CIMClassName(_CIMComparisonMixin):
     class can be used as members in a set (or as dictionary keys) only during
     periods in which their public attributes remain unchanged.
     """
+
+    __slots__ = ['_classname', '_host', '_namespace']
 
     def __init__(self, classname, host=None, namespace=None):
         """
@@ -3826,7 +3832,7 @@ class CIMClassName(_CIMComparisonMixin):
         return _ensure_unicode(''.join(ret))
 
 
-class CIMClass(_CIMComparisonMixin):
+class CIMClass(_CIMComparisonMixin, SlottedPickleMixin):
     """
     A representation of a CIM class in a CIM namespace in a WBEM server,
     optionally including its class path.
@@ -3837,6 +3843,9 @@ class CIMClass(_CIMComparisonMixin):
     class can be used as members in a set (or as dictionary keys) only during
     periods in which their public attributes remain unchanged.
     """
+
+    __slots__ = ['_classname', '_properties', '_methods',
+                 '_superclass', '_qualifiers', '_path']
 
     # pylint: disable=too-many-arguments
     def __init__(self, classname, properties=None, methods=None,
@@ -4386,7 +4395,7 @@ class CIMClass(_CIMComparisonMixin):
 
 
 # pylint: disable=too-many-statements,too-many-instance-attributes
-class CIMProperty(_CIMComparisonMixin):
+class CIMProperty(_CIMComparisonMixin, SlottedPickleMixin):
     """
     A CIM property (value or declaration).
 
@@ -4421,11 +4430,14 @@ class CIMProperty(_CIMComparisonMixin):
     periods in which their public attributes remain unchanged.
     """
 
+    __slots__ = ['_name', '_value', '_type', '_class_origin',
+                 '_array_size', '_propagated', '_is_array',
+                 '_reference_class', '_qualifiers', '_embedded_object']
+
     # pylint: disable=too-many-statements
-    def __init__(self, name, value, type=None,
-                 class_origin=None, array_size=None, propagated=None,
-                 is_array=None, reference_class=None, qualifiers=None,
-                 embedded_object=None):
+    def __init__(self, name, value, type=None, class_origin=None,
+                 array_size=None, propagated=None, is_array=None,
+                 reference_class=None, qualifiers=None, embedded_object=None):
         # pylint: disable=redefined-builtin,too-many-arguments,too-many-branches
         # pylint: disable=too-many-statements,too-many-instance-attributes
         """
@@ -5257,7 +5269,7 @@ class CIMProperty(_CIMComparisonMixin):
         return hash(hashes)
 
 
-class CIMMethod(_CIMComparisonMixin):
+class CIMMethod(_CIMComparisonMixin, SlottedPickleMixin):
     """
     A method (declaration) in a CIM class.
 
@@ -5267,6 +5279,9 @@ class CIMMethod(_CIMComparisonMixin):
     class can be used as members in a set (or as dictionary keys) only during
     periods in which their public attributes remain unchanged.
     """
+
+    __slots__ = ['_name', '_return_type', '_parameters',
+                 '_class_origin', '_propagated', '_qualifiers']
 
     # pylint: disable=too-many-arguments
     def __init__(self, name=None, return_type=None, parameters=None,
@@ -5771,7 +5786,7 @@ class CIMMethod(_CIMComparisonMixin):
         return u''.join(mof)
 
 
-class CIMParameter(_CIMComparisonMixin):
+class CIMParameter(_CIMComparisonMixin, SlottedPickleMixin):
     """
     A CIM parameter (value or declaration).
 
@@ -5799,6 +5814,10 @@ class CIMParameter(_CIMComparisonMixin):
     class can be used as members in a set (or as dictionary keys) only during
     periods in which their public attributes remain unchanged.
     """
+
+    __slots__ = ['_name', '_type', '_reference_class', '_is_array',
+                 '_array_size', '_qualifiers', '_value',
+                 '_embedded_object']
 
     # pylint: disable=too-many-arguments
     def __init__(self, name, type, reference_class=None, is_array=None,
@@ -6469,7 +6488,7 @@ class CIMParameter(_CIMComparisonMixin):
 
 
 # pylint: disable=too-many-instance-attributes
-class CIMQualifier(_CIMComparisonMixin):
+class CIMQualifier(_CIMComparisonMixin, SlottedPickleMixin):
     """
     A CIM qualifier value.
 
@@ -6514,6 +6533,10 @@ class CIMQualifier(_CIMComparisonMixin):
     class can be used as members in a set (or as dictionary keys) only during
     periods in which their public attributes remain unchanged.
     """
+
+    __slots__ = ['_name', '_value', '_type', '_propagated',
+                 '_overridable', '_tosubclass', '_toinstance',
+                 '_translatable']
 
     # pylint: disable=too-many-arguments
     def __init__(self, name, value, type=None, propagated=None,
@@ -7074,7 +7097,7 @@ class CIMQualifier(_CIMComparisonMixin):
 
 
 # pylint: disable=too-many-instance-attributes
-class CIMQualifierDeclaration(_CIMComparisonMixin):
+class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
     """
     A CIM qualifier type is the declaration of a qualifier and defines the
     attributes of qualifier name, qualifier type, value, scopes, and flavors
@@ -7120,6 +7143,10 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
     periods in which their public attributes remain unchanged.
     """
 
+    __slots__ = ['_name', '_type', '_value', '_is_array',
+                 '_array_size', '_scopes', '_overridable',
+                 '_tosubclass', '_toinstance', '_translatable']
+
     # Order of scopes when externalizing the qualifier declaration
     _ordered_scopes = ["CLASS", "ASSOCIATION", "INDICATION",
                        "PROPERTY", "REFERENCE", "METHOD", "PARAMETER",
@@ -7127,9 +7154,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin):
 
     # pylint: disable=too-many-arguments
     def __init__(self, name, type, value=None, is_array=False,
-                 array_size=None, scopes=None,
-                 overridable=None, tosubclass=None, toinstance=None,
-                 translatable=None):
+                 array_size=None, scopes=None, overridable=None,
+                 tosubclass=None, toinstance=None, translatable=None):
         # pylint: disable=redefined-builtin
         """
         Parameters:

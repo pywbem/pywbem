@@ -1123,6 +1123,8 @@ def test_CIMInstanceName_init(testcase, init_args, init_kwargs, exp_attrs):
     # The code to be tested
     obj = CIMInstanceName(*init_args, **init_kwargs)
 
+    assert not hasattr(obj, '__dict__')
+
     # Ensure that exceptions raised in the remainder of this function
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
@@ -6528,6 +6530,8 @@ def test_CIMInstance_init(testcase, init_args, init_kwargs, exp_attrs):
     # The code to be tested
     obj = CIMInstance(*init_args, **init_kwargs)
 
+    assert not hasattr(obj, '__dict__')
+
     # Ensure that exceptions raised in the remainder of this function
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
@@ -11651,6 +11655,8 @@ def test_CIMProperty_init(testcase, init_args, init_kwargs, exp_attrs):
 
     # The code to be tested
     obj = CIMProperty(*init_args, **init_kwargs)
+
+    assert not hasattr(obj, '__dict__')
 
     # Ensure that exceptions raised in the remainder of this function
     # are not mistaken as expected exceptions
@@ -18693,6 +18699,8 @@ def test_CIMQualifier_init(testcase, init_args, init_kwargs, exp_attrs):
     # The code to be tested
     obj = CIMQualifier(*init_args, **init_kwargs)
 
+    assert not hasattr(obj, '__dict__')
+
     # Ensure that exceptions raised in the remainder of this function
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
@@ -23340,6 +23348,8 @@ def test_CIMClassName_init(testcase, init_args, init_kwargs, exp_attrs):
     # The code to be tested
     obj = CIMClassName(*init_args, **init_kwargs)
 
+    assert not hasattr(obj, '__dict__')
+
     # Ensure that exceptions raised in the remainder of this function
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
@@ -25506,6 +25516,8 @@ def test_CIMClass_init(testcase, init_args, init_kwargs, exp_attrs):
 
     # The code to be tested
     obj = CIMClass(*init_args, **init_kwargs)
+
+    assert not hasattr(obj, '__dict__')
 
     # Ensure that exceptions raised in the remainder of this function
     # are not mistaken as expected exceptions
@@ -27889,6 +27901,8 @@ def test_CIMMethod_init(testcase, init_args, init_kwargs, exp_attrs):
 
     # The code to be tested
     obj = CIMMethod(*init_args, **init_kwargs)
+
+    assert not hasattr(obj, '__dict__')
 
     # Ensure that exceptions raised in the remainder of this function
     # are not mistaken as expected exceptions
@@ -30509,6 +30523,8 @@ def test_CIMParameter_init(testcase, init_args, init_kwargs, exp_attrs):
 
     # The code to be tested
     obj = CIMParameter(*init_args, **init_kwargs)
+
+    assert not hasattr(obj, '__dict__')
 
     # Ensure that exceptions raised in the remainder of this function
     # are not mistaken as expected exceptions
@@ -37684,6 +37700,8 @@ def test_CIMQualifierDeclaration_init(
 
     # The code to be tested
     obj = CIMQualifierDeclaration(*init_args, **init_kwargs)
+
+    assert not hasattr(obj, '__dict__')
 
     # Ensure that exceptions raised in the remainder of this function
     # are not mistaken as expected exceptions

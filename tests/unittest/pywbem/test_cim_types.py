@@ -97,6 +97,7 @@ def test_char16_init(char16_init_tuple):
     except Exception as exc:  # pylint: disable=broad-except
         assert isinstance(exc, exp_exc_type)
     else:
+        assert not hasattr(obj, '__dict__')
         assert exp_exc_type is None
         assert obj == exp_str
         assert obj is not in_str
@@ -852,6 +853,7 @@ def test_datetime_init(datetime_init_tuple):
     except Exception as exc:  # pylint: disable=broad-except
         assert isinstance(exc, exp_kind)
     else:
+        assert not hasattr(obj, '__dict__')
         assert obj.is_interval == (exp_kind == 'interval')
         assert obj.datetime == exp_datetime
         if obj.datetime is not None:
@@ -977,6 +979,8 @@ def test_MinutesFromUTC_init(testcase, args, kwargs, exp_offset):
     # Ensure that exceptions raised in the remainder of this function
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
+
+    assert not hasattr(tz, '__dict__')
 
     # Verify the UTC offset of the tz object.
     exp_utcoffset = timedelta(minutes=exp_offset)
@@ -1506,6 +1510,11 @@ def test_cimtype(testcase, obj, exp_type_name):
     """
     Test function for cimtype().
     """
+
+    # There are no init testcases covering all CIM types, so the following
+    # check is placed here.
+    # TODO: Create init testcaes for CIM types and move this check to there.
+    assert not hasattr(obj, '__dict__')
 
     # The code to be tested
     type_name = cimtype(obj)
