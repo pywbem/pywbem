@@ -1270,14 +1270,16 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
             v2 = instpath['k2']  # Access value of "k2"
             del instpath['k2']  # Delete "k2" from the instance path
         """
+        if self._keybindings is None:  # Lazy initialization
+            self._keybindings = NocaseDict()
+            self._keybindings.allow_unnamed_keys = True
         return self._keybindings
 
     @keybindings.setter
     def keybindings(self, keybindings):
         """Setter method; for a description see the getter method."""
         # pylint: disable=attribute-defined-outside-init
-        self._keybindings = NocaseDict()
-        self._keybindings.allow_unnamed_keys = True
+        self._keybindings = None  # Lazy initialization
         if keybindings:
             try:
                 # This is used for iterables:
@@ -2495,6 +2497,8 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
             p2 = inst['p2']  # Access "p2"
             del inst['p2']  # Delete "p2" from the instance
         """
+        if self._properties is None:  # Lazy initialization
+            self._properties = NocaseDict()
         return self._properties
 
     @properties.setter
@@ -2503,7 +2507,7 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
         # We make sure that the dictionary is a NocaseDict object, and that the
         # property values are CIMProperty objects:
         # pylint: disable=attribute-defined-outside-init
-        self._properties = NocaseDict()
+        self._properties = None  # Lazy initialization
         if properties:
             try:
                 # This is used for iterables:
@@ -2550,6 +2554,8 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
         Note that :term:`DSP0200` has deprecated the presence of qualifier
         values on CIM instances.
         """
+        if self._qualifiers is None:  # Lazy initialization
+            self._qualifiers = NocaseDict()
         return self._qualifiers
 
     @qualifiers.setter
@@ -2558,7 +2564,7 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
         # We make sure that the dictionary is a NocaseDict object, and that the
         # property values are CIMQualifier objects:
         # pylint: disable=attribute-defined-outside-init
-        self._qualifiers = NocaseDict()
+        self._qualifiers = None  # Lazy initialization
         if qualifiers:
             try:
                 # This is used for iterables:
@@ -3993,6 +3999,8 @@ class CIMClass(_CIMComparisonMixin, SlottedPickleMixin):
             p1 = cls.properties['p1']  # Access "p1"
             del cls.properties['p1']  # Delete "p1" from the class
         """
+        if self._properties is None:  # Lazy initialization
+            self._properties = NocaseDict()
         return self._properties
 
     @properties.setter
@@ -4001,7 +4009,7 @@ class CIMClass(_CIMComparisonMixin, SlottedPickleMixin):
         # We make sure that the dictionary is a NocaseDict object, and that the
         # property values are CIMProperty objects:
         # pylint: disable=attribute-defined-outside-init
-        self._properties = NocaseDict()
+        self._properties = None  # Lazy initialization
         if properties:
             try:
                 # This is used for iterables:
@@ -4053,6 +4061,8 @@ class CIMClass(_CIMComparisonMixin, SlottedPickleMixin):
             m1 = cls.methods['m1']  # Access "m1"
             del cls.methods['m1']  # Delete "m1" from the class
         """
+        if self._methods is None:  # Lazy initialization
+            self._methods = NocaseDict()
         return self._methods
 
     @methods.setter
@@ -4061,7 +4071,7 @@ class CIMClass(_CIMComparisonMixin, SlottedPickleMixin):
         # We make sure that the dictionary is a NocaseDict object, and that the
         # property values are CIMMethod objects:
         # pylint: disable=attribute-defined-outside-init
-        self._methods = NocaseDict()
+        self._methods = None  # Lazy initialization
         if methods:
             try:
                 # This is used for iterables:
@@ -4114,6 +4124,8 @@ class CIMClass(_CIMComparisonMixin, SlottedPickleMixin):
             q1 = cls.qualifiers['q1']  # Access "q1"
             del cls.qualifiers['q1']  # Delete "q1" from the class
         """
+        if self._qualifiers is None:  # Lazy initialization
+            self._qualifiers = NocaseDict()
         return self._qualifiers
 
     @qualifiers.setter
@@ -4122,7 +4134,7 @@ class CIMClass(_CIMComparisonMixin, SlottedPickleMixin):
         # We make sure that the dictionary is a NocaseDict object, and that the
         # property values are CIMQualifier objects:
         # pylint: disable=attribute-defined-outside-init
-        self._qualifiers = NocaseDict()
+        self._qualifiers = None  # Lazy initialization
         if qualifiers:
             try:
                 # This is used for iterables:
@@ -4897,6 +4909,8 @@ class CIMProperty(_CIMComparisonMixin, SlottedPickleMixin):
             q1 = prop.qualifiers['q1']  # Access "q1"
             del prop.qualifiers['q1']  # Delete "q1" from the class
         """
+        if self._qualifiers is None:  # Lazy initialization
+            self._qualifiers = NocaseDict()
         return self._qualifiers
 
     @qualifiers.setter
@@ -4905,7 +4919,7 @@ class CIMProperty(_CIMComparisonMixin, SlottedPickleMixin):
         # We make sure that the dictionary is a NocaseDict object, and that the
         # property values are CIMQualifier objects:
         # pylint: disable=attribute-defined-outside-init
-        self._qualifiers = NocaseDict()
+        self._qualifiers = None  # Lazy initialization
         if qualifiers:
             try:
                 # This is used for iterables:
@@ -5494,13 +5508,15 @@ class CIMMethod(_CIMComparisonMixin, SlottedPickleMixin):
             p1 = meth.parameters['p1']  # Access "p1"
             del meth.parameters['p1']  # Delete "p1" from the class
         """
+        if self._parameters is None:  # Lazy initialization
+            self._parameters = NocaseDict()
         return self._parameters
 
     @parameters.setter
     def parameters(self, parameters):
         """Setter method; for a description see the getter method."""
         # pylint: disable=attribute-defined-outside-init
-        self._parameters = NocaseDict()
+        self._parameters = None  # Lazy initialization
         if parameters:
             try:
                 # This is used for iterables:
@@ -5553,6 +5569,8 @@ class CIMMethod(_CIMComparisonMixin, SlottedPickleMixin):
             q1 = meth.qualifiers['q1']  # Access "q1"
             del meth.qualifiers['q1']  # Delete "q1" from the class
         """
+        if self._qualifiers is None:  # Lazy initialization
+            self._qualifiers = NocaseDict()
         return self._qualifiers
 
     @qualifiers.setter
@@ -5561,7 +5579,7 @@ class CIMMethod(_CIMComparisonMixin, SlottedPickleMixin):
         # We make sure that the dictionary is a NocaseDict object, and that the
         # property values are CIMQualifier objects:
         # pylint: disable=attribute-defined-outside-init
-        self._qualifiers = NocaseDict()
+        self._qualifiers = None  # Lazy initialization
         if qualifiers:
             try:
                 # This is used for iterables:
@@ -6083,6 +6101,8 @@ class CIMParameter(_CIMComparisonMixin, SlottedPickleMixin):
             q1 = parm.qualifiers['q1']  # Access "q1"
             del parm.qualifiers['q1']  # Delete "q1" from the class
         """
+        if self._qualifiers is None:  # Lazy initialization
+            self._qualifiers = NocaseDict()
         return self._qualifiers
 
     @qualifiers.setter
@@ -6091,7 +6111,7 @@ class CIMParameter(_CIMComparisonMixin, SlottedPickleMixin):
         # We make sure that the dictionary is a NocaseDict object, and that the
         # property values are CIMQualifier objects:
         # pylint: disable=attribute-defined-outside-init
-        self._qualifiers = NocaseDict()
+        self._qualifiers = None  # Lazy initialization
         if qualifiers:
             try:
                 # This is used for iterables:
@@ -7431,15 +7451,17 @@ class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
         same-named init parameter of
         :class:`this class <pywbem.CIMQualifierDeclaration>`.
         """
+        if self._scopes is None:  # Lazy initialization
+            self._scopes = NocaseDict()
         return self._scopes
 
     @scopes.setter
     def scopes(self, scopes):
         """Setter method; for a description see the getter method."""
         # pylint: disable=attribute-defined-outside-init
-        self._scopes = NocaseDict()
+        self._scopes = None  # Lazy initialization
         if scopes:
-            self._scopes.update(scopes)
+            self.scopes.update(scopes)
 
     @property
     def tosubclass(self):

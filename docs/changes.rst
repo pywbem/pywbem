@@ -60,6 +60,11 @@ Released: not yet
 * Reduced memory consumption of CIM objects and CIM types by defining their
   attributes to use Python slots. (see issue #2509)
 
+* Reduced memory consumption of CIM objects by using lazy initialization of
+  dictionary-type attributes. This resulted in significant savings when the
+  attribute is typically unused, for example in ``CIMInstance.qualifiers``.
+  (see issue #2511)
+
 **Cleanup:**
 
 * Test: Fixed all remaining ResourceWarnings during test. (issue #86)
