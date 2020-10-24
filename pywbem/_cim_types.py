@@ -179,28 +179,58 @@ class SlottedPickleMixin(object):
     default, without requiring that they define methods __getstate__() and
     __setstate__().
 
-    This mixin class provides these methods when running on Python 2. The
-    methods support classes with both slotted and non-slotted attributes.
+    That led to the idea to provide these methods only when running on
+    Python 2. However, it turns out that objects pickled before this change
+    (using the built-in methods) save all attributes in one shot by saving
+    their __dict__ value, so the default unpickling after introduction of
+    slots attempts to set the __dict__ which fails with AttributeError.
+    Therefore, these methods need to be provided also for Python 3.
+
+    Also, because code in pywbem_mock/_resolvermixin.py dynamically added
+    the non-existing attributes 'classorigin' and 'propagated' to CIMClass
+    objects (that code has been removed meanwhile), the unpickling may
+    encounter CIMClass objects that still have these attributes set. That
+    is handled by ignoring these attributes during unpickling.
+
+    These methods support classes with both slotted and non-slotted attributes.
     Support for non-slottted attributes is needed for example when users
-    define classes derived from CIM object or CIM tape classes.
+    define classes derived from CIM object or CIM type classes.
     """
 
     __slots__ = []
 
-    if six.PY2:
-        def __getstate__(self):
-            dct = dict()
-            for attr in self.__slots__:
-                dct[attr] = getattr(self, attr)
-            if hasattr(self, '__dict__'):
-                for attr in self.__dict__:
-                    dct[attr] = getattr(self, attr)
-            return dct
+    def __getstate__(self):
 
-    if six.PY2:
-        def __setstate__(self, dct):
-            for attr in dct:
-                setattr(self, attr, dct[attr])
+        dct = dict()
+        for attr in self.__slots__:
+            dct[attr] = getattr(self, attr)
+
+        # Support for objects that also have __dict__, e.g. user defined
+        # derived classes that did not define __slots__:
+        if hasattr(self, '__dict__'):
+            for attr in self.__dict__:
+                dct[attr] = getattr(self, attr)
+
+        return dct
+
+    def __setstate__(self, dct):
+
+        try:
+            class_type = CIMClass
+        except NameError:
+            # Defer import due to circular import dependencies:
+            # pylint: disable=import-outside-toplevel
+            from pywbem._cim_obj import CIMClass as class_type
+
+        for attr in dct:
+
+            # Compatibility support for CIMClass objects that were pickled
+            # before pywbem 1.2.0:
+            if isinstance(self, class_type) and \
+                    attr in ('classorigin', 'propagated'):
+                continue
+
+            setattr(self, attr, dct[attr])
 
 
 class MinutesFromUTC(SlottedPickleMixin, tzinfo):

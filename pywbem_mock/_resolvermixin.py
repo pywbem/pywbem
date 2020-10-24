@@ -433,11 +433,6 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                             "non-association class {1!A}",
                             new_prop.name, new_class.classname))
 
-        # XXX: Remove this once tests succeed
-        # objects = list(new_class.properties.values())
-        # for meth in new_class.methods.values():
-        #     objects += list(meth.parameters.values())
-
         # Validate the attributes of all qualifiers in the new class and that
         # their value is True
         if qualifier_store:
@@ -466,10 +461,6 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
 
         # resolve class level qualifiers and attributes
         qualdict = superclass.qualifiers if superclass else {}
-        # XXX: Remove this once tests succeed
-        # new_class.class_origin = superclass.classname if superclass \
-        #     else new_class.classname
-        # new_class.propagated = bool(superclass)
         self._resolve_qualifiers(new_class.qualifiers,
                                  qualdict,
                                  new_class,
