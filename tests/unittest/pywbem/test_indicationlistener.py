@@ -988,7 +988,7 @@ WBEMLISTENER_INCORRECT_PAYLOAD1_TESTCASES = [
         </CIM>""",
         400,
         {
-            'CIMErrorDetails': r'Element .CIM. missing required '
+            'CIMErrorDetails': r'Element .CIM. is missing required '
                                r'child element .*.MESSAGE..*',
             'CIMError': r'request-not-well-formed',
             'CIMExport': r'MethodResponse',
@@ -1003,7 +1003,7 @@ WBEMLISTENER_INCORRECT_PAYLOAD1_TESTCASES = [
         </CIM>""",
         400,
         {
-            'CIMErrorDetails': r'Element .MESSAGE. missing required '
+            'CIMErrorDetails': r'Element .MESSAGE. is missing required '
                                r'child element .*.SIMPLEEXPREQ..*',
             'CIMError': r'request-not-well-formed',
             'CIMExport': r'MethodResponse',
@@ -1020,7 +1020,7 @@ WBEMLISTENER_INCORRECT_PAYLOAD1_TESTCASES = [
         </CIM>""",
         400,
         {
-            'CIMErrorDetails': r'Element .SIMPLEEXPREQ. missing required '
+            'CIMErrorDetails': r'Element .SIMPLEEXPREQ. is missing required '
                                r'child element .*.EXPMETHODCALL..*',
             'CIMError': r'request-not-well-formed',
             'CIMExport': r'MethodResponse',
