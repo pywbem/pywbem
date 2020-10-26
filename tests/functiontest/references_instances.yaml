@@ -691,3 +691,137 @@
       </SIMPLERSP>
       </MESSAGE>
       </CIM>'
+
+- name: References_InstancesE2
+  description: Test References returning an association instance with a reference to a class (invalid according to DSP0004). See pywbemtools issue 806.
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: References
+      ObjectName:
+        pywbem_object: CIMInstanceName
+        classname: MY_Array
+        namespace: MyNamespace
+        keybindings:
+          CreationClassName: "MY_Array"
+          Name: MyArrayName
+  pywbem_response:
+    exception: CIMXMLParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: References
+      CIMObject: MyNamespace
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+    <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+        <SIMPLEREQ>
+          <IMETHODCALL NAME="References">
+            <LOCALNAMESPACEPATH>
+              <NAMESPACE NAME="MyNamespace" />
+            </LOCALNAMESPACEPATH>
+            <IPARAMVALUE NAME="ObjectName">
+              <INSTANCENAME CLASSNAME="MY_Array">
+                <KEYBINDING NAME="CreationClassName">
+                  <KEYVALUE VALUETYPE="string" TYPE="string">MY_Array</KEYVALUE>
+                </KEYBINDING>
+                <KEYBINDING NAME="Name">
+                  <KEYVALUE VALUETYPE="string" TYPE="string">MyArrayName</KEYVALUE>
+                </KEYBINDING>
+              </INSTANCENAME>
+            </IPARAMVALUE>
+          </IMETHODCALL>
+        </SIMPLEREQ>
+      </MESSAGE>
+    </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+    <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+        <SIMPLERSP>
+          <IMETHODRESPONSE NAME="References">
+            <IRETURNVALUE>
+              <VALUE.OBJECTWITHPATH>
+                <INSTANCEPATH>
+                  <NAMESPACEPATH>
+                    <HOST>myhost</HOST>
+                    <LOCALNAMESPACEPATH>
+                      <NAMESPACE NAME="MyNamespace" />
+                    </LOCALNAMESPACEPATH>
+                  </NAMESPACEPATH>
+                  <INSTANCENAME CLASSNAME="MY_McsRedundancySetIdentity">
+                    <KEYBINDING NAME="SameElement">
+                      <VALUE.REFERENCE>
+                        <LOCALCLASSPATH>
+                          <LOCALNAMESPACEPATH>
+                            <NAMESPACE NAME="MyNamespace" />
+                          </LOCALNAMESPACEPATH>
+                          <CLASSNAME NAME="MY_McsControllerRedundancySet" />
+                        </LOCALCLASSPATH>
+                      </VALUE.REFERENCE>
+                    </KEYBINDING>
+                    <KEYBINDING NAME="SystemElement">
+                      <VALUE.REFERENCE>
+                        <LOCALINSTANCEPATH>
+                          <LOCALNAMESPACEPATH>
+                            <NAMESPACE NAME="MyNamespace" />
+                          </LOCALNAMESPACEPATH>
+                          <INSTANCENAME CLASSNAME="MY_Array">
+                            <KEYBINDING NAME="CreationClassName">
+                              <KEYVALUE VALUETYPE="string">MY_Array</KEYVALUE>
+                            </KEYBINDING>
+                            <KEYBINDING NAME="Name">
+                              <KEYVALUE VALUETYPE="string">MyArrayName</KEYVALUE>
+                            </KEYBINDING>
+                          </INSTANCENAME>
+                        </LOCALINSTANCEPATH>
+                      </VALUE.REFERENCE>
+                    </KEYBINDING>
+                  </INSTANCENAME>
+                </INSTANCEPATH>
+                <INSTANCE CLASSNAME="MY_McsRedundancySetIdentity">
+                  <PROPERTY.REFERENCE NAME="SystemElement">
+                    <VALUE.REFERENCE>
+                      <LOCALINSTANCEPATH>
+                        <LOCALNAMESPACEPATH>
+                          <NAMESPACE NAME="MyNamespace" />
+                        </LOCALNAMESPACEPATH>
+                        <INSTANCENAME CLASSNAME="MY_Array">
+                          <KEYBINDING NAME="CreationClassName">
+                            <KEYVALUE VALUETYPE="string">MY_Array</KEYVALUE>
+                          </KEYBINDING>
+                          <KEYBINDING NAME="Name">
+                            <KEYVALUE VALUETYPE="string">MyArrayName</KEYVALUE>
+                          </KEYBINDING>
+                        </INSTANCENAME>
+                      </LOCALINSTANCEPATH>
+                    </VALUE.REFERENCE>
+                  </PROPERTY.REFERENCE>
+                  <PROPERTY.REFERENCE NAME="SameElement">
+                    <VALUE.REFERENCE>
+                      <LOCALCLASSPATH>
+                        <LOCALNAMESPACEPATH>
+                          <NAMESPACE NAME="MyNamespace" />
+                        </LOCALNAMESPACEPATH>
+                        <CLASSNAME NAME="MY_McsControllerRedundancySet" />
+                      </LOCALCLASSPATH>
+                    </VALUE.REFERENCE>
+                  </PROPERTY.REFERENCE>
+                </INSTANCE>
+              </VALUE.OBJECTWITHPATH>
+            </IRETURNVALUE>
+          </IMETHODRESPONSE>
+        </SIMPLERSP>
+      </MESSAGE>
+    </CIM>'
