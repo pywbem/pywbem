@@ -150,13 +150,14 @@ class TupleParser(object):
         """
         try:
             data = u''.join(tup_tree[2])
-
         except TypeError:
-            raise CIMXMLParseError(
+            new_exc = CIMXMLParseError(
                 _format("Element {0!A} has unexpected child elements: "
                         "{1!A} (allowed is only text content)",
                         name(tup_tree), tup_tree[2]),
                 conn_id=self.conn_id)
+            new_exc.__cause__ = None
+            raise new_exc
 
         return data
 
@@ -203,8 +204,8 @@ class TupleParser(object):
             for attr in required_attrs:
                 if attr not in tt_attrs:
                     raise CIMXMLParseError(
-                        _format("Element {0!A} missing required attribute "
-                                "{1!A} (only has attributes {2!A})",
+                        _format("Element {0!A} is missing required "
+                                "attribute {1!A} (only has attributes {2!A})",
                                 name(tup_tree), attr, attrs(tup_tree).keys()),
                         conn_id=self.conn_id)
                 del tt_attrs[attr]
@@ -260,7 +261,8 @@ class TupleParser(object):
 
         if not k:
             raise CIMXMLParseError(
-                _format("Element {0!A} missing required child element {1!A}",
+                _format("Element {0!A} is missing required child element "
+                        "{1!A}",
                         name(tup_tree), acceptable),
                 conn_id=self.conn_id)
         if len(k) > 1:
@@ -364,7 +366,7 @@ class TupleParser(object):
         for child in k:
             if name(child) != a_child:
                 raise CIMXMLParseError(
-                    _format("Element {0!A} has invalid child element {1!A} "
+                    _format("Element {0!A} has unlike child element {1!A} "
                             "(sequence must have like elements {2!A})",
                             name(tup_tree), name(child), a_child),
                     conn_id=self.conn_id)
@@ -770,8 +772,9 @@ class TupleParser(object):
 
         if not kids(tup_tree):
             raise CIMXMLParseError(
-                _format("Element {0!A} missing child elements (expecting one "
-                        "or more child elements 'NAMESPACE')", name(tup_tree)),
+                _format("Element {0!A} is missing required child elements "
+                        "(expecting one or more child elements 'NAMESPACE')",
+                        name(tup_tree)),
                 conn_id=self.conn_id)
 
         # self.list_of_various() has the same effect as self.list_of_same()
@@ -883,6 +886,8 @@ class TupleParser(object):
         self.check_node(tup_tree, 'CLASSNAME', ('NAME',), (), ())
 
         classname = attrs(tup_tree)['NAME']
+
+        # The following does not raise any exception:
         class_path = CIMClassName(classname)
 
         return class_path
@@ -958,18 +963,31 @@ class TupleParser(object):
 
         self.check_node(tup_tree, 'INSTANCENAME', ('CLASSNAME',))
 
+        classname = attrs(tup_tree)['CLASSNAME']
+
         k = kids(tup_tree)
         if not k:
-            # probably not ever going to see this, but it's valid
-            # according to the grammar
-            return CIMInstanceName(attrs(tup_tree)['CLASSNAME'], {})
+            # An instance path without keys.
+            # DSP0004 disallows instances without keys in 8.2.5 "Object Path
+            # for Instance Objects": "Classes that do not expose any keys
+            # cannot have instances that are addressable with an object path
+            # for instances.".
+            # However, the grammar in DSP0201 allows this case.
+            # When receiving CIM-XML, pywbem attempts to be as tolerant as
+            # possible, so this case is tolerated.
+            # The following does not raise any exception:
+            return CIMInstanceName(classname, {})
 
         kid0 = k[0]
         k0_name = name(kid0)
 
-        classname = attrs(tup_tree)['CLASSNAME']
-
         if k0_name in ('KEYVALUE', 'VALUE.REFERENCE'):
+            # An instance path with a single unnamed key.
+            # DSP0004 defines in figure 8 in 8.2.5 "Object Path for Instance
+            # Objects" that each key has a name and a value.
+            # However, the grammar in DSP0201 allows this case.
+            # When receiving CIM-XML, pywbem attempts to be as tolerant as
+            # possible, so this case is tolerated.
             if len(k) != 1:
                 raise CIMXMLParseError(
                     _format("Element {0!A} has more than one child element "
@@ -979,16 +997,37 @@ class TupleParser(object):
                     conn_id=self.conn_id)
 
             val = self.parse_any(kid0)
-            return CIMInstanceName(classname, {None: val})
+            try:
+                return CIMInstanceName(classname, {None: val})
+            except (TypeError, ValueError) as exc:
+                new_exc = CIMXMLParseError(
+                    _format("Element {0!A} has invalid input for creating a "
+                            "CIMInstanceName object for class {1!A}: {2}; "
+                            "CIM-XML tuple tree: {3}",
+                            name(tup_tree), classname, exc, tup_tree),
+                    conn_id=self.conn_id)
+                new_exc.__cause__ = None
+                raise new_exc
 
         if k0_name == 'KEYBINDING':
+            # An instance path with one or more named keys.
             kbs = {}
             # self.list_of_various() has the same effect as self.list_of_same()
             # when used with a single allowed child element, but is a little
             # faster.
             for key_bind in self.list_of_various(tup_tree, ('KEYBINDING',)):
                 kbs.update(key_bind)
-            return CIMInstanceName(classname, kbs)
+            try:
+                return CIMInstanceName(classname, kbs)
+            except (TypeError, ValueError) as exc:
+                new_exc = CIMXMLParseError(
+                    _format("Element {0!A} has invalid input for creating a "
+                            "CIMInstanceName object for class {1!A}: {2}; "
+                            "CIM-XML tuple tree: {3}",
+                            name(tup_tree), classname, exc, tup_tree),
+                    conn_id=self.conn_id)
+                new_exc.__cause__ = None
+                raise new_exc
 
         raise CIMXMLParseError(
             _format("Element {0!A} has invalid child elements {1!A} "
@@ -1119,6 +1158,7 @@ class TupleParser(object):
 
         attrl = attrs(tup_tree)
 
+        classname = attrl['NAME']
         superclass = attrl.get('SUPERCLASS', None)
         properties = self.list_of_matching(tup_tree,
                                            ('PROPERTY', 'PROPERTY.REFERENCE',
@@ -1126,11 +1166,19 @@ class TupleParser(object):
         qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER',))
         methods = self.list_of_matching(tup_tree, ('METHOD',))
 
-        return CIMClass(attrl['NAME'],
-                        superclass=superclass,
-                        properties=properties,
-                        qualifiers=qualifiers,
-                        methods=methods)
+        try:
+            return CIMClass(
+                classname, superclass=superclass, properties=properties,
+                methods=methods, qualifiers=qualifiers)
+        except (TypeError, ValueError) as exc:
+            new_exc = CIMXMLParseError(
+                _format("Element {0!A} has invalid input for creating a "
+                        "CIMClass object for class {1!A}: {2}; "
+                        "CIM-XML tuple tree: {3}",
+                        name(tup_tree), classname, exc, tup_tree),
+                conn_id=self.conn_id)
+            new_exc.__cause__ = None
+            raise new_exc
 
     def parse_instance(self, tup_tree):
         """
@@ -1157,18 +1205,29 @@ class TupleParser(object):
         # Note: The check above does not enforce the ordering constraint in the
         # DTD that QUALIFIER elements must appear before PROPERTY* elements.
 
+        classname = attrs(tup_tree)['CLASSNAME']
+
         qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER',))
 
         props = self.list_of_matching(tup_tree,
                                       ('PROPERTY.REFERENCE', 'PROPERTY',
                                        'PROPERTY.ARRAY'))
 
-        obj = CIMInstance(attrs(tup_tree)['CLASSNAME'], qualifiers=qualifiers)
+        try:
+            inst = CIMInstance(classname, qualifiers=qualifiers)
+            for prop in props:
+                inst.__setitem__(prop.name, prop)
+        except (TypeError, ValueError) as exc:
+            new_exc = CIMXMLParseError(
+                _format("Element {0!A} has invalid input for creating a "
+                        "CIMInstance object for class {1!A}: {2}; "
+                        "CIM-XML tuple tree: {3}",
+                        name(tup_tree), classname, exc, tup_tree),
+                conn_id=self.conn_id)
+            new_exc.__cause__ = None
+            raise new_exc
 
-        for prop in props:
-            obj.__setitem__(prop.name, prop)
-
-        return obj
+        return inst
 
     def parse_scope(self, tup_tree):
         """
@@ -1274,10 +1333,20 @@ class TupleParser(object):
         toinstance = self.unpack_boolean(attrl.get('TOINSTANCE', 'false'))
         translatable = self.unpack_boolean(attrl.get('TRANSLATABLE', 'false'))
 
-        qual_decl = CIMQualifierDeclaration(
-            qname, _type, value, is_array, array_size, scopes,
-            overridable=overridable, tosubclass=tosubclass,
-            toinstance=toinstance, translatable=translatable)
+        try:
+            qual_decl = CIMQualifierDeclaration(
+                qname, _type, value, is_array, array_size, scopes,
+                overridable=overridable, tosubclass=tosubclass,
+                toinstance=toinstance, translatable=translatable)
+        except (TypeError, ValueError) as exc:
+            new_exc = CIMXMLParseError(
+                _format("Element {0!A} has invalid input for creating a "
+                        "CIMQualifierDeclaration object for qualifier {1!A}: "
+                        "{2}; CIM-XML tuple tree: {3}",
+                        name(tup_tree), qname, exc, tup_tree),
+                conn_id=self.conn_id)
+            new_exc.__cause__ = None
+            raise new_exc
 
         return qual_decl
 
@@ -1315,10 +1384,20 @@ class TupleParser(object):
         toinstance = self.unpack_boolean(attrl.get('TOINSTANCE', 'false'))
         translatable = self.unpack_boolean(attrl.get('TRANSLATABLE', 'false'))
 
-        qual = CIMQualifier(qname, value, _type,
-                            propagated=propagated, overridable=overridable,
-                            tosubclass=tosubclass, toinstance=toinstance,
-                            translatable=translatable)
+        try:
+            qual = CIMQualifier(
+                qname, value, _type, propagated=propagated,
+                overridable=overridable, tosubclass=tosubclass,
+                toinstance=toinstance, translatable=translatable)
+        except (TypeError, ValueError) as exc:
+            new_exc = CIMXMLParseError(
+                _format("Element {0!A} has invalid input for creating a "
+                        "CIMQualifier object for qualifier {1!A}: {2}; "
+                        "CIM-XML tuple tree: {3}",
+                        name(tup_tree), qname, exc, tup_tree),
+                conn_id=self.conn_id)
+            new_exc.__cause__ = None
+            raise new_exc
 
         return qual
 
@@ -1348,15 +1427,21 @@ class TupleParser(object):
         # The 'xml:lang' attribute is tolerated but ignored.
 
         attrl = attrs(tup_tree)
+        pname = attrl['NAME']
+        ptype = attrl['TYPE']
         try:
             val = self.unpack_value(tup_tree)
         except ValueError as exc:
-            msg = str(exc)
-            raise CIMXMLParseError(
+            new_exc = CIMXMLParseError(
                 _format("Cannot parse content of 'VALUE' child element of "
                         "'PROPERTY' element with name {0!A}: {1}",
-                        attrl['NAME'], msg),
+                        pname, exc),
                 conn_id=self.conn_id)
+            new_exc.__cause__ = None
+            raise new_exc
+
+        class_origin = attrl.get('CLASSORIGIN', None)
+        propagated = self.unpack_boolean(attrl.get('PROPAGATED', 'false'))
 
         qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER',))
 
@@ -1369,15 +1454,20 @@ class TupleParser(object):
         if embedded_object:
             val = self.parse_embeddedObject(val)
 
-        return CIMProperty(attrl['NAME'],
-                           val,
-                           type=attrl['TYPE'],
-                           is_array=False,
-                           class_origin=attrl.get('CLASSORIGIN', None),
-                           propagated=self.unpack_boolean(
-                               attrl.get('PROPAGATED', 'false')),
-                           qualifiers=qualifiers,
-                           embedded_object=embedded_object)
+        try:
+            return CIMProperty(
+                pname, val, type=ptype, is_array=False,
+                class_origin=class_origin, propagated=propagated,
+                embedded_object=embedded_object, qualifiers=qualifiers)
+        except (TypeError, ValueError) as exc:
+            new_exc = CIMXMLParseError(
+                _format("Element {0!A} has invalid input for creating a "
+                        "CIMProperty object for property {1!A}: {2}; "
+                        "CIM-XML tuple tree: {3}",
+                        name(tup_tree), pname, exc, tup_tree),
+                conn_id=self.conn_id)
+            new_exc.__cause__ = None
+            raise new_exc
 
     def parse_property_array(self, tup_tree):
         """
@@ -1403,6 +1493,11 @@ class TupleParser(object):
 
         values = self.unpack_value(tup_tree)
         attrl = attrs(tup_tree)
+        pname = attrl['NAME']
+        ptype = attrl['TYPE']
+
+        class_origin = attrl.get('CLASSORIGIN', None)
+        propagated = self.unpack_boolean(attrl.get('PROPAGATED', 'false'))
 
         qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER',))
 
@@ -1420,18 +1515,20 @@ class TupleParser(object):
         if embedded_object:
             values = self.parse_embeddedObject(values)
 
-        obj = CIMProperty(attrl['NAME'],
-                          values,
-                          type=attrl['TYPE'],
-                          is_array=True,
-                          array_size=array_size,
-                          class_origin=attrl.get('CLASSORIGIN', None),
-                          propagated=self.unpack_boolean(
-                              attrl.get('PROPAGATED', 'false')),
-                          qualifiers=qualifiers,
-                          embedded_object=embedded_object)
-
-        return obj
+        try:
+            return CIMProperty(
+                pname, values, type=ptype, is_array=True, array_size=array_size,
+                class_origin=class_origin, propagated=propagated,
+                embedded_object=embedded_object, qualifiers=qualifiers)
+        except (TypeError, ValueError) as exc:
+            new_exc = CIMXMLParseError(
+                _format("Element {0!A} has invalid input for creating a "
+                        "CIMProperty object for property {1!A}: {2}; "
+                        "CIM-XML tuple tree: {3}",
+                        name(tup_tree), pname, exc, tup_tree),
+                conn_id=self.conn_id)
+            new_exc.__cause__ = None
+            raise new_exc
 
     def parse_property_reference(self, tup_tree):
         """
@@ -1449,8 +1546,11 @@ class TupleParser(object):
                         ('REFERENCECLASS', 'CLASSORIGIN', 'PROPAGATED'),
                         ('QUALIFIER', 'VALUE.REFERENCE'))
 
-        value = self.list_of_matching(tup_tree, ('VALUE.REFERENCE',))
+        attrl = attrs(tup_tree)
+        pname = attrl['NAME']
+        reference_class = attrl.get('REFERENCECLASS', None)
 
+        value = self.list_of_matching(tup_tree, ('VALUE.REFERENCE',))
         if not value:
             value = None
         elif len(value) == 1:
@@ -1462,22 +1562,26 @@ class TupleParser(object):
                         name(tup_tree)),
                 conn_id=self.conn_id)
 
-        attrl = attrs(tup_tree)
+        class_origin = attrl.get('CLASSORIGIN', None)
+        propagated = self.unpack_boolean(attrl.get('PROPAGATED', 'false'))
 
         qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER',))
 
-        pref = CIMProperty(attrl['NAME'],
-                           value,
-                           type='reference',
-                           is_array=False,
-                           qualifiers=qualifiers,
-                           reference_class=attrl.get('REFERENCECLASS', None),
-                           class_origin=attrl.get('CLASSORIGIN', None),
-                           propagated=self.unpack_boolean(
-                               attrl.get('PROPAGATED', 'false')),
-                           embedded_object=False)
-
-        return pref
+        try:
+            return CIMProperty(
+                pname, value, type='reference', reference_class=reference_class,
+                is_array=False,
+                class_origin=class_origin, propagated=propagated,
+                embedded_object=False, qualifiers=qualifiers)
+        except (TypeError, ValueError) as exc:
+            new_exc = CIMXMLParseError(
+                _format("Element {0!A} has invalid input for creating a "
+                        "CIMProperty object for property {1!A}: {2}; "
+                        "CIM-XML tuple tree: {3}",
+                        name(tup_tree), pname, exc, tup_tree),
+                conn_id=self.conn_id)
+            new_exc.__cause__ = None
+            raise new_exc
 
     def parse_method(self, tup_tree):
         """
@@ -1499,29 +1603,40 @@ class TupleParser(object):
                          'PARAMETER.ARRAY', 'PARAMETER.REFARRAY'))
 
         attrl = attrs(tup_tree)
+        mname = attrl['NAME']
 
         parameters = self.list_of_matching(tup_tree,
                                            ('PARAMETER', 'PARAMETER.REFERENCE',
                                             'PARAMETER.ARRAY',
                                             'PARAMETER.REFARRAY'))
 
+        class_origin = attrl.get('CLASSORIGIN', None)
+        propagated = self.unpack_boolean(attrl.get('PROPAGATED', 'false'))
+
         qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER',))
 
         return_type = attrl.get('TYPE', None)
         if not return_type:
             raise CIMXMLParseError(
-                _format("Element {0!A} missing attribute 'TYPE' (a void "
+                _format("Element {0!A} does not define a return type (a void "
                         "method return type is not supported in CIM)",
                         name(tup_tree)),
                 conn_id=self.conn_id)
 
-        return CIMMethod(attrl['NAME'],
-                         return_type=return_type,
-                         parameters=parameters,
-                         qualifiers=qualifiers,
-                         class_origin=attrl.get('CLASSORIGIN', None),
-                         propagated=self.unpack_boolean(
-                             attrl.get('PROPAGATED', 'false')))
+        try:
+            return CIMMethod(
+                mname, return_type=return_type, parameters=parameters,
+                class_origin=class_origin, propagated=propagated,
+                qualifiers=qualifiers)
+        except (TypeError, ValueError) as exc:
+            new_exc = CIMXMLParseError(
+                _format("Element {0!A} has invalid input for creating a "
+                        "CIMMethod object for method {1!A}: {2}; "
+                        "CIM-XML tuple tree: {3}",
+                        name(tup_tree), mname, exc, tup_tree),
+                conn_id=self.conn_id)
+            new_exc.__cause__ = None
+            raise new_exc
 
     def parse_parameter(self, tup_tree):
         """
@@ -1537,14 +1652,24 @@ class TupleParser(object):
                         ('QUALIFIER',))
 
         attrl = attrs(tup_tree)
+        pname = attrl['NAME']
+        ptype = attrl['TYPE']
 
         qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER',))
 
-        return CIMParameter(attrl['NAME'],
-                            type=attrl['TYPE'],
-                            is_array=False,
-                            qualifiers=qualifiers,
-                            embedded_object=False)
+        try:
+            return CIMParameter(
+                pname, type=ptype, is_array=False, embedded_object=False,
+                qualifiers=qualifiers)
+        except (TypeError, ValueError) as exc:
+            new_exc = CIMXMLParseError(
+                _format("Element {0!A} has invalid input for creating a "
+                        "CIMParameter object for parameter {1!A}: {2}; "
+                        "CIM-XML tuple tree: {3}",
+                        name(tup_tree), pname, exc, tup_tree),
+                conn_id=self.conn_id)
+            new_exc.__cause__ = None
+            raise new_exc
 
     def parse_parameter_reference(self, tup_tree):
         """
@@ -1560,15 +1685,24 @@ class TupleParser(object):
                         ('REFERENCECLASS',), ('QUALIFIER',))
 
         attrl = attrs(tup_tree)
+        pname = attrl['NAME']
+        reference_class = attrl.get('REFERENCECLASS', None)
 
         qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER',))
 
-        return CIMParameter(attrl['NAME'],
-                            type='reference',
-                            is_array=False,
-                            reference_class=attrl.get('REFERENCECLASS', None),
-                            qualifiers=qualifiers,
-                            embedded_object=False)
+        try:
+            return CIMParameter(
+                pname, type='reference', reference_class=reference_class,
+                is_array=False, embedded_object=False, qualifiers=qualifiers)
+        except (TypeError, ValueError) as exc:
+            new_exc = CIMXMLParseError(
+                _format("Element {0!A} has invalid input for creating a "
+                        "CIMParameter object for parameter {1!A}: {2}; "
+                        "CIM-XML tuple tree: {3}",
+                        name(tup_tree), pname, exc, tup_tree),
+                conn_id=self.conn_id)
+            new_exc.__cause__ = None
+            raise new_exc
 
     def parse_parameter_array(self, tup_tree):
         """
@@ -1585,6 +1719,8 @@ class TupleParser(object):
                         ('ARRAYSIZE',), ('QUALIFIER',))
 
         attrl = attrs(tup_tree)
+        pname = attrl['NAME']
+        ptype = attrl['TYPE']
 
         array_size = attrl.get('ARRAYSIZE', None)
         if array_size is not None:
@@ -1593,12 +1729,19 @@ class TupleParser(object):
 
         qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER',))
 
-        return CIMParameter(attrl['NAME'],
-                            type=attrl['TYPE'],
-                            is_array=True,
-                            array_size=array_size,
-                            qualifiers=qualifiers,
-                            embedded_object=False)
+        try:
+            return CIMParameter(
+                pname, type=ptype, is_array=True, array_size=array_size,
+                embedded_object=False, qualifiers=qualifiers)
+        except (TypeError, ValueError) as exc:
+            new_exc = CIMXMLParseError(
+                _format("Element {0!A} has invalid input for creating a "
+                        "CIMParameter object for parameter {1!A}: {2}; "
+                        "CIM-XML tuple tree: {3}",
+                        name(tup_tree), pname, exc, tup_tree),
+                conn_id=self.conn_id)
+            new_exc.__cause__ = None
+            raise new_exc
 
     def parse_parameter_refarray(self, tup_tree):
         """
@@ -1615,6 +1758,8 @@ class TupleParser(object):
                         ('REFERENCECLASS', 'ARRAYSIZE'), ('QUALIFIER',))
 
         attrl = attrs(tup_tree)
+        pname = attrl['NAME']
+        reference_class = attrl.get('REFERENCECLASS', None)
 
         array_size = attrl.get('ARRAYSIZE', None)
         if array_size is not None:
@@ -1623,13 +1768,20 @@ class TupleParser(object):
 
         qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER',))
 
-        return CIMParameter(attrl['NAME'],
-                            type='reference',
-                            is_array=True,
-                            array_size=array_size,
-                            reference_class=attrl.get('REFERENCECLASS', None),
-                            qualifiers=qualifiers,
-                            embedded_object=False)
+        try:
+            return CIMParameter(
+                pname, type='reference', reference_class=reference_class,
+                is_array=True, array_size=array_size,
+                embedded_object=False, qualifiers=qualifiers)
+        except (TypeError, ValueError) as exc:
+            new_exc = CIMXMLParseError(
+                _format("Element {0!A} has invalid input for creating a "
+                        "CIMParameter object for parameter {1!A}: {2}; "
+                        "CIM-XML tuple tree: {3}",
+                        name(tup_tree), pname, exc, tup_tree),
+                conn_id=self.conn_id)
+            new_exc.__cause__ = None
+            raise new_exc
 
     #
     # Message elements
@@ -1987,7 +2139,7 @@ class TupleParser(object):
 
         if not k:
             raise CIMXMLParseError(
-                _format("Element {0!A} missing child elements "
+                _format("Element {0!A} is missing required child elements "
                         "(expecting child elements "
                         "(LOCALNAMESPACEPATH, IPARAMVALUE*))", name(tup_tree)),
                 conn_id=self.conn_id)
@@ -2015,7 +2167,7 @@ class TupleParser(object):
                                      ('LOCALCLASSPATH', 'LOCALINSTANCEPATH'))
         if not path:
             raise CIMXMLParseError(
-                _format("Element {0!A} missing a required child element "
+                _format("Element {0!A} is missing required child elements "
                         "'LOCALCLASSPATH' or 'LOCALINSTANCEPATH'",
                         name(tup_tree)),
                 conn_id=self.conn_id)
@@ -2085,9 +2237,11 @@ class TupleParser(object):
         try:
             func = getattr(self, funcname)
         except AttributeError:
-            raise CIMXMLParseError(
+            new_exc = CIMXMLParseError(
                 _format("Invalid element {0!A}", name(tup_tree)),
                 conn_id=self.conn_id)
+            new_exc.__cause__ = None
+            raise new_exc
         return func(tup_tree)  # a bound method, i.e. self is implicit
 
     def parse_embeddedObject(self, val):
@@ -2292,9 +2446,11 @@ class TupleParser(object):
                 try:
                     value = float(data)
                 except ValueError:
-                    raise CIMXMLParseError(
+                    new_exc = CIMXMLParseError(
                         _format("Invalid numeric value {0!A}", data),
                         conn_id=self.conn_id)
+                    new_exc.__cause__ = None
+                    raise new_exc
 
         # Convert the Python number into a CIM data type
         if cimtype is None:
@@ -2305,10 +2461,13 @@ class TupleParser(object):
         try:
             value = CIMType(value)
         except ValueError as exc:
-            raise CIMXMLParseError(
-                _format("Cannot convert value {0!A} to numeric CIM type {1}",
-                        exc, CIMType),
+            new_exc = CIMXMLParseError(
+                _format("Cannot convert value {0!A} to numeric CIM type {1}: "
+                        "{2}",
+                        value, cimtype, exc),
                 conn_id=self.conn_id)
+            new_exc.__cause__ = None
+            raise new_exc
         return value
 
     def unpack_datetime(self, data):
@@ -2326,9 +2485,11 @@ class TupleParser(object):
         try:
             value = CIMDateTime(data)
         except ValueError as exc:
-            raise CIMXMLParseError(
-                _format("Invalid datetime value: {0!A} ({1})", data, exc),
+            new_exc = CIMXMLParseError(
+                _format("Invalid datetime value {0!A}: {1}", data, exc),
                 conn_id=self.conn_id)
+            new_exc.__cause__ = None
+            raise new_exc
         return value
 
     def unpack_char16(self, data):

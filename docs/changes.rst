@@ -27,6 +27,13 @@ Released: not yet
 
 **Enhancements:**
 
+* Improved exception handling during the parsing of CIM-XML responses received
+  from a WBEM server. Exceptions that were raised as TypeError or ValueError
+  during the creation of CIM objects that are part of the operation result, are
+  now raised as pywbem.CIMXMLParseError. Note that this is not an incompatible
+  change because users were already potentially getting pywbem.CIMXMLParseError
+  exceptions in other cases. (see issue #2512)
+
 **Cleanup:**
 
 **Known issues:**
