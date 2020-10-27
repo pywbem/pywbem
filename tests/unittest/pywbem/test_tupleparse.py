@@ -17,8 +17,9 @@ from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
     CIMQualifierDeclaration, \
     CIMDateTime, Uint8, Sint8, Uint16, Sint16, Uint32, Sint32, Uint64, Sint64, \
-    Real32, Real64, ParseError, ToleratedServerIssueWarning, \
-    __version__, MissingKeybindingsWarning, CIMXMLParseError  # noqa: E402
+    Real32, Real64, XMLParseError, CIMXMLParseError, \
+    ToleratedServerIssueWarning, MissingKeybindingsWarning, \
+    __version__  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 # Tuple with pywbem version info (M, N, P), without any dev version.
@@ -630,7 +631,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str='<HOST>abc</HOST',
             exp_result=None,
         ),
-        ParseError, None, True
+        XMLParseError, None, True
     ),
     (
         "Ill-formed XML (missing slash on end element)",
@@ -638,7 +639,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str='<HOST>abc<HOST>',
             exp_result=None,
         ),
-        ParseError, None, True
+        XMLParseError, None, True
     ),
     (
         "Ill-formed XML (missing opening bracket on end element)",
@@ -646,7 +647,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str='<HOST>abc/HOST>',
             exp_result=None,
         ),
-        ParseError, None, True
+        XMLParseError, None, True
     ),
     (
         "Ill-formed XML (missing closing bracket on begin element)",
@@ -654,7 +655,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str='<HOSTabc</HOST>',
             exp_result=None,
         ),
-        ParseError, None, True
+        XMLParseError, None, True
     ),
     (
         "Ill-formed XML (missing opening bracket on begin element)",
@@ -662,7 +663,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str='HOST>abc</HOST>',
             exp_result=None,
         ),
-        ParseError, None, True
+        XMLParseError, None, True
     ),
     (
         "Ill-formed XML (non-matching end element)",
@@ -670,7 +671,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str='<HOST>abc</HOST2>',
             exp_result=None,
         ),
-        ParseError, None, True
+        XMLParseError, None, True
     ),
     (
         "Ill-formed XML (no end element)",
@@ -678,7 +679,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str='<HOST>',
             exp_result=None,
         ),
-        ParseError, None, True
+        XMLParseError, None, True
     ),
     (
         "Ill-formed XML (no begin element)",
@@ -686,7 +687,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str='</HOST>',
             exp_result=None,
         ),
-        ParseError, None, True
+        XMLParseError, None, True
     ),
     (
         "Ill-formed XML (missing closing bracket in short form)",
@@ -694,7 +695,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str='<HOST/',
             exp_result=None,
         ),
-        ParseError, None, True
+        XMLParseError, None, True
     ),
     (
         "Ill-formed XML (missing opening bracket in short form)",
@@ -702,7 +703,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str='HOST/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        XMLParseError, None, True
     ),
     (
         "Ill-formed XML (missing =value on attribute)",
@@ -710,7 +711,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str='<NAMESPACE NAME/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        XMLParseError, None, True
     ),
     (
         "Ill-formed XML (missing value on attribute)",
@@ -718,7 +719,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str='<NAMESPACE NAME=/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        XMLParseError, None, True
     ),
     (
         "Ill-formed XML (missing double quotes around value on attribute)",
@@ -726,7 +727,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str='<NAMESPACE NAME=abc/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        XMLParseError, None, True
     ),
     (
         "Verify that single quoted attr values work (see XML spec AttValue)",
@@ -751,8 +752,45 @@ TESTCASES_TUPLEPARSE_XML = [
             '<XXX/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
+
+    # CIM tests:
+    #
+    #   <!ELEMENT CIM (MESSAGE | DECLARATION)>
+    #   <!ATTLIST CIM
+    #       CIMVERSION CDATA #REQUIRED
+    #       DTDVERSION CDATA #REQUIRED>
+    # TODO: Add CIM tests
+
+    # DECLARATION tests:
+    #
+    #   <!ELEMENT DECLARATION ( DECLGROUP | DECLGROUP.WITHNAME |
+    #                           DECLGROUP.WITHPATH )+>
+    #
+    # Note: Pywbem only supports the DECLGROUP child, at this point.
+    # TODO: Add DECLARATION tests
+
+    # DECLGROUP tests:
+    #
+    #   <!ELEMENT DECLGROUP ( (LOCALNAMESPACEPATH|NAMESPACEPATH)?,
+    #                         QUALIFIER.DECLARATION*, VALUE.OBJECT* )>
+    #
+    # Note: Pywbem only supports the QUALIFIER.DECLARATION and VALUE.OBJECT
+    #       children, and with a multiplicity of 1, at this point.
+    # TODO: Add DECLGROUP tests
+
+    # DECLGROUP.WITHNAME tests: Parsing this element is not implemented
+
+    # DECLGROUP.WITHPATH tests: Parsing this element is not implemented
+
+    # KEYVALUE tests:
+    #
+    #   <!ELEMENT KEYVALUE (#PCDATA)>
+    #   <!ATTLIST KEYVALUE
+    #       VALUETYPE (string | boolean | numeric) "string"
+    #       %CIMType;    #IMPLIED>  # DTD <2.4
+    #       %CIMType;    #REQUIRED>  # DTD >=2.4
 
     # KEYVALUE tests with general invalidities
     (
@@ -764,7 +802,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</KEYVALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYVALUE with invalid attribute",
@@ -773,7 +811,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYVALUE XXX="bla">a</KEYVALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYVALUE with invalid value for attribute VALUETYPE",
@@ -782,7 +820,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYVALUE VALUETYPE="bla">a</KEYVALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYVALUE with invalid value for attribute TYPE",
@@ -791,7 +829,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYVALUE TYPE="bla">a</KEYVALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
 
     # KEYVALUE tests without VALUETYPE (defaults to string) and without TYPE
@@ -1041,7 +1079,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYVALUE TYPE="char16"></KEYVALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYVALUE without VALUETYPE with TYPE char16 (invalid two chars)",
@@ -1050,7 +1088,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYVALUE TYPE="char16">ab</KEYVALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYVALUE without VALUETYPE with TYPE char16 (WS char)",
@@ -1087,7 +1125,7 @@ TESTCASES_TUPLEPARSE_XML = [
             b'<KEYVALUE TYPE="char16">\xF0\x90\x85\x82</KEYVALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYVALUE without VALUETYPE with TYPE char16 (decimal as string)",
@@ -1107,7 +1145,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYVALUE TYPE="datetime"></KEYVALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYVALUE without VALUETYPE with TYPE datetime (WS char)",
@@ -1116,7 +1154,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYVALUE TYPE="datetime"> </KEYVALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYVALUE without VALUETYPE with TYPE datetime (ASCII char)",
@@ -1125,7 +1163,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYVALUE TYPE="datetime">a</KEYVALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYVALUE without VALUETYPE with TYPE datetime (decimal as string)",
@@ -1134,7 +1172,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYVALUE TYPE="datetime">4</KEYVALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYVALUE without VALUETYPE with TYPE datetime (point in time string)",
@@ -1201,7 +1239,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYVALUE VALUETYPE="string" TYPE="char16"></KEYVALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYVALUE with VALUETYPE string and TYPE char16 (invalid two chars)",
@@ -1210,7 +1248,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYVALUE VALUETYPE="string" TYPE="char16">ab</KEYVALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYVALUE with VALUETYPE string and TYPE char16 (WS char)",
@@ -1239,7 +1277,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYVALUE VALUETYPE="string" TYPE="datetime"></KEYVALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYVALUE with VALUETYPE string and TYPE datetime (point in time)",
@@ -1278,7 +1316,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYVALUE VALUETYPE="boolean">abc</KEYVALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYVALUE with VALUETYPE boolean without TYPE (1 as string)",
@@ -1287,7 +1325,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYVALUE VALUETYPE="boolean">1</KEYVALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYVALUE with VALUETYPE boolean without TYPE (0 as string)",
@@ -1296,7 +1334,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYVALUE VALUETYPE="boolean">0</KEYVALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYVALUE with VALUETYPE boolean without TYPE (true as string)",
@@ -1379,7 +1417,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYVALUE VALUETYPE="boolean" TYPE="boolean">abc</KEYVALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYVALUE with VALUETYPE boolean with TYPE boolean (1 as string)",
@@ -1388,7 +1426,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYVALUE VALUETYPE="boolean" TYPE="boolean">1</KEYVALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYVALUE with VALUETYPE boolean with TYPE boolean (0 as string)",
@@ -1397,7 +1435,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYVALUE VALUETYPE="boolean" TYPE="boolean">0</KEYVALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYVALUE with VALUETYPE boolean with TYPE boolean (true as string)",
@@ -1462,7 +1500,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYVALUE VALUETYPE="numeric"></KEYVALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYVALUE with VALUETYPE numeric without TYPE (WS string)",
@@ -1471,7 +1509,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYVALUE VALUETYPE="numeric">  </KEYVALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYVALUE with VALUETYPE numeric without TYPE (ASCII string)",
@@ -1480,7 +1518,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYVALUE VALUETYPE="numeric">abc</KEYVALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYVALUE with VALUETYPE numeric without TYPE (decimal string 0)",
@@ -1660,7 +1698,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYVALUE VALUETYPE="numeric" TYPE="uint32">9a</KEYVALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYVALUE with VALUETYPE numeric and TYPE uint8 and numeric value that "
@@ -1670,7 +1708,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYVALUE VALUETYPE="numeric" TYPE="uint8">1234</KEYVALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYVALUE with VALUETYPE numeric and TYPE uint8 (empty string)",
@@ -1679,7 +1717,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYVALUE VALUETYPE="numeric" TYPE="uint8"></KEYVALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYVALUE with VALUETYPE numeric and TYPE sint64 (WS string)",
@@ -1688,7 +1726,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYVALUE VALUETYPE="numeric" TYPE="sint64">  </KEYVALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYVALUE with VALUETYPE numeric and TYPE real32 (ASCII string)",
@@ -1697,7 +1735,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYVALUE VALUETYPE="numeric" TYPE="real32">abc</KEYVALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYVALUE with VALUETYPE numeric and TYPE uint8 (decimal string 0)",
@@ -1886,7 +1924,7 @@ TESTCASES_TUPLEPARSE_XML = [
             ' TYPE="sint64">-9223372036854775809</KEYVALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYVALUE with VALUETYPE numeric and TYPE uint32 (hex string 0xA0)",
@@ -1944,7 +1982,7 @@ TESTCASES_TUPLEPARSE_XML = [
             ' TYPE="sint64">-0x8000000000000001</KEYVALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYVALUE with VALUETYPE numeric and TYPE real32 (float str 42.0)",
@@ -1992,7 +2030,11 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # KEYBINDING tests
+    # KEYBINDING tests:
+    #
+    #   <!ELEMENT KEYBINDING (KEYVALUE | VALUE.REFERENCE)>
+    #   <!ATTLIST KEYBINDING
+    #       %CIMName;>
     (
         "KEYBINDING with invalid child element",
         dict(
@@ -2003,7 +2045,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</KEYBINDING>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYBINDING with invalid text content",
@@ -2015,7 +2057,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</KEYBINDING>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYBINDING with invalid attribute",
@@ -2026,7 +2068,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</KEYBINDING>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYBINDING with missing required attribute NAME",
@@ -2037,7 +2079,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</KEYBINDING>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "KEYBINDING with NAME using ASCII characters",
@@ -2108,7 +2150,9 @@ TESTCASES_TUPLEPARSE_XML = [
         None, MissingKeybindingsWarning, True
     ),
 
-    # VALUE tests
+    # VALUE tests:
+    #
+    #   <!ELEMENT VALUE (#PCDATA)>
     (
         "VALUE with invalid child element",
         dict(
@@ -2118,7 +2162,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE with invalid attribute",
@@ -2127,7 +2171,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<VALUE XXX="bla"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE with ASCII string",
@@ -2166,7 +2210,9 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # VALUE.ARRAY tests
+    # VALUE.ARRAY tests:
+    #
+    #   <!ELEMENT VALUE.ARRAY (VALUE | VALUE.NULL)*>
     (
         "VALUE.ARRAY with invalid kind of child element as first item",
         dict(
@@ -2177,7 +2223,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.ARRAY>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.ARRAY with invalid kind of child element as second item",
@@ -2189,7 +2235,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.ARRAY>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.ARRAY with invalid text content",
@@ -2201,7 +2247,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.ARRAY>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.ARRAY with invalid attribute",
@@ -2212,7 +2258,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.ARRAY>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.ARRAY that is empty",
@@ -2324,7 +2370,11 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # VALUE.REFERENCE tests
+    # VALUE.REFERENCE tests:
+    #
+    #   <!ELEMENT VALUE.REFERENCE (CLASSPATH | LOCALCLASSPATH | CLASSNAME |
+    #                              INSTANCEPATH | LOCALINSTANCEPATH |
+    #                              INSTANCENAME)>
     (
         "VALUE.REFERENCE with invalid child element",
         dict(
@@ -2335,7 +2385,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.REFERENCE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.REFERENCE with invalid text content",
@@ -2347,7 +2397,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.REFERENCE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.REFERENCE with invalid attribute",
@@ -2358,7 +2408,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.REFERENCE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.REFERENCE with missing child element",
@@ -2367,7 +2417,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<VALUE.REFERENCE/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.REFERENCE with ref value that is a INSTANCENAME",
@@ -2466,7 +2516,9 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, False
     ),
 
-    # VALUE.REFARRAY tests
+    # VALUE.REFARRAY tests:
+    #
+    #   <!ELEMENT VALUE.REFARRAY (VALUE.REFERENCE | VALUE.NULL)*>
     (
         "VALUE.REFARRAY with invalid child element",
         dict(
@@ -2479,7 +2531,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.REFARRAY>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.REFARRAY with invalid text content",
@@ -2493,7 +2545,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.REFARRAY>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.REFARRAY with invalid attribute",
@@ -2506,7 +2558,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.REFARRAY>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.REFARRAY that is empty",
@@ -2602,7 +2654,9 @@ TESTCASES_TUPLEPARSE_XML = [
         None, MissingKeybindingsWarning, True
     ),
 
-    # VALUE.NULL tests
+    # VALUE.NULL tests:
+    #
+    #   <!ELEMENT VALUE.NULL EMPTY>
     (
         "VALUE.NULL with invalid child element",
         dict(
@@ -2612,7 +2666,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.NULL>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.NULL with invalid text content",
@@ -2623,7 +2677,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.NULL>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.NULL with invalid attribute",
@@ -2632,7 +2686,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<VALUE.NULL XXX="bla"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.NULL (normal case)",
@@ -2644,7 +2698,9 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # VALUE.OBJECT tests
+    # VALUE.OBJECT tests:
+    #
+    #   <!ELEMENT VALUE.OBJECT (CLASS | INSTANCE)>
     (
         "VALUE.OBJECT with invalid child element",
         dict(
@@ -2655,7 +2711,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.OBJECT>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.OBJECT with invalid child element instead",
@@ -2666,7 +2722,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.OBJECT>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.OBJECT with invalid text content",
@@ -2678,7 +2734,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.OBJECT>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.OBJECT with invalid attribute",
@@ -2689,7 +2745,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.OBJECT>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.OBJECT with missing child",
@@ -2698,7 +2754,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<VALUE.OBJECT/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.OBJECT with INSTANCE (normal case)",
@@ -2731,7 +2787,9 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # VALUE.NAMEDINSTANCE tests
+    # VALUE.NAMEDINSTANCE tests:
+    #
+    #   <!ELEMENT VALUE.NAMEDINSTANCE (INSTANCENAME, INSTANCE)>
     (
         "VALUE.NAMEDINSTANCE with invalid child element",
         dict(
@@ -2747,7 +2805,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.NAMEDINSTANCE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.NAMEDINSTANCE with invalid text content",
@@ -2764,7 +2822,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.NAMEDINSTANCE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.NAMEDINSTANCE with invalid attribute",
@@ -2780,7 +2838,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.NAMEDINSTANCE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.NAMEDINSTANCE with missing children",
@@ -2789,7 +2847,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<VALUE.NAMEDINSTANCE/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.NAMEDINSTANCE with missing child INSTANCENAME",
@@ -2800,7 +2858,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.NAMEDINSTANCE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.NAMEDINSTANCE with missing child INSTANCE",
@@ -2815,7 +2873,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.NAMEDINSTANCE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.NAMEDINSTANCE with children in incorrect order",
@@ -2831,7 +2889,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.NAMEDINSTANCE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.NAMEDINSTANCE (normal case)",
@@ -2856,7 +2914,9 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # VALUE.INSTANCEWITHPATH tests
+    # VALUE.INSTANCEWITHPATH tests:
+    #
+    #   <!ELEMENT VALUE.INSTANCEWITHPATH (INSTANCEPATH, INSTANCE)>
     (
         "VALUE.INSTANCEWITHPATH with invalid child element",
         dict(
@@ -2880,7 +2940,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.INSTANCEWITHPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.INSTANCEWITHPATH with invalid text content",
@@ -2905,7 +2965,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.INSTANCEWITHPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.INSTANCEWITHPATH with invalid attribute",
@@ -2929,7 +2989,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.INSTANCEWITHPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.INSTANCEWITHPATH with missing children",
@@ -2938,7 +2998,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<VALUE.INSTANCEWITHPATH/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.INSTANCEWITHPATH with missing child INSTANCEPATH",
@@ -2949,7 +3009,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.INSTANCEWITHPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.INSTANCEWITHPATH with missing child INSTANCE",
@@ -2972,7 +3032,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.INSTANCEWITHPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.INSTANCEWITHPATH with children in incorrect order",
@@ -2996,7 +3056,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.INSTANCEWITHPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.INSTANCEWITHPATH (normal case)",
@@ -3031,7 +3091,9 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # VALUE.NAMEDOBJECT tests
+    # VALUE.NAMEDOBJECT tests:
+    #
+    #   <!ELEMENT VALUE.NAMEDOBJECT (CLASS | (INSTANCENAME, INSTANCE))>
     (
         "VALUE.NAMEDOBJECT with invalid child element",
         dict(
@@ -3042,7 +3104,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.NAMEDOBJECT>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.NAMEDOBJECT with invalid text content",
@@ -3054,7 +3116,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.NAMEDOBJECT>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.NAMEDOBJECT with invalid attribute",
@@ -3065,7 +3127,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.NAMEDOBJECT>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.NAMEDOBJECT with missing children",
@@ -3074,7 +3136,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<VALUE.NAMEDOBJECT/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.NAMEDOBJECT for instance with missing INSTANCENAME child",
@@ -3085,7 +3147,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.NAMEDOBJECT>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.NAMEDOBJECT for instance with missing INSTANCE child",
@@ -3100,7 +3162,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.NAMEDOBJECT>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.NAMEDOBJECT for instance (normal case)",
@@ -3144,7 +3206,10 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # VALUE.OBJECTWITHLOCALPATH tests
+    # VALUE.OBJECTWITHLOCALPATH tests:
+    #
+    #   <!ELEMENT VALUE.OBJECTWITHLOCALPATH ((LOCALCLASSPATH, CLASS) |
+    #                                       (LOCALINSTANCEPATH, INSTANCE))>
     (
         "VALUE.OBJECTWITHLOCALPATH with invalid child element",
         dict(
@@ -3161,7 +3226,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.OBJECTWITHLOCALPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.OBJECTWITHLOCALPATH with invalid text content",
@@ -3179,7 +3244,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.OBJECTWITHLOCALPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.OBJECTWITHLOCALPATH with invalid attribute",
@@ -3196,7 +3261,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.OBJECTWITHLOCALPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.OBJECTWITHLOCALPATH with missing children",
@@ -3205,7 +3270,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<VALUE.OBJECTWITHLOCALPATH/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.OBJECTWITHLOCALPATH for instance with missing LOCALINSTANCEPATH "
@@ -3217,7 +3282,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.OBJECTWITHLOCALPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.OBJECTWITHLOCALPATH for instance with missing INSTANCE child",
@@ -3237,7 +3302,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.OBJECTWITHLOCALPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.OBJECTWITHLOCALPATH for instance (normal case)",
@@ -3306,7 +3371,10 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # VALUE.OBJECTWITHPATH tests
+    # VALUE.OBJECTWITHPATH tests:
+    #
+    #   <!ELEMENT VALUE.OBJECTWITHPATH ((CLASSPATH, CLASS) |
+    #                                   (INSTANCEPATH, INSTANCE))>
     (
         "VALUE.OBJECTWITHPATH with invalid child element",
         dict(
@@ -3326,7 +3394,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.OBJECTWITHPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.OBJECTWITHPATH with invalid text content",
@@ -3347,7 +3415,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.OBJECTWITHPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.OBJECTWITHPATH with invalid attribute",
@@ -3367,7 +3435,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.OBJECTWITHPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.OBJECTWITHPATH with missing children",
@@ -3376,7 +3444,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<VALUE.OBJECTWITHPATH/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.OBJECTWITHPATH for instance with missing INSTANCEPATH child",
@@ -3387,7 +3455,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.OBJECTWITHPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.OBJECTWITHPATH for instance with missing INSTANCE child",
@@ -3410,7 +3478,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.OBJECTWITHPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.OBJECTWITHPATH for instance with incorrectly ordered children",
@@ -3434,7 +3502,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.OBJECTWITHPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.OBJECTWITHPATH for instance (normal case)",
@@ -3482,7 +3550,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.OBJECTWITHPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.OBJECTWITHPATH for class with missing CLASS child",
@@ -3501,7 +3569,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.OBJECTWITHPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.OBJECTWITHPATH for class with incorrectly ordered children",
@@ -3521,7 +3589,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.OBJECTWITHPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.OBJECTWITHPATH for class (normal case)",
@@ -3562,7 +3630,11 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # NAMESPACE tests
+    # NAMESPACE tests:
+    #
+    #   <!ELEMENT NAMESPACE EMPTY>
+    #   <!ATTLIST NAMESPACE
+    #       %CIMName;>
     (
         "NAMESPACE with invalid child element",
         dict(
@@ -3572,7 +3644,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</NAMESPACE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "NAMESPACE with invalid text content",
@@ -3583,7 +3655,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</NAMESPACE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "NAMESPACE with invalid attribute",
@@ -3592,7 +3664,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<NAMESPACE NAME="a" XXX="bla"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "NAMESPACE with missing required attribute NAME",
@@ -3601,7 +3673,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<NAMESPACE/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "NAMESPACE with NAME using ASCII characters",
@@ -3631,7 +3703,9 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # LOCALNAMESPACEPATH tests
+    # LOCALNAMESPACEPATH tests:
+    #
+    #   <!ELEMENT LOCALNAMESPACEPATH (NAMESPACE+)>
     (
         "LOCALNAMESPACEPATH with invalid child element",
         dict(
@@ -3642,7 +3716,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</LOCALNAMESPACEPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "LOCALNAMESPACEPATH with invalid text content",
@@ -3654,7 +3728,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</LOCALNAMESPACEPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "LOCALNAMESPACEPATH with invalid attribute",
@@ -3663,7 +3737,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<LOCALNAMESPACEPATH XXX="bla"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "LOCALNAMESPACEPATH with no component (empty)",
@@ -3672,7 +3746,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<LOCALNAMESPACEPATH/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "LOCALNAMESPACEPATH with one component",
@@ -3698,7 +3772,9 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # HOST tests
+    # HOST tests:
+    #
+    #   <!ELEMENT HOST (#PCDATA)>
     (
         "HOST with invalid child element",
         dict(
@@ -3706,7 +3782,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<HOST>woot.com<XXX/></HOST>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "HOST with invalid attribute",
@@ -3715,7 +3791,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<HOST XXX="bla">woot.com</HOST>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "HOST (DNS host name without port)",
@@ -3781,7 +3857,9 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # NAMESPACEPATH tests
+    # NAMESPACEPATH tests:
+    #
+    #   <!ELEMENT NAMESPACEPATH (HOST, LOCALNAMESPACEPATH)>
     (
         "NAMESPACEPATH with invalid child element",
         dict(
@@ -3795,7 +3873,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</NAMESPACEPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "NAMESPACEPATH with invalid text content",
@@ -3810,7 +3888,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</NAMESPACEPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "NAMESPACEPATH with invalid attribute",
@@ -3824,7 +3902,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</NAMESPACEPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "NAMESPACEPATH with missing children",
@@ -3833,7 +3911,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<NAMESPACEPATH/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "NAMESPACEPATH with missing child HOST",
@@ -3846,7 +3924,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</NAMESPACEPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "NAMESPACEPATH with missing child LOCALNAMESPACEPATH",
@@ -3857,7 +3935,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</NAMESPACEPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "NAMESPACEPATH with children in incorrect order",
@@ -3871,7 +3949,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</NAMESPACEPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "NAMESPACEPATH (normal case)",
@@ -3888,7 +3966,11 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # CLASSNAME tests
+    # CLASSNAME tests:
+    #
+    #   <!ELEMENT CLASSNAME EMPTY>
+    #   <!ATTLIST CLASSNAME
+    #       %CIMName;>
     (
         "CLASSNAME with invalid child element",
         dict(
@@ -3898,7 +3980,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</CLASSNAME>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "CLASSNAME with invalid text content",
@@ -3909,7 +3991,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</CLASSNAME>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "CLASSNAME with invalid attribute",
@@ -3918,7 +4000,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<CLASSNAME NAME="a" XXX="bla"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "CLASSNAME with missing required attribute NAME",
@@ -3927,7 +4009,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<CLASSNAME/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "CLASSNAME with NAME using ASCII characters",
@@ -3957,7 +4039,9 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # LOCALCLASSPATH tests
+    # LOCALCLASSPATH tests:
+    #
+    #   <!ELEMENT LOCALCLASSPATH (LOCALNAMESPACEPATH, CLASSNAME)>
     (
         "LOCALCLASSPATH with invalid child element",
         dict(
@@ -3971,7 +4055,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</LOCALCLASSPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "LOCALCLASSPATH with invalid text content",
@@ -3986,7 +4070,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</LOCALCLASSPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "LOCALCLASSPATH with invalid attribute",
@@ -4000,7 +4084,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</LOCALCLASSPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "LOCALCLASSPATH with missing children",
@@ -4009,7 +4093,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<LOCALCLASSPATH/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "LOCALCLASSPATH with missing child LOCALNAMESPACEPATH",
@@ -4020,7 +4104,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</LOCALCLASSPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "LOCALCLASSPATH with missing child CLASSNAME",
@@ -4033,7 +4117,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</LOCALCLASSPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "LOCALCLASSPATH with children in incorrect order",
@@ -4047,7 +4131,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</LOCALCLASSPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "LOCALCLASSPATH (normal case)",
@@ -4067,7 +4151,9 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # CLASSPATH tests
+    # CLASSPATH tests:
+    #
+    #   <!ELEMENT CLASSPATH (NAMESPACEPATH, CLASSNAME)>
     (
         "CLASSPATH with invalid child element",
         dict(
@@ -4084,7 +4170,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</CLASSPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "CLASSPATH with invalid text content",
@@ -4102,7 +4188,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</CLASSPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "CLASSPATH with invalid attribute",
@@ -4119,7 +4205,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</CLASSPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "CLASSPATH with missing children",
@@ -4128,7 +4214,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<CLASSPATH/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "CLASSPATH with missing child NAMESPACEPATH",
@@ -4139,7 +4225,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</CLASSPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "CLASSPATH with missing child CLASSNAME",
@@ -4155,7 +4241,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</CLASSPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "CLASSPATH with children in incorrect order",
@@ -4172,7 +4258,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</CLASSPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "CLASSPATH (normal case)",
@@ -4196,7 +4282,12 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # INSTANCENAME tests
+    # INSTANCENAME tests:
+    #
+    #   <!ELEMENT INSTANCENAME (KEYBINDING* | KEYVALUE? |
+    #                           VALUE.REFERENCE?)>
+    #   <!ATTLIST INSTANCENAME
+    #       %ClassName;>
     (
         "INSTANCENAME with invalid child element",
         dict(
@@ -4206,7 +4297,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</INSTANCENAME>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "INSTANCENAME with invalid text content",
@@ -4217,7 +4308,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</INSTANCENAME>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "INSTANCENAME with invalid attribute",
@@ -4226,7 +4317,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<INSTANCENAME CLASSNAME="Foo" XXX="bla"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "INSTANCENAME with missing required attribute CLASSNAME",
@@ -4235,7 +4326,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<INSTANCENAME/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "INSTANCENAME with CLASSNAME using ASCII characters",
@@ -4501,7 +4592,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</INSTANCENAME>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "INSTANCENAME with VALUE.REFERENCE for one ref. key (unnamed key)",
@@ -4550,10 +4641,12 @@ TESTCASES_TUPLEPARSE_XML = [
             '</INSTANCENAME>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
 
-    # LOCALINSTANCEPATH tests
+    # LOCALINSTANCEPATH tests:
+    #
+    #   <!ELEMENT LOCALINSTANCEPATH (LOCALNAMESPACEPATH, INSTANCENAME)>
     (
         "LOCALINSTANCEPATH with invalid child element",
         dict(
@@ -4571,7 +4664,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</LOCALINSTANCEPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "LOCALINSTANCEPATH with invalid text content",
@@ -4590,7 +4683,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</LOCALINSTANCEPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "LOCALINSTANCEPATH with invalid attribute",
@@ -4608,7 +4701,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</LOCALINSTANCEPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "LOCALINSTANCEPATH with missing children",
@@ -4617,7 +4710,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<LOCALINSTANCEPATH/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "LOCALINSTANCEPATH with missing child LOCALNAMESPACEPATH",
@@ -4632,7 +4725,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</LOCALINSTANCEPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "LOCALINSTANCEPATH with missing child INSTANCENAME",
@@ -4645,7 +4738,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</LOCALINSTANCEPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "LOCALINSTANCEPATH with children in incorrect order",
@@ -4663,7 +4756,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</LOCALINSTANCEPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "LOCALINSTANCEPATH (normal case)",
@@ -4688,7 +4781,9 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # INSTANCEPATH tests
+    # INSTANCEPATH tests:
+    #
+    #   <!ELEMENT INSTANCEPATH (NAMESPACEPATH, INSTANCENAME)>
     (
         "INSTANCEPATH with invalid child element",
         dict(
@@ -4709,7 +4804,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</INSTANCEPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "INSTANCEPATH with invalid text content",
@@ -4731,7 +4826,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</INSTANCEPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "INSTANCEPATH with invalid attribute",
@@ -4752,7 +4847,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</INSTANCEPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "INSTANCEPATH with missing children",
@@ -4761,7 +4856,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<INSTANCEPATH/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "INSTANCEPATH with missing child NAMESPACEPATH",
@@ -4776,7 +4871,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</INSTANCEPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "INSTANCEPATH with missing child INSTANCENAME",
@@ -4792,7 +4887,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</INSTANCEPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "INSTANCEPATH with children in incorrect order",
@@ -4813,7 +4908,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</INSTANCEPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "INSTANCEPATH (normal case)",
@@ -4842,7 +4937,9 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # OBJECTPATH tests
+    # OBJECTPATH tests:
+    #
+    #   <!ELEMENT OBJECTPATH (INSTANCEPATH | CLASSPATH)>
     (
         "OBJECTPATH with invalid child element",
         dict(
@@ -4861,7 +4958,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</OBJECTPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "OBJECTPATH with invalid text content",
@@ -4881,7 +4978,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</OBJECTPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "OBJECTPATH with invalid attribute",
@@ -4900,7 +4997,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</OBJECTPATH>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "OBJECTPATH with missing child",
@@ -4909,7 +5006,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<OBJECTPATH/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "OBJECTPATH with INSTANCEPATH (normal case)",
@@ -4971,7 +5068,13 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # INSTANCE tests
+    # INSTANCE tests:
+    #
+    #   <!ELEMENT INSTANCE (QUALIFIER*, (PROPERTY | PROPERTY.ARRAY |
+    #                                    PROPERTY.REFERENCE)*)>
+    #   <!ATTLIST INSTANCE
+    #       %ClassName;
+    #       xml:lang NMTOKEN #IMPLIED>
     (
         "INSTANCE with invalid child element",
         dict(
@@ -4981,7 +5084,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</INSTANCE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "INSTANCE with invalid text content",
@@ -4992,7 +5095,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</INSTANCE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "INSTANCE with invalid attribute",
@@ -5001,7 +5104,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<INSTANCE CLASSNAME="CIM_Foo" XXX="bla"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "INSTANCE with children in incorrect order (tolerated)",
@@ -5032,7 +5135,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<INSTANCE/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "INSTANCE with CLASSNAME using ASCII characters",
@@ -5190,7 +5293,13 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # CLASS tests
+    # CLASS tests:
+    #
+    #   <!ELEMENT CLASS (QUALIFIER*, (PROPERTY | PROPERTY.ARRAY |
+    #                                 PROPERTY.REFERENCE)*, METHOD*)>
+    #   <!ATTLIST CLASS
+    #       %CIMName;
+    #       %SuperClass;>
     (
         "CLASS with invalid child element",
         dict(
@@ -5200,7 +5309,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</CLASS>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "CLASS with invalid text content",
@@ -5211,7 +5320,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</CLASS>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "CLASS with invalid attribute",
@@ -5220,7 +5329,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<CLASS NAME="CIM_Foo" XXX="bla"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "CLASS with missing required attribute NAME",
@@ -5229,7 +5338,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<CLASS/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "CLASS with NAME using ASCII characters",
@@ -5375,7 +5484,16 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # PROPERTY tests
+    # PROPERTY tests:
+    #
+    #   <!ELEMENT PROPERTY (QUALIFIER*, VALUE?)>
+    #   <!ATTLIST PROPERTY
+    #       %CIMName;
+    #       %CIMType;              #REQUIRED
+    #       %ClassOrigin;
+    #       %Propagated;
+    #       %EmbeddedObject;
+    #       xml:lang NMTOKEN #IMPLIED>
     (
         "PROPERTY with invalid child element",
         dict(
@@ -5385,7 +5503,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</PROPERTY>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PROPERTY with invalid text content",
@@ -5396,7 +5514,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</PROPERTY>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PROPERTY with invalid attribute",
@@ -5405,7 +5523,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<PROPERTY NAME="Foo" TYPE="string" XXX="bla"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PROPERTY with children in incorrect order (tolerated)",
@@ -5433,7 +5551,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<PROPERTY TYPE="string"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PROPERTY with NAME using ASCII characters",
@@ -5493,7 +5611,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<PROPERTY NAME="Foo"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PROPERTY with string typed value that is None",
@@ -5596,7 +5714,7 @@ TESTCASES_TUPLEPARSE_XML = [
             b'</PROPERTY>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PROPERTY with uint8 typed value that is None",
@@ -5683,7 +5801,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</PROPERTY>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PROPERTY with uint8 typed value (invalid value: empty)",
@@ -5694,7 +5812,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</PROPERTY>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PROPERTY with uint8 typed value (invalid value: letters)",
@@ -5705,7 +5823,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</PROPERTY>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PROPERTY with uint8 typed value (minimum)",
@@ -5727,7 +5845,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</PROPERTY>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PROPERTY with uint8 typed value (maximum)",
@@ -5749,7 +5867,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</PROPERTY>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PROPERTY with uint16 typed value that is None",
@@ -5845,7 +5963,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</PROPERTY>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PROPERTY with sint8 typed value (maximum)",
@@ -5867,7 +5985,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</PROPERTY>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PROPERTY with sint16 typed value that is None",
@@ -6092,7 +6210,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</PROPERTY>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PROPERTY with EmbeddedObject=instance and instance value",
@@ -6150,7 +6268,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</PROPERTY>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PROPERTY with EmbeddedObject=object and instance value",
@@ -6254,7 +6372,17 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # PROPERTY.ARRAY tests
+    # PROPERTY.ARRAY tests:
+    #
+    #   <!ELEMENT PROPERTY.ARRAY (QUALIFIER*, VALUE.ARRAY?)>
+    #   <!ATTLIST PROPERTY.ARRAY
+    #       %CIMName;
+    #       %CIMType;              #REQUIRED
+    #       %ArraySize;
+    #       %ClassOrigin;
+    #       %Propagated;
+    #       %EmbeddedObject;
+    #       xml:lang NMTOKEN #IMPLIED>
     (
         "PROPERTY.ARRAY with invalid child element",
         dict(
@@ -6264,7 +6392,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</PROPERTY.ARRAY>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PROPERTY.ARRAY with invalid text content",
@@ -6275,7 +6403,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</PROPERTY.ARRAY>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PROPERTY.ARRAY with invalid attribute",
@@ -6284,7 +6412,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<PROPERTY.ARRAY NAME="Foo" TYPE="string" XXX="bla"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PROPERTY.ARRAY with children in incorrect order (tolerated)",
@@ -6311,7 +6439,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<PROPERTY.ARRAY TYPE="string"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PROPERTY.ARRAY with NAME using ASCII characters",
@@ -6393,7 +6521,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<PROPERTY.ARRAY NAME="Foo"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PROPERTY.ARRAY with string array typed value that is None",
@@ -6527,7 +6655,8 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
     (
-        "PROPERTY.ARRAY with EmbeddedObject=instance and invalid item",
+        "PROPERTY.ARRAY with EmbeddedObject=instance and invalid item "
+        "(mismatched tag)",
         dict(
             xml_str=''
             '<PROPERTY.ARRAY EmbeddedObject="instance" NAME="Foo"'
@@ -6543,7 +6672,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</PROPERTY.ARRAY>',
             exp_result=None,
         ),
-        ParseError, None, True
+        XMLParseError, None, True
     ),
     (
         "PROPERTY.ARRAY with EmbeddedObject=instance and instance item",
@@ -6628,7 +6757,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</PROPERTY.ARRAY>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PROPERTY.ARRAY with EmbeddedObject=object and instance item",
@@ -6705,7 +6834,14 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # PROPERTY.REFERENCE tests
+    # PROPERTY.REFERENCE tests:
+    #
+    #   <!ELEMENT PROPERTY.REFERENCE (QUALIFIER*, (VALUE.REFERENCE)?)>
+    #   <!ATTLIST PROPERTY.REFERENCE
+    #       %CIMName;
+    #       %ReferenceClass;
+    #       %ClassOrigin;
+    #       %Propagated;>
     (
         "PROPERTY.REFERENCE with invalid child element",
         dict(
@@ -6715,7 +6851,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</PROPERTY.REFERENCE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PROPERTY.REFERENCE with invalid text content",
@@ -6726,7 +6862,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</PROPERTY.REFERENCE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PROPERTY.REFERENCE with invalid attribute",
@@ -6735,7 +6871,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<PROPERTY.REFERENCE NAME="Foo" XXX="bla"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PROPERTY.REFERENCE with children in incorrect order (tolerated)",
@@ -6766,7 +6902,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<PROPERTY.REFERENCE/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PROPERTY.REFERENCE with NAME using ASCII characters",
@@ -7004,7 +7140,12 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # PARAMETER tests
+    # PARAMETER tests:
+    #
+    #   <!ELEMENT PARAMETER (QUALIFIER*)>
+    #   <!ATTLIST PARAMETER
+    #       %CIMName;
+    #       %CIMType;              #REQUIRED>
     (
         "PARAMETER with invalid child element",
         dict(
@@ -7014,7 +7155,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</PARAMETER>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PARAMETER with invalid text content",
@@ -7025,7 +7166,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</PARAMETER>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PARAMETER with invalid attribute",
@@ -7034,7 +7175,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<PARAMETER NAME="Parm" TYPE="string" XXX="bla"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PARAMETER with missing required attribute NAME",
@@ -7043,7 +7184,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<PARAMETER TYPE="string"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PARAMETER with NAME using ASCII characters",
@@ -7079,7 +7220,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<PARAMETER NAME="Parm"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PARAMETER of type string",
@@ -7242,7 +7383,12 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # PARAMETER.REFERENCE tests
+    # PARAMETER.REFERENCE tests:
+    #
+    #   <!ELEMENT PARAMETER.REFERENCE (QUALIFIER*)>
+    #   <!ATTLIST PARAMETER.REFERENCE
+    #       %CIMName;
+    #       %ReferenceClass;>
     (
         "PARAMETER.REFERENCE with invalid child element",
         dict(
@@ -7252,7 +7398,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</PARAMETER.REFERENCE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PARAMETER.REFERENCE with invalid text content",
@@ -7263,7 +7409,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</PARAMETER.REFERENCE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PARAMETER.REFERENCE with invalid attribute",
@@ -7272,7 +7418,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<PARAMETER.REFERENCE NAME="Parm" XXX="bla"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PARAMETER.REFERENCE with missing required attribute NAME",
@@ -7281,7 +7427,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<PARAMETER.REFERENCE/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PARAMETER.REFERENCE with NAME using ASCII characters",
@@ -7346,7 +7492,13 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # PARAMETER.ARRAY tests
+    # PARAMETER.ARRAY tests:
+    #
+    #   <!ELEMENT PARAMETER.ARRAY (QUALIFIER*)>
+    #   <!ATTLIST PARAMETER.ARRAY
+    #       %CIMName;
+    #       %CIMType;              #REQUIRED
+    #       %ArraySize;>
     (
         "PARAMETER.ARRAY with invalid child element",
         dict(
@@ -7356,7 +7508,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</PARAMETER.ARRAY>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PARAMETER.ARRAY with invalid text content",
@@ -7367,7 +7519,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</PARAMETER.ARRAY>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PARAMETER.ARRAY with invalid attribute",
@@ -7376,7 +7528,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<PARAMETER.ARRAY NAME="Parm" TYPE="string" XXX="bla"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PARAMETER.ARRAY with missing required attribute NAME",
@@ -7385,7 +7537,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<PARAMETER.ARRAY TYPE="string"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PARAMETER.ARRAY with NAME using ASCII characters",
@@ -7434,7 +7586,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<PARAMETER.ARRAY NAME="Parm"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PARAMETER.ARRAY of type string",
@@ -7587,7 +7739,13 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # PARAMETER.REFARRAY tests
+    # PARAMETER.REFARRAY tests:
+    #
+    #   <!ELEMENT PARAMETER.REFARRAY (QUALIFIER*)>
+    #   <!ATTLIST PARAMETER.REFARRAY
+    #       %CIMName;
+    #       %ReferenceClass;
+    #       %ArraySize;>
     (
         "PARAMETER.REFARRAY with invalid child element",
         dict(
@@ -7597,7 +7755,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</PARAMETER.REFARRAY>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PARAMETER.REFARRAY with invalid text content",
@@ -7608,7 +7766,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</PARAMETER.REFARRAY>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PARAMETER.REFARRAY with invalid attribute",
@@ -7617,7 +7775,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<PARAMETER.REFARRAY NAME="Parm" XXX="bla"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PARAMETER.REFARRAY with missing required attribute NAME",
@@ -7626,7 +7784,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<PARAMETER.REFARRAY/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "PARAMETER.REFARRAY with NAME using ASCII characters",
@@ -7705,7 +7863,16 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # METHOD tests
+    # METHOD tests:
+    #
+    #   <!ELEMENT METHOD (QUALIFIER*, (PARAMETER | PARAMETER.REFERENCE |
+    #                                  PARAMETER.ARRAY |
+    #                                  PARAMETER.REFARRAY)*)>
+    #   <!ATTLIST METHOD
+    #       %CIMName;
+    #       %CIMType;              #IMPLIED
+    #       %ClassOrigin;
+    #       %Propagated;>
     (
         "METHOD with invalid child element",
         dict(
@@ -7715,7 +7882,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</METHOD>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "METHOD with invalid text content",
@@ -7726,7 +7893,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</METHOD>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "METHOD with invalid attribute",
@@ -7735,7 +7902,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<METHOD NAME="Foo" TYPE="string" XXX="bla"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "METHOD with children in incorrect order (tolerated)",
@@ -7766,7 +7933,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<METHOD TYPE="string"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "METHOD with NAME using ASCII characters",
@@ -7816,7 +7983,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<METHOD NAME="Foo"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "METHOD with two qualifiers",
@@ -7894,7 +8061,17 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # SCOPE tests
+    # SCOPE tests:
+    #
+    #   <!ELEMENT SCOPE EMPTY>
+    #   <!ATTLIST SCOPE
+    #       CLASS (true | false) "false"
+    #       ASSOCIATION (true | false) "false"
+    #       REFERENCE (true | false) "false"
+    #       PROPERTY (true | false) "false"
+    #       METHOD (true | false) "false"
+    #       PARAMETER (true | false) "false"
+    #       INDICATION (true | false) "false"
     (
         "SCOPE with invalid child element",
         dict(
@@ -7904,7 +8081,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</SCOPE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "SCOPE with invalid text content",
@@ -7915,7 +8092,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</SCOPE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "SCOPE with invalid attribute",
@@ -7924,7 +8101,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<SCOPE XXX="bla"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "SCOPE with boolean attribute 'true' (lower case)",
@@ -7999,7 +8176,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<SCOPE CLASS="XXX"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "SCOPE with invalid empty boolean attribute",
@@ -8008,7 +8185,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<SCOPE CLASS=""/>',
             exp_result=None,
         ),
-        ParseError, ToleratedServerIssueWarning, True
+        CIMXMLParseError, ToleratedServerIssueWarning, True
     ),
     (
         "SCOPE with all supported scope attributes with different values",
@@ -8036,7 +8213,15 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # QUALIFIER tests
+    # QUALIFIER tests:
+    #
+    #   <!ELEMENT QUALIFIER (VALUE | VALUE.ARRAY)>
+    #   <!ATTLIST QUALIFIER
+    #       %CIMName;
+    #       %CIMType;              #REQUIRED
+    #       %Propagated;
+    #       %QualifierFlavor;
+    #       xml:lang NMTOKEN #IMPLIED>
     (
         "QUALIFIER with invalid child element",
         dict(
@@ -8046,7 +8231,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</QUALIFIER>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "QUALIFIER with invalid text content",
@@ -8057,7 +8242,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</QUALIFIER>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "QUALIFIER with invalid attribute",
@@ -8066,7 +8251,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<QUALIFIER NAME="Qual" TYPE="string" XXX="bla"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "QUALIFIER with missing required attribute NAME",
@@ -8075,7 +8260,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<QUALIFIER TYPE="string"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "QUALIFIER with NAME using ASCII characters",
@@ -8372,7 +8557,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<QUALIFIER NAME="Qual"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "QUALIFIER with boolean typed value None",
@@ -8935,7 +9120,15 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # QUALIFIER.DECLARATION tests
+    # QUALIFIER.DECLARATION tests:
+    #
+    #   <!ELEMENT QUALIFIER.DECLARATION (SCOPE?, (VALUE | VALUE.ARRAY)?)>
+    #   <!ATTLIST QUALIFIER.DECLARATION
+    #       %CIMName;
+    #       %CIMType;               #REQUIRED
+    #       ISARRAY    (true|false) #IMPLIED
+    #       %ArraySize;
+    #       %QualifierFlavor;>
     (
         "QUALIFIER.DECLARATION with invalid child element",
         dict(
@@ -8945,7 +9138,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</QUALIFIER.DECLARATION>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "QUALIFIER.DECLARATION with invalid text content",
@@ -8956,7 +9149,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</QUALIFIER.DECLARATION>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "QUALIFIER.DECLARATION with invalid attribute",
@@ -8965,7 +9158,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string" XXX="bla"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "QUALIFIER.DECLARATION with invalid ISARRAY attribute",
@@ -8975,7 +9168,7 @@ TESTCASES_TUPLEPARSE_XML = [
             ' ISARRAY="xxx"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "QUALIFIER.DECLARATION with invalid OVERRIDABLE attribute",
@@ -8985,7 +9178,7 @@ TESTCASES_TUPLEPARSE_XML = [
             ' OVERRIDABLE="xxx"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "QUALIFIER.DECLARATION with invalid TOSUBCLASS attribute",
@@ -8995,7 +9188,7 @@ TESTCASES_TUPLEPARSE_XML = [
             ' TOSUBCLASS="xxx"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "QUALIFIER.DECLARATION with invalid TOINSTANCE attribute",
@@ -9005,7 +9198,7 @@ TESTCASES_TUPLEPARSE_XML = [
             ' TOINSTANCE="xxx"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "QUALIFIER.DECLARATION with invalid TRANSLATABLE attribute",
@@ -9015,7 +9208,7 @@ TESTCASES_TUPLEPARSE_XML = [
             ' TRANSLATABLE="xxx"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "QUALIFIER.DECLARATION with missing required attribute NAME",
@@ -9024,7 +9217,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<QUALIFIER.DECLARATION TYPE="string"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "QUALIFIER.DECLARATION with NAME using ASCII characters",
@@ -9330,7 +9523,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<QUALIFIER.DECLARATION NAME="Qual"/>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
         "QUALIFIER.DECLARATION with boolean typed simple default value None",
@@ -10063,7 +10256,201 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # PARAMVALUE tests
+    # MESSAGE tests:
+    #
+    #   <!ELEMENT MESSAGE (SIMPLEREQ | MULTIREQ | SIMPLERSP | MULTIRSP |
+    #                      SIMPLEEXPREQ | MULTIEXPREQ | SIMPLEEXPRSP |
+    #                      MULTIEXPRSP)
+    #   <!ATTLIST MESSAGE
+    #       ID CDATA #REQUIRED
+    #       PROTOCOLVERSION CDATA #REQUIRED>
+    # TODO: Add MESSAGE tests
+
+    # SIMPLEREQ tests:
+    #
+    #   <!ELEMENT SIMPLEREQ (IMETHODCALL | METHODCALL)>
+    (
+        "SIMPLEREQ of GetClass Request",
+        dict(
+            xml_str=''
+            '<SIMPLEREQ><IMETHODCALL NAME="GetClass">'
+            '<LOCALNAMESPACEPATH><NAMESPACE NAME="root"/>'
+            '<NAMESPACE NAME="cimv2"/></LOCALNAMESPACEPATH>'
+            '<IPARAMVALUE NAME="ClassName">'
+            '<CLASSNAME NAME="CIM_ComputerSystem"/>'
+            '</IPARAMVALUE>'
+            '<IPARAMVALUE NAME="PropertyList">'
+            '<VALUE.ARRAY><VALUE>PowerManagementCapabilities</VALUE>'
+            '</VALUE.ARRAY>'
+            '</IPARAMVALUE><IPARAMVALUE NAME="LocalOnly">'
+            '<VALUE>FALSE</VALUE>'
+            '</IPARAMVALUE></IMETHODCALL></SIMPLEREQ>',
+            exp_result=(u'SIMPLEREQ',
+                        {},
+                        (u'IMETHODCALL',
+                         {u'NAME': u'GetClass'},
+                         u'root/cimv2',
+                         [(u'ClassName',
+                           CIMClassName(classname='CIM_ComputerSystem',
+                                        namespace=None, host=None)),
+                          (u'PropertyList', [u'PowerManagementCapabilities']),
+                          (u'LocalOnly', False)])),
+        ),
+        None, None, True
+    ),
+    (
+        "SIMPLEREQ invalid, BLAHBLAH for IMETHODCALL (mismatched tag)",
+        dict(
+            xml_str=''
+            '<SIMPLEREQ><BLAHBLAH NAME="GetClass">'
+            '<LOCALNAMESPACEPATH><NAMESPACE NAME="root"/>'
+            '<NAMESPACE NAME="cimv2"/></LOCALNAMESPACEPATH>'
+            '<IPARAMVALUE NAME="ClassName">'
+            '<CLASSNAME NAME="CIM_ComputerSystem"/>'
+            '</IPARAMVALUE>'
+            '<IPARAMVALUE NAME="PropertyList">'
+            '<VALUE.ARRAY><VALUE>PowerManagementCapabilities</VALUE>'
+            '</VALUE.ARRAY>'
+            '</IPARAMVALUE><IPARAMVALUE NAME="LocalOnly">'
+            '<VALUE>FALSE</VALUE>'
+            '</IPARAMVALUE></IMETHODCALL></SIMPLEREQ>',
+            exp_result=None,
+        ),
+        XMLParseError, None, True
+    ),
+
+    # SIMPLEEXPREQ tests:
+    #
+    #   <!ELEMENT SIMPLEEXPREQ (EXPMETHODCALL)>
+    # TODO: Add SIMPLEEXPREQ tests
+
+    # SIMPLERSP tests:
+    #
+    #   <!ELEMENT SIMPLERSP (METHODRESPONSE | IMETHODRESPONSE)>
+    # TODO: Add SIMPLERSP tests
+
+    # SIMPLEEXPRSP tests: Parsing this element is not implemented
+
+    # MULTIREQ tests: Parsing this element is not implemented
+
+    # MULTIEXPREQ tests: Parsing this element is not implemented
+
+    # MULTIRSP tests: Parsing this element is not implemented
+
+    # MULTIEXPRSP tests: Parsing this element is not implemented
+
+    # METHODCALL tests:
+    #
+    #   <!ELEMENT METHODCALL ((LOCALCLASSPATH | LOCALINSTANCEPATH),
+    #                         PARAMVALUE*)>
+    #   <!ATTLIST METHODCALL
+    #       %CIMName;>
+    (
+        "METHODCALL simple test",
+        dict(
+            xml_str=''
+            '<METHODCALL NAME="SendTestIndicationsCount">'
+            '<LOCALCLASSPATH><LOCALNAMESPACEPATH>'
+            '<NAMESPACE NAME="test"/><NAMESPACE NAME="TestProvider"/>'
+            '</LOCALNAMESPACEPATH>'
+            '<CLASSNAME NAME="Test_IndicationProviderClass"/>'
+            '</LOCALCLASSPATH>'
+            '<PARAMVALUE NAME="indicationSendCount" PARAMTYPE="uint32">'
+            '<VALUE>0</VALUE>'
+            '</PARAMVALUE>'
+            '<PARAMVALUE NAME="indicationDropCount" PARAMTYPE="uint32">'
+            '<VALUE>42</VALUE>'
+            '</PARAMVALUE>'
+            '<PARAMVALUE NAME="optionalP1"/>'
+            '</METHODCALL>',
+            exp_result=(u'METHODCALL',
+                        {u'NAME': u'SendTestIndicationsCount'},
+                        CIMClassName(classname='Test_IndicationProviderClass',
+                                     namespace='test/TestProvider', host=None),
+                        [(u'indicationSendCount', u'uint32', u'0'),
+                         (u'indicationDropCount', u'uint32', u'42'),
+                         (u'optionalP1', None, None)]),
+        ),
+        None, None, True
+    ),
+    (
+        "METHODCALL test, error No Name",
+        dict(
+            xml_str=''
+            '<METHODCALL>'
+            '<LOCALCLASSPATH><LOCALNAMESPACEPATH>'
+            '<NAMESPACE NAME="test"/><NAMESPACE NAME="TestProvider"/>'
+            '</LOCALNAMESPACEPATH>'
+            '<CLASSNAME NAME="Test_IndicationProviderClass"/>'
+            '</LOCALCLASSPATH>'
+            '<PARAMVALUE NAME="indicationSendCount" PARAMTYPE="uint32">'
+            '<VALUE>0</VALUE>'
+            '</PARAMVALUE>'
+            '<PARAMVALUE NAME="indicationDropCount" PARAMTYPE="uint32">'
+            '<VALUE>42</VALUE>'
+            '</PARAMVALUE>'
+            '<PARAMVALUE NAME="optionalP1"/>'
+            '</METHODCALL>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "METHODCALL Error, No path",
+        dict(
+            xml_str=''
+            '<METHODCALL NAME="SendTestIndicationsCount">'
+            '<PARAMVALUE NAME="indicationSendCount" PARAMTYPE="uint32">'
+            '<VALUE>0</VALUE>'
+            '</PARAMVALUE>'
+            '<PARAMVALUE NAME="indicationDropCount" PARAMTYPE="uint32">'
+            '<VALUE>42</VALUE>'
+            '</PARAMVALUE>'
+            '<PARAMVALUE NAME="optionalP1"/>'
+            '</METHODCALL>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "METHODCALL Error, IPARMVALUE in place of PARAMVALUE",
+        dict(
+            xml_str=''
+            '<METHODCALL NAME="SendTestIndicationsCount">'
+            '<LOCALCLASSPATH><LOCALNAMESPACEPATH>'
+            '<NAMESPACE NAME="test"/><NAMESPACE NAME="TestProvider"/>'
+            '</LOCALNAMESPACEPATH>'
+            '<CLASSNAME NAME="Test_IndicationProviderClass"/>'
+            '</LOCALCLASSPATH>'
+            '<IPARAMVALUE NAME="indicationSendCount" PARAMTYPE="uint32">'
+            '<VALUE>0</VALUE>'
+            '</IPARAMVALUE>'
+            '<PARAMVALUE NAME="indicationDropCount" PARAMTYPE="uint32">'
+            '<VALUE>42</VALUE>'
+            '</PARAMVALUE>'
+            '<PARAMVALUE NAME="optionalP1"/>'
+            '</METHODCALL>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+
+    # METHODRESPONSE tests:
+    #
+    #   <!ELEMENT METHODRESPONSE (ERROR | (RETURNVALUE?, PARAMVALUE*))>
+    #   <!ATTLIST METHODRESPONSE
+    #       %CIMName;>
+    # TODO: Add METHODRESPONSE tests
+
+    # PARAMVALUE tests:
+    #
+    #   <!ELEMENT PARAMVALUE (VALUE | VALUE.REFERENCE | VALUE.ARRAY |
+    #                         VALUE.REFARRAY | CLASSNAME | INSTANCENAME |
+    #                         CLASS | INSTANCE | VALUE.NAMEDINSTANCE)?>
+    #   <!ATTLIST PARAMVALUE
+    #       %CIMName;
+    #       %ParamType;  #IMPLIED
+    #       %EmbeddedObject;>
     (
         "PARAMVALUE without PARAMTYPE",
         dict(
@@ -10118,7 +10505,12 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
 
-    # RETURNVALUE
+    # RETURNVALUE tests:
+    #
+    #   <!ELEMENT RETURNVALUE (VALUE | VALUE.REFERENCE)?>
+    #   <!ATTLIST RETURNVALUE
+    #       %EmbeddedObject;
+    #       %ParamType;       #IMPLIED>
     (
         "RETURNVALUE with simple PARAMTYPE and zero",
         dict(
@@ -10226,10 +10618,10 @@ TESTCASES_TUPLEPARSE_XML = [
             '</RETURNVALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
-        "RETURNVALUE with VALUE.REFERENCE",
+        "RETURNVALUE with VALUE.REFERENCE and missing end tag",
         dict(
             xml_str=''
             '<RETURNVALUE PARAMTYPEX="sint32">'
@@ -10245,76 +10637,30 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.REFERENCE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        XMLParseError, None, True
     ),
 
-    # TODO: IRETURNVALUE tests
-    # TODO: EXPPARAMVALUE tests
-    # TODO: METHODRESPONSE tests
-    # TODO: IMETHODRESPONSE tests
-    # TODO: EXPMETHODCALL tests
-    # TODO: MESSAGE tests
-    # TODO: SIMPLERSP tests
-    # TODO: SIMPLEEXPREQ tests
-    # TODO: SIMPLEEXPRSP tests
+    # EXPMETHODCALL tests:
+    #
+    #   <!ELEMENT EXPMETHODCALL (EXPPARAMVALUE*)>
+    #   <!ATTLIST EXPMETHODCALL
+    #       %CIMName;>
+    # TODO: Add EXPMETHODCALL tests
 
-    # The implementation of these methods in tupleparser.py is just
-    # a not_implemented exception. Since this is a listener response to
-    # a expmethod caller there is no test defined
-    # EXPMETHODRESPONSE tests
+    # EXPMETHODRESPONSE tests: Parsing this element is not implemented
 
-    # The following parse methods are only used by a pywbem server
-    (
-        "SIMPLEREQ of GetClass Request",
-        dict(
-            xml_str=''
-            '<SIMPLEREQ><IMETHODCALL NAME="GetClass">'
-            '<LOCALNAMESPACEPATH><NAMESPACE NAME="root"/>'
-            '<NAMESPACE NAME="cimv2"/></LOCALNAMESPACEPATH>'
-            '<IPARAMVALUE NAME="ClassName">'
-            '<CLASSNAME NAME="CIM_ComputerSystem"/>'
-            '</IPARAMVALUE>'
-            '<IPARAMVALUE NAME="PropertyList">'
-            '<VALUE.ARRAY><VALUE>PowerManagementCapabilities</VALUE>'
-            '</VALUE.ARRAY>'
-            '</IPARAMVALUE><IPARAMVALUE NAME="LocalOnly">'
-            '<VALUE>FALSE</VALUE>'
-            '</IPARAMVALUE></IMETHODCALL></SIMPLEREQ>',
-            exp_result=(u'SIMPLEREQ',
-                        {},
-                        (u'IMETHODCALL',
-                         {u'NAME': u'GetClass'},
-                         u'root/cimv2',
-                         [(u'ClassName',
-                           CIMClassName(classname='CIM_ComputerSystem',
-                                        namespace=None, host=None)),
-                          (u'PropertyList', [u'PowerManagementCapabilities']),
-                          (u'LocalOnly', False)])),
-        ),
-        None, None, True
-    ),
-    (
-        "SIMPLEREQ invalid, BLAHBLAH for IMETHODCALL",
-        dict(
-            xml_str=''
-            '<SIMPLEREQ><BLAHBLAH NAME="GetClass">'
-            '<LOCALNAMESPACEPATH><NAMESPACE NAME="root"/>'
-            '<NAMESPACE NAME="cimv2"/></LOCALNAMESPACEPATH>'
-            '<IPARAMVALUE NAME="ClassName">'
-            '<CLASSNAME NAME="CIM_ComputerSystem"/>'
-            '</IPARAMVALUE>'
-            '<IPARAMVALUE NAME="PropertyList">'
-            '<VALUE.ARRAY><VALUE>PowerManagementCapabilities</VALUE>'
-            '</VALUE.ARRAY>'
-            '</IPARAMVALUE><IPARAMVALUE NAME="LocalOnly">'
-            '<VALUE>FALSE</VALUE>'
-            '</IPARAMVALUE></IMETHODCALL></SIMPLEREQ>',
-            exp_result=None,
-        ),
-        ParseError, None, True
-    ),
+    # EXPPARAMVALUE tests:
+    #
+    #   <!ELEMENT EXPPARAMVALUE (INSTANCE?)>
+    #   <!ATTLIST EXPPARAMVALUE
+    #       %CIMName;>
+    # TODO: Add EXPPARAMVALUE tests
 
-    # IMETHODCALL tests
+    # IMETHODCALL tests:
+    #
+    #   <!ELEMENT IMETHODCALL (LOCALNAMESPACEPATH, IPARAMVALUE*)>
+    #   <!ATTLIST IMETHODCALL
+    #      %CIMName;>
     (
         "IMETHODCALL simple request",
         dict(
@@ -10343,7 +10689,7 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
     (
-        "IMETHODCALLError, no NAME",
+        "IMETHODCALL Error, no NAME",
         dict(
             xml_str=''
             '<IMETHODCALL>'
@@ -10360,10 +10706,10 @@ TESTCASES_TUPLEPARSE_XML = [
             '</IPARAMVALUE></IMETHODCALL>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
     (
-        "IMETHODCALLError, no Namespace",
+        "IMETHODCALL Error, no Namespace",
         dict(
             xml_str=''
             '<IMETHODCALL NAME="GetClass">'
@@ -10378,12 +10724,26 @@ TESTCASES_TUPLEPARSE_XML = [
             '</IPARAMVALUE></IMETHODCALL>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
 
-    # IPARAMVALUE tests
+    # IMETHODRESPONSE tests:
+    #
+    #   <!ELEMENT IMETHODRESPONSE (ERROR | (IRETURNVALUE?, PARAMVALUE*))>
+    #   <!ATTLIST IMETHODRESPONSE
+    #       %CIMName;>
+    # TODO: Add IMETHODRESPONSE tests
+
+    # IPARAMVALUE tests:
+    #
+    #   <!ELEMENT IPARAMVALUE (VALUE | VALUE.ARRAY | VALUE.REFERENCE |
+    #                         INSTANCENAME | CLASSNAME |
+    #                         QUALIFIER.DECLARATION |
+    #                         CLASS | INSTANCE | VALUE.NAMEDINSTANCE)?>
+    #   <!ATTLIST IPARAMVALUE
+    #       %CIMName;>
     (
-        "IPARAM Boolean value, localonly False ",
+        "IPARAMVALUE Boolean value, localonly False ",
         dict(
             xml_str=''
             '<IPARAMVALUE NAME="LocalOnly">'
@@ -10394,7 +10754,7 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
     (
-        "IPARAM Boolean value localonly True ",
+        "IPARAMVALUE Boolean value localonly True ",
         dict(
             xml_str=''
             '<IPARAMVALUE NAME="LocalOnly">'
@@ -10416,7 +10776,7 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
     (
-        "IPARAM InstanceName value ",
+        "IPARAMVALUE InstanceName value ",
         dict(
             xml_str=''
             '<IPARAMVALUE NAME="InstanceName">'
@@ -10434,7 +10794,7 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
     (
-        "IPARAM Error, No Name in KEYBINDING ",
+        "IPARAMVALUE Error, No Name in KEYBINDING ",
         dict(
             xml_str=''
             '<IPARAMVALUE NAME="InstanceName">'
@@ -10446,113 +10806,44 @@ TESTCASES_TUPLEPARSE_XML = [
             '</IPARAMVALUE>',
             exp_result=None,
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
-    # TODO. Cover other Elements including: 'VALUE.REFERENCE',
-    #       'CLASSNAME','QUALIFIER.DECLARATION', 'CLASS',
-    #       'INSTANCE', 'VALUE.NAMEDINSTANCE'
     (
         "IPARAMVALUE Error No Name",
         dict(
             xml_str=''
-            '<IPARAMVALUE">'
+            '<IPARAMVALUE>'
             '<VALUE.ARRAY><VALUE>1</VALUE><VALUE>2</VALUE>'
             '</VALUE.ARRAY></IPARAMVALUE>',
             exp_result=(u'ARRAYINT', [u'1', u'2']),
         ),
-        ParseError, None, True
+        CIMXMLParseError, None, True
     ),
+    # TODO: Cover other IPARAMVALUE child elements including:
+    #       'VALUE.REFERENCE', 'CLASSNAME','QUALIFIER.DECLARATION', 'CLASS',
+    #       'INSTANCE', 'VALUE.NAMEDINSTANCE'.
 
-    # METHODCALL tests
-    (
-        "METHODCALL simple test",
-        dict(
-            xml_str=''
-            '<METHODCALL NAME="SendTestIndicationsCount">'
-            '<LOCALCLASSPATH><LOCALNAMESPACEPATH>'
-            '<NAMESPACE NAME="test"/><NAMESPACE NAME="TestProvider"/>'
-            '</LOCALNAMESPACEPATH>'
-            '<CLASSNAME NAME="Test_IndicationProviderClass"/>'
-            '</LOCALCLASSPATH>'
-            '<PARAMVALUE NAME="indicationSendCount" PARAMTYPE="uint32">'
-            '<VALUE>0</VALUE>'
-            '</PARAMVALUE>'
-            '<PARAMVALUE NAME="indicationDropCount" PARAMTYPE="uint32">'
-            '<VALUE>42</VALUE>'
-            '</PARAMVALUE>'
-            '<PARAMVALUE NAME="optionalP1"/>'
-            '</METHODCALL>',
-            exp_result=(u'METHODCALL',
-                        {u'NAME': u'SendTestIndicationsCount'},
-                        CIMClassName(classname='Test_IndicationProviderClass',
-                                     namespace='test/TestProvider', host=None),
-                        [(u'indicationSendCount', u'uint32', u'0'),
-                         (u'indicationDropCount', u'uint32', u'42'),
-                         (u'optionalP1', None, None)]),
-        ),
-        None, None, True
-    ),
-    (
-        "METHODCALL test, error No Name",
-        dict(
-            xml_str=''
-            '<METHODCALL>'
-            '<LOCALCLASSPATH><LOCALNAMESPACEPATH>'
-            '<NAMESPACE NAME="test"/><NAMESPACE NAME="TestProvider"/>'
-            '</LOCALNAMESPACEPATH>'
-            '<CLASSNAME NAME="Test_IndicationProviderClass"/>'
-            '</LOCALCLASSPATH>'
-            '<PARAMVALUE NAME="indicationSendCount" PARAMTYPE="uint32">'
-            '<VALUE>0</VALUE>'
-            '</PARAMVALUE>'
-            '<PARAMVALUE NAME="indicationDropCount" PARAMTYPE="uint32">'
-            '<VALUE>42</VALUE>'
-            '</PARAMVALUE>'
-            '<PARAMVALUE NAME="optionalP1"/>'
-            '</METHODCALL>',
-            exp_result=None,
-        ),
-        ParseError, None, True
-    ),
-    (
-        "METHODCALL Error, No path",
-        dict(
-            xml_str=''
-            '<METHODCALL NAME="SendTestIndicationsCount">'
-            '<PARAMVALUE NAME="indicationSendCount" PARAMTYPE="uint32">'
-            '<VALUE>0</VALUE>'
-            '</PARAMVALUE>'
-            '<PARAMVALUE NAME="indicationDropCount" PARAMTYPE="uint32">'
-            '<VALUE>42</VALUE>'
-            '</PARAMVALUE>'
-            '<PARAMVALUE NAME="optionalP1"/>'
-            '</METHODCALL>',
-            exp_result=None,
-        ),
-        ParseError, None, True
-    ),
-    (
-        "METHODCALL Error, IPARMVALUE in place of PARAMVALUE",
-        dict(
-            xml_str=''
-            '<METHODCALL NAME="SendTestIndicationsCount">'
-            '<LOCALCLASSPATH><LOCALNAMESPACEPATH>'
-            '<NAMESPACE NAME="test"/><NAMESPACE NAME="TestProvider"/>'
-            '</LOCALNAMESPACEPATH>'
-            '<CLASSNAME NAME="Test_IndicationProviderClass"/>'
-            '</LOCALCLASSPATH>'
-            '<IPARAMVALUE NAME="indicationSendCount" PARAMTYPE="uint32">'
-            '<VALUE>0</VALUE>'
-            '</IPARAMVALUE>'
-            '<PARAMVALUE NAME="indicationDropCount" PARAMTYPE="uint32">'
-            '<VALUE>42</VALUE>'
-            '</PARAMVALUE>'
-            '<PARAMVALUE NAME="optionalP1"/>'
-            '</METHODCALL>',
-            exp_result=None,
-        ),
-        ParseError, None, True
-    ),
+    # IRETURNVALUE tests:
+    #
+    #   <!ELEMENT IRETURNVALUE (CLASSNAME* | INSTANCENAME* | VALUE* |
+    #                           VALUE.OBJECTWITHPATH* |
+    #                           VALUE.OBJECTWITHLOCALPATH* |
+    #                           VALUE.OBJECT* | OBJECTPATH* |
+    #                           QUALIFIER.DECLARATION* | VALUE.ARRAY? |
+    #                           VALUE.REFERENCE? | CLASS* | INSTANCE* |
+    #                           INSTANCEPATH* | VALUE.NAMEDINSTANCE* |
+    #                           VALUE.INSTANCEWITHPATH*)>
+    # TODO: Add IRETURNVALUE tests
+
+    # ERROR tests:
+    #
+    #   <!ELEMENT ERROR (INSTANCE*)>
+    #   <!ATTLIST ERROR
+    #       CODE CDATA #REQUIRED
+    #       DESCRIPTION CDATA #IMPLIED>
+    # TODO: Add ERROR tests
+
+    # CORRELATOR tests: Parsing this element is not implemented
 ]
 
 
