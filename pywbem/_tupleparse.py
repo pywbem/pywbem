@@ -376,11 +376,11 @@ class TupleParser(object):
 
     def notimplemented(self, tup_tree):
         """
-        Raise exception for not implemented function.
+        Raise exception for not implemented CIM-XML element.
         """
         raise CIMXMLParseError(
-            _format("Internal Error: Parsing support for element {0!A} is "
-                    "not implemented", name(tup_tree)),
+            _format("Internal Error: Parsing support for CIM-XML element "
+                    "{0!A} is not implemented in pywbem", name(tup_tree)),
             conn_id=self.conn_id)
 
     #
@@ -422,7 +422,7 @@ class TupleParser(object):
             <!ELEMENT DECLARATION ( DECLGROUP | DECLGROUP.WITHNAME |
                                     DECLGROUP.WITHPATH )+>
 
-        Note: We only support the DECLGROUP child, at this point.
+        Note: Pywbem only supports the DECLGROUP child, at this point.
         """
 
         self.check_node(tup_tree, 'DECLARATION')
@@ -438,7 +438,7 @@ class TupleParser(object):
             <!ELEMENT DECLGROUP ( (LOCALNAMESPACEPATH|NAMESPACEPATH)?,
                                   QUALIFIER.DECLARATION*, VALUE.OBJECT* )>
 
-        Note: We only support the QUALIFIER.DECLARATION and VALUE.OBJECT
+        Note: Pywbem only supports the QUALIFIER.DECLARATION and VALUE.OBJECT
               children, and with a multiplicity of 1, at this point.
         """
 
@@ -448,6 +448,24 @@ class TupleParser(object):
                                ('QUALIFIER.DECLARATION', 'VALUE.OBJECT'))
 
         return name(tup_tree), attrs(tup_tree), child
+
+    def parse_declgroup_withname(self, tup_tree):  # not implemented
+        """
+        Parsing support for the DECLGROUP.WITHNAME element is not implemented
+        in pywbem at this point.
+
+        This is a limitation of pywbem.
+        """
+        self.notimplemented(tup_tree)
+
+    def parse_declgroup_withpath(self, tup_tree):  # not implemented
+        """
+        Parsing support for the DECLGROUP.WITHPATH element is not implemented
+        in pywbem at this point.
+
+        This is a limitation of pywbem.
+        """
+        self.notimplemented(tup_tree)
 
     #
     # Object value elements
@@ -1815,27 +1833,28 @@ class TupleParser(object):
 
         return name(tup_tree), attrs(tup_tree), child
 
-    def parse_multireq(self, tup_tree):
-        # pylint: disable=unused-argument
+    def parse_multireq(self, tup_tree):  # not implemented
         """
-        Not Implemented. Because this request is generally not implemented
-        by platforms, It will probably never be implemented.
-        """
-        raise CIMXMLParseError(
-            _format("Internal Error: Parsing support for element {0!A} is not "
-                    "implemented", name(tup_tree)),
-            conn_id=self.conn_id)
+        Parsing support for the MULTIREQ element is not implemented
+        in pywbem, because that element is only sent from WBEM clients to
+        WBEM servers and thus only needs to be parsed in WBEM servers.
 
-    def parse_multiexpreq(self, tup_tree):
-        # pylint: disable=unused-argument
+        This is no limitation of pywbem, because pywbem only supports WBEM
+        client and listener functionality.
         """
-        Not Implemented. Because this request is generally not implemented
-        by platforms, It will probably never be implemented.
+        self.notimplemented(tup_tree)
+
+    def parse_multiexpreq(self, tup_tree):  # not implemented
         """
-        raise CIMXMLParseError(
-            _format("Internal Error: Parsing support for element {0!A} is not "
-                    "implemented", name(tup_tree)),
-            conn_id=self.conn_id)
+        Parsing support for the MULTIEXPREQ element is not implemented
+        in pywbem, because multi export requests are generally not implemented
+        by WBEM servers.
+
+        This is a limitation in the listener support of pywbem because if a
+        WBEM server implements support for and uses a multi export request,
+        the pywbem listener will fail.
+        """
+        self.notimplemented(tup_tree)
 
     def parse_simpleexpreq(self, tup_tree):
         """
@@ -1930,27 +1949,28 @@ class TupleParser(object):
         _name = attrs(tup_tree)['NAME']
         return _name, child
 
-    def parse_multirsp(self, tup_tree):
-        # pylint: disable=unused-argument
+    def parse_multirsp(self, tup_tree):  # not implemented
         """
-        This function not implemented. Because this request is generally not
-        implemented. It will probably never be implemented.
-        """
-        raise CIMXMLParseError(
-            _format("Internal Error: Parsing support for element {0!A} is not "
-                    "implemented", name(tup_tree)),
-            conn_id=self.conn_id)
+        Parsing support for the MULTIRSP element is not implemented
+        in pywbem, because multi requests are generally not implemented by
+        WBEM servers.
 
-    def parse_multiexprsp(self, tup_tree):
-        # pylint: disable=unused-argument
+        This is no limitation of pywbem, because the pywbem client does not
+        send multi requests, so a WBEM server will never respond with a multi
+        response, even if it implements support for it.
         """
-        This function not implemented. Because this request is generally not
-        implemented. It will probably never be implemented.
+        self.notimplemented(tup_tree)
+
+    def parse_multiexprsp(self, tup_tree):  # not implemented
         """
-        raise CIMXMLParseError(
-            _format("Internal Error: Parsing support for element {0!A} is not "
-                    "implemented", name(tup_tree)),
-            conn_id=self.conn_id)
+        Parsing support for the MULTIEXPRSP element is not implemented
+        in pywbem, because that element is only sent from WBEM listeners to
+        WBEM servers and thus only needs to be parsed in WBEM servers.
+
+        This is no limitation of pywbem, because pywbem only supports WBEM
+        client and listener functionality.
+        """
+        self.notimplemented(tup_tree)
 
     def parse_simplersp(self, tup_tree):
         """
@@ -1967,17 +1987,17 @@ class TupleParser(object):
 
         return name(tup_tree), attrs(tup_tree), child
 
-    def parse_simpleexprsp(self, tup_tree):
-        # pylint: disable=unused-argument
+    def parse_simpleexprsp(self, tup_tree):  # not implemented
         """
-        This Function not implemented. This response is for export senders
-        (indication senders) so it is not implemented in the pywbem
-        client.
+        Parsing support for the SIMPLEEXPRSP element is not implemented
+        in pywbem, because that element is only used in export responses.
+        Export responses are only sent by WBEM listeners and thus only need to
+        be parsed in WBEM servers.
+
+        This is no limitation of pywbem, because pywbem only supports WBEM
+        client and listener functionality.
         """
-        raise CIMXMLParseError(
-            _format("Internal Error: Parsing support for element {0!A} is not "
-                    "implemented", name(tup_tree)),
-            conn_id=self.conn_id)
+        self.notimplemented(tup_tree)
 
     def parse_methodresponse(self, tup_tree):
         """
@@ -1997,15 +2017,17 @@ class TupleParser(object):
                 self.list_of_various(tup_tree,
                                      ('ERROR', 'RETURNVALUE', 'PARAMVALUE')))
 
-    def parse_expmethodresponse(self, tup_tree):
-        # pylint: disable=unused-argument
+    def parse_expmethodresponse(self, tup_tree):  # not implemented
         """
-        This function not implemented.
+        Parsing support for the EXPMETHODRESPONSE element is not implemented
+        in pywbem, because that element is only used in export responses.
+        Export responses are only sent by WBEM listeners and thus only need to
+        be parsed in WBEM servers.
+
+        This is no limitation of pywbem, because pywbem only supports WBEM
+        client and listener functionality.
         """
-        raise CIMXMLParseError(
-            _format("Internal Error: Parsing support for element {0!A} is not "
-                    "implemented", name(tup_tree)),
-            conn_id=self.conn_id)
+        self.notimplemented(tup_tree)
 
     def parse_imethodresponse(self, tup_tree):
         """
@@ -2023,6 +2045,15 @@ class TupleParser(object):
         return (name(tup_tree), attrs(tup_tree),
                 self.list_of_various(tup_tree,
                                      ('ERROR', 'IRETURNVALUE', 'PARAMVALUE')))
+
+    def parse_correlator(self, tup_tree):  # not implemented
+        """
+        Parsing support for the CORRELATOR element is not implemented
+        in pywbem, because it is generally not implemented by WBEM servers.
+
+        This is a limitation of pywbem.
+        """
+        self.notimplemented(tup_tree)
 
     def parse_error(self, tup_tree):
         """
@@ -2115,11 +2146,16 @@ class TupleParser(object):
 
     #
     #  The following parse functions are particular to a server and are not
-    #  used by pywbem client.
+    #  used by the pywbem client or listener.
     #
 
     def parse_simplereq(self, tup_tree):
         """
+        Parsing support for the SIMPLEREQ element is only needed
+        in a WBEM server. Pywbem only needs to support parsing for WBEM client
+        and WBEM listener functionality, but this function has not been removed
+        at this point.
+
          ::
 
             <!ELEMENT SIMPLEREQ (IMETHODCALL | METHODCALL)>
@@ -2133,6 +2169,11 @@ class TupleParser(object):
 
     def parse_imethodcall(self, tup_tree):
         """
+        Parsing support for the IMETHODCALL element is only needed
+        in a WBEM server. Pywbem only needs to support parsing for WBEM client
+        and WBEM listener functionality, but this function has not been removed
+        at this point.
+
           ::
 
             <!ELEMENT IMETHODCALL (LOCALNAMESPACEPATH, IPARAMVALUE*)>
@@ -2159,6 +2200,11 @@ class TupleParser(object):
 
     def parse_methodcall(self, tup_tree):
         """
+        Parsing support for the METHODCALL element is only needed
+        in a WBEM server. Pywbem only needs to support parsing for WBEM client
+        and WBEM listener functionality, but this function has not been removed
+        at this point.
+
           ::
 
             <!ELEMENT METHODCALL ((LOCALCLASSPATH | LOCALINSTANCEPATH),
@@ -2190,7 +2236,10 @@ class TupleParser(object):
 
     def parse_iparamvalue(self, tup_tree):
         """
-        Parse expected IPARAMVALUE element. I.e.
+        Parsing support for the IPARAMVALUE element is only needed
+        in a WBEM server. Pywbem only needs to support parsing for WBEM client
+        and WBEM listener functionality, but this function has not been removed
+        at this point.
 
           ::
 
@@ -2245,7 +2294,7 @@ class TupleParser(object):
             func = getattr(self, funcname)
         except AttributeError:
             new_exc = CIMXMLParseError(
-                _format("Invalid element {0!A}", name(tup_tree)),
+                _format("Invalid element for CIM-XML: {0!A}", name(tup_tree)),
                 conn_id=self.conn_id)
             new_exc.__cause__ = None
             raise new_exc
