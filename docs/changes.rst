@@ -44,6 +44,19 @@ Released: not yet
   change because users were already potentially getting pywbem.CIMXMLParseError
   exceptions in other cases. (see issue #2512)
 
+* Test: Added CIM-XML testcases in the area of instance paths. (see issue #2514)
+
+* Docs: Clarified that `pywbem.type_from_name()` returns `CIMInstanceName` for
+  type name "reference", even though for use in CIM method parameters,
+  `CIMClassName` is also valid.
+
+* Issued a new `pywbem.MissingKeybindingsWarning` warning if a `CIMInstanceName`
+  object that does not have any keybindings gets converted to CIM-XML by calling
+  its `tocimxml()` method, or gets converted to a WBEM URI by calling its
+  `to_wbem_uri()` method, or gets parsed from CIM-XML via an INSTANCENAME
+  element without keybindings. This is motivated by the fact that DSP0004 does
+  not allow instance paths without keys (section 8.2.5). (See issue #2514)
+
 **Cleanup:**
 
 * Test: Fixed all remaining ResourceWarnings during test. (issue #86)
