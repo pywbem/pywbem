@@ -28,7 +28,7 @@ from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
     CIMQualifierDeclaration, Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, \
     Sint32, Sint64, Real32, Real64, Char16, CIMDateTime, \
-    MinutesFromUTC, __version__  # noqa: E402
+    MinutesFromUTC, __version__, MissingKeybindingsWarning  # noqa: E402
 from pywbem._nocasedict import NocaseDict  # noqa: E402
 from pywbem._cim_types import _Longint  # noqa: E402
 from pywbem._cim_obj import mofstr  # noqa: E402
@@ -860,6 +860,32 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 keybindings=NocaseDict(K1=TIMEDELTA1_OBJ)),
         ),
         None, None, True
+    ),
+    (
+        "Verify keybinding with reference to instance",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
+                classname='CIM_Foo',
+                keybindings=dict(K1=CIMINSTANCENAME_C1_OBJ)),
+            exp_attrs=dict(
+                classname=u'CIM_Foo',
+                keybindings=NocaseDict(K1=CIMINSTANCENAME_C1_OBJ)),
+        ),
+        None, None, True
+    ),
+    (
+        "Verify keybinding with reference to class (fails)",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
+                classname='CIM_Foo',
+                keybindings=dict(K1=CIMCLASSNAME_C1_OBJ)),
+            exp_attrs=dict(
+                classname=u'CIM_Foo',
+                keybindings=NocaseDict(K1=CIMCLASSNAME_C1_OBJ)),
+        ),
+        TypeError, None, True
     ),
     (
         "Verify keybinding with CIMProperty (of arbitrary type and value)",
@@ -2304,7 +2330,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
             )
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "Classname only, with specified default args",
@@ -2318,7 +2344,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
             )
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "Classname only, with non-default args: ignore_host=True",
@@ -2331,7 +2357,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
             )
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "Classname only, with non-default args: ignore_namespace=True",
@@ -2344,7 +2370,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
             )
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
 
     # Classname with one keybinding tests
@@ -2622,7 +2648,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 '</INSTANCENAME>',
             )
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True  # for the inner ref
     ),
     (
         "Classname with one keybinding with value of Char16 with unicode value",
@@ -2914,7 +2940,8 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
         None, None, True
     ),
     (
-        "Classname with one keybinding with value of CIMInstanceName",
+        "Classname with one keybinding with value of CIMInstanceName without "
+        "host/namespace",
         dict(
             obj=CIMInstanceName(
                 'CIM_Foo',
@@ -2931,7 +2958,65 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 '</INSTANCENAME>',
             )
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True  # for the inner ref
+    ),
+    (
+        "Classname with one keybinding with value of CIMInstanceName without "
+        "host but with namespace",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                {'Cheepy': CIMInstanceName('CIM_Ref', namespace='root/cimv2')}
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<VALUE.REFERENCE>',
+                '<LOCALINSTANCEPATH>',
+                '<LOCALNAMESPACEPATH>',
+                '<NAMESPACE NAME="root"/>',
+                '<NAMESPACE NAME="cimv2"/>',
+                '</LOCALNAMESPACEPATH>',
+                '<INSTANCENAME CLASSNAME="CIM_Ref"/>',
+                '</LOCALINSTANCEPATH>',
+                '</VALUE.REFERENCE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, MissingKeybindingsWarning, True  # for the inner ref
+    ),
+    (
+        "Classname with one keybinding with value of CIMInstanceName with "
+        "host and namespace",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                {'Cheepy': CIMInstanceName('CIM_Ref', namespace='root/cimv2',
+                                           host='woot')}
+            ),
+            kwargs=dict(),
+            exp_xml_str=(
+                '<INSTANCENAME CLASSNAME="CIM_Foo">',
+                '<KEYBINDING NAME="Cheepy">',
+                '<VALUE.REFERENCE>',
+                '<INSTANCEPATH>',
+                '<NAMESPACEPATH>',
+                '<HOST>woot</HOST>',
+                '<LOCALNAMESPACEPATH>',
+                '<NAMESPACE NAME="root"/>',
+                '<NAMESPACE NAME="cimv2"/>',
+                '</LOCALNAMESPACEPATH>',
+                '</NAMESPACEPATH>',
+                '<INSTANCENAME CLASSNAME="CIM_Ref"/>',
+                '</INSTANCEPATH>',
+                '</VALUE.REFERENCE>',
+                '</KEYBINDING>',
+                '</INSTANCENAME>',
+            )
+        ),
+        None, MissingKeybindingsWarning, True  # for the inner ref
     ),
     (
         "Classname with one keybinding, with implied default args",
@@ -3034,7 +3119,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 '</INSTANCENAME>',
             )
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True  # for the inner ref
     ),
     (
         "Classname with mult. keybindings, with specified default args",
@@ -3071,7 +3156,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 '</INSTANCENAME>',
             )
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True  # for the inner ref
     ),
     (
         "Classname with mult. keybindings, with non-default: ignore_host=True",
@@ -3107,7 +3192,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 '</INSTANCENAME>',
             )
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True  # for the inner ref
     ),
     (
         "Classname with mult. keybindings, with non-def: ignore_namespace=True",
@@ -3143,7 +3228,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 '</INSTANCENAME>',
             )
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True  # for the inner ref
     ),
 
     # Classname with namespace tests
@@ -3165,7 +3250,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 '</LOCALINSTANCEPATH>',
             )
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "Classname with namespace, with specified default args",
@@ -3188,7 +3273,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 '</LOCALINSTANCEPATH>',
             )
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "Classname with namespace, with non-default: ignore_host=True",
@@ -3210,7 +3295,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 '</LOCALINSTANCEPATH>',
             )
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "Classname with namespace, with non-def: ignore_namespace=True",
@@ -3226,7 +3311,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
             )
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
 
     # Classname with namespace+host tests
@@ -3252,7 +3337,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 '</INSTANCEPATH>',
             )
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "Classname with namespace+host, with specified default args",
@@ -3279,7 +3364,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 '</INSTANCEPATH>',
             )
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "Classname with namespace+host, with non-default: ignore_host=True",
@@ -3302,7 +3387,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 '</LOCALINSTANCEPATH>',
             )
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "Classname with namespace+host, with non-def: ignore_namespace=True",
@@ -3319,7 +3404,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
             )
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
 
     # Tests with invalid keybinding values
@@ -4168,7 +4253,8 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         None, UserWarning, True
     ),
     (
-        "reference key that has an int key (normal association)",
+        "reference key that references an instance that has an int key "
+        "(normal association)",
         dict(
             uri='/n1:C1.k1="/n2:C2.k2=1"',
             exp_attrs=dict(
@@ -4187,7 +4273,8 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         None, None, True
     ),
     (
-        "reference key that has a string key (normal association)",
+        "reference key that references an instance that has a string key "
+        "(normal association)",
         dict(
             uri=r'/n1:C1.k1="/n2:C2.k2=\"v2\""',
             exp_attrs=dict(
@@ -4199,6 +4286,42 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                             ('k2', 'v2'),
                         ]),
                         namespace='n2')),
+                ]),
+                namespace=u'n1',
+                host=None),
+        ),
+        None, None, True
+    ),
+    (
+        "reference key that references an instance that has no keys "
+        "(with dot)",
+        # Pywbem interprets the key value as a string typed value, because it
+        # does not match the format of a WBEM URI which requires at least one
+        # key-value pair.
+        dict(
+            uri=r'/n1:C1.k1="/n2:C2."',
+            exp_attrs=dict(
+                classname=u'C1',
+                keybindings=NocaseDict([
+                    ('k1', '/n2:C2.'),
+                ]),
+                namespace=u'n1',
+                host=None),
+        ),
+        None, None, True
+    ),
+    (
+        "reference key that references an instance that has no keys "
+        "(without dot)",
+        # Pywbem interprets the key value as a string typed value, because it
+        # does not match the format of a WBEM URI which requires at least one
+        # key-value pair.
+        dict(
+            uri=r'/n1:C1.k1="/n2:C2"',
+            exp_attrs=dict(
+                classname=u'C1',
+                keybindings=NocaseDict([
+                    ('k1', '/n2:C2'),
                 ]),
                 namespace=u'n1',
                 host=None),
@@ -5365,6 +5488,26 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         None, None, True
     ),
     (
+        "reference key to instance that has no keys",
+        dict(
+            obj=CIMInstanceName(
+                classname=u'C1',
+                keybindings=[
+                    ('k1', CIMInstanceName(
+                        classname='C2',
+                        keybindings=[],
+                        namespace='n2')),
+                ],
+                namespace=u'n1',
+                host=None),
+            kwargs=dict(
+                format='standard',
+            ),
+            exp_uri=r'/n1:C1.k1="/n2:C2"',
+        ),
+        None, MissingKeybindingsWarning, True
+    ),
+    (
         "double nested reference to int key (association to association)",
         dict(
             obj=CIMInstanceName(
@@ -5418,6 +5561,21 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
             exp_uri=r'/n1:C1.k1="/n2:C2.k2=\"/n3:C3.k3=\\\"v3\\\"\""',
         ),
         None, None, True
+    ),
+    (
+        "Just classname, no namespace, host, or keys",
+        dict(
+            obj=CIMInstanceName(
+                classname=u'C1',
+                keybindings=[],
+                namespace=None,
+                host=None),
+            kwargs=dict(
+                format='standard',
+            ),
+            exp_uri=r'/:C1',
+        ),
+        None, MissingKeybindingsWarning, True
     ),
 ]
 
@@ -7996,7 +8154,7 @@ TESTCASES_CIMINSTANCE_TOCIMXML = [
                 '</VALUE.NAMEDINSTANCE>',
             )
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "Path with classname-only, specified default args",
@@ -8015,7 +8173,7 @@ TESTCASES_CIMINSTANCE_TOCIMXML = [
                 '</VALUE.NAMEDINSTANCE>',
             )
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "Path with classname-only, non-default args ignore_path=True",
@@ -8053,7 +8211,7 @@ TESTCASES_CIMINSTANCE_TOCIMXML = [
                 '</VALUE.OBJECTWITHLOCALPATH>',
             )
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "Path with namespace, specified default args",
@@ -8077,7 +8235,7 @@ TESTCASES_CIMINSTANCE_TOCIMXML = [
                 '</VALUE.OBJECTWITHLOCALPATH>',
             )
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "Path with namespace, non-default args ignore_path=True",
@@ -8118,7 +8276,7 @@ TESTCASES_CIMINSTANCE_TOCIMXML = [
                 '</VALUE.INSTANCEWITHPATH>',
             )
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "Path with namespace+host, specified default args",
@@ -8145,7 +8303,7 @@ TESTCASES_CIMINSTANCE_TOCIMXML = [
                 '</VALUE.INSTANCEWITHPATH>',
             )
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "Path with namespace+host, non-default args ignore_path=True",
@@ -15811,7 +15969,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 '</PROPERTY.REFERENCE>',
             )
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
 
     # Array properties with boolean type
@@ -34567,7 +34725,7 @@ TESTCASES_CIMPARAMETER_TOCIMXML = [
                 '</PARAMVALUE>',
             )
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
 
     # Scalar parameters with embedded object type
@@ -36327,7 +36485,7 @@ TESTCASES_CIMPARAMETER_TOCIMXML = [
                 '</PARAMVALUE>',
             )
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
 
     # Array parameters with embedded object type
