@@ -14,7 +14,7 @@ from ..utils.pytest_extensions import simplified_test_function
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
 pywbem = import_installed('pywbem')
-from pywbem import _cim_http  # noqa: E402
+from pywbem import _cim_http, MissingKeybindingsWarning  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
@@ -895,7 +895,7 @@ TESTCASES_GET_CIMOBJECT_HEADER = [
             obj=pywbem.CIMInstanceName('C1'),
             exp_result=':C1',
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "Input object is CIMInstanceName with namespace and no keys",
@@ -903,7 +903,7 @@ TESTCASES_GET_CIMOBJECT_HEADER = [
             obj=pywbem.CIMInstanceName('C1', namespace='ns'),
             exp_result='ns:C1',
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "Input object is CIMInstanceName with namespace and one key",

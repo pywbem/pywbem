@@ -268,6 +268,7 @@ from ._utils import _ensure_unicode, _ensure_bool, \
     _hash_name, _hash_item, _hash_dict, _format, _integerValue_to_int, \
     _realValue_to_float, _to_unicode, _eq_name, _eq_item, _eq_dict, \
     _stacklevel_above_module
+from ._warnings import MissingKeybindingsWarning
 
 
 __all__ = ['CIMClassName', 'CIMProperty', 'CIMInstanceName', 'CIMInstance',
@@ -1670,6 +1671,10 @@ class CIMInstanceName(_CIMComparisonMixin):
         The order of keybindings in the returned CIM-XML representation is
         preserved from the :class:`~pywbem.CIMInstanceName` object.
 
+        :class:`~pywbem.CIMInstanceName` objects without keybindings cause
+        a UserWarning to be issued, because this is invalid according to
+        :term:`DSP0004` (section 7.7.5).
+
         Parameters:
 
           ignore_host (:class:`py:bool`): Ignore the host of the
@@ -1746,6 +1751,14 @@ class CIMInstanceName(_CIMComparisonMixin):
 
             kbs.append(_cim_xml.KEYBINDING(
                 key, _cim_xml.KEYVALUE(value, value_type, cim_type)))
+
+        if not kbs:
+            warnings.warn(
+                _format(
+                    "Instance path without keybindings encountered for "
+                    "classname {0!A} when converting to CIM-XML - this not "
+                    "permitted according to DSP0004", self.classname),
+                MissingKeybindingsWarning, _stacklevel_above_module('pywbem'))
 
         instancename_xml = _cim_xml.INSTANCENAME(self.classname, kbs)
 
@@ -2169,6 +2182,14 @@ class CIMInstanceName(_CIMComparisonMixin):
         if format not in ('standard', 'canonical', 'cimobject', 'historical'):
             raise ValueError(
                 _format("Invalid format argument: {0}", format))
+
+        if not self.keybindings:
+            warnings.warn(
+                _format(
+                    "Instance path without keybindings encountered for "
+                    "classname {0!A} when converting to WBEM URI - this not "
+                    "permitted according to DSP0004", self.classname),
+                MissingKeybindingsWarning, _stacklevel_above_module('pywbem'))
 
         if self.host is not None and format != 'cimobject':
             # The CIMObject format assumes there is no host component
