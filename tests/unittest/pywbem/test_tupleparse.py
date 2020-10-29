@@ -5,6 +5,7 @@ Test CIM-XML parsing routines in _tupleparse.py.
 from __future__ import absolute_import
 
 import pytest
+from packaging.version import parse as parse_version
 
 from ..utils.pytest_extensions import simplified_test_function
 
@@ -16,8 +17,19 @@ from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
     CIMQualifierDeclaration, \
     CIMDateTime, Uint8, Sint8, Uint16, Sint16, Uint32, Sint32, Uint64, Sint64, \
-    Real32, Real64, ParseError, ToleratedServerIssueWarning  # noqa: E402
+    Real32, Real64, ParseError, ToleratedServerIssueWarning, \
+    __version__, MissingKeybindingsWarning, CIMXMLParseError  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
+
+# Tuple with pywbem version info (M, N, P), without any dev version.
+# Can be used in testcase conditions for version specific tests.
+# Note for dev versions (e.g. '0.15.0.dev12'):
+# - Before 0.15.0, dev versions of an upcoming version always showed
+#   the next patch version, which was not always the intended next version.
+# - Starting with 0.15.0, dev versions of an upcoming version always show the
+#   intended next version.
+# pylint: disable=invalid-name
+version_info = parse_version(__version__).release
 
 
 def qualifier_default_attrs(**overriding_attrs):
@@ -74,7 +86,7 @@ TESTCASES_TUPLEPARSE_ROUNDTRIP = [
         dict(
             obj=CIMInstanceName('CIM_Foo'),
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "CIMInstanceName with two string keybindings",
@@ -91,20 +103,22 @@ TESTCASES_TUPLEPARSE_ROUNDTRIP = [
         dict(
             obj=CIMInstanceName(
                 'CIM_Foo',
-                [('Name', 'Foo'),
-                 ('Number', Uint8(42)),
-                 ('Boolean', False),
-                 ('Ref', CIMInstanceName('CIM_Bar'))],
+                keybindings=[
+                    ('Name', 'Foo'),
+                    ('Number', Uint8(42)),
+                    ('Boolean', False),
+                    ('Ref', CIMInstanceName('CIM_Bar')),
+                ],
             ),
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True  # for the inner ref
     ),
     (
         "CIMInstanceName with keybindings and namespace",
         dict(
             obj=CIMInstanceName(
                 'CIM_Foo',
-                [('Name', 'Foo')],
+                keybindings=[('Name', 'Foo')],
                 namespace='root/cimv2',
             ),
         ),
@@ -115,12 +129,48 @@ TESTCASES_TUPLEPARSE_ROUNDTRIP = [
         dict(
             obj=CIMInstanceName(
                 'CIM_Foo',
-                [('Name', 'Foo')],
+                keybindings=[('Name', 'Foo')],
                 host='woot.com',
                 namespace='root/cimv2',
             ),
         ),
         None, None, True
+    ),
+    (
+        "CIMInstanceName with keybinding that is a reference to an instance "
+        "with a string key",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                keybindings=[
+                    ('Ref', CIMInstanceName(
+                        'CIM_Bar',
+                        keybindings=[('Name', 'Foo')],
+                    )),
+                ],
+                host='woot.com',
+                namespace='root/cimv2',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "CIMInstanceName with keybinding that is a reference to an instance "
+        "without keys",
+        dict(
+            obj=CIMInstanceName(
+                'CIM_Foo',
+                keybindings=[
+                    ('Ref', CIMInstanceName(
+                        'CIM_Bar',
+                        keybindings=[],
+                    )),
+                ],
+                host='woot.com',
+                namespace='root/cimv2',
+            ),
+        ),
+        None, MissingKeybindingsWarning, True  # for the inner ref
     ),
 
     # CIMInstance tests
@@ -148,7 +198,7 @@ TESTCASES_TUPLEPARSE_ROUNDTRIP = [
                 ],
             ),
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "CIMInstance with path",
@@ -342,7 +392,7 @@ TESTCASES_TUPLEPARSE_ROUNDTRIP = [
                 propagated=False,
             ),
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "CIMProperty with reference typed value and qualifiers",
@@ -357,7 +407,7 @@ TESTCASES_TUPLEPARSE_ROUNDTRIP = [
                 ]
             ),
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
 
     # EmbeddedObject properties
@@ -2055,7 +2105,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</KEYBINDING>',
             exp_result={u'Foo': CIMInstanceName('CIM_Foo')},
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
 
     # VALUE tests
@@ -2328,7 +2378,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.REFERENCE>',
             exp_result=CIMInstanceName('CIM_Foo'),
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "VALUE.REFERENCE with ref value that is a LOCALINSTANCEPATH",
@@ -2344,7 +2394,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.REFERENCE>',
             exp_result=CIMInstanceName('CIM_Foo', namespace='foo'),
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "VALUE.REFERENCE with ref value that is a INSTANCEPATH",
@@ -2365,7 +2415,7 @@ TESTCASES_TUPLEPARSE_XML = [
                 'CIM_Foo', namespace='foo', host='woot.com',
             ),
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "VALUE.REFERENCE with ref value that is a CLASSNAME",
@@ -2481,7 +2531,7 @@ TESTCASES_TUPLEPARSE_XML = [
                 CIMInstanceName('CIM_Foo'),
             ],
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "VALUE.REFARRAY with two items",
@@ -2500,7 +2550,7 @@ TESTCASES_TUPLEPARSE_XML = [
                 CIMInstanceName('CIM_Bar'),
             ],
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "VALUE.REFARRAY with one VALUE.NULL item",
@@ -2530,7 +2580,7 @@ TESTCASES_TUPLEPARSE_XML = [
                 CIMInstanceName('CIM_Foo'),
             ],
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "VALUE.REFARRAY with VALUE.NULL, reference, VALUE.NULL items",
@@ -2549,7 +2599,7 @@ TESTCASES_TUPLEPARSE_XML = [
                 None,
             ],
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
 
     # VALUE.NULL tests
@@ -4194,7 +4244,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
             exp_result=CIMInstanceName('CIM_Foo'),
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "INSTANCENAME with CLASSNAME using non-ASCII UCS-2 characters",
@@ -4203,7 +4253,7 @@ TESTCASES_TUPLEPARSE_XML = [
             b'<INSTANCENAME CLASSNAME="CIM_Foo\xC3\xA9"/>',
             exp_result=CIMInstanceName(u'CIM_Foo\u00E9'),
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "INSTANCENAME with CLASSNAME using non-UCS-2 characters",
@@ -4212,7 +4262,7 @@ TESTCASES_TUPLEPARSE_XML = [
             b'<INSTANCENAME CLASSNAME="CIM_Foo\xF0\x90\x85\x82"/>',
             exp_result=CIMInstanceName(u'CIM_Foo\U00010142'),
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "INSTANCENAME with KEYBINDING for two string keys",
@@ -4261,7 +4311,171 @@ TESTCASES_TUPLEPARSE_XML = [
                  ('Ref', CIMInstanceName('CIM_Bar'))],
             ),
         ),
+        None, MissingKeybindingsWarning, True
+    ),
+    (
+        "INSTANCENAME with KEYBINDING for INSTANCEPATH",
+        dict(
+            xml_str=''
+            '<INSTANCENAME CLASSNAME="CIM_Foo">'
+            '  <KEYBINDING NAME="Ref">'
+            '    <VALUE.REFERENCE>'
+            '      <INSTANCEPATH>'
+            '        <NAMESPACEPATH>'
+            '          <HOST>woot.com</HOST>'
+            '          <LOCALNAMESPACEPATH>'
+            '            <NAMESPACE NAME="foo"/>'
+            '          </LOCALNAMESPACEPATH>'
+            '        </NAMESPACEPATH>'
+            '        <INSTANCENAME CLASSNAME="CIM_Foo">'
+            '          <KEYBINDING NAME="Name">'
+            '            <KEYVALUE>Foo</KEYVALUE>'
+            '          </KEYBINDING>'
+            '        </INSTANCENAME>'
+            '      </INSTANCEPATH>'
+            '    </VALUE.REFERENCE>'
+            '  </KEYBINDING>'
+            '</INSTANCENAME>',
+            exp_result=CIMInstanceName(
+                'CIM_Foo',
+                keybindings=[
+                    ('Ref', CIMInstanceName(
+                        'CIM_Foo',
+                        keybindings=[('Name', 'Foo')],
+                        namespace='foo',
+                        host='woot.com',
+                    )),
+                ],
+            ),
+        ),
         None, None, True
+    ),
+    (
+        "INSTANCENAME with KEYBINDING for LOCALINSTANCEPATH",
+        dict(
+            xml_str=''
+            '<INSTANCENAME CLASSNAME="CIM_Foo">'
+            '  <KEYBINDING NAME="Ref">'
+            '    <VALUE.REFERENCE>'
+            '      <LOCALINSTANCEPATH>'
+            '        <LOCALNAMESPACEPATH>'
+            '          <NAMESPACE NAME="foo"/>'
+            '        </LOCALNAMESPACEPATH>'
+            '        <INSTANCENAME CLASSNAME="CIM_Foo">'
+            '          <KEYBINDING NAME="Name">'
+            '            <KEYVALUE>Foo</KEYVALUE>'
+            '          </KEYBINDING>'
+            '        </INSTANCENAME>'
+            '      </LOCALINSTANCEPATH>'
+            '    </VALUE.REFERENCE>'
+            '  </KEYBINDING>'
+            '</INSTANCENAME>',
+            exp_result=CIMInstanceName(
+                'CIM_Foo',
+                keybindings=[
+                    ('Ref', CIMInstanceName(
+                        'CIM_Foo',
+                        keybindings=[('Name', 'Foo')],
+                        namespace='foo',
+                    )),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "INSTANCENAME with KEYBINDING for INSTANCENAME",
+        dict(
+            xml_str=''
+            '<INSTANCENAME CLASSNAME="CIM_Foo">'
+            '  <KEYBINDING NAME="Ref">'
+            '    <VALUE.REFERENCE>'
+            '      <INSTANCENAME CLASSNAME="CIM_Foo">'
+            '        <KEYBINDING NAME="Name">'
+            '          <KEYVALUE>Foo</KEYVALUE>'
+            '        </KEYBINDING>'
+            '      </INSTANCENAME>'
+            '    </VALUE.REFERENCE>'
+            '  </KEYBINDING>'
+            '</INSTANCENAME>',
+            exp_result=CIMInstanceName(
+                'CIM_Foo',
+                keybindings=[
+                    ('Ref', CIMInstanceName(
+                        'CIM_Foo',
+                        keybindings=[('Name', 'Foo')],
+                    )),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "INSTANCENAME with KEYBINDING for CLASSPATH (invalid)",
+        # Note: While VALUE.REFERENCE allows for a CLASSPATH child (e.g. for
+        # use in reference-typed method parameters, DSP0004 requires that
+        # reference keys reference only instances (section 7.7.5).
+        dict(
+            xml_str=''
+            '<INSTANCENAME CLASSNAME="CIM_Foo">'
+            '  <KEYBINDING NAME="Ref">'
+            '    <VALUE.REFERENCE>'
+            '      <CLASSPATH>'
+            '        <NAMESPACEPATH>'
+            '          <HOST>woot.com</HOST>'
+            '          <LOCALNAMESPACEPATH>'
+            '            <NAMESPACE NAME="foo"/>'
+            '          </LOCALNAMESPACEPATH>'
+            '        </NAMESPACEPATH>'
+            '        <CLASSNAME NAME="CIM_Foo"/>'
+            '      </CLASSPATH>'
+            '    </VALUE.REFERENCE>'
+            '  </KEYBINDING>'
+            '</INSTANCENAME>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "INSTANCENAME with KEYBINDING for LOCALCLASSPATH (invalid)",
+        # Note: While VALUE.REFERENCE allows for a CLASSPATH child (e.g. for
+        # use in reference-typed method parameters, DSP0004 requires that
+        # reference keys reference only instances (section 7.7.5).
+        dict(
+            xml_str=''
+            '<INSTANCENAME CLASSNAME="CIM_Foo">'
+            '  <KEYBINDING NAME="Ref">'
+            '    <VALUE.REFERENCE>'
+            '      <LOCALCLASSPATH>'
+            '        <LOCALNAMESPACEPATH>'
+            '          <NAMESPACE NAME="foo"/>'
+            '        </LOCALNAMESPACEPATH>'
+            '        <CLASSNAME NAME="CIM_Foo"/>'
+            '      </LOCALCLASSPATH>'
+            '    </VALUE.REFERENCE>'
+            '  </KEYBINDING>'
+            '</INSTANCENAME>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "INSTANCENAME with KEYBINDING for CLASSNAME (invalid)",
+        # Note: While VALUE.REFERENCE allows for a CLASSPATH child (e.g. for
+        # use in reference-typed method parameters, DSP0004 requires that
+        # reference keys reference only instances (section 7.7.5).
+        dict(
+            xml_str=''
+            '<INSTANCENAME CLASSNAME="CIM_Foo">'
+            '  <KEYBINDING NAME="Ref">'
+            '    <VALUE.REFERENCE>'
+            '      <CLASSNAME NAME="CIM_Foo"/>'
+            '    </VALUE.REFERENCE>'
+            '  </KEYBINDING>'
+            '</INSTANCENAME>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
     ),
     (
         "INSTANCENAME with KEYVALUE for one key (unnamed key)",
@@ -4303,7 +4517,24 @@ TESTCASES_TUPLEPARSE_XML = [
                 [(None, CIMInstanceName('CIM_Bar'))],
             ),
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
+    ),
+    (
+        "INSTANCENAME with VALUE.REFERENCE for one reference key that "
+        "references an instance that has one string key",
+        dict(
+            xml_str=''
+            '<INSTANCENAME CLASSNAME="CIM_Foo">'
+            '  <VALUE.REFERENCE>'
+            '    <INSTANCENAME CLASSNAME="CIM_Bar"/>'
+            '  </VALUE.REFERENCE>'
+            '</INSTANCENAME>',
+            exp_result=CIMInstanceName(
+                'CIM_Foo',
+                [(None, CIMInstanceName('CIM_Bar'))],
+            ),
+        ),
+        None, MissingKeybindingsWarning, True
     ),
     (
         "INSTANCENAME with VALUE.REFERENCE for two reference keys (invalid)",
@@ -6526,7 +6757,7 @@ TESTCASES_TUPLEPARSE_XML = [
                 ],
             ),
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "PROPERTY.REFERENCE with missing required attribute NAME",
@@ -6610,7 +6841,7 @@ TESTCASES_TUPLEPARSE_XML = [
                 propagated=False,
             ),
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "PROPERTY.REFERENCE with ref value that is a LOCALINSTANCEPATH",
@@ -6632,7 +6863,7 @@ TESTCASES_TUPLEPARSE_XML = [
                 propagated=False,
             ),
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "PROPERTY.REFERENCE with ref value that is a INSTANCEPATH",
@@ -6659,7 +6890,7 @@ TESTCASES_TUPLEPARSE_XML = [
                 propagated=False,
             ),
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "PROPERTY.REFERENCE with ref value that is a CLASSNAME (not used)",
@@ -6749,7 +6980,7 @@ TESTCASES_TUPLEPARSE_XML = [
                 ]
             ),
         ),
-        None, None, True
+        None, MissingKeybindingsWarning, True
     ),
     (
         "PROPERTY.REFERENCE that is None and with qualifiers",

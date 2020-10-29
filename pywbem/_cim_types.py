@@ -1143,6 +1143,10 @@ def type_from_name(type_name):
       Use `decode()` and `encode()` for strings instead of type conversion
       syntax (in both Python 2 and 3, for consistency).
 
+    * For CIM type "reference", type object :class:`~pywbem.CIMInstanceName`
+      is returned, even though for use in CIM method parameters,
+      :class:`~pywbem.CIMClassName` is also valid.
+
     Parameters:
 
       type_name (:term:`string`):

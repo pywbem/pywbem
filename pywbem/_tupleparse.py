@@ -89,7 +89,7 @@ from ._cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
 from ._cim_types import CIMDateTime, type_from_name
 from ._tupletree import xml_to_tupletree_sax
 from ._exceptions import CIMXMLParseError
-from ._warnings import ToleratedServerIssueWarning
+from ._warnings import ToleratedServerIssueWarning, MissingKeybindingsWarning
 
 
 __all__ = []
@@ -968,14 +968,21 @@ class TupleParser(object):
         k = kids(tup_tree)
         if not k:
             # An instance path without keys.
-            # DSP0004 disallows instances without keys in 8.2.5 "Object Path
-            # for Instance Objects": "Classes that do not expose any keys
-            # cannot have instances that are addressable with an object path
-            # for instances.".
-            # However, the grammar in DSP0201 allows this case.
-            # When receiving CIM-XML, pywbem attempts to be as tolerant as
-            # possible, so this case is tolerated.
-            # The following does not raise any exception:
+            # DSP0004 requires in section 8.2.5 that addressable instances must
+            # have keys, so consequently an instance path must have keybindings.
+            # DSP0201 allows for INSTANCENAME without keys, and states that
+            # would be for "a singleton instance of a keyless class". That is
+            # clearly contradicting DSP0004. Since some WBEM servers have
+            # implemented support for the notion of a keyless instance path,
+            # pywbem supports this as well, returning a CIMInstanceName object
+            # without keybindings, but also issues a warning.
+            warnings.warn(
+                _format(
+                    "WBEM server sent invalid instance path for classname "
+                    "{0!A} without any keys in a CIM-XML response",
+                    classname),
+                MissingKeybindingsWarning,
+                stacklevel=_stacklevel_above_module('pywbem'))
             return CIMInstanceName(classname, {})
 
         kid0 = k[0]

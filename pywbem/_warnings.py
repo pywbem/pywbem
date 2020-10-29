@@ -24,7 +24,8 @@ from ._exceptions import Error
 
 # This module is meant to be safe for 'import *'.
 
-__all__ = ['Warning', 'ToleratedServerIssueWarning']
+__all__ = ['Warning', 'ToleratedServerIssueWarning',
+           'MissingKeybindingsWarning']
 
 
 class Warning(Error, six.moves.builtins.Warning):
@@ -39,5 +40,17 @@ class ToleratedServerIssueWarning(Warning):
     """
     This warning indicates an issue with the WBEM server that has been
     tolerated by pywbem.
+    """
+    pass
+
+
+class MissingKeybindingsWarning(Warning):
+    """
+    This warning indicates that an instance path without keybindings has been
+    encountered, either when sending a CIM-XML request to a WBEM server or
+    when receiving a CIM-XML response from a WBEM server.
+
+    A local creation of :class:`~pywbem.CIMinstanceName` objects without
+    keybindings does not issue this warning.
     """
     pass
