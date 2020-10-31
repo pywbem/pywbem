@@ -31,6 +31,9 @@ Released: not yet
   in a non-default namespace because it tried to get the qualifiers from the
   default namespace. (see issue #2502)
 
+* Test: Changed dependency to 'typed-ast' to match the needs of 'astroid' and to
+  install it only on CPython. This allows re-enabling PyPy3 on Travis.
+
 **Enhancements:**
 
 * Logging: Added a value 'off' for the log destination in the
