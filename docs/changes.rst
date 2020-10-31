@@ -14,16 +14,10 @@ Change log
       :revisions: 1
 
 
-pywbem 1.1.2.dev1
------------------
+pywbem 1.1.2
+------------
 
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
-
-**Bug fixes:**
+Released: 2020-10-31
 
 **Enhancements:**
 
@@ -46,14 +40,6 @@ Released: not yet
   `to_wbem_uri()` method, or gets parsed from CIM-XML via an INSTANCENAME
   element without keybindings. This is motivated by the fact that DSP0004 does
   not allow instance paths without keys (section 8.2.5). (See issue #2514)
-
-**Cleanup:**
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 1.1.1
