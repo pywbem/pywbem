@@ -152,7 +152,7 @@ import six
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ..utils import import_installed
 pywbem = import_installed('pywbem')
-from pywbem._utils import _ensure_unicode  # noqa: E402
+from pywbem._utils import _ensure_unicode, _ensure_bytes  # noqa: E402
 from pywbem._nocasedict import NocaseDict  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
@@ -674,8 +674,12 @@ def assertXMLEqual(s_act, s_exp, entity):
 
     parser = etree.XMLParser(remove_blank_text=True)
     try:
-        x_act = etree.XML(s_act, parser=parser)
-        x_exp = etree.XML(s_exp, parser=parser)
+        # Note: lxml.etree.XML() has issues with unicode strings as input,
+        # so we pass UTF-8 encoded byte strings. See lxml bug
+        # https://bugs.launchpad.net/lxml/+bug/1902364 for a similar issue
+        # with lxml.etree.fromstring().
+        x_act = etree.XML(_ensure_bytes(s_act), parser=parser)
+        x_exp = etree.XML(_ensure_bytes(s_exp), parser=parser)
     except etree.XMLSyntaxError as exc:
         raise AssertionError("XML cannot be validated for %s: %s" %
                              (entity, exc))
