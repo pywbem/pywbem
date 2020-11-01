@@ -5,6 +5,7 @@ Tests for _utils module
 
 from __future__ import absolute_import
 
+import platform
 try:
     from collections import OrderedDict
 except ImportError:
@@ -24,6 +25,9 @@ from pywbem._utils import _ascii2, _format, _integerValue_to_int  # noqa: E402
 from pywbem._cim_obj import NocaseDict  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
+# Indicates whether binary strings are supported for the format string of
+# _ascii2()
+BYTE_FORMAT_SUPPORTED = six.PY2 or platform.python_implementation() == 'PyPy'
 
 TESTCASES_ASCII2 = [
 
@@ -268,9 +272,9 @@ TESTCASES_FORMAT_FIXED = [
             format_str=b"",
             format_args=[],
             format_kwargs=dict(),
-            exp_result=b"" if six.PY2 else None,
+            exp_result="",
         ),
-        None if six.PY2 else TypeError, None, True
+        None if BYTE_FORMAT_SUPPORTED else TypeError, None, True
     ),
     (
         "Format string, empty",
@@ -298,9 +302,9 @@ TESTCASES_FORMAT_FIXED = [
             format_str=b"{0}",
             format_args=[u"abc"],
             format_kwargs=dict(),
-            exp_result=u"abc" if six.PY2 else None,
+            exp_result=u"abc",
         ),
-        None if six.PY2 else TypeError, None, True
+        None if BYTE_FORMAT_SUPPORTED else TypeError, None, True
     ),
     (
         "Format string without conversion and unicode string ASCII",
@@ -318,7 +322,7 @@ TESTCASES_FORMAT_FIXED = [
             format_str=u"{0}",
             format_args=[b"abc"],
             format_kwargs=dict(),
-            exp_result=b"abc" if six.PY2 else u"b'abc'",
+            exp_result="abc" if six.PY2 else "b'abc'",
         ),
         None, None, True
     ),
@@ -328,9 +332,9 @@ TESTCASES_FORMAT_FIXED = [
             format_str=b"{0}",
             format_args=[b"abc"],
             format_kwargs=dict(),
-            exp_result=b"abc" if six.PY2 else None,
+            exp_result="abc" if six.PY2 else "b'abc'",
         ),
-        None if six.PY2 else TypeError, None, True
+        None if BYTE_FORMAT_SUPPORTED else TypeError, None, True
     ),
     (
         "Format string without conversion and byte string ASCII",
@@ -338,7 +342,7 @@ TESTCASES_FORMAT_FIXED = [
             format_str="{0}",
             format_args=[b"abc"],
             format_kwargs=dict(),
-            exp_result=b"abc" if six.PY2 else u"b'abc'",
+            exp_result="abc" if six.PY2 else "b'abc'",
         ),
         None, None, True
     ),
