@@ -205,7 +205,7 @@ def patched_makefile(self, mode='r', bufsize=-1):
         else:
             timeout = self.timeout
         t.join(timeout)
-        if t.isAlive():
+        if t.is_alive():
             raise socket.timeout
 
     return self.fd
