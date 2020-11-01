@@ -147,15 +147,19 @@ def _xml_semantic_compare(left_xml_str, right_xml_str):
     """
     Compare two XML strings semantically to ensure the content is the same.
     """
-    # Reasons for using lxml.etree instead of Python's xml.etree.ElementTree:
+    # Reasons for using lxml.etree instead of Python's xml.etree.ElementTree
+    # (ET):
     # - The XML strings do not contain an XML directive specifying the
-    #   encoding, and the encoding parameter of ElementTree.XMLParser() does
-    #   not seem to work.
+    #   encoding, and the encoding parameter of ET.XMLParser() does not seem
+    #   to work.
     # - ET.fromstring() and ET.XML() do not handle byte strings in Python 2.x
     #   (see bugs.python.org/issue11033), so a manual conversion to unicode
     #   would be needed.
-    left_xml = etree.fromstring(left_xml_str)
-    right_xml = etree.fromstring(right_xml_str)
+    # Note: lxml.etree.fromstring() has issues with unicode strings as input,
+    # so we pass UTF-8 encoded byte strings. See lxml bug
+    # https://bugs.launchpad.net/lxml/+bug/1902364.
+    left_xml = etree.fromstring(_ensure_bytes(left_xml_str))
+    right_xml = etree.fromstring(_ensure_bytes(right_xml_str))
     return doctest_xml_compare.xml_compare(left_xml, right_xml)
 
 

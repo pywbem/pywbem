@@ -37,6 +37,9 @@ Released: not yet
 * Test: Increased the minimum version of 'pyzmq' on Python 3.9 to 19.0.0 to
   avoid an installation error.
 
+* Test: Circumvented unicode issue with lxml.etree.fromstring()/XML() on
+  Python 3.9 by passing in binary strings.
+
 **Enhancements:**
 
 **Cleanup:**
