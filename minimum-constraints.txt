@@ -223,6 +223,9 @@ pyinstrument==3.0.1
 pyinstrument-cext==0.2.0  # from pyinstrument
 psutil==5.0.0; sys_platform != 'cygwin'
 
+pyzmq==16.0.4; python_version <= '3.8'
+pyzmq==19.0.0; python_version >= '3.9'
+
 # Indirect dependencies for develop (not in dev-requirements.txt)
 
 alabaster==0.7.9
@@ -250,7 +253,6 @@ pkginfo==1.4.1
 prompt-toolkit==2.0.1
 ptyprocess==0.5.1
 py==1.5.1
-pyzmq==16.0.4
 qtconsole==4.2.1
 sh==1.12.14
 simplegeneric==0.8.1

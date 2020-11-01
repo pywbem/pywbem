@@ -36,6 +36,9 @@ Released: not yet
 
 * Test: Pinned psutil to <=5.6.3 on PyPy2+3 to avoid an installation error.
 
+* Test: Increased the minimum version of 'pyzmq' on Python 3.9 to 19.0.0 to
+  avoid an installation error.
+
 **Enhancements:**
 
 * Logging: Added a value 'off' for the log destination in the
