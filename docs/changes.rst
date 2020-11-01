@@ -40,6 +40,9 @@ Released: not yet
 * Test: Circumvented unicode issue with lxml.etree.fromstring()/XML() on
   Python 3.9 by passing in binary strings.
 
+* Test: Adjusted _format()/_ascii2() testcases to PyPy3 behavior with binary vs
+  unicode results.
+
 **Enhancements:**
 
 **Cleanup:**
