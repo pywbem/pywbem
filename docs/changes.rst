@@ -34,6 +34,8 @@ Released: not yet
 * Test: Changed dependency to 'typed-ast' to match the needs of 'astroid' and to
   install it only on CPython. This allows re-enabling PyPy3 on Travis.
 
+* Test: Pinned psutil to <=5.6.3 on PyPy2+3 to avoid an installation error.
+
 **Enhancements:**
 
 * Logging: Added a value 'off' for the log destination in the
