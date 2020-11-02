@@ -43,6 +43,8 @@ Released: not yet
 * Test: Adjusted _format()/_ascii2() testcases to PyPy3 behavior with binary vs
   unicode results.
 
+* Test: Disabled leaktest in travis also on PyPy3 (in addition to PyPy2).
+
 **Enhancements:**
 
 **Cleanup:**
