@@ -144,7 +144,7 @@ if [[ "$OS" == "Windows_NT" ]]; then
 elif [[ "$(uname -s)" == "Linux" ]]; then
   distro_id=$(python -c "import distro; print(distro.id())" 2>/dev/null)
   if [[ $? != 0 ]]; then
-    pyenv=$(python -c "import sys; out='venv' if hasattr(sys, 'real_prefix') or getattr(sys, 'base_prefix', None) == sys.prefix else 'system'; print(out)")
+    pyenv=$(python -c "import sys; out='venv' if hasattr(sys, 'real_prefix') or getattr(sys, 'base_prefix', None) != sys.prefix else 'system'; print(out)")
     if [[ $pyenv == "venv" ]]; then
       echo "$myname: Installing the Python 'distro' package into the current virtual Python environment."
       pip install distro
@@ -154,7 +154,9 @@ elif [[ "$(uname -s)" == "Linux" ]]; then
       fi
       distro_id=$(python -c "import distro; print(distro.id())")
     else
-      echo "$myname: Error: The Python 'distro' package is not installed, and you do not currently have a virtual Python environment active." >&2
+      info=$(python -c "import sys; print('sys.real_prefix={}; sys.base_prefix={}; sys.prefix={}'.format(getattr(sys, 'real_prefix', 'not set'), getattr(sys, 'base_prefix', 'not set'), sys.prefix)")
+      echo "$myname: Info: $info"
+      echo "$myname: Error: The Python 'distro' package is not installed, and you do not currently have a virtual Python environment active so it is not being installed." >&2
       exit  1
     fi
   fi
