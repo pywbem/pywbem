@@ -49,6 +49,9 @@ Released: not yet
 
 * Test: Disabled leaktest in travis also on PyPy3 (in addition to PyPy2).
 
+* Test: Disabled 'make resourcetest' in Travis on Pypy2+3, and suppressed Pylint
+  issues about using 'tracemalloc' methods and disabled its unit tests.
+
 **Enhancements:**
 
 * Logging: Added a value 'off' for the log destination in the
