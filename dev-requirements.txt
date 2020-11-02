@@ -130,5 +130,8 @@ tabulate >= 0.8.3
 # Performance profiling tools
 pyinstrument >=3.0.1
 
+psutil>=5.0.0; sys_platform != 'cygwin' and platform_python_implementation != 'PyPy'
+psutil>=5.0.0,<=5.6.3; sys_platform != 'cygwin' and platform_python_implementation == 'PyPy'
+
 
 # Indirect dependencies are not specified in this file unless constraints are needed.
