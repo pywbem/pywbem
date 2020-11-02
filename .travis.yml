@@ -286,7 +286,7 @@ script:
   # - make installtest
   - make test
   - if ! [[ $TRAVIS_PYTHON_VERSION =~ pypy.* ]]; then make leaktest; fi
-  - make resourcetest
+  - if ! [[ $TRAVIS_PYTHON_VERSION =~ pypy.* ]]; then make resourcetest; fi
 
 after_success:
 # Note: In case of error 422 (Couldn't find a repository matching this job),

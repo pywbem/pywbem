@@ -37,13 +37,15 @@ class ResourceMeasurement(object):
 
     def __enter__(self):
         self.timer.start()
-        tracemalloc.start()
+        tracemalloc.start()  # pylint: disable=no-member  # On pypy3
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
+
+        # pylint: disable=no-member  # On pypy3
         _, self.peak_size = tracemalloc.get_traced_memory()
         self.timer.stop()
-        tracemalloc.stop()
+        tracemalloc.stop()  # pylint: disable=no-member  # On pypy3
         self.elapsed_time_ms = self.timer.elapsed_ms()
         self.cpu_time_ms = self.timer.cpu_ms()
         return False  # re-raise any exceptions
