@@ -65,6 +65,9 @@ Released: not yet
   attribute is typically unused, for example in ``CIMInstance.qualifiers``.
   (see issue #2511)
 
+* Added Python 3.9 to the supported Python versions and added tests for
+  it on Travis.
+
 **Cleanup:**
 
 * Test: Fixed all remaining ResourceWarnings during test. (issue #86)
