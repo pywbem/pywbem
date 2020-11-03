@@ -6,7 +6,6 @@ from __future__ import absolute_import, print_function
 
 import sys
 import struct
-import collections
 from collections import deque
 import pytest
 import pywbem
@@ -22,19 +21,24 @@ class EmptyClass(object):
     pass
 
 
+def size_obj(obj):
+    """
+    Size of the input object, using the same size calculation function as
+    used in memory_utils.total_sizeof().
+    """
+    return sys.getsizeof(obj)
+
+
 EC_OBJ = EmptyClass()
 
-SIZE_NONE = sys.getsizeof(None)
-SIZE_INT = sys.getsizeof(42)
-SIZE_STR = sys.getsizeof('')
-SIZE_TUPLE = sys.getsizeof(tuple())
-SIZE_LIST = sys.getsizeof(list())
-SIZE_DICT = sys.getsizeof(dict())
-SIZE_SET = sys.getsizeof(set())
-SIZE_FSET = sys.getsizeof(frozenset())
-SIZE_DEQUE = sys.getsizeof(collections.deque())
-SIZE_CLASS = sys.getsizeof(EC_OBJ)
-SIZE_CLASS_DICT = sys.getsizeof(EC_OBJ.__dict__)
+SIZE_NONE = size_obj(None)
+SIZE_INT = size_obj(42)
+SIZE_TUPLE = size_obj(tuple())
+SIZE_LIST = size_obj(list())
+SIZE_DICT = size_obj(dict())
+SIZE_SET = size_obj(set())
+SIZE_CLASS = size_obj(EC_OBJ)
+SIZE_CLASS_DICT = size_obj(EC_OBJ.__dict__)
 SIZE_REF = struct.calcsize('P')
 
 
@@ -72,15 +76,15 @@ TESTCASES_TOTAL_SIZEOF = [
         "Test empty string",
         dict(
             obj='',
-            exp_size=SIZE_STR,
+            exp_size=size_obj(''),
         ),
-        None, None, 'debug'
+        None, None, True
     ),
     (
         "Test string with one char",
         dict(
             obj='C',
-            exp_size=SIZE_STR + 1,
+            exp_size=size_obj('C'),
         ),
         None, None, True
     ),
@@ -88,7 +92,23 @@ TESTCASES_TOTAL_SIZEOF = [
         "Test string with two chars",
         dict(
             obj='CD',
-            exp_size=SIZE_STR + 2,
+            exp_size=size_obj('CD'),
+        ),
+        None, None, True
+    ),
+    (
+        "Test unicode string with two chars",
+        dict(
+            obj=u'CD',
+            exp_size=size_obj(u'CD'),
+        ),
+        None, None, True
+    ),
+    (
+        "Test binary string with two chars",
+        dict(
+            obj=b'CD',
+            exp_size=size_obj(b'CD'),
         ),
         None, None, True
     ),
@@ -149,7 +169,7 @@ TESTCASES_TOTAL_SIZEOF = [
             obj=dict(),
             exp_size=SIZE_DICT,
         ),
-        None, None, 'debug'
+        None, None, True
     ),
     (
         "Test dict with one int/int item",
@@ -172,7 +192,7 @@ TESTCASES_TOTAL_SIZEOF = [
         "Test empty set",
         dict(
             obj=set(),
-            exp_size=SIZE_SET,
+            exp_size=size_obj(set()),
         ),
         None, None, True
     ),
@@ -180,7 +200,7 @@ TESTCASES_TOTAL_SIZEOF = [
         "Test empty frozenset",
         dict(
             obj=frozenset(),
-            exp_size=SIZE_FSET,
+            exp_size=size_obj(frozenset()),
         ),
         None, None, True
     ),
@@ -188,26 +208,31 @@ TESTCASES_TOTAL_SIZEOF = [
         "Test empty deque",
         dict(
             obj=deque(),
-            exp_size=SIZE_DEQUE,
+            exp_size=size_obj(deque()),
         ),
         None, None, True
     ),
 
     (
-        "Test CIMQualifier with string type and value None",
+        "Test CIMQualifier object (slotted)",
         dict(
             obj=pywbem.CIMQualifier('Q1', type='string', value=None),
             exp_size=(
-                SIZE_CLASS +        # CIMQualifier class
-                SIZE_DICT - 88 +    # __dict__ for attrs; TODO: Clarify -88
-                SIZE_STR + 5 + SIZE_STR + 2 +  # attr _name='Q1'
-                SIZE_STR + 5 + SIZE_STR + 6 +  # attr _type='string'
-                SIZE_STR + 6 + SIZE_NONE +     # attr _value=None
-                SIZE_STR + 11 + SIZE_REF +     # attr _propagated=None
-                SIZE_STR + 12 + SIZE_REF +     # attr _overridable=None
-                SIZE_STR + 11 + SIZE_REF +     # attr _tosubclass=None
-                SIZE_STR + 11 + SIZE_REF +     # attr _toinstance=None
-                SIZE_STR + 13 + SIZE_REF       # attr _translatable=None
+                # Note: None is a shared object. total_sizeof() counts the
+                # first None object, and counts the remaining ones as
+                # references.
+                # Note: This is a slotted object, so there is no __dict__
+                # and the size of the slots are already contained in the size
+                # of the object.
+                size_obj(pywbem.CIMQualifier('Q1', type='string', value=None)) +
+                size_obj(u'Q1') +  # _name
+                size_obj(u'string') +  # _type
+                SIZE_NONE +  # _value (first None object)
+                SIZE_REF +  # _propagated
+                SIZE_REF +  # _overridable
+                SIZE_REF +  # _tosubclass
+                SIZE_REF +  # _toinstance
+                SIZE_REF  # _translatable
             ),
         ),
         None, None, 'debug'
@@ -241,5 +266,5 @@ def test_total_sizeof(testcase, obj, exp_size):
     if testcase.condition == 'debug':
         print("Debug: Object size: actual={}, expected={}".
               format(size, exp_size))
-    else:
-        assert size == exp_size
+
+    assert size == exp_size
