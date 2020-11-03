@@ -781,8 +781,26 @@ TESTCASES_TUPLEPARSE_XML = [
     # TODO: Add DECLGROUP tests
 
     # DECLGROUP.WITHNAME tests: Parsing this element is not implemented
+    (
+        "DECLGROUP.WITHNAME (not implemented)",
+        dict(
+            xml_str=''
+            '<DECLGROUP.WITHNAME/>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
 
     # DECLGROUP.WITHPATH tests: Parsing this element is not implemented
+    (
+        "DECLGROUP.WITHPATH (not implemented)",
+        dict(
+            xml_str=''
+            '<DECLGROUP.WITHPATH/>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
 
     # KEYVALUE tests:
     #
@@ -843,6 +861,15 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
     (
+        "KEYVALUE without VALUETYPE and TYPE='' (empty string)",
+        dict(
+            xml_str=''
+            '<KEYVALUE TYPE=""></KEYVALUE>',
+            exp_result=u'',
+        ),
+        None, None, True
+    ),
+    (
         "KEYVALUE without VALUETYPE or TYPE (WS string)",
         dict(
             xml_str=''
@@ -888,6 +915,15 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
     (
+        "KEYVALUE without VALUETYPE and TYPE='' (decimal as string)",
+        dict(
+            xml_str=''
+            '<KEYVALUE TYPE="">42</KEYVALUE>',
+            exp_result=u'42',
+        ),
+        None, None, True
+    ),
+    (
         "KEYVALUE without VALUETYPE or TYPE (decimal as string with whitesp.)",
         dict(
             xml_str=''
@@ -919,6 +955,15 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE>true</KEYVALUE>',
+            exp_result=u'true',
+        ),
+        None, None, True
+    ),
+    (
+        "KEYVALUE without VALUETYPE and TYPE='' (true as string)",
+        dict(
+            xml_str=''
+            '<KEYVALUE TYPE="">true</KEYVALUE>',
             exp_result=u'true',
         ),
         None, None, True
@@ -2082,6 +2127,18 @@ TESTCASES_TUPLEPARSE_XML = [
         CIMXMLParseError, None, True
     ),
     (
+        "KEYBINDING with two KEYVALUE children (invalid)",
+        dict(
+            xml_str=''
+            '<KEYBINDING NAME="Foo">'
+            '  <KEYVALUE>a</KEYVALUE>'
+            '  <KEYVALUE>a</KEYVALUE>'
+            '</KEYBINDING>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
         "KEYBINDING with NAME using ASCII characters",
         dict(
             xml_str=''
@@ -2135,6 +2192,22 @@ TESTCASES_TUPLEPARSE_XML = [
             exp_result={u'': u'a'},
         ),
         None, None, True
+    ),
+    (
+        "KEYBINDING with two VALUE.REFERENCE children (invalid)",
+        dict(
+            xml_str=''
+            '<KEYBINDING NAME="Foo">'
+            '  <VALUE.REFERENCE>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '  </VALUE.REFERENCE>'
+            '  <VALUE.REFERENCE>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '  </VALUE.REFERENCE>'
+            '</KEYBINDING>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
     ),
     (
         "KEYBINDING with VALUE.REFERENCE child (normal case)",
@@ -2214,7 +2287,18 @@ TESTCASES_TUPLEPARSE_XML = [
     #
     #   <!ELEMENT VALUE.ARRAY (VALUE | VALUE.NULL)*>
     (
-        "VALUE.ARRAY with invalid kind of child element as first item",
+        "VALUE.ARRAY with invalid child element",
+        dict(
+            xml_str=''
+            '<VALUE.ARRAY>'
+            '  <XXX/>'
+            '</VALUE.ARRAY>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "VALUE.ARRAY with invalid child element before valid VALUE",
         dict(
             xml_str=''
             '<VALUE.ARRAY>'
@@ -2226,7 +2310,7 @@ TESTCASES_TUPLEPARSE_XML = [
         CIMXMLParseError, None, True
     ),
     (
-        "VALUE.ARRAY with invalid kind of child element as second item",
+        "VALUE.ARRAY with invalid child element after valid VALUE",
         dict(
             xml_str=''
             '<VALUE.ARRAY>'
@@ -2420,6 +2504,18 @@ TESTCASES_TUPLEPARSE_XML = [
         CIMXMLParseError, None, True
     ),
     (
+        "VALUE.REFERENCE with two INSTANCENAME children (invalid)",
+        dict(
+            xml_str=''
+            '<VALUE.REFERENCE>'
+            '  <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '  <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '</VALUE.REFERENCE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
         "VALUE.REFERENCE with ref value that is a INSTANCENAME",
         dict(
             xml_str=''
@@ -2429,6 +2525,28 @@ TESTCASES_TUPLEPARSE_XML = [
             exp_result=CIMInstanceName('CIM_Foo'),
         ),
         None, MissingKeybindingsWarning, True
+    ),
+    (
+        "VALUE.REFERENCE with two LOCALINSTANCEPATH children (invalid)",
+        dict(
+            xml_str=''
+            '<VALUE.REFERENCE>'
+            '  <LOCALINSTANCEPATH>'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="foo"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '  </LOCALINSTANCEPATH>'
+            '  <LOCALINSTANCEPATH>'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="foo"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '  </LOCALINSTANCEPATH>'
+            '</VALUE.REFERENCE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.REFERENCE with ref value that is a LOCALINSTANCEPATH",
@@ -2445,6 +2563,34 @@ TESTCASES_TUPLEPARSE_XML = [
             exp_result=CIMInstanceName('CIM_Foo', namespace='foo'),
         ),
         None, MissingKeybindingsWarning, True
+    ),
+    (
+        "VALUE.REFERENCE with two INSTANCEPATH children (invalid)",
+        dict(
+            xml_str=''
+            '<VALUE.REFERENCE>'
+            '  <INSTANCEPATH>'
+            '    <NAMESPACEPATH>'
+            '      <HOST>woot.com</HOST>'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '    </NAMESPACEPATH>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '  </INSTANCEPATH>'
+            '  <INSTANCEPATH>'
+            '    <NAMESPACEPATH>'
+            '      <HOST>woot.com</HOST>'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '    </NAMESPACEPATH>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '  </INSTANCEPATH>'
+            '</VALUE.REFERENCE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.REFERENCE with ref value that is a INSTANCEPATH",
@@ -2468,6 +2614,18 @@ TESTCASES_TUPLEPARSE_XML = [
         None, MissingKeybindingsWarning, True
     ),
     (
+        "VALUE.REFERENCE with two CLASSNAME children (invalid)",
+        dict(
+            xml_str=''
+            '<VALUE.REFERENCE>'
+            '  <CLASSNAME NAME="CIM_Foo"/>'
+            '  <CLASSNAME NAME="CIM_Foo"/>'
+            '</VALUE.REFERENCE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
         "VALUE.REFERENCE with ref value that is a CLASSNAME",
         dict(
             xml_str=''
@@ -2477,6 +2635,28 @@ TESTCASES_TUPLEPARSE_XML = [
             exp_result=CIMClassName('CIM_Foo'),
         ),
         None, None, False
+    ),
+    (
+        "VALUE.REFERENCE with two LOCALCLASSPATH children (invalid)",
+        dict(
+            xml_str=''
+            '<VALUE.REFERENCE>'
+            '  <LOCALCLASSPATH>'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="foo"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '    <CLASSNAME NAME="CIM_Foo"/>'
+            '  </LOCALCLASSPATH>'
+            '  <LOCALCLASSPATH>'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="foo"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '    <CLASSNAME NAME="CIM_Foo"/>'
+            '  </LOCALCLASSPATH>'
+            '</VALUE.REFERENCE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.REFERENCE with ref value that is a LOCALCLASSPATH",
@@ -2493,6 +2673,34 @@ TESTCASES_TUPLEPARSE_XML = [
             exp_result=CIMClassName('CIM_Foo', namespace='foo'),
         ),
         None, None, False
+    ),
+    (
+        "VALUE.REFERENCE with two CLASSPATH children (invalid)",
+        dict(
+            xml_str=''
+            '<VALUE.REFERENCE>'
+            '  <CLASSPATH>'
+            '    <NAMESPACEPATH>'
+            '      <HOST>woot.com</HOST>'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '    </NAMESPACEPATH>'
+            '    <CLASSNAME NAME="CIM_Foo"/>'
+            '  </CLASSPATH>'
+            '  <CLASSPATH>'
+            '    <NAMESPACEPATH>'
+            '      <HOST>woot.com</HOST>'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '    </NAMESPACEPATH>'
+            '    <CLASSNAME NAME="CIM_Foo"/>'
+            '  </CLASSPATH>'
+            '</VALUE.REFERENCE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.REFERENCE with ref value that is a CLASSPATH",
@@ -2706,7 +2914,6 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<VALUE.OBJECT>'
-            '  <INSTANCE CLASSNAME="CIM_Foo"/>'
             '  <XXX/>'
             '</VALUE.OBJECT>',
             exp_result=None,
@@ -2714,10 +2921,11 @@ TESTCASES_TUPLEPARSE_XML = [
         CIMXMLParseError, None, True
     ),
     (
-        "VALUE.OBJECT with invalid child element instead",
+        "VALUE.OBJECT with invalid child element after valid INSTANCE",
         dict(
             xml_str=''
             '<VALUE.OBJECT>'
+            '  <INSTANCE CLASSNAME="CIM_Foo"/>'
             '  <XXX/>'
             '</VALUE.OBJECT>',
             exp_result=None,
@@ -2757,6 +2965,18 @@ TESTCASES_TUPLEPARSE_XML = [
         CIMXMLParseError, None, True
     ),
     (
+        "VALUE.OBJECT with two INSTANCE children (invalid)",
+        dict(
+            xml_str=''
+            '<VALUE.OBJECT>'
+            '  <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '  <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '</VALUE.OBJECT>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
         "VALUE.OBJECT with INSTANCE (normal case)",
         dict(
             xml_str=''
@@ -2770,6 +2990,18 @@ TESTCASES_TUPLEPARSE_XML = [
             ),
         ),
         None, None, True
+    ),
+    (
+        "VALUE.OBJECT with two CLASS children (invalid)",
+        dict(
+            xml_str=''
+            '<VALUE.OBJECT>'
+            '  <CLASS NAME="CIM_Foo"/>'
+            '  <CLASS NAME="CIM_Foo"/>'
+            '</VALUE.OBJECT>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.OBJECT with CLASS (normal case)",
@@ -2886,6 +3118,44 @@ TESTCASES_TUPLEPARSE_XML = [
             '      <KEYVALUE>Foo</KEYVALUE>'
             '    </KEYBINDING>'
             '  </INSTANCENAME>'
+            '</VALUE.NAMEDINSTANCE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "VALUE.NAMEDINSTANCE with two INSTANCENAME children (invalid)",
+        dict(
+            xml_str=''
+            '<VALUE.NAMEDINSTANCE>'
+            '  <INSTANCENAME CLASSNAME="CIM_Foo">'
+            '    <KEYBINDING NAME="Name">'
+            '      <KEYVALUE>Foo</KEYVALUE>'
+            '    </KEYBINDING>'
+            '  </INSTANCENAME>'
+            '  <INSTANCENAME CLASSNAME="CIM_Foo">'
+            '    <KEYBINDING NAME="Name">'
+            '      <KEYVALUE>Foo</KEYVALUE>'
+            '    </KEYBINDING>'
+            '  </INSTANCENAME>'
+            '  <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '</VALUE.NAMEDINSTANCE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "VALUE.NAMEDINSTANCE with two INSTANCE children (invalid)",
+        dict(
+            xml_str=''
+            '<VALUE.NAMEDINSTANCE>'
+            '  <INSTANCENAME CLASSNAME="CIM_Foo">'
+            '    <KEYBINDING NAME="Name">'
+            '      <KEYVALUE>Foo</KEYVALUE>'
+            '    </KEYBINDING>'
+            '  </INSTANCENAME>'
+            '  <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '  <INSTANCE CLASSNAME="CIM_Foo"/>'
             '</VALUE.NAMEDINSTANCE>',
             exp_result=None,
         ),
@@ -3059,6 +3329,68 @@ TESTCASES_TUPLEPARSE_XML = [
         CIMXMLParseError, None, True
     ),
     (
+        "VALUE.INSTANCEWITHPATH with two INSTANCEPATH children (invalid)",
+        dict(
+            xml_str=''
+            '<VALUE.INSTANCEWITHPATH>'
+            '  <INSTANCEPATH>'
+            '    <NAMESPACEPATH>'
+            '      <HOST>woot.com</HOST>'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '    </NAMESPACEPATH>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo">'
+            '      <KEYBINDING NAME="Name">'
+            '        <KEYVALUE>Foo</KEYVALUE>'
+            '      </KEYBINDING>'
+            '    </INSTANCENAME>'
+            '  </INSTANCEPATH>'
+            '  <INSTANCEPATH>'
+            '    <NAMESPACEPATH>'
+            '      <HOST>woot.com</HOST>'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '    </NAMESPACEPATH>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo">'
+            '      <KEYBINDING NAME="Name">'
+            '        <KEYVALUE>Foo</KEYVALUE>'
+            '      </KEYBINDING>'
+            '    </INSTANCENAME>'
+            '  </INSTANCEPATH>'
+            '  <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '</VALUE.INSTANCEWITHPATH>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "VALUE.INSTANCEWITHPATH with two INSTANCE children (invalid)",
+        dict(
+            xml_str=''
+            '<VALUE.INSTANCEWITHPATH>'
+            '  <INSTANCEPATH>'
+            '    <NAMESPACEPATH>'
+            '      <HOST>woot.com</HOST>'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '    </NAMESPACEPATH>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo">'
+            '      <KEYBINDING NAME="Name">'
+            '        <KEYVALUE>Foo</KEYVALUE>'
+            '      </KEYBINDING>'
+            '    </INSTANCENAME>'
+            '  </INSTANCEPATH>'
+            '  <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '  <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '</VALUE.INSTANCEWITHPATH>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
         "VALUE.INSTANCEWITHPATH (normal case)",
         dict(
             xml_str=''
@@ -3165,6 +3497,46 @@ TESTCASES_TUPLEPARSE_XML = [
         CIMXMLParseError, None, True
     ),
     (
+        "VALUE.NAMEDOBJECT for instance with two INSTANCENAME children "
+        "(invalid)",
+        dict(
+            xml_str=''
+            '<VALUE.NAMEDOBJECT>'
+            '  <INSTANCENAME CLASSNAME="CIM_Foo">'
+            '    <KEYBINDING NAME="Name">'
+            '      <KEYVALUE>Foo</KEYVALUE>'
+            '    </KEYBINDING>'
+            '  </INSTANCENAME>'
+            '  <INSTANCENAME CLASSNAME="CIM_Foo">'
+            '    <KEYBINDING NAME="Name">'
+            '      <KEYVALUE>Foo</KEYVALUE>'
+            '    </KEYBINDING>'
+            '  </INSTANCENAME>'
+            '  <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '</VALUE.NAMEDOBJECT>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "VALUE.NAMEDOBJECT for instance with two INSTANCE children "
+        "(invalid)",
+        dict(
+            xml_str=''
+            '<VALUE.NAMEDOBJECT>'
+            '  <INSTANCENAME CLASSNAME="CIM_Foo">'
+            '    <KEYBINDING NAME="Name">'
+            '      <KEYVALUE>Foo</KEYVALUE>'
+            '    </KEYBINDING>'
+            '  </INSTANCENAME>'
+            '  <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '  <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '</VALUE.NAMEDOBJECT>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
         "VALUE.NAMEDOBJECT for instance (normal case)",
         dict(
             xml_str=''
@@ -3189,6 +3561,18 @@ TESTCASES_TUPLEPARSE_XML = [
             ),
         ),
         None, None, True
+    ),
+    (
+        "VALUE.NAMEDOBJECT for class with two CLASS children (invalid)",
+        dict(
+            xml_str=''
+            '<VALUE.NAMEDOBJECT>'
+            '  <CLASS NAME="CIM_Foo"/>'
+            '  <CLASS NAME="CIM_Foo"/>'
+            '</VALUE.NAMEDOBJECT>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.NAMEDOBJECT for class (normal case)",
@@ -3305,6 +3689,61 @@ TESTCASES_TUPLEPARSE_XML = [
         CIMXMLParseError, None, True
     ),
     (
+        "VALUE.OBJECTWITHLOCALPATH for instance with two LOCALINSTANCEPATH "
+        "children (invalid)",
+        dict(
+            xml_str=''
+            '<VALUE.OBJECTWITHLOCALPATH>'
+            '  <LOCALINSTANCEPATH>'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="foo"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo">'
+            '      <KEYBINDING NAME="Name">'
+            '        <KEYVALUE>Foo</KEYVALUE>'
+            '      </KEYBINDING>'
+            '    </INSTANCENAME>'
+            '  </LOCALINSTANCEPATH>'
+            '  <LOCALINSTANCEPATH>'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="foo"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo">'
+            '      <KEYBINDING NAME="Name">'
+            '        <KEYVALUE>Foo</KEYVALUE>'
+            '      </KEYBINDING>'
+            '    </INSTANCENAME>'
+            '  </LOCALINSTANCEPATH>'
+            '  <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '</VALUE.OBJECTWITHLOCALPATH>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "VALUE.OBJECTWITHLOCALPATH for instance with two INSTANCE "
+        "children (invalid)",
+        dict(
+            xml_str=''
+            '<VALUE.OBJECTWITHLOCALPATH>'
+            '  <LOCALINSTANCEPATH>'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="foo"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo">'
+            '      <KEYBINDING NAME="Name">'
+            '        <KEYVALUE>Foo</KEYVALUE>'
+            '      </KEYBINDING>'
+            '    </INSTANCENAME>'
+            '  </LOCALINSTANCEPATH>'
+            '  <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '  <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '</VALUE.OBJECTWITHLOCALPATH>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
         "VALUE.OBJECTWITHLOCALPATH for instance (normal case)",
         dict(
             xml_str=''
@@ -3336,6 +3775,49 @@ TESTCASES_TUPLEPARSE_XML = [
             ),
         ),
         None, None, True
+    ),
+    (
+        "VALUE.OBJECTWITHLOCALPATH for class with two LOCALCLASSPATH children "
+        "(invalid)",
+        dict(
+            xml_str=''
+            '<VALUE.OBJECTWITHLOCALPATH>'
+            '  <LOCALCLASSPATH>'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="foo"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '    <CLASSNAME NAME="CIM_Foo"/>'
+            '  </LOCALCLASSPATH>'
+            '  <LOCALCLASSPATH>'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="foo"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '    <CLASSNAME NAME="CIM_Foo"/>'
+            '  </LOCALCLASSPATH>'
+            '  <CLASS NAME="CIM_Foo"/>'
+            '</VALUE.OBJECTWITHLOCALPATH>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "VALUE.OBJECTWITHLOCALPATH for class with two CLASS children "
+        "(invalid)",
+        dict(
+            xml_str=''
+            '<VALUE.OBJECTWITHLOCALPATH>'
+            '  <LOCALCLASSPATH>'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="foo"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '    <CLASSNAME NAME="CIM_Foo"/>'
+            '  </LOCALCLASSPATH>'
+            '  <CLASS NAME="CIM_Foo"/>'
+            '  <CLASS NAME="CIM_Foo"/>'
+            '</VALUE.OBJECTWITHLOCALPATH>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
     ),
     (
         "VALUE.OBJECTWITHLOCALPATH for class (normal case)",
@@ -3505,6 +3987,70 @@ TESTCASES_TUPLEPARSE_XML = [
         CIMXMLParseError, None, True
     ),
     (
+        "VALUE.OBJECTWITHPATH for instance with two INSTANCEPATH children "
+        "(invalid)",
+        dict(
+            xml_str=''
+            '<VALUE.OBJECTWITHPATH>'
+            '  <INSTANCEPATH>'
+            '    <NAMESPACEPATH>'
+            '      <HOST>woot.com</HOST>'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '    </NAMESPACEPATH>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo">'
+            '      <KEYBINDING NAME="Name">'
+            '        <KEYVALUE>Foo</KEYVALUE>'
+            '      </KEYBINDING>'
+            '    </INSTANCENAME>'
+            '  </INSTANCEPATH>'
+            '  <INSTANCEPATH>'
+            '    <NAMESPACEPATH>'
+            '      <HOST>woot.com</HOST>'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '    </NAMESPACEPATH>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo">'
+            '      <KEYBINDING NAME="Name">'
+            '        <KEYVALUE>Foo</KEYVALUE>'
+            '      </KEYBINDING>'
+            '    </INSTANCENAME>'
+            '  </INSTANCEPATH>'
+            '  <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '</VALUE.OBJECTWITHPATH>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "VALUE.OBJECTWITHPATH for instance with two INSTANCE children "
+        "(invalid)",
+        dict(
+            xml_str=''
+            '<VALUE.OBJECTWITHPATH>'
+            '  <INSTANCEPATH>'
+            '    <NAMESPACEPATH>'
+            '      <HOST>woot.com</HOST>'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '    </NAMESPACEPATH>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo">'
+            '      <KEYBINDING NAME="Name">'
+            '        <KEYVALUE>Foo</KEYVALUE>'
+            '      </KEYBINDING>'
+            '    </INSTANCENAME>'
+            '  </INSTANCEPATH>'
+            '  <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '  <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '</VALUE.OBJECTWITHPATH>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
         "VALUE.OBJECTWITHPATH for instance (normal case)",
         dict(
             xml_str=''
@@ -3586,6 +4132,56 @@ TESTCASES_TUPLEPARSE_XML = [
             '    </NAMESPACEPATH>'
             '    <CLASSNAME NAME="CIM_Foo"/>'
             '  </CLASSPATH>'
+            '</VALUE.OBJECTWITHPATH>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "VALUE.OBJECTWITHPATH for class with two CLASSPATH children (invalid)",
+        dict(
+            xml_str=''
+            '<VALUE.OBJECTWITHPATH>'
+            '  <CLASSPATH>'
+            '    <NAMESPACEPATH>'
+            '      <HOST>woot.com</HOST>'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '    </NAMESPACEPATH>'
+            '    <CLASSNAME NAME="CIM_Foo"/>'
+            '  </CLASSPATH>'
+            '  <CLASSPATH>'
+            '    <NAMESPACEPATH>'
+            '      <HOST>woot.com</HOST>'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '    </NAMESPACEPATH>'
+            '    <CLASSNAME NAME="CIM_Foo"/>'
+            '  </CLASSPATH>'
+            '  <CLASS NAME="CIM_Foo"/>'
+            '</VALUE.OBJECTWITHPATH>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "VALUE.OBJECTWITHPATH for class with two CLASS children (invalid)",
+        dict(
+            xml_str=''
+            '<VALUE.OBJECTWITHPATH>'
+            '  <CLASSPATH>'
+            '    <NAMESPACEPATH>'
+            '      <HOST>woot.com</HOST>'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '    </NAMESPACEPATH>'
+            '    <CLASSNAME NAME="CIM_Foo"/>'
+            '  </CLASSPATH>'
+            '  <CLASS NAME="CIM_Foo"/>'
+            '  <CLASS NAME="CIM_Foo"/>'
             '</VALUE.OBJECTWITHPATH>',
             exp_result=None,
         ),
@@ -3952,6 +4548,38 @@ TESTCASES_TUPLEPARSE_XML = [
         CIMXMLParseError, None, True
     ),
     (
+        "NAMESPACEPATH with two HOST children (invalid)",
+        dict(
+            xml_str=''
+            '<NAMESPACEPATH>'
+            '  <HOST>woot.com</HOST>'
+            '  <HOST>woot.com</HOST>'
+            '  <LOCALNAMESPACEPATH>'
+            '    <NAMESPACE NAME="foo"/>'
+            '  </LOCALNAMESPACEPATH>'
+            '</NAMESPACEPATH>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "NAMESPACEPATH with two LOCALNAMESPACEPATH children (invalid)",
+        dict(
+            xml_str=''
+            '<NAMESPACEPATH>'
+            '  <HOST>woot.com</HOST>'
+            '  <LOCALNAMESPACEPATH>'
+            '    <NAMESPACE NAME="foo"/>'
+            '  </LOCALNAMESPACEPATH>'
+            '  <LOCALNAMESPACEPATH>'
+            '    <NAMESPACE NAME="foo"/>'
+            '  </LOCALNAMESPACEPATH>'
+            '</NAMESPACEPATH>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
         "NAMESPACEPATH (normal case)",
         dict(
             xml_str=''
@@ -4134,6 +4762,38 @@ TESTCASES_TUPLEPARSE_XML = [
         CIMXMLParseError, None, True
     ),
     (
+        "LOCALCLASSPATH with two LOCALNAMESPACEPATH children (invalid)",
+        dict(
+            xml_str=''
+            '<LOCALCLASSPATH>'
+            '  <LOCALNAMESPACEPATH>'
+            '    <NAMESPACE NAME="foo"/>'
+            '  </LOCALNAMESPACEPATH>'
+            '  <LOCALNAMESPACEPATH>'
+            '    <NAMESPACE NAME="foo"/>'
+            '  </LOCALNAMESPACEPATH>'
+            '  <CLASSNAME NAME="CIM_Foo"/>'
+            '</LOCALCLASSPATH>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "LOCALCLASSPATH with two CLASSNAME children (invalid)",
+        dict(
+            xml_str=''
+            '<LOCALCLASSPATH>'
+            '  <LOCALNAMESPACEPATH>'
+            '    <NAMESPACE NAME="foo"/>'
+            '  </LOCALNAMESPACEPATH>'
+            '  <CLASSNAME NAME="CIM_Foo"/>'
+            '  <CLASSNAME NAME="CIM_Foo"/>'
+            '</LOCALCLASSPATH>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
         "LOCALCLASSPATH (normal case)",
         dict(
             xml_str=''
@@ -4255,6 +4915,47 @@ TESTCASES_TUPLEPARSE_XML = [
             '      <NAMESPACE NAME="foo"/>'
             '    </LOCALNAMESPACEPATH>'
             '  </NAMESPACEPATH>'
+            '</CLASSPATH>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "CLASSPATH with two NAMESPACEPATH children (invalid)",
+        dict(
+            xml_str=''
+            '<CLASSPATH>'
+            '  <NAMESPACEPATH>'
+            '    <HOST>woot.com</HOST>'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="foo"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '  </NAMESPACEPATH>'
+            '  <NAMESPACEPATH>'
+            '    <HOST>woot.com</HOST>'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="foo"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '  </NAMESPACEPATH>'
+            '  <CLASSNAME NAME="CIM_Foo"/>'
+            '</CLASSPATH>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "CLASSPATH with two CLASSNAME children (invalid)",
+        dict(
+            xml_str=''
+            '<CLASSPATH>'
+            '  <NAMESPACEPATH>'
+            '    <HOST>woot.com</HOST>'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="foo"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '  </NAMESPACEPATH>'
+            '  <CLASSNAME NAME="CIM_Foo"/>'
+            '  <CLASSNAME NAME="CIM_Foo"/>'
             '</CLASSPATH>',
             exp_result=None,
         ),
@@ -4595,6 +5296,17 @@ TESTCASES_TUPLEPARSE_XML = [
         CIMXMLParseError, None, True
     ),
     (
+        "INSTANCENAME without child elements (no keys)",
+        dict(
+            xml_str=''
+            '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
+            exp_result=CIMInstanceName(
+                'CIM_Foo',
+            ),
+        ),
+        None, MissingKeybindingsWarning, True
+    ),
+    (
         "INSTANCENAME with VALUE.REFERENCE for one ref. key (unnamed key)",
         dict(
             xml_str=''
@@ -4759,6 +5471,50 @@ TESTCASES_TUPLEPARSE_XML = [
         CIMXMLParseError, None, True
     ),
     (
+        "LOCALINSTANCEPATH with two LOCALNAMESPACEPATH children (invalid)",
+        dict(
+            xml_str=''
+            '<LOCALINSTANCEPATH>'
+            '  <LOCALNAMESPACEPATH>'
+            '    <NAMESPACE NAME="foo"/>'
+            '  </LOCALNAMESPACEPATH>'
+            '  <LOCALNAMESPACEPATH>'
+            '    <NAMESPACE NAME="foo"/>'
+            '  </LOCALNAMESPACEPATH>'
+            '  <INSTANCENAME CLASSNAME="CIM_Foo">'
+            '    <KEYBINDING NAME="Name">'
+            '      <KEYVALUE>Foo</KEYVALUE>'
+            '    </KEYBINDING>'
+            '  </INSTANCENAME>'
+            '</LOCALINSTANCEPATH>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "LOCALINSTANCEPATH with two INSTANCENAME children (invalid)",
+        dict(
+            xml_str=''
+            '<LOCALINSTANCEPATH>'
+            '  <LOCALNAMESPACEPATH>'
+            '    <NAMESPACE NAME="foo"/>'
+            '  </LOCALNAMESPACEPATH>'
+            '  <INSTANCENAME CLASSNAME="CIM_Foo">'
+            '    <KEYBINDING NAME="Name">'
+            '      <KEYVALUE>Foo</KEYVALUE>'
+            '    </KEYBINDING>'
+            '  </INSTANCENAME>'
+            '  <INSTANCENAME CLASSNAME="CIM_Foo">'
+            '    <KEYBINDING NAME="Name">'
+            '      <KEYVALUE>Foo</KEYVALUE>'
+            '    </KEYBINDING>'
+            '  </INSTANCENAME>'
+            '</LOCALINSTANCEPATH>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
         "LOCALINSTANCEPATH (normal case)",
         dict(
             xml_str=''
@@ -4911,6 +5667,59 @@ TESTCASES_TUPLEPARSE_XML = [
         CIMXMLParseError, None, True
     ),
     (
+        "INSTANCEPATH with two NAMESPACEPATH children (invalid)",
+        dict(
+            xml_str=''
+            '<INSTANCEPATH>'
+            '  <NAMESPACEPATH>'
+            '    <HOST>woot.com</HOST>'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="foo"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '  </NAMESPACEPATH>'
+            '  <NAMESPACEPATH>'
+            '    <HOST>woot.com</HOST>'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="foo"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '  </NAMESPACEPATH>'
+            '  <INSTANCENAME CLASSNAME="CIM_Foo">'
+            '    <KEYBINDING NAME="Name">'
+            '      <KEYVALUE>Foo</KEYVALUE>'
+            '    </KEYBINDING>'
+            '  </INSTANCENAME>'
+            '</INSTANCEPATH>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "INSTANCEPATH with two INSTANCENAME children (invalid)",
+        dict(
+            xml_str=''
+            '<INSTANCEPATH>'
+            '  <NAMESPACEPATH>'
+            '    <HOST>woot.com</HOST>'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="foo"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '  </NAMESPACEPATH>'
+            '  <INSTANCENAME CLASSNAME="CIM_Foo">'
+            '    <KEYBINDING NAME="Name">'
+            '      <KEYVALUE>Foo</KEYVALUE>'
+            '    </KEYBINDING>'
+            '  </INSTANCENAME>'
+            '  <INSTANCENAME CLASSNAME="CIM_Foo">'
+            '    <KEYBINDING NAME="Name">'
+            '      <KEYVALUE>Foo</KEYVALUE>'
+            '    </KEYBINDING>'
+            '  </INSTANCENAME>'
+            '</INSTANCEPATH>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
         "INSTANCEPATH (normal case)",
         dict(
             xml_str=''
@@ -5009,6 +5818,42 @@ TESTCASES_TUPLEPARSE_XML = [
         CIMXMLParseError, None, True
     ),
     (
+        "OBJECTPATH with two INSTANCEPATH children (invalid)",
+        dict(
+            xml_str=''
+            '<OBJECTPATH>'
+            '  <INSTANCEPATH>'
+            '    <NAMESPACEPATH>'
+            '      <HOST>woot.com</HOST>'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '    </NAMESPACEPATH>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo">'
+            '      <KEYBINDING NAME="Name">'
+            '        <KEYVALUE>Foo</KEYVALUE>'
+            '      </KEYBINDING>'
+            '    </INSTANCENAME>'
+            '  </INSTANCEPATH>'
+            '  <INSTANCEPATH>'
+            '    <NAMESPACEPATH>'
+            '      <HOST>woot.com</HOST>'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '    </NAMESPACEPATH>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo">'
+            '      <KEYBINDING NAME="Name">'
+            '        <KEYVALUE>Foo</KEYVALUE>'
+            '      </KEYBINDING>'
+            '    </INSTANCENAME>'
+            '  </INSTANCEPATH>'
+            '</OBJECTPATH>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
         "OBJECTPATH with INSTANCEPATH (normal case)",
         dict(
             xml_str=''
@@ -5039,6 +5884,34 @@ TESTCASES_TUPLEPARSE_XML = [
             ),
         ),
         None, None, True
+    ),
+    (
+        "OBJECTPATH with two CLASSPATH children (invalid)",
+        dict(
+            xml_str=''
+            '<OBJECTPATH>'
+            '  <CLASSPATH>'
+            '    <NAMESPACEPATH>'
+            '      <HOST>woot.com</HOST>'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '    </NAMESPACEPATH>'
+            '    <CLASSNAME NAME="CIM_Foo"/>'
+            '  </CLASSPATH>'
+            '  <CLASSPATH>'
+            '    <NAMESPACEPATH>'
+            '      <HOST>woot.com</HOST>'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '    </NAMESPACEPATH>'
+            '    <CLASSNAME NAME="CIM_Foo"/>'
+            '  </CLASSPATH>'
+            '</OBJECTPATH>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
     ),
     (
         "OBJECTPATH with CLASSPATH (normal case)",
@@ -5609,6 +6482,18 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<PROPERTY NAME="Foo"/>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "PROPERTY with two VALUE children (invalid)",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Foo" TYPE="string">'
+            '  <VALUE>abc</VALUE>'
+            '  <VALUE>abc</VALUE>'
+            '</PROPERTY>',
             exp_result=None,
         ),
         CIMXMLParseError, None, True
@@ -6442,6 +7327,22 @@ TESTCASES_TUPLEPARSE_XML = [
         CIMXMLParseError, None, True
     ),
     (
+        "PROPERTY.ARRAY with two VALUE.ARRAY children (invalid)",
+        dict(
+            xml_str=''
+            '<PROPERTY.ARRAY NAME="Foo" TYPE="string">'
+            '  <VALUE.ARRAY>'
+            '    <VALUE>b</VALUE>'
+            '  </VALUE.ARRAY>'
+            '  <VALUE.ARRAY>'
+            '    <VALUE>b</VALUE>'
+            '  </VALUE.ARRAY>'
+            '</PROPERTY.ARRAY>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
         "PROPERTY.ARRAY with NAME using ASCII characters",
         dict(
             xml_str=''
@@ -6900,6 +7801,22 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<PROPERTY.REFERENCE/>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "PROPERTY.REFERENCE with two VALUE.REFERENCE children (invalid)",
+        dict(
+            xml_str=''
+            '<PROPERTY.REFERENCE NAME="Foo">'
+            '  <VALUE.REFERENCE>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '  </VALUE.REFERENCE>'
+            '  <VALUE.REFERENCE>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '  </VALUE.REFERENCE>'
+            '</PROPERTY.REFERENCE>',
             exp_result=None,
         ),
         CIMXMLParseError, None, True
@@ -8263,6 +9180,30 @@ TESTCASES_TUPLEPARSE_XML = [
         CIMXMLParseError, None, True
     ),
     (
+        "QUALIFIER with two VALUE children (invalid)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="string">'
+            '  <VALUE>abc</VALUE>'
+            '  <VALUE>abc</VALUE>'
+            '</QUALIFIER>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "QUALIFIER with two VALUE.ARRAY children (invalid)",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="string">'
+            '  <VALUE.ARRAY/>'
+            '  <VALUE.ARRAY/>'
+            '</QUALIFIER>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
         "QUALIFIER with NAME using ASCII characters",
         dict(
             xml_str=''
@@ -9215,6 +10156,30 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<QUALIFIER.DECLARATION TYPE="string"/>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with two VALUE children (invalid)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="boolean">'
+            '  <VALUE>true</VALUE>'
+            '  <VALUE>true</VALUE>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with two VALUE.ARRAY children (invalid)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="boolean" ISARRAY="true">'
+            '  <VALUE.ARRAY/>'
+            '  <VALUE.ARRAY/>'
+            '</QUALIFIER.DECLARATION>',
             exp_result=None,
         ),
         CIMXMLParseError, None, True
@@ -10255,6 +11220,47 @@ TESTCASES_TUPLEPARSE_XML = [
         ),
         None, None, True
     ),
+    (
+        "QUALIFIER.DECLARATION with empty SCOPE",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string">'
+            '  <SCOPE/>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='string',
+                **qualifier_declaration_default_attrs()
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with class SCOPE",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string">'
+            '  <SCOPE CLASS="true"/>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=CIMQualifierDeclaration(
+                'Qual', value=None, type='string',
+                scopes={'CLASS': True},
+                **qualifier_declaration_default_attrs()
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with two SCOPE children (invalid)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string">'
+            '  <SCOPE/>'
+            '  <SCOPE/>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
 
     # MESSAGE tests:
     #
@@ -10270,21 +11276,83 @@ TESTCASES_TUPLEPARSE_XML = [
     #
     #   <!ELEMENT SIMPLEREQ (IMETHODCALL | METHODCALL)>
     (
+        "SIMPLEREQ with invalid child element",
+        dict(
+            xml_str=''
+            '<SIMPLEREQ>'
+            '  <XXX/>'
+            '</SIMPLEREQ>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "SIMPLEREQ with invalid attribute",
+        dict(
+            xml_str=''
+            '<SIMPLEREQ XXX="bla">'
+            '  <IMETHODCALL NAME="M1">'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="foo"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '  </IMETHODCALL>'
+            '</SIMPLEREQ>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "SIMPLEREQ with missing child (invalid)",
+        dict(
+            xml_str=''
+            '<SIMPLEREQ>'
+            '</SIMPLEREQ>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "SIMPLEREQ with minimal child elements",
+        dict(
+            xml_str=''
+            '<SIMPLEREQ>'
+            '  <IMETHODCALL NAME="M1">'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="foo"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '  </IMETHODCALL>'
+            '</SIMPLEREQ>',
+            exp_result=(
+                u'SIMPLEREQ',
+                {},
+                (u'IMETHODCALL', {u'NAME': u'M1'}, u'foo', []),
+            ),
+        ),
+        None, None, True
+    ),
+    (
         "SIMPLEREQ of GetClass Request",
         dict(
             xml_str=''
-            '<SIMPLEREQ><IMETHODCALL NAME="GetClass">'
-            '<LOCALNAMESPACEPATH><NAMESPACE NAME="root"/>'
-            '<NAMESPACE NAME="cimv2"/></LOCALNAMESPACEPATH>'
-            '<IPARAMVALUE NAME="ClassName">'
-            '<CLASSNAME NAME="CIM_ComputerSystem"/>'
-            '</IPARAMVALUE>'
-            '<IPARAMVALUE NAME="PropertyList">'
-            '<VALUE.ARRAY><VALUE>PowerManagementCapabilities</VALUE>'
-            '</VALUE.ARRAY>'
-            '</IPARAMVALUE><IPARAMVALUE NAME="LocalOnly">'
-            '<VALUE>FALSE</VALUE>'
-            '</IPARAMVALUE></IMETHODCALL></SIMPLEREQ>',
+            '<SIMPLEREQ>'
+            '  <IMETHODCALL NAME="GetClass">'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="root"/>'
+            '      <NAMESPACE NAME="cimv2"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '    <IPARAMVALUE NAME="ClassName">'
+            '      <CLASSNAME NAME="CIM_ComputerSystem"/>'
+            '    </IPARAMVALUE>'
+            '    <IPARAMVALUE NAME="PropertyList">'
+            '      <VALUE.ARRAY>'
+            '        <VALUE>PowerManagementCapabilities</VALUE>'
+            '      </VALUE.ARRAY>'
+            '    </IPARAMVALUE>'
+            '    <IPARAMVALUE NAME="LocalOnly">'
+            '      <VALUE>FALSE</VALUE>'
+            '    </IPARAMVALUE>'
+            '  </IMETHODCALL>'
+            '</SIMPLEREQ>',
             exp_result=(u'SIMPLEREQ',
                         {},
                         (u'IMETHODCALL',
@@ -10297,6 +11365,50 @@ TESTCASES_TUPLEPARSE_XML = [
                           (u'LocalOnly', False)])),
         ),
         None, None, True
+    ),
+    (
+        "SIMPLEREQ with two IMETHODCALL children (invalid)",
+        dict(
+            xml_str=''
+            '<SIMPLEREQ>'
+            '  <IMETHODCALL NAME="GetClass">'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="root"/>'
+            '      <NAMESPACE NAME="cimv2"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '    <IPARAMVALUE NAME="ClassName">'
+            '      <CLASSNAME NAME="CIM_ComputerSystem"/>'
+            '    </IPARAMVALUE>'
+            '    <IPARAMVALUE NAME="PropertyList">'
+            '      <VALUE.ARRAY>'
+            '        <VALUE>PowerManagementCapabilities</VALUE>'
+            '      </VALUE.ARRAY>'
+            '    </IPARAMVALUE>'
+            '    <IPARAMVALUE NAME="LocalOnly">'
+            '      <VALUE>FALSE</VALUE>'
+            '    </IPARAMVALUE>'
+            '  </IMETHODCALL>'
+            '  <IMETHODCALL NAME="GetClass">'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="root"/>'
+            '      <NAMESPACE NAME="cimv2"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '    <IPARAMVALUE NAME="ClassName">'
+            '      <CLASSNAME NAME="CIM_ComputerSystem"/>'
+            '    </IPARAMVALUE>'
+            '    <IPARAMVALUE NAME="PropertyList">'
+            '      <VALUE.ARRAY>'
+            '        <VALUE>PowerManagementCapabilities</VALUE>'
+            '      </VALUE.ARRAY>'
+            '    </IPARAMVALUE>'
+            '    <IPARAMVALUE NAME="LocalOnly">'
+            '      <VALUE>FALSE</VALUE>'
+            '    </IPARAMVALUE>'
+            '  </IMETHODCALL>'
+            '</SIMPLEREQ>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
     ),
     (
         "SIMPLEREQ invalid, BLAHBLAH for IMETHODCALL (mismatched tag)",
@@ -10322,22 +11434,237 @@ TESTCASES_TUPLEPARSE_XML = [
     # SIMPLEEXPREQ tests:
     #
     #   <!ELEMENT SIMPLEEXPREQ (EXPMETHODCALL)>
-    # TODO: Add SIMPLEEXPREQ tests
+    (
+        "SIMPLEEXPREQ with invalid child element",
+        dict(
+            xml_str=''
+            '<SIMPLEEXPREQ>'
+            '  <XXX/>'
+            '</SIMPLEEXPREQ>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "SIMPLEEXPREQ with invalid attribute",
+        dict(
+            xml_str=''
+            '<SIMPLEEXPREQ XXX="bla">'
+            '  <EXPMETHODCALL NAME="M1">'
+            '  </EXPMETHODCALL>'
+            '</SIMPLEEXPREQ>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "SIMPLEEXPREQ with missing child (invalid)",
+        dict(
+            xml_str=''
+            '<SIMPLEEXPREQ>'
+            '</SIMPLEEXPREQ>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "SIMPLEEXPREQ with minimal child elements",
+        dict(
+            xml_str=''
+            '<SIMPLEEXPREQ>'
+            '  <EXPMETHODCALL NAME="M1">'
+            '  </EXPMETHODCALL>'
+            '</SIMPLEEXPREQ>',
+            exp_result=(
+                u'SIMPLEEXPREQ',
+                {},
+                (u'EXPMETHODCALL', {u'NAME': u'M1'}, []),
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "SIMPLEEXPREQ with two EXPMETHODCALL children (invalid)",
+        dict(
+            xml_str=''
+            '<SIMPLEEXPREQ>'
+            '  <EXPMETHODCALL NAME="M1">'
+            '  </EXPMETHODCALL>'
+            '  <EXPMETHODCALL NAME="M2">'
+            '  </EXPMETHODCALL>'
+            '</SIMPLEEXPREQ>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
 
     # SIMPLERSP tests:
     #
     #   <!ELEMENT SIMPLERSP (METHODRESPONSE | IMETHODRESPONSE)>
-    # TODO: Add SIMPLERSP tests
+    (
+        "SIMPLERSP with invalid child element",
+        dict(
+            xml_str=''
+            '<SIMPLERSP>'
+            '  <XXX/>'
+            '</SIMPLERSP>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "SIMPLERSP with invalid attribute",
+        dict(
+            xml_str=''
+            '<SIMPLERSP XXX="bla">'
+            '  <METHODRESPONSE NAME="M1">'
+            '  </METHODRESPONSE>'
+            '</SIMPLERSP>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "SIMPLERSP with missing child (invalid)",
+        dict(
+            xml_str=''
+            '<SIMPLERSP>'
+            '</SIMPLERSP>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "SIMPLERSP with METHODRESPONSE child",
+        dict(
+            xml_str=''
+            '<SIMPLERSP>'
+            '  <METHODRESPONSE NAME="M1">'
+            '    <RETURNVALUE PARAMTYPE="string"/>'
+            '  </METHODRESPONSE>'
+            '</SIMPLERSP>',
+            exp_result=(
+                u'SIMPLERSP',
+                {},
+                (
+                    'METHODRESPONSE', {'NAME': 'M1'},
+                    [
+                        ('RETURNVALUE', {'PARAMTYPE': 'string'}, None),
+                    ],
+                ),
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "SIMPLERSP with two METHODRESPONSE children (invalid)",
+        dict(
+            xml_str=''
+            '<SIMPLERSP>'
+            '  <METHODRESPONSE NAME="M1">'
+            '    <RETURNVALUE PARAMTYPE="string"/>'
+            '  </METHODRESPONSE>'
+            '  <METHODRESPONSE NAME="M2">'
+            '    <RETURNVALUE PARAMTYPE="string"/>'
+            '  </METHODRESPONSE>'
+            '</SIMPLERSP>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "SIMPLERSP with IMETHODRESPONSE child",
+        dict(
+            xml_str=''
+            '<SIMPLERSP>'
+            '  <IMETHODRESPONSE NAME="M1">'
+            '    <IRETURNVALUE/>'
+            '  </IMETHODRESPONSE>'
+            '</SIMPLERSP>',
+            exp_result=(
+                u'SIMPLERSP',
+                {},
+                (
+                    'IMETHODRESPONSE', {'NAME': 'M1'},
+                    [
+                        ('IRETURNVALUE', {}, []),
+                    ],
+                ),
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "SIMPLERSP with two IMETHODRESPONSE children (invalid)",
+        dict(
+            xml_str=''
+            '<SIMPLERSP>'
+            '  <IMETHODRESPONSE NAME="M1">'
+            '    <IRETURNVALUE/>'
+            '  </IMETHODRESPONSE>'
+            '  <IMETHODRESPONSE NAME="M2">'
+            '    <IRETURNVALUE/>'
+            '  </IMETHODRESPONSE>'
+            '</SIMPLERSP>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
 
     # SIMPLEEXPRSP tests: Parsing this element is not implemented
+    (
+        "SIMPLEEXPRSP (not implemented)",
+        dict(
+            xml_str=''
+            '<SIMPLEEXPRSP/>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
 
     # MULTIREQ tests: Parsing this element is not implemented
+    (
+        "MULTIREQ (not implemented)",
+        dict(
+            xml_str=''
+            '<MULTIREQ/>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
 
     # MULTIEXPREQ tests: Parsing this element is not implemented
+    (
+        "MULTIEXPREQ (not implemented)",
+        dict(
+            xml_str=''
+            '<MULTIEXPREQ/>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
 
     # MULTIRSP tests: Parsing this element is not implemented
+    (
+        "MULTIRSP (not implemented)",
+        dict(
+            xml_str=''
+            '<MULTIRSP/>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
 
     # MULTIEXPRSP tests: Parsing this element is not implemented
+    (
+        "MULTIEXPRSP (not implemented)",
+        dict(
+            xml_str=''
+            '<MULTIEXPRSP/>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
 
     # METHODCALL tests:
     #
@@ -10346,22 +11673,24 @@ TESTCASES_TUPLEPARSE_XML = [
     #   <!ATTLIST METHODCALL
     #       %CIMName;>
     (
-        "METHODCALL simple test",
+        "METHODCALL with class path and a few parameters",
         dict(
             xml_str=''
             '<METHODCALL NAME="SendTestIndicationsCount">'
-            '<LOCALCLASSPATH><LOCALNAMESPACEPATH>'
-            '<NAMESPACE NAME="test"/><NAMESPACE NAME="TestProvider"/>'
-            '</LOCALNAMESPACEPATH>'
-            '<CLASSNAME NAME="Test_IndicationProviderClass"/>'
-            '</LOCALCLASSPATH>'
-            '<PARAMVALUE NAME="indicationSendCount" PARAMTYPE="uint32">'
-            '<VALUE>0</VALUE>'
-            '</PARAMVALUE>'
-            '<PARAMVALUE NAME="indicationDropCount" PARAMTYPE="uint32">'
-            '<VALUE>42</VALUE>'
-            '</PARAMVALUE>'
-            '<PARAMVALUE NAME="optionalP1"/>'
+            '  <LOCALCLASSPATH>'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="test"/>'
+            '      <NAMESPACE NAME="TestProvider"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '    <CLASSNAME NAME="Test_IndicationProviderClass"/>'
+            '  </LOCALCLASSPATH>'
+            '  <PARAMVALUE NAME="indicationSendCount" PARAMTYPE="uint32">'
+            '    <VALUE>0</VALUE>'
+            '  </PARAMVALUE>'
+            '  <PARAMVALUE NAME="indicationDropCount" PARAMTYPE="uint32">'
+            '    <VALUE>42</VALUE>'
+            '  </PARAMVALUE>'
+            '  <PARAMVALUE NAME="optionalP1"/>'
             '</METHODCALL>',
             exp_result=(u'METHODCALL',
                         {u'NAME': u'SendTestIndicationsCount'},
@@ -10374,61 +11703,182 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
     (
-        "METHODCALL test, error No Name",
+        "METHODCALL with LOCALCLASSPATH child element",
+        dict(
+            xml_str=''
+            '<METHODCALL NAME="M1">'
+            '  <LOCALCLASSPATH>'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="foo"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '    <CLASSNAME NAME="CIM_Foo"/>'
+            '  </LOCALCLASSPATH>'
+            '</METHODCALL>',
+            exp_result=(
+                u'METHODCALL',
+                {u'NAME': u'M1'},
+                CIMClassName(classname='CIM_Foo', namespace='foo'),
+                [],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "METHODCALL with two LOCALCLASSPATH child elements (invalid)",
+        dict(
+            xml_str=''
+            '<METHODCALL NAME="M1">'
+            '  <LOCALCLASSPATH>'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="foo"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '    <CLASSNAME NAME="CIM_Foo"/>'
+            '  </LOCALCLASSPATH>'
+            '  <LOCALCLASSPATH>'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="foo"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '    <CLASSNAME NAME="CIM_Bar"/>'
+            '  </LOCALCLASSPATH>'
+            '</METHODCALL>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "METHODCALL with instance path and a few parameters",
+        dict(
+            xml_str=''
+            '<METHODCALL NAME="SendTestIndicationsCount">'
+            '  <LOCALINSTANCEPATH>'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="test"/>'
+            '      <NAMESPACE NAME="TestProvider"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '    <INSTANCENAME CLASSNAME="Test_IndicationProviderClass"/>'
+            '  </LOCALINSTANCEPATH>'
+            '  <PARAMVALUE NAME="indicationSendCount" PARAMTYPE="uint32">'
+            '    <VALUE>0</VALUE>'
+            '  </PARAMVALUE>'
+            '  <PARAMVALUE NAME="indicationDropCount" PARAMTYPE="uint32">'
+            '    <VALUE>42</VALUE>'
+            '  </PARAMVALUE>'
+            '  <PARAMVALUE NAME="optionalP1"/>'
+            '</METHODCALL>',
+            exp_result=(u'METHODCALL',
+                        {u'NAME': u'SendTestIndicationsCount'},
+                        CIMInstanceName(
+                            classname='Test_IndicationProviderClass',
+                            namespace='test/TestProvider', host=None),
+                        [(u'indicationSendCount', u'uint32', u'0'),
+                         (u'indicationDropCount', u'uint32', u'42'),
+                         (u'optionalP1', None, None)]),
+        ),
+        None, MissingKeybindingsWarning, True
+    ),
+    (
+        "METHODCALL with LOCALINSTANCEPATH child element",
+        dict(
+            xml_str=''
+            '<METHODCALL NAME="M1">'
+            '  <LOCALINSTANCEPATH>'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="foo"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '  </LOCALINSTANCEPATH>'
+            '</METHODCALL>',
+            exp_result=(
+                u'METHODCALL',
+                {u'NAME': u'M1'},
+                CIMInstanceName(classname='CIM_Foo', namespace='foo'),
+                [],
+            ),
+        ),
+        None, MissingKeybindingsWarning, True
+    ),
+    (
+        "METHODCALL with two LOCALINSTANCEPATH child elements (invalid)",
+        dict(
+            xml_str=''
+            '<METHODCALL NAME="M1">'
+            '  <LOCALINSTANCEPATH>'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="foo"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '  </LOCALINSTANCEPATH>'
+            '  <LOCALINSTANCEPATH>'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="foo"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '    <INSTANCENAME CLASSNAME="CIM_Bar"/>'
+            '  </LOCALINSTANCEPATH>'
+            '</METHODCALL>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "METHODCALL with missing NAME attribute (invalid)",
         dict(
             xml_str=''
             '<METHODCALL>'
-            '<LOCALCLASSPATH><LOCALNAMESPACEPATH>'
-            '<NAMESPACE NAME="test"/><NAMESPACE NAME="TestProvider"/>'
-            '</LOCALNAMESPACEPATH>'
-            '<CLASSNAME NAME="Test_IndicationProviderClass"/>'
-            '</LOCALCLASSPATH>'
-            '<PARAMVALUE NAME="indicationSendCount" PARAMTYPE="uint32">'
-            '<VALUE>0</VALUE>'
-            '</PARAMVALUE>'
-            '<PARAMVALUE NAME="indicationDropCount" PARAMTYPE="uint32">'
-            '<VALUE>42</VALUE>'
-            '</PARAMVALUE>'
-            '<PARAMVALUE NAME="optionalP1"/>'
+            '  <LOCALCLASSPATH>'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="test"/>'
+            '      <NAMESPACE NAME="TestProvider"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '    <CLASSNAME NAME="Test_IndicationProviderClass"/>'
+            '  </LOCALCLASSPATH>'
+            '  <PARAMVALUE NAME="indicationSendCount" PARAMTYPE="uint32">'
+            '    <VALUE>0</VALUE>'
+            '  </PARAMVALUE>'
+            '  <PARAMVALUE NAME="indicationDropCount" PARAMTYPE="uint32">'
+            '    <VALUE>42</VALUE>'
+            '  </PARAMVALUE>'
+            '  <PARAMVALUE NAME="optionalP1"/>'
             '</METHODCALL>',
             exp_result=None,
         ),
         CIMXMLParseError, None, True
     ),
     (
-        "METHODCALL Error, No path",
+        "METHODCALL with missing path (invalid)",
         dict(
             xml_str=''
             '<METHODCALL NAME="SendTestIndicationsCount">'
-            '<PARAMVALUE NAME="indicationSendCount" PARAMTYPE="uint32">'
-            '<VALUE>0</VALUE>'
-            '</PARAMVALUE>'
-            '<PARAMVALUE NAME="indicationDropCount" PARAMTYPE="uint32">'
-            '<VALUE>42</VALUE>'
-            '</PARAMVALUE>'
-            '<PARAMVALUE NAME="optionalP1"/>'
+            '  <PARAMVALUE NAME="indicationSendCount" PARAMTYPE="uint32">'
+            '    <VALUE>0</VALUE>'
+            '  </PARAMVALUE>'
+            '  <PARAMVALUE NAME="indicationDropCount" PARAMTYPE="uint32">'
+            '    <VALUE>42</VALUE>'
+            '  </PARAMVALUE>'
+            '  <PARAMVALUE NAME="optionalP1"/>'
             '</METHODCALL>',
             exp_result=None,
         ),
         CIMXMLParseError, None, True
     ),
     (
-        "METHODCALL Error, IPARMVALUE in place of PARAMVALUE",
+        "METHODCALL with IPARMVALUE in place of PARAMVALUE (invalid)",
         dict(
             xml_str=''
             '<METHODCALL NAME="SendTestIndicationsCount">'
-            '<LOCALCLASSPATH><LOCALNAMESPACEPATH>'
-            '<NAMESPACE NAME="test"/><NAMESPACE NAME="TestProvider"/>'
-            '</LOCALNAMESPACEPATH>'
-            '<CLASSNAME NAME="Test_IndicationProviderClass"/>'
-            '</LOCALCLASSPATH>'
-            '<IPARAMVALUE NAME="indicationSendCount" PARAMTYPE="uint32">'
-            '<VALUE>0</VALUE>'
-            '</IPARAMVALUE>'
-            '<PARAMVALUE NAME="indicationDropCount" PARAMTYPE="uint32">'
-            '<VALUE>42</VALUE>'
-            '</PARAMVALUE>'
-            '<PARAMVALUE NAME="optionalP1"/>'
+            '  <LOCALCLASSPATH>'
+            '    <LOCALNAMESPACEPATH>'
+            '      <NAMESPACE NAME="test"/>'
+            '      <NAMESPACE NAME="TestProvider"/>'
+            '    </LOCALNAMESPACEPATH>'
+            '    <CLASSNAME NAME="Test_IndicationProviderClass"/>'
+            '  </LOCALCLASSPATH>'
+            '  <IPARAMVALUE NAME="indicationSendCount" PARAMTYPE="uint32">'
+            '    <VALUE>0</VALUE>'
+            '  </IPARAMVALUE>'
+            '  <PARAMVALUE NAME="indicationDropCount" PARAMTYPE="uint32">'
+            '    <VALUE>42</VALUE>'
+            '  </PARAMVALUE>'
+            '  <PARAMVALUE NAME="optionalP1"/>'
             '</METHODCALL>',
             exp_result=None,
         ),
@@ -10440,7 +11890,199 @@ TESTCASES_TUPLEPARSE_XML = [
     #   <!ELEMENT METHODRESPONSE (ERROR | (RETURNVALUE?, PARAMVALUE*))>
     #   <!ATTLIST METHODRESPONSE
     #       %CIMName;>
-    # TODO: Add METHODRESPONSE tests
+    (
+        "METHODRESPONSE with invalid child element",
+        dict(
+            xml_str=''
+            '<METHODRESPONSE NAME="M1">'
+            '  <XXX/>'
+            '</METHODRESPONSE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "METHODRESPONSE with invalid attribute",
+        dict(
+            xml_str=''
+            '<METHODRESPONSE NAME="M1" XXX="bla">'
+            '</METHODRESPONSE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "METHODRESPONSE with missing NAME attribute",
+        dict(
+            xml_str=''
+            '<METHODRESPONSE>'
+            '</METHODRESPONSE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "METHODRESPONSE with ERROR child",
+        dict(
+            xml_str=''
+            '<METHODRESPONSE NAME="M1">'
+            '  <ERROR CODE="5"/>'
+            '</METHODRESPONSE>',
+            exp_result=(
+                'METHODRESPONSE', {'NAME': 'M1'},
+                [
+                    ('ERROR', {'CODE': '5'}, []),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "METHODRESPONSE with two ERROR children "
+        "(overall invalid, but valid at this level)",
+        dict(
+            xml_str=''
+            '<METHODRESPONSE NAME="M1">'
+            '  <ERROR CODE="5"/>'
+            '  <ERROR CODE="6"/>'
+            '</METHODRESPONSE>',
+            exp_result=(
+                'METHODRESPONSE', {'NAME': 'M1'},
+                [
+                    ('ERROR', {'CODE': '5'}, []),
+                    ('ERROR', {'CODE': '6'}, []),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "METHODRESPONSE with RETURNVALUE child",
+        dict(
+            xml_str=''
+            '<METHODRESPONSE NAME="M1">'
+            '  <RETURNVALUE PARAMTYPE="string"/>'
+            '</METHODRESPONSE>',
+            exp_result=(
+                'METHODRESPONSE', {'NAME': 'M1'},
+                [
+                    ('RETURNVALUE', {'PARAMTYPE': 'string'}, None),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "METHODRESPONSE with two RETURNVALUE children "
+        "(overall invalid, but valid at this level)",
+        dict(
+            xml_str=''
+            '<METHODRESPONSE NAME="M1">'
+            '  <RETURNVALUE PARAMTYPE="string"/>'
+            '  <RETURNVALUE PARAMTYPE="string"/>'
+            '</METHODRESPONSE>',
+            exp_result=(
+                'METHODRESPONSE', {'NAME': 'M1'},
+                [
+                    ('RETURNVALUE', {'PARAMTYPE': 'string'}, None),
+                    ('RETURNVALUE', {'PARAMTYPE': 'string'}, None),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "METHODRESPONSE with PARAMVALUE child",
+        dict(
+            xml_str=''
+            '<METHODRESPONSE NAME="M1">'
+            '  <PARAMVALUE NAME="P1"/>'
+            '</METHODRESPONSE>',
+            exp_result=(
+                'METHODRESPONSE', {'NAME': 'M1'},
+                [
+                    ('P1', None, None),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "METHODRESPONSE with two PARAMVALUE children (valid)",
+        dict(
+            xml_str=''
+            '<METHODRESPONSE NAME="M1">'
+            '  <PARAMVALUE NAME="P1"/>'
+            '  <PARAMVALUE NAME="P2"/>'
+            '</METHODRESPONSE>',
+            exp_result=(
+                'METHODRESPONSE', {'NAME': 'M1'},
+                [
+                    ('P1', None, None),
+                    ('P2', None, None),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "METHODRESPONSE with RETURNVALUE and two PARAMVALUE children (valid)",
+        dict(
+            xml_str=''
+            '<METHODRESPONSE NAME="M1">'
+            '  <RETURNVALUE PARAMTYPE="string"/>'
+            '  <PARAMVALUE NAME="P1"/>'
+            '  <PARAMVALUE NAME="P2"/>'
+            '</METHODRESPONSE>',
+            exp_result=(
+                'METHODRESPONSE', {'NAME': 'M1'},
+                [
+                    ('RETURNVALUE', {'PARAMTYPE': 'string'}, None),
+                    ('P1', None, None),
+                    ('P2', None, None),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "METHODRESPONSE with ERROR child and PARAMVALUE child "
+        "(overall invalid, but valid at this level)",
+        dict(
+            xml_str=''
+            '<METHODRESPONSE NAME="M1">'
+            '  <ERROR CODE="5"/>'
+            '  <PARAMVALUE NAME="P1"/>'
+            '</METHODRESPONSE>',
+            exp_result=(
+                'METHODRESPONSE', {'NAME': 'M1'},
+                [
+                    ('ERROR', {'CODE': '5'}, []),
+                    ('P1', None, None),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "METHODRESPONSE with ERROR child and RETURNVALUE child "
+        "(overall invalid, but valid at this level)",
+        dict(
+            xml_str=''
+            '<METHODRESPONSE NAME="M1">'
+            '  <ERROR CODE="5"/>'
+            '  <RETURNVALUE PARAMTYPE="string"/>'
+            '</METHODRESPONSE>',
+            exp_result=(
+                'METHODRESPONSE', {'NAME': 'M1'},
+                [
+                    ('ERROR', {'CODE': '5'}, []),
+                    ('RETURNVALUE', {'PARAMTYPE': 'string'}, None),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
 
     # PARAMVALUE tests:
     #
@@ -10451,6 +12093,37 @@ TESTCASES_TUPLEPARSE_XML = [
     #       %CIMName;
     #       %ParamType;  #IMPLIED
     #       %EmbeddedObject;>
+    (
+        "PARAMVALUE with invalid child element",
+        dict(
+            xml_str=''
+            '<PARAMVALUE NAME="P1">'
+            '  <XXX/>'
+            '</PARAMVALUE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "PARAMVALUE with invalid attribute",
+        dict(
+            xml_str=''
+            '<PARAMVALUE NAME="P1" XXX="bla">'
+            '</PARAMVALUE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "PARAMVALUE without value child (value None)",
+        dict(
+            xml_str=''
+            '<PARAMVALUE NAME="P1">'
+            '</PARAMVALUE>',
+            exp_result=(u'P1', None, None),
+        ),
+        None, None, True
+    ),
     (
         "PARAMVALUE without PARAMTYPE",
         dict(
@@ -10504,6 +12177,256 @@ TESTCASES_TUPLEPARSE_XML = [
         ),
         None, None, True
     ),
+    (
+        "PARAMVALUE with two VALUE children (invalid)",
+        dict(
+            xml_str=''
+            '<PARAMVALUE NAME="P1">'
+            '  <VALUE>abc</VALUE>'
+            '  <VALUE>abc</VALUE>'
+            '</PARAMVALUE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "PARAMVALUE without TYPE/PARAMTYPE and with VALUE child",
+        dict(
+            xml_str=''
+            '<PARAMVALUE NAME="P1">'
+            '  <VALUE>abc</VALUE>'
+            '</PARAMVALUE>',
+            exp_result=(u'P1', None, 'abc'),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMVALUE with two VALUE.REFERENCE children (invalid)",
+        dict(
+            xml_str=''
+            '<PARAMVALUE NAME="P1">'
+            '  <VALUE.REFERENCE>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '  </VALUE.REFERENCE>'
+            '  <VALUE.REFERENCE>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '  </VALUE.REFERENCE>'
+            '</PARAMVALUE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "PARAMVALUE without TYPE/PARAMTYPE and with VALUE.REFERENCE child",
+        dict(
+            xml_str=''
+            '<PARAMVALUE NAME="P1">'
+            '  <VALUE.REFERENCE>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '  </VALUE.REFERENCE>'
+            '</PARAMVALUE>',
+            exp_result=(u'P1',
+                        None,
+                        CIMInstanceName('CIM_Foo')),
+        ),
+        None, MissingKeybindingsWarning, True
+    ),
+    (
+        "PARAMVALUE with two VALUE.ARRAY children (invalid)",
+        dict(
+            xml_str=''
+            '<PARAMVALUE NAME="P1">'
+            '  <VALUE.ARRAY>'
+            '  </VALUE.ARRAY>'
+            '  <VALUE.ARRAY>'
+            '  </VALUE.ARRAY>'
+            '</PARAMVALUE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "PARAMVALUE without TYPE/PARAMTYPE and with empty VALUE.ARRAY child",
+        dict(
+            xml_str=''
+            '<PARAMVALUE NAME="P1">'
+            '  <VALUE.ARRAY>'
+            '  </VALUE.ARRAY>'
+            '</PARAMVALUE>',
+            exp_result=(u'P1',
+                        None,
+                        []),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMVALUE with two VALUE.REFARRAY children (invalid)",
+        dict(
+            xml_str=''
+            '<PARAMVALUE NAME="P1">'
+            '  <VALUE.REFARRAY>'
+            '  </VALUE.REFARRAY>'
+            '  <VALUE.REFARRAY>'
+            '  </VALUE.REFARRAY>'
+            '</PARAMVALUE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "PARAMVALUE without TYPE/PARAMTYPE and with empty VALUE.REFARRAY child",
+        dict(
+            xml_str=''
+            '<PARAMVALUE NAME="P1">'
+            '  <VALUE.REFARRAY>'
+            '  </VALUE.REFARRAY>'
+            '</PARAMVALUE>',
+            exp_result=(u'P1',
+                        None,
+                        []),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMVALUE with two CLASSNAME children (invalid)",
+        dict(
+            xml_str=''
+            '<PARAMVALUE NAME="P1">'
+            '  <CLASSNAME NAME="CIM_Foo"/>'
+            '  <CLASSNAME NAME="CIM_Foo"/>'
+            '</PARAMVALUE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "PARAMVALUE without TYPE/PARAMTYPE and with empty CLASSNAME child",
+        dict(
+            xml_str=''
+            '<PARAMVALUE NAME="P1">'
+            '  <CLASSNAME NAME="CIM_Foo"/>'
+            '</PARAMVALUE>',
+            exp_result=(u'P1',
+                        None,
+                        CIMClassName('CIM_Foo')),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMVALUE with two INSTANCENAME children (invalid)",
+        dict(
+            xml_str=''
+            '<PARAMVALUE NAME="P1">'
+            '  <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '  <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '</PARAMVALUE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "PARAMVALUE without TYPE/PARAMTYPE and with empty INSTANCENAME child",
+        dict(
+            xml_str=''
+            '<PARAMVALUE NAME="P1">'
+            '  <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '</PARAMVALUE>',
+            exp_result=(u'P1',
+                        None,
+                        CIMInstanceName('CIM_Foo')),
+        ),
+        None, MissingKeybindingsWarning, True
+    ),
+    (
+        "PARAMVALUE with two CLASS children (invalid)",
+        dict(
+            xml_str=''
+            '<PARAMVALUE NAME="P1">'
+            '  <CLASS NAME="CIM_Foo"/>'
+            '  <CLASS NAME="CIM_Foo"/>'
+            '</PARAMVALUE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "PARAMVALUE without TYPE/PARAMTYPE and with empty CLASS child",
+        dict(
+            xml_str=''
+            '<PARAMVALUE NAME="P1">'
+            '  <CLASS NAME="CIM_Foo"/>'
+            '</PARAMVALUE>',
+            exp_result=(u'P1',
+                        None,
+                        CIMClass('CIM_Foo')),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMVALUE with two INSTANCE children (invalid)",
+        dict(
+            xml_str=''
+            '<PARAMVALUE NAME="P1">'
+            '  <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '  <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '</PARAMVALUE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "PARAMVALUE without TYPE/PARAMTYPE and with empty INSTANCE child",
+        dict(
+            xml_str=''
+            '<PARAMVALUE NAME="P1">'
+            '  <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '</PARAMVALUE>',
+            exp_result=(u'P1',
+                        None,
+                        CIMInstance('CIM_Foo')),
+        ),
+        None, None, True
+    ),
+    (
+        "PARAMVALUE with two VALUE.NAMEDINSTANCE children (invalid)",
+        dict(
+            xml_str=''
+            '<PARAMVALUE NAME="P1">'
+            '  <VALUE.NAMEDINSTANCE>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '    <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '  </VALUE.NAMEDINSTANCE>'
+            '  <VALUE.NAMEDINSTANCE>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '    <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '  </VALUE.NAMEDINSTANCE>'
+            '</PARAMVALUE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "PARAMVALUE without TYPE/PARAMTYPE and with VALUE.NAMEDINSTANCE "
+        "child",
+        dict(
+            xml_str=''
+            '<PARAMVALUE NAME="P1">'
+            '  <VALUE.NAMEDINSTANCE>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '    <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '  </VALUE.NAMEDINSTANCE>'
+            '</PARAMVALUE>',
+            exp_result=(u'P1',
+                        None,
+                        CIMInstance(
+                            'CIM_Foo',
+                            path=CIMInstanceName(
+                                'CIM_Foo',
+                            ),
+                        ))
+        ),
+        None, MissingKeybindingsWarning, True
+    ),
 
     # RETURNVALUE tests:
     #
@@ -10511,6 +12434,27 @@ TESTCASES_TUPLEPARSE_XML = [
     #   <!ATTLIST RETURNVALUE
     #       %EmbeddedObject;
     #       %ParamType;       #IMPLIED>
+    (
+        "RETURNVALUE with invalid child element",
+        dict(
+            xml_str=''
+            '<RETURNVALUE>'
+            '  <XXX/>'
+            '</RETURNVALUE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "RETURNVALUE with invalid attribute",
+        dict(
+            xml_str=''
+            '<RETURNVALUE XXX="bla">'
+            '</RETURNVALUE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
     (
         "RETURNVALUE with simple PARAMTYPE and zero",
         dict(
@@ -10610,15 +12554,58 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
     (
-        "RETURNVALUE with Invalid attribute",
+        "RETURNVALUE with simple PARAMTYPE and nonzero value",
         dict(
             xml_str=''
-            '<RETURNVALUE PARAMTYPEX="sint32">'
-            '<VALUE>hi</VALUE>'
+            '<RETURNVALUE PARAMTYPE="sint32">'
+            '<VALUE>1</VALUE>'
+            '</RETURNVALUE>',
+            exp_result=(u'RETURNVALUE', {u'PARAMTYPE': u'sint32'}, u'1'),
+        ),
+        None, None, True
+    ),
+    (
+        "RETURNVALUE with two VALUE children (invalid)",
+        dict(
+            xml_str=''
+            '<RETURNVALUE PARAMTYPE="sint32">'
+            '  <VALUE>1</VALUE>'
+            '  <VALUE>1</VALUE>'
             '</RETURNVALUE>',
             exp_result=None,
         ),
         CIMXMLParseError, None, True
+    ),
+    (
+        "RETURNVALUE with two VALUE.REFERENCE children (invalid)",
+        dict(
+            xml_str=''
+            '<RETURNVALUE>'
+            '  <VALUE.REFERENCE>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '  </VALUE.REFERENCE>'
+            '  <VALUE.REFERENCE>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '  </VALUE.REFERENCE>'
+            '</RETURNVALUE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "RETURNVALUE with VALUE.REFERENCE (normal case)",
+        dict(
+            xml_str=''
+            '<RETURNVALUE>'
+            '  <VALUE.REFERENCE>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '  </VALUE.REFERENCE>'
+            '</RETURNVALUE>',
+            exp_result=(u'RETURNVALUE',
+                        {},
+                        CIMInstanceName(classname='CIM_Foo')),
+        ),
+        None, MissingKeybindingsWarning, True
     ),
     (
         "RETURNVALUE with VALUE.REFERENCE and missing end tag",
@@ -10645,16 +12632,154 @@ TESTCASES_TUPLEPARSE_XML = [
     #   <!ELEMENT EXPMETHODCALL (EXPPARAMVALUE*)>
     #   <!ATTLIST EXPMETHODCALL
     #       %CIMName;>
-    # TODO: Add EXPMETHODCALL tests
+    (
+        "EXPMETHODCALL with invalid child element",
+        dict(
+            xml_str=''
+            '<EXPMETHODCALL NAME="M1">'
+            '  <XXX/>'
+            '</EXPMETHODCALL>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "EXPMETHODCALL with invalid attribute",
+        dict(
+            xml_str=''
+            '<EXPMETHODCALL NAME="M1" XXX="bla">'
+            '</EXPMETHODCALL>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "EXPMETHODCALL with missing NAME attribute (invalid)",
+        dict(
+            xml_str=''
+            '<EXPMETHODCALL>'
+            '</EXPMETHODCALL>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "EXPMETHODCALL with one EXPPARAMVALUE child",
+        dict(
+            xml_str=''
+            '<EXPMETHODCALL NAME="M1">'
+            '  <EXPPARAMVALUE NAME="P1"/>'
+            '</EXPMETHODCALL>',
+            exp_result=(
+                u'EXPMETHODCALL',
+                {u'NAME': u'M1'},
+                [
+                    (u'P1', None),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "EXPMETHODCALL with two EXPPARAMVALUE children (valid)",
+        dict(
+            xml_str=''
+            '<EXPMETHODCALL NAME="M1">'
+            '  <EXPPARAMVALUE NAME="P1"/>'
+            '  <EXPPARAMVALUE NAME="P2"/>'
+            '</EXPMETHODCALL>',
+            exp_result=(
+                u'EXPMETHODCALL',
+                {u'NAME': u'M1'},
+                [
+                    (u'P1', None),
+                    (u'P2', None),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
 
     # EXPMETHODRESPONSE tests: Parsing this element is not implemented
+    (
+        "EXPMETHODRESPONSE (not implemented)",
+        dict(
+            xml_str=''
+            '<EXPMETHODRESPONSE/>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
 
     # EXPPARAMVALUE tests:
     #
     #   <!ELEMENT EXPPARAMVALUE (INSTANCE?)>
     #   <!ATTLIST EXPPARAMVALUE
     #       %CIMName;>
-    # TODO: Add EXPPARAMVALUE tests
+    (
+        "EXPPARAMVALUE with invalid child element",
+        dict(
+            xml_str=''
+            '<EXPPARAMVALUE NAME="P1">'
+            '  <XXX/>'
+            '</EXPPARAMVALUE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "EXPPARAMVALUE with invalid attribute",
+        dict(
+            xml_str=''
+            '<EXPPARAMVALUE NAME="P1" XXX="bla">'
+            '</EXPPARAMVALUE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "EXPPARAMVALUE with missing NAME attribute (invalid)",
+        dict(
+            xml_str=''
+            '<EXPPARAMVALUE>'
+            '</EXPPARAMVALUE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "EXPPARAMVALUE with no children (minimal case)",
+        dict(
+            xml_str=''
+            '<EXPPARAMVALUE NAME="P1">'
+            '</EXPPARAMVALUE>',
+            exp_result=(u'P1', None),
+        ),
+        None, None, True
+    ),
+    (
+        "EXPPARAMVALUE with INSTANCE child",
+        dict(
+            xml_str=''
+            '<EXPPARAMVALUE NAME="P1">'
+            '  <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '</EXPPARAMVALUE>',
+            exp_result=(u'P1', CIMInstance('CIM_Foo')),
+        ),
+        None, None, True
+    ),
+    (
+        "EXPPARAMVALUE with two INSTANCE children (invalid)",
+        dict(
+            xml_str=''
+            '<EXPPARAMVALUE NAME="P1">'
+            '  <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '  <INSTANCE CLASSNAME="CIM_Bar"/>'
+            '</EXPPARAMVALUE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
 
     # IMETHODCALL tests:
     #
@@ -10662,21 +12787,126 @@ TESTCASES_TUPLEPARSE_XML = [
     #   <!ATTLIST IMETHODCALL
     #      %CIMName;>
     (
-        "IMETHODCALL simple request",
+        "IMETHODCALL with invalid child element",
+        dict(
+            xml_str=''
+            '<IMETHODCALL NAME="M1">'
+            '  <XXX/>'
+            '</IMETHODCALL>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "IMETHODCALL with invalid attribute",
+        dict(
+            xml_str=''
+            '<IMETHODCALL NAME="M1" XXX="bla">'
+            '  <LOCALNAMESPACEPATH>'
+            '    <NAMESPACE NAME="foo"/>'
+            '  </LOCALNAMESPACEPATH>'
+            '</IMETHODCALL>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "IMETHODCALL with missing NAME attribute",
+        dict(
+            xml_str=''
+            '<IMETHODCALL>'
+            '  <LOCALNAMESPACEPATH>'
+            '    <NAMESPACE NAME="foo"/>'
+            '  </LOCALNAMESPACEPATH>'
+            '</IMETHODCALL>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "IMETHODCALL with missing LOCALNAMESPACEPATH child element",
+        dict(
+            xml_str=''
+            '<IMETHODCALL NAME="M1">'
+            '</IMETHODCALL>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "IMETHODCALL for GetClass with missing LOCALNAMESPACEPATH (invalid)",
         dict(
             xml_str=''
             '<IMETHODCALL NAME="GetClass">'
-            '<LOCALNAMESPACEPATH><NAMESPACE NAME="root"/>'
-            '<NAMESPACE NAME="cimv2"/></LOCALNAMESPACEPATH>'
-            '<IPARAMVALUE NAME="ClassName">'
-            '<CLASSNAME NAME="CIM_ComputerSystem"/>'
-            '</IPARAMVALUE>'
-            '<IPARAMVALUE NAME="PropertyList">'
-            '<VALUE.ARRAY><VALUE>PowerManagementCapabilities</VALUE>'
-            '</VALUE.ARRAY>'
-            '</IPARAMVALUE><IPARAMVALUE NAME="LocalOnly">'
-            '<VALUE>FALSE</VALUE>'
-            '</IPARAMVALUE></IMETHODCALL>',
+            '  <IPARAMVALUE NAME="ClassName">'
+            '    <CLASSNAME NAME="CIM_ComputerSystem"/>'
+            '  </IPARAMVALUE>'
+            '</IMETHODCALL>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "IMETHODCALL for GetClass with two LOCALNAMESPACEPATH children "
+        "(invalid)",
+        dict(
+            xml_str=''
+            '<IMETHODCALL NAME="GetClass">'
+            '  <LOCALNAMESPACEPATH>'
+            '    <NAMESPACE NAME="root"/>'
+            '    <NAMESPACE NAME="cimv2"/>'
+            '  </LOCALNAMESPACEPATH>'
+            '  <LOCALNAMESPACEPATH>'
+            '    <NAMESPACE NAME="root"/>'
+            '    <NAMESPACE NAME="cimv2"/>'
+            '  </LOCALNAMESPACEPATH>'
+            '  <IPARAMVALUE NAME="ClassName">'
+            '    <CLASSNAME NAME="CIM_ComputerSystem"/>'
+            '  </IPARAMVALUE>'
+            '</IMETHODCALL>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "IMETHODCALL with minimal child elements",
+        dict(
+            xml_str=''
+            '<IMETHODCALL NAME="M1">'
+            '  <LOCALNAMESPACEPATH>'
+            '    <NAMESPACE NAME="foo"/>'
+            '  </LOCALNAMESPACEPATH>'
+            '</IMETHODCALL>',
+            exp_result=(
+                u'IMETHODCALL',
+                {u'NAME': u'M1'},
+                u'foo',
+                [],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "IMETHODCALL for GetClass (normal case)",
+        dict(
+            xml_str=''
+            '<IMETHODCALL NAME="GetClass">'
+            '  <LOCALNAMESPACEPATH>'
+            '    <NAMESPACE NAME="root"/>'
+            '    <NAMESPACE NAME="cimv2"/>'
+            '  </LOCALNAMESPACEPATH>'
+            '  <IPARAMVALUE NAME="ClassName">'
+            '    <CLASSNAME NAME="CIM_ComputerSystem"/>'
+            '  </IPARAMVALUE>'
+            '  <IPARAMVALUE NAME="PropertyList">'
+            '    <VALUE.ARRAY>'
+            '      <VALUE>PowerManagementCapabilities</VALUE>'
+            '    </VALUE.ARRAY>'
+            '  </IPARAMVALUE>'
+            '  <IPARAMVALUE NAME="LocalOnly">'
+            '    <VALUE>FALSE</VALUE>'
+            '  </IPARAMVALUE>'
+            '</IMETHODCALL>',
             exp_result=(u'IMETHODCALL',
                         {u'NAME': u'GetClass'},
                         u'root/cimv2',
@@ -10688,51 +12918,205 @@ TESTCASES_TUPLEPARSE_XML = [
         ),
         None, None, True
     ),
-    (
-        "IMETHODCALL Error, no NAME",
-        dict(
-            xml_str=''
-            '<IMETHODCALL>'
-            '<LOCALNAMESPACEPATH><NAMESPACE NAME="root"/>'
-            '<NAMESPACE NAME="cimv2"/></LOCALNAMESPACEPATH>'
-            '<IPARAMVALUE NAME="ClassName">'
-            '<CLASSNAME NAME="CIM_ComputerSystem"/>'
-            '</IPARAMVALUE>'
-            '<IPARAMVALUE NAME="PropertyList">'
-            '<VALUE.ARRAY><VALUE>PowerManagementCapabilities</VALUE>'
-            '</VALUE.ARRAY>'
-            '</IPARAMVALUE><IPARAMVALUE NAME="LocalOnly">'
-            '<VALUE>FALSE</VALUE>'
-            '</IPARAMVALUE></IMETHODCALL>',
-            exp_result=None,
-        ),
-        CIMXMLParseError, None, True
-    ),
-    (
-        "IMETHODCALL Error, no Namespace",
-        dict(
-            xml_str=''
-            '<IMETHODCALL NAME="GetClass">'
-            '<IPARAMVALUE NAME="ClassName">'
-            '<CLASSNAME NAME="CIM_ComputerSystem"/>'
-            '</IPARAMVALUE>'
-            '<IPARAMVALUE NAME="PropertyList">'
-            '<VALUE.ARRAY><VALUE>PowerManagementCapabilities</VALUE>'
-            '</VALUE.ARRAY>'
-            '</IPARAMVALUE><IPARAMVALUE NAME="LocalOnly">'
-            '<VALUE>FALSE</VALUE>'
-            '</IPARAMVALUE></IMETHODCALL>',
-            exp_result=None,
-        ),
-        CIMXMLParseError, None, True
-    ),
 
     # IMETHODRESPONSE tests:
     #
     #   <!ELEMENT IMETHODRESPONSE (ERROR | (IRETURNVALUE?, PARAMVALUE*))>
     #   <!ATTLIST IMETHODRESPONSE
     #       %CIMName;>
-    # TODO: Add IMETHODRESPONSE tests
+    (
+        "IMETHODRESPONSE with invalid child element",
+        dict(
+            xml_str=''
+            '<IMETHODRESPONSE NAME="M1">'
+            '  <XXX/>'
+            '</IMETHODRESPONSE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "IMETHODRESPONSE with invalid attribute",
+        dict(
+            xml_str=''
+            '<IMETHODRESPONSE NAME="M1" XXX="bla">'
+            '</IMETHODRESPONSE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "IMETHODRESPONSE with missing NAME attribute",
+        dict(
+            xml_str=''
+            '<IMETHODRESPONSE>'
+            '</IMETHODRESPONSE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "IMETHODRESPONSE with ERROR child",
+        dict(
+            xml_str=''
+            '<IMETHODRESPONSE NAME="M1">'
+            '  <ERROR CODE="5"/>'
+            '</IMETHODRESPONSE>',
+            exp_result=(
+                'IMETHODRESPONSE', {'NAME': 'M1'},
+                [
+                    ('ERROR', {'CODE': '5'}, []),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "IMETHODRESPONSE with two ERROR children "
+        "(overall invalid, but valid at this level)",
+        dict(
+            xml_str=''
+            '<IMETHODRESPONSE NAME="M1">'
+            '  <ERROR CODE="5"/>'
+            '  <ERROR CODE="6"/>'
+            '</IMETHODRESPONSE>',
+            exp_result=(
+                'IMETHODRESPONSE', {'NAME': 'M1'},
+                [
+                    ('ERROR', {'CODE': '5'}, []),
+                    ('ERROR', {'CODE': '6'}, []),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "IMETHODRESPONSE with IRETURNVALUE child",
+        dict(
+            xml_str=''
+            '<IMETHODRESPONSE NAME="M1">'
+            '  <IRETURNVALUE/>'
+            '</IMETHODRESPONSE>',
+            exp_result=(
+                'IMETHODRESPONSE', {'NAME': 'M1'},
+                [
+                    ('IRETURNVALUE', {}, []),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "IMETHODRESPONSE with two IRETURNVALUE children "
+        "(overall invalid, but valid at this level)",
+        dict(
+            xml_str=''
+            '<IMETHODRESPONSE NAME="M1">'
+            '  <IRETURNVALUE/>'
+            '  <IRETURNVALUE/>'
+            '</IMETHODRESPONSE>',
+            exp_result=(
+                'IMETHODRESPONSE', {'NAME': 'M1'},
+                [
+                    ('IRETURNVALUE', {}, []),
+                    ('IRETURNVALUE', {}, []),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "IMETHODRESPONSE with PARAMVALUE child",
+        dict(
+            xml_str=''
+            '<IMETHODRESPONSE NAME="M1">'
+            '  <PARAMVALUE NAME="P1"/>'
+            '</IMETHODRESPONSE>',
+            exp_result=(
+                'IMETHODRESPONSE', {'NAME': 'M1'},
+                [
+                    ('P1', None, None),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "IMETHODRESPONSE with two PARAMVALUE children (valid)",
+        dict(
+            xml_str=''
+            '<IMETHODRESPONSE NAME="M1">'
+            '  <PARAMVALUE NAME="P1"/>'
+            '  <PARAMVALUE NAME="P2"/>'
+            '</IMETHODRESPONSE>',
+            exp_result=(
+                'IMETHODRESPONSE', {'NAME': 'M1'},
+                [
+                    ('P1', None, None),
+                    ('P2', None, None),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "IMETHODRESPONSE with IRETURNVALUE and two PARAMVALUE children (valid)",
+        dict(
+            xml_str=''
+            '<IMETHODRESPONSE NAME="M1">'
+            '  <IRETURNVALUE/>'
+            '  <PARAMVALUE NAME="P1"/>'
+            '  <PARAMVALUE NAME="P2"/>'
+            '</IMETHODRESPONSE>',
+            exp_result=(
+                'IMETHODRESPONSE', {'NAME': 'M1'},
+                [
+                    ('IRETURNVALUE', {}, []),
+                    ('P1', None, None),
+                    ('P2', None, None),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "IMETHODRESPONSE with ERROR child and PARAMVALUE child "
+        "(overall invalid, but valid at this level)",
+        dict(
+            xml_str=''
+            '<IMETHODRESPONSE NAME="M1">'
+            '  <ERROR CODE="5"/>'
+            '  <PARAMVALUE NAME="P1"/>'
+            '</IMETHODRESPONSE>',
+            exp_result=(
+                'IMETHODRESPONSE', {'NAME': 'M1'},
+                [
+                    ('ERROR', {'CODE': '5'}, []),
+                    ('P1', None, None),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "IMETHODRESPONSE with ERROR child and IRETURNVALUE child "
+        "(overall invalid, but valid at this level)",
+        dict(
+            xml_str=''
+            '<IMETHODRESPONSE NAME="M1">'
+            '  <ERROR CODE="5"/>'
+            '  <IRETURNVALUE/>'
+            '</IMETHODRESPONSE>',
+            exp_result=(
+                'IMETHODRESPONSE', {'NAME': 'M1'},
+                [
+                    ('ERROR', {'CODE': '5'}, []),
+                    ('IRETURNVALUE', {}, []),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
 
     # IPARAMVALUE tests:
     #
@@ -10743,85 +13127,275 @@ TESTCASES_TUPLEPARSE_XML = [
     #   <!ATTLIST IPARAMVALUE
     #       %CIMName;>
     (
-        "IPARAMVALUE Boolean value, localonly False ",
+        "IPARAMVALUE with invalid child element",
         dict(
             xml_str=''
-            '<IPARAMVALUE NAME="LocalOnly">'
-            '<VALUE>FALSE</VALUE>'
-            '</IPARAMVALUE>',
-            exp_result=(u'LocalOnly', False),
-        ),
-        None, None, True
-    ),
-    (
-        "IPARAMVALUE Boolean value localonly True ",
-        dict(
-            xml_str=''
-            '<IPARAMVALUE NAME="LocalOnly">'
-            '<VALUE>TRUE</VALUE>'
-            '</IPARAMVALUE>',
-            exp_result=(u'LocalOnly', True),
-        ),
-        None, None, True
-    ),
-    (
-        "IPARAMVALUE Array of integers ",
-        dict(
-            xml_str=''
-            '<IPARAMVALUE NAME="ARRAYINT">'
-            '<VALUE.ARRAY><VALUE>1</VALUE><VALUE>2</VALUE>'
-            '</VALUE.ARRAY></IPARAMVALUE>',
-            exp_result=(u'ARRAYINT', [u'1', u'2']),
-        ),
-        None, None, True
-    ),
-    (
-        "IPARAMVALUE InstanceName value ",
-        dict(
-            xml_str=''
-            '<IPARAMVALUE NAME="InstanceName">'
-            '<INSTANCENAME CLASSNAME="PyWBEM_Person">'
-            '<KEYBINDING NAME="Name">'
-            '<KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>'
-            '</KEYBINDING>'
-            '</INSTANCENAME>'
-            '</IPARAMVALUE>',
-            exp_result=(u'InstanceName',
-                        CIMInstanceName("PyWBEM_Person",
-                                        [('Name', 'Fritz')],
-                                        namespace=None, host=None)),
-        ),
-        None, None, True
-    ),
-    (
-        "IPARAMVALUE Error, No Name in KEYBINDING ",
-        dict(
-            xml_str=''
-            '<IPARAMVALUE NAME="InstanceName">'
-            '<INSTANCENAME CLASSNAME="PyWBEM_Person">'
-            '<KEYBINDING>'
-            '<KEYVALUE VALUETYPE="string">Fritz</KEYVALUE>'
-            '</KEYBINDING>'
-            '</INSTANCENAME>'
+            '<IPARAMVALUE NAME="P1">'
+            '  <VALUE/>'
+            '  <XXX/>'
             '</IPARAMVALUE>',
             exp_result=None,
         ),
         CIMXMLParseError, None, True
     ),
     (
-        "IPARAMVALUE Error No Name",
+        "IPARAMVALUE with invalid attribute",
         dict(
             xml_str=''
-            '<IPARAMVALUE>'
-            '<VALUE.ARRAY><VALUE>1</VALUE><VALUE>2</VALUE>'
-            '</VALUE.ARRAY></IPARAMVALUE>',
-            exp_result=(u'ARRAYINT', [u'1', u'2']),
+            '<IPARAMVALUE NAME="P1" XXX="bla">'
+            '  <VALUE/>'
+            '</IPARAMVALUE>',
+            exp_result=None,
         ),
         CIMXMLParseError, None, True
     ),
-    # TODO: Cover other IPARAMVALUE child elements including:
-    #       'VALUE.REFERENCE', 'CLASSNAME','QUALIFIER.DECLARATION', 'CLASS',
-    #       'INSTANCE', 'VALUE.NAMEDINSTANCE'.
+    (
+        "IPARAMVALUE with missing NAME attribute (invalid)",
+        dict(
+            xml_str=''
+            '<IPARAMVALUE>'
+            '  <VALUE/>'
+            '</IPARAMVALUE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "IPARAMVALUE with VALUE child that has a boolean value FALSE",
+        dict(
+            xml_str=''
+            '<IPARAMVALUE NAME="LocalOnly">'
+            '  <VALUE>FALSE</VALUE>'
+            '</IPARAMVALUE>',
+            exp_result=(u'LocalOnly', False),
+        ),
+        None, None, True
+    ),
+    (
+        "IPARAMVALUE with VALUE child that has a boolean value TRUE",
+        dict(
+            xml_str=''
+            '<IPARAMVALUE NAME="LocalOnly">'
+            '  <VALUE>TRUE</VALUE>'
+            '</IPARAMVALUE>',
+            exp_result=(u'LocalOnly', True),
+        ),
+        None, None, True
+    ),
+    (
+        "IPARAMVALUE with VALUE.ARRAY child with two integers (become strings)",
+        dict(
+            xml_str=''
+            '<IPARAMVALUE NAME="ARRAYINT">'
+            '  <VALUE.ARRAY>'
+            '    <VALUE>1</VALUE>'
+            '    <VALUE>2</VALUE>'
+            '  </VALUE.ARRAY>'
+            '</IPARAMVALUE>',
+            exp_result=(u'ARRAYINT', [u'1', u'2']),
+        ),
+        None, None, True
+    ),
+    (
+        "IPARAMVALUE with two VALUE children (invalid)",
+        dict(
+            xml_str=''
+            '<IPARAMVALUE NAME="LocalOnly">'
+            '  <VALUE>FALSE</VALUE>'
+            '  <VALUE>FALSE</VALUE>'
+            '</IPARAMVALUE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "IPARAMVALUE with VALUE.REFERENCE child",
+        dict(
+            xml_str=''
+            '<IPARAMVALUE NAME="P1">'
+            '  <VALUE.REFERENCE>'
+            '    <CLASSNAME NAME="CIM_Foo"/>'
+            '  </VALUE.REFERENCE>'
+            '</IPARAMVALUE>',
+            exp_result=(u'P1', CIMClassName('CIM_Foo')),
+        ),
+        None, None, True
+    ),
+    (
+        "IPARAMVALUE with two VALUE.REFERENCE children (invalid)",
+        dict(
+            xml_str=''
+            '<IPARAMVALUE NAME="P1">'
+            '  <VALUE.REFERENCE>'
+            '    <CLASSNAME NAME="CIM_Foo"/>'
+            '  </VALUE.REFERENCE>'
+            '  <VALUE.REFERENCE>'
+            '    <CLASSNAME NAME="CIM_Bar"/>'
+            '  </VALUE.REFERENCE>'
+            '</IPARAMVALUE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "IPARAMVALUE with INSTANCENAME child",
+        dict(
+            xml_str=''
+            '<IPARAMVALUE NAME="P1">'
+            '  <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '</IPARAMVALUE>',
+            exp_result=(u'P1', CIMInstanceName("CIM_Foo")),
+        ),
+        None, MissingKeybindingsWarning, True
+    ),
+    (
+        "IPARAMVALUE with two INSTANCENAME children (invalid)",
+        dict(
+            xml_str=''
+            '<IPARAMVALUE NAME="P1">'
+            '  <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '  <INSTANCENAME CLASSNAME="CIM_Bar"/>'
+            '</IPARAMVALUE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "IPARAMVALUE with CLASSNAME child",
+        dict(
+            xml_str=''
+            '<IPARAMVALUE NAME="P1">'
+            '  <CLASSNAME NAME="CIM_Foo"/>'
+            '</IPARAMVALUE>',
+            exp_result=(u'P1', CIMClassName("CIM_Foo")),
+        ),
+        None, None, True
+    ),
+    (
+        "IPARAMVALUE with two CLASSNAME children (invalid)",
+        dict(
+            xml_str=''
+            '<IPARAMVALUE NAME="P1">'
+            '  <CLASSNAME NAME="CIM_Foo"/>'
+            '  <CLASSNAME NAME="CIM_Bar"/>'
+            '</IPARAMVALUE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "IPARAMVALUE with VALUE.NAMEDINSTANCE child",
+        dict(
+            xml_str=''
+            '<IPARAMVALUE NAME="P1">'
+            '  <VALUE.NAMEDINSTANCE>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '    <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '  </VALUE.NAMEDINSTANCE>'
+            '</IPARAMVALUE>',
+            exp_result=(
+                u'P1',
+                CIMInstance(
+                    'CIM_Foo',
+                    path=CIMInstanceName('CIM_Foo'),
+                ),
+            ),
+        ),
+        None, MissingKeybindingsWarning, True
+    ),
+    (
+        "IPARAMVALUE with two VALUE.NAMEDINSTANCE children (invalid)",
+        dict(
+            xml_str=''
+            '<IPARAMVALUE NAME="P1">'
+            '  <VALUE.NAMEDINSTANCE>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '    <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '  </VALUE.NAMEDINSTANCE>'
+            '  <VALUE.NAMEDINSTANCE>'
+            '    <INSTANCENAME CLASSNAME="CIM_Bar"/>'
+            '    <INSTANCE CLASSNAME="CIM_Bar"/>'
+            '  </VALUE.NAMEDINSTANCE>'
+            '</IPARAMVALUE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "IPARAMVALUE with CLASS child",
+        dict(
+            xml_str=''
+            '<IPARAMVALUE NAME="P1">'
+            '  <CLASS NAME="CIM_Foo"/>'
+            '</IPARAMVALUE>',
+            exp_result=(u'P1', CIMClass('CIM_Foo')),
+        ),
+        None, None, True
+    ),
+    (
+        "IPARAMVALUE with two CLASS children (invalid)",
+        dict(
+            xml_str=''
+            '<IPARAMVALUE NAME="P1">'
+            '  <CLASS NAME="CIM_Foo"/>'
+            '  <CLASS NAME="CIM_Bar"/>'
+            '</IPARAMVALUE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "IPARAMVALUE with INSTANCE child",
+        dict(
+            xml_str=''
+            '<IPARAMVALUE NAME="P1">'
+            '  <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '</IPARAMVALUE>',
+            exp_result=(u'P1', CIMInstance('CIM_Foo')),
+        ),
+        None, None, True
+    ),
+    (
+        "IPARAMVALUE with two INSTANCE children (invalid)",
+        dict(
+            xml_str=''
+            '<IPARAMVALUE NAME="P1">'
+            '  <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '  <INSTANCE CLASSNAME="CIM_Bar"/>'
+            '</IPARAMVALUE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "IPARAMVALUE with QUALIFIER.DECLARATION child",
+        dict(
+            xml_str=''
+            '<IPARAMVALUE NAME="P1">'
+            '  <QUALIFIER.DECLARATION NAME="Qual" TYPE="string"/>'
+            '</IPARAMVALUE>',
+            exp_result=(
+                u'P1',
+                CIMQualifierDeclaration(
+                    'Qual', value=None, type='string',
+                    **qualifier_declaration_default_attrs()
+                ),
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "IPARAMVALUE with two QUALIFIER.DECLARATION children (invalid)",
+        dict(
+            xml_str=''
+            '<IPARAMVALUE NAME="P1">'
+            '  <QUALIFIER.DECLARATION NAME="Qual" TYPE="string"/>'
+            '  <QUALIFIER.DECLARATION NAME="Qua2" TYPE="string"/>'
+            '</IPARAMVALUE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
 
     # IRETURNVALUE tests:
     #
@@ -10833,7 +13407,854 @@ TESTCASES_TUPLEPARSE_XML = [
     #                           VALUE.REFERENCE? | CLASS* | INSTANCE* |
     #                           INSTANCEPATH* | VALUE.NAMEDINSTANCE* |
     #                           VALUE.INSTANCEWITHPATH*)>
-    # TODO: Add IRETURNVALUE tests
+    (
+        "IRETURNVALUE with invalid child element",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '  <XXX/>'
+            '</IRETURNVALUE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "IRETURNVALUE with invalid attribute",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE XXX="bla"/>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "IRETURNVALUE with two different children (invalid)",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '  <VALUE>abc</VALUE>'
+            '  <CLASSNAME NAME="CIM_Foo"/>'
+            '</IRETURNVALUE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "IRETURNVALUE with no children (valid)",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '</IRETURNVALUE>',
+            exp_result=(u'IRETURNVALUE', {}, []),
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with one VALUE child that is a string",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '  <VALUE>abc</VALUE>'
+            '</IRETURNVALUE>',
+            exp_result=(u'IRETURNVALUE', {}, [u'abc']),
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with two VALUE children that are strings (text, number)",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '  <VALUE>abc</VALUE>'
+            '  <VALUE>42</VALUE>'
+            '</IRETURNVALUE>',
+            exp_result=(u'IRETURNVALUE', {}, [u'abc', u'42']),
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with one VALUE.ARRAY child",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '  <VALUE.ARRAY/>'
+            '</IRETURNVALUE>',
+            exp_result=(u'IRETURNVALUE', {}, [[]]),
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with two VALUE.ARRAY children "
+        "(overall invalid, but valid at this level)",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '  <VALUE.ARRAY/>'
+            '  <VALUE.ARRAY/>'
+            '</IRETURNVALUE>',
+            exp_result=(u'IRETURNVALUE', {}, [[], []]),
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with one VALUE.REFERENCE child",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '  <VALUE.REFERENCE>'
+            '    <CLASSNAME NAME="CIM_Foo"/>'
+            '  </VALUE.REFERENCE>'
+            '</IRETURNVALUE>',
+            exp_result=(
+                u'IRETURNVALUE', {},
+                [
+                    CIMClassName('CIM_Foo'),
+                ]
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with two VALUE.REFERENCE children "
+        "(overall invalid, but valid at this level)",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '  <VALUE.REFERENCE>'
+            '    <CLASSNAME NAME="CIM_Foo"/>'
+            '  </VALUE.REFERENCE>'
+            '  <VALUE.REFERENCE>'
+            '    <CLASSNAME NAME="CIM_Bar"/>'
+            '  </VALUE.REFERENCE>'
+            '</IRETURNVALUE>',
+            exp_result=(
+                u'IRETURNVALUE', {},
+                [
+                    CIMClassName('CIM_Foo'),
+                    CIMClassName('CIM_Bar'),
+                ]
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with one OBJECTPATH child",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '  <OBJECTPATH>'
+            '    <CLASSPATH>'
+            '      <NAMESPACEPATH>'
+            '        <HOST>woot.com</HOST>'
+            '        <LOCALNAMESPACEPATH>'
+            '          <NAMESPACE NAME="foo"/>'
+            '        </LOCALNAMESPACEPATH>'
+            '      </NAMESPACEPATH>'
+            '      <CLASSNAME NAME="CIM_Foo"/>'
+            '    </CLASSPATH>'
+            '  </OBJECTPATH>'
+            '</IRETURNVALUE>',
+            exp_result=(
+                u'IRETURNVALUE', {},
+                [
+                    (
+                        u'OBJECTPATH', {},
+                        CIMClassName(
+                            'CIM_Foo',
+                            namespace='foo',
+                            host='woot.com',
+                        ),
+                    ),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with one OBJECTPATH child",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '  <OBJECTPATH>'
+            '    <CLASSPATH>'
+            '      <NAMESPACEPATH>'
+            '        <HOST>woot.com</HOST>'
+            '        <LOCALNAMESPACEPATH>'
+            '          <NAMESPACE NAME="foo"/>'
+            '        </LOCALNAMESPACEPATH>'
+            '      </NAMESPACEPATH>'
+            '      <CLASSNAME NAME="CIM_Foo"/>'
+            '    </CLASSPATH>'
+            '  </OBJECTPATH>'
+            '  <OBJECTPATH>'
+            '    <CLASSPATH>'
+            '      <NAMESPACEPATH>'
+            '        <HOST>woot.com</HOST>'
+            '        <LOCALNAMESPACEPATH>'
+            '          <NAMESPACE NAME="foo"/>'
+            '        </LOCALNAMESPACEPATH>'
+            '      </NAMESPACEPATH>'
+            '      <CLASSNAME NAME="CIM_Bar"/>'
+            '    </CLASSPATH>'
+            '  </OBJECTPATH>'
+            '</IRETURNVALUE>',
+            exp_result=(
+                u'IRETURNVALUE', {},
+                [
+                    (
+                        u'OBJECTPATH', {},
+                        CIMClassName(
+                            'CIM_Foo',
+                            namespace='foo',
+                            host='woot.com',
+                        ),
+                    ),
+                    (
+                        u'OBJECTPATH', {},
+                        CIMClassName(
+                            'CIM_Bar',
+                            namespace='foo',
+                            host='woot.com',
+                        ),
+                    ),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with one INSTANCEPATH child",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '  <INSTANCEPATH>'
+            '    <NAMESPACEPATH>'
+            '      <HOST>woot.com</HOST>'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '    </NAMESPACEPATH>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '  </INSTANCEPATH>'
+            '</IRETURNVALUE>',
+            exp_result=(
+                u'IRETURNVALUE', {},
+                [
+                    CIMInstanceName(
+                        'CIM_Foo',
+                        namespace='foo',
+                        host='woot.com',
+                    ),
+                ],
+            ),
+        ),
+        None, MissingKeybindingsWarning, True
+    ),
+    (
+        "IRETURNVALUE with two INSTANCEPATH children (valid)",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '  <INSTANCEPATH>'
+            '    <NAMESPACEPATH>'
+            '      <HOST>woot.com</HOST>'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '    </NAMESPACEPATH>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '  </INSTANCEPATH>'
+            '  <INSTANCEPATH>'
+            '    <NAMESPACEPATH>'
+            '      <HOST>woot.com</HOST>'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '    </NAMESPACEPATH>'
+            '    <INSTANCENAME CLASSNAME="CIM_Bar"/>'
+            '  </INSTANCEPATH>'
+            '</IRETURNVALUE>',
+            exp_result=(
+                u'IRETURNVALUE', {},
+                [
+                    CIMInstanceName(
+                        'CIM_Foo',
+                        namespace='foo',
+                        host='woot.com',
+                    ),
+                    CIMInstanceName(
+                        'CIM_Bar',
+                        namespace='foo',
+                        host='woot.com',
+                    ),
+                ],
+            ),
+        ),
+        None, MissingKeybindingsWarning, True
+    ),
+    (
+        "IRETURNVALUE with one CLASSNAME child",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '  <CLASSNAME NAME="CIM_Foo"/>'
+            '</IRETURNVALUE>',
+            exp_result=(u'IRETURNVALUE', {},
+                        [CIMClassName('CIM_Foo')]),
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with two CLASSNAME children (valid)",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '  <CLASSNAME NAME="CIM_Foo"/>'
+            '  <CLASSNAME NAME="CIM_Bar"/>'
+            '</IRETURNVALUE>',
+            exp_result=(u'IRETURNVALUE', {},
+                        [CIMClassName('CIM_Foo'), CIMClassName('CIM_Bar')]),
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with one INSTANCENAME child",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '  <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '</IRETURNVALUE>',
+            exp_result=(u'IRETURNVALUE', {},
+                        [CIMInstanceName('CIM_Foo')]),
+        ),
+        None, MissingKeybindingsWarning, True
+    ),
+    (
+        "IRETURNVALUE with two INSTANCENAME children (valid)",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '  <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '  <INSTANCENAME CLASSNAME="CIM_Bar"/>'
+            '</IRETURNVALUE>',
+            exp_result=(u'IRETURNVALUE', {},
+                        [CIMInstanceName('CIM_Foo'),
+                         CIMInstanceName('CIM_Bar')]),
+        ),
+        None, MissingKeybindingsWarning, True
+    ),
+    (
+        "IRETURNVALUE with one VALUE.OBJECTWITHPATH child",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '  <VALUE.OBJECTWITHPATH>'
+            '    <CLASSPATH>'
+            '      <NAMESPACEPATH>'
+            '        <HOST>woot.com</HOST>'
+            '        <LOCALNAMESPACEPATH>'
+            '          <NAMESPACE NAME="foo"/>'
+            '        </LOCALNAMESPACEPATH>'
+            '      </NAMESPACEPATH>'
+            '      <CLASSNAME NAME="CIM_Foo"/>'
+            '    </CLASSPATH>'
+            '    <CLASS NAME="CIM_Foo"/>'
+            '  </VALUE.OBJECTWITHPATH>'
+            '</IRETURNVALUE>',
+            exp_result=(
+                u'IRETURNVALUE', {},
+                [
+                    (
+                        u'VALUE.OBJECTWITHPATH', {},
+                        (
+                            CIMClassName(
+                                'CIM_Foo',
+                                namespace='foo',
+                                host='woot.com',
+                            ),
+                            CIMClass(
+                                'CIM_Foo',
+                                path=CIMClassName(
+                                    'CIM_Foo',
+                                    namespace='foo',
+                                    host='woot.com',
+                                ),
+                            ),
+                        ),
+                    ),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with two VALUE.OBJECTWITHPATH children (valid)",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '  <VALUE.OBJECTWITHPATH>'
+            '    <CLASSPATH>'
+            '      <NAMESPACEPATH>'
+            '        <HOST>woot.com</HOST>'
+            '        <LOCALNAMESPACEPATH>'
+            '          <NAMESPACE NAME="foo"/>'
+            '        </LOCALNAMESPACEPATH>'
+            '      </NAMESPACEPATH>'
+            '      <CLASSNAME NAME="CIM_Foo"/>'
+            '    </CLASSPATH>'
+            '    <CLASS NAME="CIM_Foo"/>'
+            '  </VALUE.OBJECTWITHPATH>'
+            '  <VALUE.OBJECTWITHPATH>'
+            '    <CLASSPATH>'
+            '      <NAMESPACEPATH>'
+            '        <HOST>woot.com</HOST>'
+            '        <LOCALNAMESPACEPATH>'
+            '          <NAMESPACE NAME="foo"/>'
+            '        </LOCALNAMESPACEPATH>'
+            '      </NAMESPACEPATH>'
+            '      <CLASSNAME NAME="CIM_Bar"/>'
+            '    </CLASSPATH>'
+            '    <CLASS NAME="CIM_Bar"/>'
+            '  </VALUE.OBJECTWITHPATH>'
+            '</IRETURNVALUE>',
+            exp_result=(
+                u'IRETURNVALUE', {},
+                [
+                    (
+                        u'VALUE.OBJECTWITHPATH', {},
+                        (
+                            CIMClassName(
+                                'CIM_Foo',
+                                namespace='foo',
+                                host='woot.com',
+                            ),
+                            CIMClass(
+                                'CIM_Foo',
+                                path=CIMClassName(
+                                    'CIM_Foo',
+                                    namespace='foo',
+                                    host='woot.com',
+                                ),
+                            ),
+                        ),
+                    ),
+                    (
+                        u'VALUE.OBJECTWITHPATH', {},
+                        (
+                            CIMClassName(
+                                'CIM_Bar',
+                                namespace='foo',
+                                host='woot.com',
+                            ),
+                            CIMClass(
+                                'CIM_Bar',
+                                path=CIMClassName(
+                                    'CIM_Bar',
+                                    namespace='foo',
+                                    host='woot.com',
+                                ),
+                            ),
+                        ),
+                    ),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with one VALUE.OBJECTWITHLOCALPATH child",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '  <VALUE.OBJECTWITHLOCALPATH>'
+            '    <LOCALCLASSPATH>'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '      <CLASSNAME NAME="CIM_Foo"/>'
+            '    </LOCALCLASSPATH>'
+            '    <CLASS NAME="CIM_Foo"/>'
+            '  </VALUE.OBJECTWITHLOCALPATH>'
+            '</IRETURNVALUE>',
+            exp_result=(
+                u'IRETURNVALUE', {},
+                [
+                    (
+                        u'VALUE.OBJECTWITHLOCALPATH', {},
+                        (
+                            CIMClassName(
+                                'CIM_Foo',
+                                namespace='foo',
+                            ),
+                            CIMClass(
+                                'CIM_Foo',
+                                path=CIMClassName(
+                                    'CIM_Foo',
+                                    namespace='foo',
+                                ),
+                            ),
+                        ),
+                    ),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with two VALUE.OBJECTWITHLOCALPATH children (valid)",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '  <VALUE.OBJECTWITHLOCALPATH>'
+            '    <LOCALCLASSPATH>'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '      <CLASSNAME NAME="CIM_Foo"/>'
+            '    </LOCALCLASSPATH>'
+            '    <CLASS NAME="CIM_Foo"/>'
+            '  </VALUE.OBJECTWITHLOCALPATH>'
+            '  <VALUE.OBJECTWITHLOCALPATH>'
+            '    <LOCALCLASSPATH>'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '      <CLASSNAME NAME="CIM_Bar"/>'
+            '    </LOCALCLASSPATH>'
+            '    <CLASS NAME="CIM_Bar"/>'
+            '  </VALUE.OBJECTWITHLOCALPATH>'
+            '</IRETURNVALUE>',
+            exp_result=(
+                u'IRETURNVALUE', {},
+                [
+                    (
+                        u'VALUE.OBJECTWITHLOCALPATH', {},
+                        (
+                            CIMClassName(
+                                'CIM_Foo',
+                                namespace='foo',
+                            ),
+                            CIMClass(
+                                'CIM_Foo',
+                                path=CIMClassName(
+                                    'CIM_Foo',
+                                    namespace='foo',
+                                ),
+                            ),
+                        ),
+                    ),
+                    (
+                        u'VALUE.OBJECTWITHLOCALPATH', {},
+                        (
+                            CIMClassName(
+                                'CIM_Bar',
+                                namespace='foo',
+                            ),
+                            CIMClass(
+                                'CIM_Bar',
+                                path=CIMClassName(
+                                    'CIM_Bar',
+                                    namespace='foo',
+                                ),
+                            ),
+                        ),
+                    ),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with one VALUE.INSTANCEWITHPATH child",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '  <VALUE.INSTANCEWITHPATH>'
+            '    <INSTANCEPATH>'
+            '      <NAMESPACEPATH>'
+            '        <HOST>woot.com</HOST>'
+            '        <LOCALNAMESPACEPATH>'
+            '          <NAMESPACE NAME="foo"/>'
+            '        </LOCALNAMESPACEPATH>'
+            '      </NAMESPACEPATH>'
+            '      <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '    </INSTANCEPATH>'
+            '    <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '  </VALUE.INSTANCEWITHPATH>'
+            '</IRETURNVALUE>',
+            exp_result=(
+                u'IRETURNVALUE', {},
+                [
+                    CIMInstance(
+                        'CIM_Foo',
+                        path=CIMInstanceName(
+                            'CIM_Foo',
+                            namespace='foo',
+                            host='woot.com',
+                        ),
+                    ),
+                ],
+            ),
+        ),
+        None, MissingKeybindingsWarning, True
+    ),
+    (
+        "IRETURNVALUE with two VALUE.INSTANCEWITHPATH children (valid)",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '  <VALUE.INSTANCEWITHPATH>'
+            '    <INSTANCEPATH>'
+            '      <NAMESPACEPATH>'
+            '        <HOST>woot.com</HOST>'
+            '        <LOCALNAMESPACEPATH>'
+            '          <NAMESPACE NAME="foo"/>'
+            '        </LOCALNAMESPACEPATH>'
+            '      </NAMESPACEPATH>'
+            '      <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '    </INSTANCEPATH>'
+            '    <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '  </VALUE.INSTANCEWITHPATH>'
+            '  <VALUE.INSTANCEWITHPATH>'
+            '    <INSTANCEPATH>'
+            '      <NAMESPACEPATH>'
+            '        <HOST>woot.com</HOST>'
+            '        <LOCALNAMESPACEPATH>'
+            '          <NAMESPACE NAME="foo"/>'
+            '        </LOCALNAMESPACEPATH>'
+            '      </NAMESPACEPATH>'
+            '      <INSTANCENAME CLASSNAME="CIM_Bar"/>'
+            '    </INSTANCEPATH>'
+            '    <INSTANCE CLASSNAME="CIM_Bar"/>'
+            '  </VALUE.INSTANCEWITHPATH>'
+            '</IRETURNVALUE>',
+            exp_result=(
+                u'IRETURNVALUE', {},
+                [
+                    CIMInstance(
+                        'CIM_Foo',
+                        path=CIMInstanceName(
+                            'CIM_Foo',
+                            namespace='foo',
+                            host='woot.com',
+                        ),
+                    ),
+                    CIMInstance(
+                        'CIM_Bar',
+                        path=CIMInstanceName(
+                            'CIM_Bar',
+                            namespace='foo',
+                            host='woot.com',
+                        ),
+                    ),
+                ],
+            ),
+        ),
+        None, MissingKeybindingsWarning, True
+    ),
+    (
+        "IRETURNVALUE with one VALUE.NAMEDINSTANCE child",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '  <VALUE.NAMEDINSTANCE>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '    <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '  </VALUE.NAMEDINSTANCE>'
+            '</IRETURNVALUE>',
+            exp_result=(
+                u'IRETURNVALUE', {},
+                [
+                    CIMInstance(
+                        'CIM_Foo',
+                        path=CIMInstanceName('CIM_Foo'),
+                    ),
+                ],
+            ),
+        ),
+        None, MissingKeybindingsWarning, True
+    ),
+    (
+        "IRETURNVALUE with two VALUE.NAMEDINSTANCE children (valid)",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '  <VALUE.NAMEDINSTANCE>'
+            '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
+            '    <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '  </VALUE.NAMEDINSTANCE>'
+            '  <VALUE.NAMEDINSTANCE>'
+            '    <INSTANCENAME CLASSNAME="CIM_Bar"/>'
+            '    <INSTANCE CLASSNAME="CIM_Bar"/>'
+            '  </VALUE.NAMEDINSTANCE>'
+            '</IRETURNVALUE>',
+            exp_result=(
+                u'IRETURNVALUE', {},
+                [
+                    CIMInstance(
+                        'CIM_Foo',
+                        path=CIMInstanceName('CIM_Foo'),
+                    ),
+                    CIMInstance(
+                        'CIM_Bar',
+                        path=CIMInstanceName('CIM_Bar'),
+                    ),
+                ],
+            ),
+        ),
+        None, MissingKeybindingsWarning, True
+    ),
+    (
+        "IRETURNVALUE with one VALUE.OBJECT child",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '  <VALUE.OBJECT>'
+            '    <CLASS NAME="CIM_Foo"/>'
+            '  </VALUE.OBJECT>'
+            '</IRETURNVALUE>',
+            exp_result=(
+                u'IRETURNVALUE', {},
+                [
+                    (u'VALUE.OBJECT', {}, CIMClass('CIM_Foo')),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with two VALUE.OBJECT children (valid)",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '  <VALUE.OBJECT>'
+            '    <CLASS NAME="CIM_Foo"/>'
+            '  </VALUE.OBJECT>'
+            '  <VALUE.OBJECT>'
+            '    <CLASS NAME="CIM_Bar"/>'
+            '  </VALUE.OBJECT>'
+            '</IRETURNVALUE>',
+            exp_result=(
+                u'IRETURNVALUE', {},
+                [
+                    (u'VALUE.OBJECT', {}, CIMClass('CIM_Foo')),
+                    (u'VALUE.OBJECT', {}, CIMClass('CIM_Bar')),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with one CLASS child",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '  <CLASS NAME="CIM_Foo"/>'
+            '</IRETURNVALUE>',
+            exp_result=(
+                u'IRETURNVALUE', {},
+                [
+                    CIMClass('CIM_Foo'),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with two CLASS children (valid)",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '  <CLASS NAME="CIM_Foo"/>'
+            '  <CLASS NAME="CIM_Bar"/>'
+            '</IRETURNVALUE>',
+            exp_result=(
+                u'IRETURNVALUE', {},
+                [
+                    CIMClass('CIM_Foo'),
+                    CIMClass('CIM_Bar'),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with one INSTANCE child",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '  <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '</IRETURNVALUE>',
+            exp_result=(
+                u'IRETURNVALUE', {},
+                [
+                    CIMInstance('CIM_Foo'),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with two INSTANCE children (valid)",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '  <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '  <INSTANCE CLASSNAME="CIM_Bar"/>'
+            '</IRETURNVALUE>',
+            exp_result=(
+                u'IRETURNVALUE', {},
+                [
+                    CIMInstance('CIM_Foo'),
+                    CIMInstance('CIM_Bar'),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with one QUALIFIER.DECLARATION child",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '  <QUALIFIER.DECLARATION NAME="Qual" TYPE="string"/>'
+            '</IRETURNVALUE>',
+            exp_result=(
+                u'IRETURNVALUE', {},
+                [
+                    CIMQualifierDeclaration(
+                        'Qual', value=None, type='string',
+                        **qualifier_declaration_default_attrs()
+                    ),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "IRETURNVALUE with two QUALIFIER.DECLARATION children (valid)",
+        dict(
+            xml_str=''
+            '<IRETURNVALUE>'
+            '  <QUALIFIER.DECLARATION NAME="Qual" TYPE="string"/>'
+            '  <QUALIFIER.DECLARATION NAME="Qua2" TYPE="string"/>'
+            '</IRETURNVALUE>',
+            exp_result=(
+                u'IRETURNVALUE', {},
+                [
+                    CIMQualifierDeclaration(
+                        'Qual', value=None, type='string',
+                        **qualifier_declaration_default_attrs()
+                    ),
+                    CIMQualifierDeclaration(
+                        'Qua2', value=None, type='string',
+                        **qualifier_declaration_default_attrs()
+                    ),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
 
     # ERROR tests:
     #
@@ -10841,9 +14262,89 @@ TESTCASES_TUPLEPARSE_XML = [
     #   <!ATTLIST ERROR
     #       CODE CDATA #REQUIRED
     #       DESCRIPTION CDATA #IMPLIED>
-    # TODO: Add ERROR tests
+    (
+        "ERROR with invalid child element",
+        dict(
+            xml_str=''
+            '<ERROR>'
+            '  <XXX/>'
+            '</ERROR>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "ERROR with invalid attribute",
+        dict(
+            xml_str=''
+            '<ERROR XXX="bla"/>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "ERROR with CODE attribute (minimal case)",
+        dict(
+            xml_str=''
+            '<ERROR CODE="5"/>',
+            exp_result=(u'ERROR', {u'CODE': u'5'}, []),
+        ),
+        None, None, True
+    ),
+    (
+        "ERROR with CODE and DESCRIPTION attributes",
+        dict(
+            xml_str=''
+            '<ERROR CODE="5" DESCRIPTION="bla"/>',
+            exp_result=(u'ERROR', {u'CODE': u'5', u'DESCRIPTION': u'bla'}, []),
+        ),
+        None, None, True
+    ),
+    (
+        "ERROR with CODE attribute and INSTANCE child",
+        dict(
+            xml_str=''
+            '<ERROR CODE="5">'
+            '  <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '</ERROR>',
+            exp_result=(
+                u'ERROR', {u'CODE': u'5'},
+                [
+                    CIMInstance('CIM_Foo'),
+                ]
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "ERROR with CODE attribute and two INSTANCE children (valid)",
+        dict(
+            xml_str=''
+            '<ERROR CODE="5">'
+            '  <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '  <INSTANCE CLASSNAME="CIM_Bar"/>'
+            '</ERROR>',
+            exp_result=(
+                u'ERROR', {u'CODE': u'5'},
+                [
+                    CIMInstance('CIM_Foo'),
+                    CIMInstance('CIM_Bar'),
+                ]
+            ),
+        ),
+        None, None, True
+    ),
 
     # CORRELATOR tests: Parsing this element is not implemented
+    (
+        "CORRELATOR (not implemented)",
+        dict(
+            xml_str=''
+            '<CORRELATOR/>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
 ]
 
 
