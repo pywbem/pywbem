@@ -1861,6 +1861,9 @@ class TupleParser(object):
             <!ELEMENT SIMPLEEXPREQ (EXPMETHODCALL)>
         """
 
+        self.check_node(tup_tree, 'SIMPLEEXPREQ', (), (),
+                        ('EXPMETHODCALL',))
+
         child = self.one_child(tup_tree, ('EXPMETHODCALL',))
 
         return name(tup_tree), attrs(tup_tree), child
@@ -2006,6 +2009,11 @@ class TupleParser(object):
             <!ATTLIST METHODRESPONSE
                 %CIMName;>
         """
+
+        # The valid combination of child elements is checked by the caller
+        # (i.e. WBEMConnection._methodcall()), so at this level we only check
+        # the complete set of allowed child elements (any number,
+        # any combination, any order).
 
         self.check_node(tup_tree, 'METHODRESPONSE', ('NAME',))
 
@@ -2383,9 +2391,9 @@ class TupleParser(object):
 
         if len(raw_val) > 1:
             raise CIMXMLParseError(
-                _format("Element {0!A} has too many child elements {1!A} "
+                _format("Element {0!A} has too many child elements: {1!A} "
                         "(allowed is one of 'VALUE' or 'VALUE.ARRAY')",
-                        name(tup_tree)),
+                        name(tup_tree), [name(t) for t in kids(tup_tree)]),
                 conn_id=self.conn_id)
 
         raw_val = raw_val[0]
