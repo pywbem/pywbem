@@ -129,9 +129,10 @@ tabulate >= 0.8.3
 
 # Performance profiling tools
 pyinstrument >=3.0.1
-
-psutil>=5.0.0; sys_platform != 'cygwin' and platform_python_implementation != 'PyPy'
-psutil>=5.0.0,<=5.6.3; sys_platform != 'cygwin' and platform_python_implementation == 'PyPy'
+# psutil on PyPy needs to be <=5.6.3 to avoid an installation error,
+#   see https://github.com/giampaolo/psutil/issues/1659.
+psutil>=5.6.0; sys_platform != 'cygwin' and platform_python_implementation != 'PyPy'
+psutil>=5.6.0,<=5.6.3; sys_platform != 'cygwin' and platform_python_implementation == 'PyPy'
 
 pyzmq>=16.0.4; python_version <= '3.8'
 pyzmq>=19.0.0; python_version >= '3.9'
