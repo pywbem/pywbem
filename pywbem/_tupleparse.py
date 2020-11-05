@@ -2438,15 +2438,13 @@ class TupleParser(object):
 
     def unpack_boolean(self, data):
         """
-        Unpack a string value of CIM type 'boolean' and return its CIM data
-        type object, or None.
+        Unpack a string value of CIM type 'boolean' and return True, False
+        or None (for empty string value).
 
-        data (unicode string): CIM-XML string value, or None (in which case
-          None is returned).
+        data (unicode string): CIM-XML string value. Must not be None.
         """
 
-        if data is None:
-            return None
+        assert data is not None
 
         # CIM-XML says "These values MUST be treated as case-insensitive"
         # (even though the XML definition requires them to be lowercase.)
@@ -2473,17 +2471,15 @@ class TupleParser(object):
     def unpack_numeric(self, data, cimtype):
         """
         Unpack a string value of a numeric CIM type and return its CIM data
-        type object, or None.
+        type object.
 
-        data (unicode string): CIM-XML string value, or None (in which case
-          None is returned).
+        data (unicode string): CIM-XML string value. Must not be None.
 
         cimtype (string): CIM data type name (e.g. 'uint8'), or None (in which
           case the value is returned as a Python int/long or float).
         """
 
-        if data is None:
-            return None
+        assert data is not None
 
         # DSP0201 defines numeric values to be whitespace-tolerant
         data = data.strip()
@@ -2534,14 +2530,12 @@ class TupleParser(object):
     def unpack_datetime(self, data):
         """
         Unpack a CIM-XML string value of CIM type 'datetime' and return it
-        as a CIMDateTime object, or None.
+        as a CIMDateTime object.
 
-        data (unicode string): CIM-XML string value, or None (in which case
-          None is returned).
+        data (unicode string): CIM-XML string value. Must not be None.
         """
 
-        if data is None:
-            return None
+        assert data is not None
 
         try:
             value = CIMDateTime(data)
@@ -2556,14 +2550,12 @@ class TupleParser(object):
     def unpack_char16(self, data):
         """
         Unpack a CIM-XML string value of CIM type 'char16' and return it
-        as a unicode string object, or None.
+        as a unicode string object.
 
-        data (unicode string): CIM-XML string value, or None (in which case
-          None is returned).
+        data (unicode string): CIM-XML string value. Must not be None.
         """
 
-        if data is None:
-            return None
+        assert data is not None
 
         len_data = len(data)
 
