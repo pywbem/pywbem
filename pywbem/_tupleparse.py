@@ -1341,13 +1341,10 @@ class TupleParser(object):
                         conn_id=self.conn_id)
                 scopes = self.parse_any(child)
             else:
-                # name is 'VALUE' or 'VALUE.ARRAY'
-                if value is not None:
-                    raise CIMXMLParseError(
-                        _format("Element {0!A} has more than one child "
-                                "element {1!A} (allowed is only one)",
-                                name(tup_tree), name(child)),
-                        conn_id=self.conn_id)
+                # Process a single 'VALUE' or 'VALUE.ARRAY' child.
+                # Raises CIMXMLParseError for any other elements or if it
+                # occurs more than once.
+                assert value is None  # Verify we come here first time in loop
                 value = self.unpack_value(tup_tree)
 
         overridable = self.unpack_boolean(attrl.get('OVERRIDABLE', 'true'))
