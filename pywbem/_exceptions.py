@@ -25,7 +25,8 @@ from ._cim_constants import _statuscode2name, _statuscode2string
 # This module is meant to be safe for 'import *'.
 
 __all__ = ['Error', 'ConnectionError', 'AuthError', 'HTTPError', 'TimeoutError',
-           'VersionError', 'ParseError', 'CIMXMLParseError', 'XMLParseError',
+           'VersionError', 'ParseError', 'CIMVersionError', 'DTDVersionError',
+           'ProtocolVersionError', 'CIMXMLParseError', 'XMLParseError',
            'HeaderParseError', 'CIMError', 'ModelError',
            '_RequestExceptionMixin', '_ResponseExceptionMixin']
 
@@ -374,9 +375,9 @@ class TimeoutError(Error):
 
 class ParseError(_RequestExceptionMixin, _ResponseExceptionMixin, Error):
     """
-    This exception indicates a parsing error with the CIM-XML operation
-    response the pywbem client received, or with the CIM-XML indication
-    request the pywbem listener received.
+    This exception is a base class for exceptions that indicate a parsing
+    error with the CIM-XML operation response the pywbem client received, or
+    with the CIM-XML indication request the pywbem listener received.
 
     Derived from :exc:`~pywbem.Error`.
 
@@ -471,9 +472,20 @@ class HeaderParseError(ParseError):
 
 class VersionError(Error):
     """
-    This exception indicates an unsupported CIM, DTD or protocol version
-    with the CIM-XML response returned by the WBEM server, or in the CIM-XML
-    request sent by the WBEM listener. Derived from :exc:`~pywbem.Error`.
+    This exception is a base class for exceptions that indicate an unsupported
+    CIM, DTD or protocol version with the CIM-XML response returned by the
+    WBEM server, or in the CIM-XML request sent by the WBEM listener.
+
+    Derived from :exc:`~pywbem.Error`.
+
+    This exception is a base class for more specific exceptions:
+
+    * :exc:`~pywbem.CIMVersionError` - Unsupported CIM infrastructure version
+      (CIMVERSION attribute) at the CIM-XML level.
+    * :exc:`~pywbem.DTDVersionError` - Unsupported DTD version
+      (DTDVERSION attribute) at the CIM-XML level.
+    * :exc:`~pywbem.ProtocolVersionError` - Unsupported CIM operations over
+      HTTP protocol version (PROTOCOLVERSION attribute) at the CIM-XML level.
     """
 
     def __init__(self, message, conn_id=None):
@@ -493,6 +505,39 @@ class VersionError(Error):
         assert message is None or isinstance(message, six.string_types), \
             str(type(message))
         super(VersionError, self).__init__(message, conn_id=conn_id)
+
+
+class CIMVersionError(VersionError):
+    """
+    This exception indicates an unsupported CIM infrastructure version
+    (CIMVERSION attribute) at the CIM-XML level.
+
+    Pywbem supports only CIM infrastructure version 2.x, corresponding to
+    :term:`DSP0004` version 2.x.
+    """
+    pass
+
+
+class DTDVersionError(VersionError):
+    """
+    This exception indicates an unsupported DTD version
+    (DTDVERSION attribute) at the CIM-XML level.
+
+    Pywbem supports only CIM-XML DTD version 2.x, corresponding to
+    :term:`DSP0201` version 2.x.
+    """
+    pass
+
+
+class ProtocolVersionError(VersionError):
+    """
+    This exception indicates an unsupported CIM operations over HTTP
+    protocol version (PROTOCOLVERSION attribute) at the CIM-XML level.
+
+    Pywbem supports only CIM operations over HTTP version 1.x, corresponding to
+    :term:`DSP0200` version 1.x.
+    """
+    pass
 
 
 class CIMError(_RequestExceptionMixin, Error):
