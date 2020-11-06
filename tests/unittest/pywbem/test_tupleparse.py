@@ -746,7 +746,7 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
     (
-        "Invalid element in CIM-XML",
+        "Invalid top-level element",
         dict(
             xml_str=''
             '<XXX/>',
@@ -761,7 +761,159 @@ TESTCASES_TUPLEPARSE_XML = [
     #   <!ATTLIST CIM
     #       CIMVERSION CDATA #REQUIRED
     #       DTDVERSION CDATA #REQUIRED>
-    # TODO: Add CIM tests
+    (
+        "CIM with invalid child element",
+        dict(
+            xml_str=''
+            '<CIM CIMVERSION="2.8" DTDVERSION="2.4">'
+            '  <DECLARATION>'
+            '    <DECLGROUP>'
+            '      <QUALIFIER.DECLARATION NAME="Qual" TYPE="string"/>'
+            '    </DECLGROUP>'
+            '  </DECLARATION>'
+            '  <XXX/>'
+            '</CIM>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "CIM with invalid attribute",
+        dict(
+            xml_str=''
+            '<CIM CIMVERSION="2.8" DTDVERSION="2.4" XXX="bla">'
+            '  <DECLARATION>'
+            '    <DECLGROUP>'
+            '      <QUALIFIER.DECLARATION NAME="Qual" TYPE="string"/>'
+            '    </DECLGROUP>'
+            '  </DECLARATION>'
+            '</CIM>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "CIM with invalid value for attribute CIMVERSION 'foo'",
+        dict(
+            xml_str=''
+            '<CIM CIMVERSION="foo" DTDVERSION="2.4">'
+            '  <DECLARATION>'
+            '    <DECLGROUP>'
+            '      <QUALIFIER.DECLARATION NAME="Qual" TYPE="string"/>'
+            '    </DECLGROUP>'
+            '  </DECLARATION>'
+            '</CIM>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "CIM with invalid value for attribute CIMVERSION '1.0'",
+        dict(
+            xml_str=''
+            '<CIM CIMVERSION="1.0" DTDVERSION="2.4">'
+            '  <DECLARATION>'
+            '    <DECLGROUP>'
+            '      <QUALIFIER.DECLARATION NAME="Qual" TYPE="string"/>'
+            '    </DECLGROUP>'
+            '  </DECLARATION>'
+            '</CIM>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "CIM with invalid value for attribute DTDVERSION 'foo'",
+        dict(
+            xml_str=''
+            '<CIM CIMVERSION="2.8" DTDVERSION="foo">'
+            '  <DECLARATION>'
+            '    <DECLGROUP>'
+            '      <QUALIFIER.DECLARATION NAME="Qual" TYPE="string"/>'
+            '    </DECLGROUP>'
+            '  </DECLARATION>'
+            '</CIM>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "CIM with invalid value for attribute DTDVERSION '1.0'",
+        dict(
+            xml_str=''
+            '<CIM CIMVERSION="2.8" DTDVERSION="1.0">'
+            '  <DECLARATION>'
+            '    <DECLGROUP>'
+            '      <QUALIFIER.DECLARATION NAME="Qual" TYPE="string"/>'
+            '    </DECLGROUP>'
+            '  </DECLARATION>'
+            '</CIM>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "CIM with DECLARATION child element (minimal case)",
+        dict(
+            xml_str=''
+            '<CIM CIMVERSION="2.8" DTDVERSION="2.4">'
+            '  <DECLARATION>'
+            '    <DECLGROUP>'
+            '      <QUALIFIER.DECLARATION NAME="Qual" TYPE="string"/>'
+            '    </DECLGROUP>'
+            '  </DECLARATION>'
+            '</CIM>',
+            exp_result=(
+                u'CIM',
+                {u'CIMVERSION': u'2.8', u'DTDVERSION': u'2.4'},
+                (
+                    u'DECLARATION',
+                    {},
+                    (
+                        u'DECLGROUP',
+                        {},
+                        CIMQualifierDeclaration(
+                            'Qual', value=None, type='string',
+                            **qualifier_declaration_default_attrs())
+                    ),
+                ),
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "CIM with MESSAGE child element (minimal case)",
+        dict(
+            xml_str=''
+            '<CIM CIMVERSION="2.8" DTDVERSION="2.4">'
+            '  <MESSAGE ID="42" PROTOCOLVERSION="1.4">'
+            '    <SIMPLEREQ>'
+            '      <IMETHODCALL NAME="M1">'
+            '        <LOCALNAMESPACEPATH>'
+            '          <NAMESPACE NAME="foo"/>'
+            '        </LOCALNAMESPACEPATH>'
+            '      </IMETHODCALL>'
+            '    </SIMPLEREQ>'
+            '  </MESSAGE>'
+            '</CIM>',
+            exp_result=(
+                u'CIM',
+                {u'CIMVERSION': u'2.8', u'DTDVERSION': u'2.4'},
+                (
+                    u'MESSAGE',
+                    {u'ID': u'42', u'PROTOCOLVERSION': u'1.4'},
+                    (
+                        u'SIMPLEREQ',
+                        {},
+                        (
+                            u'IMETHODCALL', {u'NAME': u'M1'}, u'foo', []
+                        ),
+                    ),
+                ),
+            ),
+        ),
+        None, None, True
+    ),
 
     # DECLARATION tests:
     #
@@ -769,7 +921,56 @@ TESTCASES_TUPLEPARSE_XML = [
     #                           DECLGROUP.WITHPATH )+>
     #
     # Note: Pywbem only supports the DECLGROUP child, at this point.
-    # TODO: Add DECLARATION tests
+    (
+        "DECLARATION with invalid child element",
+        dict(
+            xml_str=''
+            '<DECLARATION>'
+            '  <DECLGROUP>'
+            '    <QUALIFIER.DECLARATION NAME="Qual" TYPE="string"/>'
+            '  </DECLGROUP>'
+            '  <XXX/>'
+            '</DECLARATION>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "DECLARATION with invalid attribute",
+        dict(
+            xml_str=''
+            '<DECLARATION XXX="bla">'
+            '  <DECLGROUP>'
+            '    <QUALIFIER.DECLARATION NAME="Qual" TYPE="string"/>'
+            '  </DECLGROUP>'
+            '</DECLARATION>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "DECLARATION with DECLGROUP child element (minimal case)",
+        dict(
+            xml_str=''
+            '<DECLARATION>'
+            '  <DECLGROUP>'
+            '    <QUALIFIER.DECLARATION NAME="Qual" TYPE="string"/>'
+            '  </DECLGROUP>'
+            '</DECLARATION>',
+            exp_result=(
+                u'DECLARATION',
+                {},
+                (
+                    u'DECLGROUP',
+                    {},
+                    CIMQualifierDeclaration(
+                        'Qual', value=None, type='string',
+                        **qualifier_declaration_default_attrs())
+                ),
+            ),
+        ),
+        None, None, True
+    ),
 
     # DECLGROUP tests:
     #
@@ -778,7 +979,67 @@ TESTCASES_TUPLEPARSE_XML = [
     #
     # Note: Pywbem only supports the QUALIFIER.DECLARATION and VALUE.OBJECT
     #       children, and with a multiplicity of 1, at this point.
-    # TODO: Add DECLGROUP tests
+    (
+        "DECLGROUP with invalid child element",
+        dict(
+            xml_str=''
+            '<DECLGROUP>'
+            '  <QUALIFIER.DECLARATION NAME="Qual" TYPE="string"/>'
+            '  <XXX/>'
+            '</DECLGROUP>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "DECLGROUP with invalid attribute",
+        dict(
+            xml_str=''
+            '<DECLGROUP XXX="bla">'
+            '  <QUALIFIER.DECLARATION NAME="Qual" TYPE="string"/>'
+            '</DECLGROUP>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "DECLGROUP with QUALIFIER.DECLARATION child element (minimal case)",
+        dict(
+            xml_str=''
+            '<DECLGROUP>'
+            '  <QUALIFIER.DECLARATION NAME="Qual" TYPE="string"/>'
+            '</DECLGROUP>',
+            exp_result=(
+                u'DECLGROUP',
+                {},
+                CIMQualifierDeclaration(
+                    'Qual', value=None, type='string',
+                    **qualifier_declaration_default_attrs())
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "DECLGROUP with VALUE.OBJECT child element (minimal case)",
+        dict(
+            xml_str=''
+            '<DECLGROUP>'
+            '  <VALUE.OBJECT>'
+            '    <INSTANCE CLASSNAME="CIM_Foo"/>'
+            '  </VALUE.OBJECT>'
+            '</DECLGROUP>',
+            exp_result=(
+                u'DECLGROUP',
+                {},
+                (
+                    u'VALUE.OBJECT',
+                    {},
+                    CIMInstance('CIM_Foo'),
+                ),
+            ),
+        ),
+        None, None, True
+    ),
 
     # DECLGROUP.WITHNAME tests: Parsing this element is not implemented
     (
@@ -5030,6 +5291,15 @@ TESTCASES_TUPLEPARSE_XML = [
         CIMXMLParseError, None, True
     ),
     (
+        "INSTANCENAME with empty CLASSNAME",
+        dict(
+            xml_str=b''
+            b'<INSTANCENAME CLASSNAME=""/>',
+            exp_result=CIMInstanceName(''),
+        ),
+        None, MissingKeybindingsWarning, True
+    ),
+    (
         "INSTANCENAME with CLASSNAME using ASCII characters",
         dict(
             xml_str=''
@@ -5055,6 +5325,22 @@ TESTCASES_TUPLEPARSE_XML = [
             exp_result=CIMInstanceName(u'CIM_Foo\U00010142'),
         ),
         None, MissingKeybindingsWarning, True
+    ),
+    (
+        "INSTANCENAME with KEYBINDING for one string key",
+        dict(
+            xml_str=''
+            '<INSTANCENAME CLASSNAME="CIM_Foo">'
+            '  <KEYBINDING NAME="Name">'
+            '    <KEYVALUE VALUETYPE="string">Foo</KEYVALUE>'
+            '  </KEYBINDING>'
+            '</INSTANCENAME>',
+            exp_result=CIMInstanceName(
+                'CIM_Foo',
+                [('Name', 'Foo')],
+            ),
+        ),
+        None, None, True
     ),
     (
         "INSTANCENAME with KEYBINDING for two string keys",
@@ -5230,8 +5516,8 @@ TESTCASES_TUPLEPARSE_XML = [
     ),
     (
         "INSTANCENAME with KEYBINDING for LOCALCLASSPATH (invalid)",
-        # Note: While VALUE.REFERENCE allows for a CLASSPATH child (e.g. for
-        # use in reference-typed method parameters, DSP0004 requires that
+        # Note: While VALUE.REFERENCE allows for a LOCALCLASSPATH child (e.g.
+        # for use in reference-typed method parameters, DSP0004 requires that
         # reference keys reference only instances (section 7.7.5).
         dict(
             xml_str=''
@@ -5253,7 +5539,7 @@ TESTCASES_TUPLEPARSE_XML = [
     ),
     (
         "INSTANCENAME with KEYBINDING for CLASSNAME (invalid)",
-        # Note: While VALUE.REFERENCE allows for a CLASSPATH child (e.g. for
+        # Note: While VALUE.REFERENCE allows for a CLASSNAME child (e.g. for
         # use in reference-typed method parameters, DSP0004 requires that
         # reference keys reference only instances (section 7.7.5).
         dict(
@@ -5305,6 +5591,22 @@ TESTCASES_TUPLEPARSE_XML = [
             ),
         ),
         None, MissingKeybindingsWarning, True
+    ),
+    (
+        "INSTANCENAME with VALUE.REFERENCE for CLASSNAME (invalid)",
+        # Note: While VALUE.REFERENCE allows for a CLASSNAME child (e.g. for
+        # use in reference-typed method parameters, DSP0004 requires that
+        # reference keys reference only instances (section 7.7.5).
+        dict(
+            xml_str=''
+            '<INSTANCENAME CLASSNAME="CIM_Foo">'
+            '  <VALUE.REFERENCE>'
+            '    <CLASSNAME NAME="CIM_Foo"/>'
+            '  </VALUE.REFERENCE>'
+            '</INSTANCENAME>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
     ),
     (
         "INSTANCENAME with VALUE.REFERENCE for one ref. key (unnamed key)",
@@ -6056,7 +6358,75 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
     (
-        "INSTANCE with properties",
+        "INSTANCE with reference property with INSTANCENAME",
+        dict(
+            xml_str=''
+            '<INSTANCE CLASSNAME="CIM_Foo">'
+            '  <PROPERTY.REFERENCE NAME="Foo">'
+            '    <VALUE.REFERENCE>'
+            '      <INSTANCENAME CLASSNAME="CIM_Bar"/>'
+            '    </VALUE.REFERENCE>'
+            '  </PROPERTY.REFERENCE>'
+            '</INSTANCE>',
+            exp_result=CIMInstance(
+                'CIM_Foo',
+                properties=[
+                    CIMProperty('Foo', value=CIMInstanceName('CIM_Bar'),
+                                propagated=False),
+                ],
+            ),
+        ),
+        None, MissingKeybindingsWarning, True
+    ),
+    (
+        "INSTANCE with reference property with CLASSNAME (valid)",
+        dict(
+            xml_str=''
+            '<INSTANCE CLASSNAME="CIM_Foo">'
+            '  <PROPERTY.REFERENCE NAME="Foo">'
+            '    <VALUE.REFERENCE>'
+            '      <CLASSNAME NAME="CIM_Bar"/>'
+            '    </VALUE.REFERENCE>'
+            '  </PROPERTY.REFERENCE>'
+            '</INSTANCE>',
+            exp_result=CIMInstance(
+                'CIM_Foo',
+                properties=[
+                    CIMProperty('Foo', type='reference',
+                                value=CIMClassName('CIM_Bar'),
+                                propagated=False),
+                ],
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "INSTANCE with reference property with INSTANCENAME with keybindings "
+        "CLASSNAME (invalid)",
+        # Note: While VALUE.REFERENCE allows for a CLASSNAME child (e.g. for
+        # use in reference-typed method parameters, DSP0004 requires that
+        # reference keys reference only instances (section 7.7.5).
+        dict(
+            xml_str=''
+            '<INSTANCE CLASSNAME="CIM_Foo">'
+            '  <PROPERTY.REFERENCE NAME="Foo">'
+            '    <VALUE.REFERENCE>'
+            '      <INSTANCENAME CLASSNAME="CIM_Bar">'
+            '        <KEYBINDING NAME="Ref">'
+            '          <VALUE.REFERENCE>'
+            '            <CLASSNAME NAME="CIM_Boo"/>'
+            '          </VALUE.REFERENCE>'
+            '        </KEYBINDING>'
+            '      </INSTANCENAME>'
+            '    </VALUE.REFERENCE>'
+            '  </PROPERTY.REFERENCE>'
+            '</INSTANCE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "INSTANCE with some properties",
         dict(
             xml_str=''
             '<INSTANCE CLASSNAME="CIM_Foo">'
@@ -6482,6 +6852,15 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<PROPERTY NAME="Foo"/>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "PROPERTY with invalid attribute TYPE 'foo'",
+        dict(
+            xml_str=''
+            '<PROPERTY NAME="Foo" TYPE="foo"/>',
             exp_result=None,
         ),
         CIMXMLParseError, None, True
@@ -7425,6 +7804,15 @@ TESTCASES_TUPLEPARSE_XML = [
         CIMXMLParseError, None, True
     ),
     (
+        "PROPERTY.ARRAY with invalid attribute TYPE 'foo'",
+        dict(
+            xml_str=''
+            '<PROPERTY.ARRAY NAME="Foo" TYPE="foo"/>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
         "PROPERTY.ARRAY with string array typed value that is None",
         dict(
             xml_str=''
@@ -8140,6 +8528,15 @@ TESTCASES_TUPLEPARSE_XML = [
         CIMXMLParseError, None, True
     ),
     (
+        "PARAMETER with invalid attribute TYPE 'foo'",
+        dict(
+            xml_str=''
+            '<PARAMETER NAME="Parm" TYPE="foo"/>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
         "PARAMETER of type string",
         dict(
             xml_str=''
@@ -8501,6 +8898,15 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<PARAMETER.ARRAY NAME="Parm"/>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "PARAMETER.ARRAY with invalid attribute TYPE 'foo'",
+        dict(
+            xml_str=''
+            '<PARAMETER.ARRAY NAME="Parm" TYPE="foo"/>',
             exp_result=None,
         ),
         CIMXMLParseError, None, True
@@ -8898,6 +9304,15 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<METHOD NAME="Foo"/>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "METHOD with invalid attribute TYPE 'foo'",
+        dict(
+            xml_str=''
+            '<METHOD NAME="Foo" TYPE="foo"/>',
             exp_result=None,
         ),
         CIMXMLParseError, None, True
@@ -9496,6 +9911,15 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<QUALIFIER NAME="Qual"/>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "QUALIFIER with invalid attribute TYPE 'foo'",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="foo"/>',
             exp_result=None,
         ),
         CIMXMLParseError, None, True
@@ -10491,7 +10915,16 @@ TESTCASES_TUPLEPARSE_XML = [
         CIMXMLParseError, None, True
     ),
     (
-        "QUALIFIER.DECLARATION with boolean typed simple default value None",
+        "QUALIFIER.DECLARATION with invalid TYPE 'foo'",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="foo"/>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with boolean typed default value None",
         dict(
             xml_str=''
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="boolean"/>',
@@ -10515,6 +10948,18 @@ TESTCASES_TUPLEPARSE_XML = [
             ),
         ),
         None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with boolean typed simple default value 'foo' "
+        "(invalid)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="boolean">'
+            '  <VALUE>foo</VALUE>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
     ),
     (
         "QUALIFIER.DECLARATION with boolean typed array default value None",
@@ -10544,7 +10989,7 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
     (
-        "QUALIFIER.DECLARATION with string typed simple default value None",
+        "QUALIFIER.DECLARATION with string typed default value None",
         dict(
             xml_str=''
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="string"/>',
@@ -10596,7 +11041,7 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
     (
-        "QUALIFIER.DECLARATION with char16 typed simple default value None",
+        "QUALIFIER.DECLARATION with char16 typed default value None",
         dict(
             xml_str=''
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="char16"/>',
@@ -10620,6 +11065,18 @@ TESTCASES_TUPLEPARSE_XML = [
             ),
         ),
         None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with char16 typed simple default value 'foo' "
+        "(invalid)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="char16">'
+            '  <VALUE>foo</VALUE>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
     ),
     (
         "QUALIFIER.DECLARATION with char16 typed array default value None",
@@ -10648,7 +11105,7 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
     (
-        "QUALIFIER.DECLARATION with uint8 typed simple default value None",
+        "QUALIFIER.DECLARATION with uint8 typed default value None",
         dict(
             xml_str=''
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="uint8"/>',
@@ -10672,6 +11129,18 @@ TESTCASES_TUPLEPARSE_XML = [
             ),
         ),
         None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with uint8 typed simple default value 'foo' "
+        "(invalid)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="uint8">'
+            '  <VALUE>foo</VALUE>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
     ),
     (
         "QUALIFIER.DECLARATION with uint8 typed array default value None",
@@ -10700,7 +11169,7 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
     (
-        "QUALIFIER.DECLARATION with uint16 typed simple default value None",
+        "QUALIFIER.DECLARATION with uint16 typed default value None",
         dict(
             xml_str=''
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="uint16"/>',
@@ -10724,6 +11193,18 @@ TESTCASES_TUPLEPARSE_XML = [
             ),
         ),
         None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with uint16 typed simple default value 'foo' "
+        "(invalid)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="uint16">'
+            '  <VALUE>foo</VALUE>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
     ),
     (
         "QUALIFIER.DECLARATION with uint16 typed array default value None",
@@ -10752,7 +11233,7 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
     (
-        "QUALIFIER.DECLARATION with uint32 typed simple default value None",
+        "QUALIFIER.DECLARATION with uint32 typed default value None",
         dict(
             xml_str=''
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="uint32"/>',
@@ -10776,6 +11257,18 @@ TESTCASES_TUPLEPARSE_XML = [
             ),
         ),
         None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with uint32 typed simple default value 'foo' "
+        "(invalid)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="uint32">'
+            '  <VALUE>foo</VALUE>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
     ),
     (
         "QUALIFIER.DECLARATION with uint32 typed array default value None",
@@ -10804,7 +11297,7 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
     (
-        "QUALIFIER.DECLARATION with uint64 typed simple default value None",
+        "QUALIFIER.DECLARATION with uint64 typed default value None",
         dict(
             xml_str=''
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="uint64"/>',
@@ -10828,6 +11321,18 @@ TESTCASES_TUPLEPARSE_XML = [
             ),
         ),
         None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with uint64 typed simple default value 'foo' "
+        "(invalid)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="uint64">'
+            '  <VALUE>foo</VALUE>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
     ),
     (
         "QUALIFIER.DECLARATION with uint64 typed array default value None",
@@ -10856,7 +11361,7 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
     (
-        "QUALIFIER.DECLARATION with sint8 typed simple default value None",
+        "QUALIFIER.DECLARATION with sint8 typed default value None",
         dict(
             xml_str=''
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="sint8"/>',
@@ -10880,6 +11385,18 @@ TESTCASES_TUPLEPARSE_XML = [
             ),
         ),
         None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with sint8 typed simple default value 'foo' "
+        "(invalid)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="sint8">'
+            '  <VALUE>foo</VALUE>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
     ),
     (
         "QUALIFIER.DECLARATION with sint8 typed array default value None",
@@ -10908,7 +11425,7 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
     (
-        "QUALIFIER.DECLARATION with sint16 typed simple default value None",
+        "QUALIFIER.DECLARATION with sint16 typed default value None",
         dict(
             xml_str=''
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="sint16"/>',
@@ -10932,6 +11449,18 @@ TESTCASES_TUPLEPARSE_XML = [
             ),
         ),
         None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with sint16 typed simple default value 'foo' "
+        "(invalid)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="sint16">'
+            '  <VALUE>foo</VALUE>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
     ),
     (
         "QUALIFIER.DECLARATION with sint16 typed array default value None",
@@ -10960,7 +11489,7 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
     (
-        "QUALIFIER.DECLARATION with sint32 typed simple default value None",
+        "QUALIFIER.DECLARATION with sint32 typed default value None",
         dict(
             xml_str=''
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="sint32"/>',
@@ -10984,6 +11513,18 @@ TESTCASES_TUPLEPARSE_XML = [
             ),
         ),
         None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with sint32 typed simple default value 'foo' "
+        "(invalid)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="sint32">'
+            '  <VALUE>foo</VALUE>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
     ),
     (
         "QUALIFIER.DECLARATION with sint32 typed array default value None",
@@ -11012,7 +11553,7 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
     (
-        "QUALIFIER.DECLARATION with sint64 typed simple default value None",
+        "QUALIFIER.DECLARATION with sint64 typed default value None",
         dict(
             xml_str=''
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="sint64"/>',
@@ -11036,6 +11577,18 @@ TESTCASES_TUPLEPARSE_XML = [
             ),
         ),
         None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with sint64 typed simple default value 'foo' "
+        "(invalid)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="sint64">'
+            '  <VALUE>foo</VALUE>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
     ),
     (
         "QUALIFIER.DECLARATION with sint64 typed array default value None",
@@ -11064,7 +11617,7 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
     (
-        "QUALIFIER.DECLARATION with real32 typed simple default value None",
+        "QUALIFIER.DECLARATION with real32 typed default value None",
         dict(
             xml_str=''
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="real32"/>',
@@ -11088,6 +11641,18 @@ TESTCASES_TUPLEPARSE_XML = [
             ),
         ),
         None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with real32 typed simple default value 'foo' "
+        "(invalid)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="real32">'
+            '  <VALUE>foo</VALUE>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
     ),
     (
         "QUALIFIER.DECLARATION with real32 typed array default value None",
@@ -11116,7 +11681,7 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
     (
-        "QUALIFIER.DECLARATION with real64 typed simple default value None",
+        "QUALIFIER.DECLARATION with real64 typed default value None",
         dict(
             xml_str=''
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="real64"/>',
@@ -11140,6 +11705,18 @@ TESTCASES_TUPLEPARSE_XML = [
             ),
         ),
         None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with real64 typed simple default value 'foo' "
+        "(invalid)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="real64">'
+            '  <VALUE>foo</VALUE>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
     ),
     (
         "QUALIFIER.DECLARATION with real64 typed array default value None",
@@ -11168,7 +11745,7 @@ TESTCASES_TUPLEPARSE_XML = [
         None, None, True
     ),
     (
-        "QUALIFIER.DECLARATION with datetime typed simple default value None",
+        "QUALIFIER.DECLARATION with datetime typed default value None",
         dict(
             xml_str=''
             '<QUALIFIER.DECLARATION NAME="Qual" TYPE="datetime"/>',
@@ -11192,6 +11769,18 @@ TESTCASES_TUPLEPARSE_XML = [
             ),
         ),
         None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with datetime typed simple default value 'foo' "
+        "(invalid)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="datetime">'
+            '  <VALUE>foo</VALUE>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
     ),
     (
         "QUALIFIER.DECLARATION with datetime typed array default value None",
@@ -11270,7 +11859,310 @@ TESTCASES_TUPLEPARSE_XML = [
     #   <!ATTLIST MESSAGE
     #       ID CDATA #REQUIRED
     #       PROTOCOLVERSION CDATA #REQUIRED>
-    # TODO: Add MESSAGE tests
+    (
+        "MESSAGE with invalid child element",
+        dict(
+            xml_str=''
+            '<MESSAGE ID="42" PROTOCOLVERSION="1.4" XXX="bla">'
+            '  <SIMPLEREQ>'
+            '    <IMETHODCALL NAME="M1">'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '    </IMETHODCALL>'
+            '  </SIMPLEREQ>'
+            '  <XXX/>'
+            '</MESSAGE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "MESSAGE with invalid attribute",
+        dict(
+            xml_str=''
+            '<MESSAGE ID="42" PROTOCOLVERSION="1.4" XXX="bla">'
+            '  <SIMPLEREQ>'
+            '    <IMETHODCALL NAME="M1">'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '    </IMETHODCALL>'
+            '  </SIMPLEREQ>'
+            '</MESSAGE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "MESSAGE with missing attribute ID (invalid)",
+        dict(
+            xml_str=''
+            '<MESSAGE PROTOCOLVERSION="1.4">'
+            '  <SIMPLEREQ>'
+            '    <IMETHODCALL NAME="M1">'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '    </IMETHODCALL>'
+            '  </SIMPLEREQ>'
+            '</MESSAGE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "MESSAGE with missing attribute PROTOCOLVERSION (invalid)",
+        dict(
+            xml_str=''
+            '<MESSAGE ID="42">'
+            '  <SIMPLEREQ>'
+            '    <IMETHODCALL NAME="M1">'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '    </IMETHODCALL>'
+            '  </SIMPLEREQ>'
+            '</MESSAGE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "MESSAGE with PROTOCOLVERSION version 'foo' (invalid)",
+        dict(
+            xml_str=''
+            '<MESSAGE ID="42" PROTOCOLVERSION="foo">'
+            '  <SIMPLEREQ>'
+            '    <IMETHODCALL NAME="M1">'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '    </IMETHODCALL>'
+            '  </SIMPLEREQ>'
+            '</MESSAGE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "MESSAGE with PROTOCOLVERSION version '2.4' (invalid)",
+        dict(
+            xml_str=''
+            '<MESSAGE ID="42" PROTOCOLVERSION="2.4">'
+            '  <SIMPLEREQ>'
+            '    <IMETHODCALL NAME="M1">'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '    </IMETHODCALL>'
+            '  </SIMPLEREQ>'
+            '</MESSAGE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "MESSAGE with missing child (invalid)",
+        dict(
+            xml_str=''
+            '<MESSAGE ID="42" PROTOCOLVERSION="1.4">'
+            '</MESSAGE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "MESSAGE with SIMPLEREQ child element",
+        dict(
+            xml_str=''
+            '<MESSAGE ID="42" PROTOCOLVERSION="1.4">'
+            '  <SIMPLEREQ>'
+            '    <IMETHODCALL NAME="M1">'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '    </IMETHODCALL>'
+            '  </SIMPLEREQ>'
+            '</MESSAGE>',
+            exp_result=(
+                u'MESSAGE',
+                {u'ID': u'42', u'PROTOCOLVERSION': u'1.4'},
+                (
+                    u'SIMPLEREQ',
+                    {},
+                    (
+                        u'IMETHODCALL', {u'NAME': u'M1'}, u'foo', []
+                    ),
+                ),
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "MESSAGE with two SIMPLEREQ child elements (invalid)",
+        dict(
+            xml_str=''
+            '<MESSAGE ID="42" PROTOCOLVERSION="1.4">'
+            '  <SIMPLEREQ>'
+            '    <IMETHODCALL NAME="M1">'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '    </IMETHODCALL>'
+            '  </SIMPLEREQ>'
+            '  <SIMPLEREQ>'
+            '    <IMETHODCALL NAME="M2">'
+            '      <LOCALNAMESPACEPATH>'
+            '        <NAMESPACE NAME="foo"/>'
+            '      </LOCALNAMESPACEPATH>'
+            '    </IMETHODCALL>'
+            '  </SIMPLEREQ>'
+            '</MESSAGE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "MESSAGE with SIMPLERSP child element",
+        dict(
+            xml_str=''
+            '<MESSAGE ID="42" PROTOCOLVERSION="1.4">'
+            '  <SIMPLERSP>'
+            '    <IMETHODRESPONSE NAME="M1">'
+            '      <IRETURNVALUE/>'
+            '    </IMETHODRESPONSE>'
+            '  </SIMPLERSP>'
+            '</MESSAGE>',
+            exp_result=(
+                u'MESSAGE',
+                {u'ID': u'42', u'PROTOCOLVERSION': u'1.4'},
+                (
+                    u'SIMPLERSP',
+                    {},
+                    (
+                        'IMETHODRESPONSE', {'NAME': 'M1'},
+                        [
+                            ('IRETURNVALUE', {}, []),
+                        ],
+                    ),
+                ),
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "MESSAGE with two SIMPLERSP child elements (invalid)",
+        dict(
+            xml_str=''
+            '<MESSAGE ID="42" PROTOCOLVERSION="1.4">'
+            '  <SIMPLERSP>'
+            '    <IMETHODRESPONSE NAME="M1">'
+            '      <IRETURNVALUE/>'
+            '    </IMETHODRESPONSE>'
+            '  </SIMPLERSP>'
+            '  <SIMPLERSP>'
+            '    <IMETHODRESPONSE NAME="M2">'
+            '      <IRETURNVALUE/>'
+            '    </IMETHODRESPONSE>'
+            '  </SIMPLERSP>'
+            '</MESSAGE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "MESSAGE with SIMPLEEXPREQ child element",
+        dict(
+            xml_str=''
+            '<MESSAGE ID="42" PROTOCOLVERSION="1.4">'
+            '  <SIMPLEEXPREQ>'
+            '    <EXPMETHODCALL NAME="M1"/>'
+            '  </SIMPLEEXPREQ>'
+            '</MESSAGE>',
+            exp_result=(
+                u'MESSAGE',
+                {u'ID': u'42', u'PROTOCOLVERSION': u'1.4'},
+                (
+                    u'SIMPLEEXPREQ',
+                    {},
+                    (u'EXPMETHODCALL', {u'NAME': u'M1'}, []),
+                ),
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "MESSAGE with two SIMPLEEXPREQ child elements (invalid)",
+        dict(
+            xml_str=''
+            '<MESSAGE ID="42" PROTOCOLVERSION="1.4">'
+            '  <SIMPLEEXPREQ>'
+            '    <EXPMETHODCALL NAME="M1"/>'
+            '  </SIMPLEEXPREQ>'
+            '  <SIMPLEEXPREQ>'
+            '    <EXPMETHODCALL NAME="M2"/>'
+            '  </SIMPLEEXPREQ>'
+            '</MESSAGE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "MESSAGE with MULTIREQ child element (not implemented)",
+        dict(
+            xml_str=''
+            '<MESSAGE ID="42" PROTOCOLVERSION="1.4">'
+            '  <MULTIREQ/>'
+            '</MESSAGE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "MESSAGE with MULTIRSP child element (not implemented)",
+        dict(
+            xml_str=''
+            '<MESSAGE ID="42" PROTOCOLVERSION="1.4">'
+            '  <MULTIRSP/>'
+            '</MESSAGE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "MESSAGE with MULTIEXPREQ child element (not implemented)",
+        dict(
+            xml_str=''
+            '<MESSAGE ID="42" PROTOCOLVERSION="1.4">'
+            '  <MULTIEXPREQ/>'
+            '</MESSAGE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "MESSAGE with MULTIEXPRSP child element (not implemented)",
+        dict(
+            xml_str=''
+            '<MESSAGE ID="42" PROTOCOLVERSION="1.4">'
+            '  <MULTIEXPRSP/>'
+            '</MESSAGE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "MESSAGE with SIMPLEEXPRSP child element (not implemented)",
+        dict(
+            xml_str=''
+            '<MESSAGE ID="42" PROTOCOLVERSION="1.4">'
+            '  <SIMPLEEXPRSP/>'
+            '</MESSAGE>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
 
     # SIMPLEREQ tests:
     #
