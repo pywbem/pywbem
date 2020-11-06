@@ -1195,19 +1195,11 @@ class TupleParser(object):
         qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER',))
         methods = self.list_of_matching(tup_tree, ('METHOD',))
 
-        try:
-            return CIMClass(
-                classname, superclass=superclass, properties=properties,
-                methods=methods, qualifiers=qualifiers)
-        except (TypeError, ValueError) as exc:
-            new_exc = CIMXMLParseError(
-                _format("Element {0!A} has invalid input for creating a "
-                        "CIMClass object for class {1!A}: {2}; "
-                        "CIM-XML tuple tree: {3}",
-                        name(tup_tree), classname, exc, tup_tree),
-                conn_id=self.conn_id)
-            new_exc.__cause__ = None
-            raise new_exc
+        # CIMClass() can raise TypeError and ValueError due to invalid
+        # init arguments, but this cannot possibly be triggered here.
+        return CIMClass(
+            classname, superclass=superclass, properties=properties,
+            methods=methods, qualifiers=qualifiers)
 
     def parse_instance(self, tup_tree):
         """
