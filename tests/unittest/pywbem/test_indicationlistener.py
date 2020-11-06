@@ -958,7 +958,7 @@ WBEMLISTENER_INCORRECT_PAYLOAD1_TESTCASES = [
         </CIM>""",
         400,
         {
-            'CIMErrorDetails': r'DTD version 1.4 not supported.*',
+            'CIMErrorDetails': r'DTDVERSION is 1.4, expected 2.x.y',
             'CIMError': r'unsupported-dtd-version',
             'CIMExport': r'MethodResponse',
         }
@@ -976,7 +976,7 @@ WBEMLISTENER_INCORRECT_PAYLOAD1_TESTCASES = [
         </CIM>""",
         400,
         {
-            'CIMErrorDetails': r'Protocol version 2.4 not supported.*',
+            'CIMErrorDetails': r'PROTOCOLVERSION is 2.4, expected 1.x.y',
             'CIMError': r'unsupported-protocol-version',
             'CIMExport': r'MethodResponse',
         }

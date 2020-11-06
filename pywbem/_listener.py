@@ -147,7 +147,8 @@ from ._cim_constants import CIM_ERR_NOT_SUPPORTED, CIM_ERR_INVALID_PARAMETER, \
     _statuscode2name
 from ._tupleparse import TupleParser
 from ._tupletree import xml_to_tupletree_sax
-from ._exceptions import CIMXMLParseError, XMLParseError, VersionError
+from ._exceptions import CIMXMLParseError, XMLParseError, CIMVersionError, \
+    DTDVersionError, ProtocolVersionError
 from ._utils import _format
 
 # CIM-XML protocol related versions implemented by the WBEM listener.
@@ -382,15 +383,14 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         except (CIMXMLParseError, XMLParseError) as exc:
             self.send_http_error(400, "request-not-well-formed", str(exc))
             return
-        except VersionError as exc:
-            if str(exc).startswith("DTD"):
-                self.send_http_error(400, "unsupported-dtd-version",
-                                     str(exc))
-            elif str(exc).startswith("Protocol"):
-                self.send_http_error(400, "unsupported-protocol-version",
-                                     str(exc))
-            else:
-                self.send_http_error(400, "unsupported-version", str(exc))
+        except DTDVersionError as exc:
+            self.send_http_error(400, "unsupported-dtd-version", str(exc))
+            return
+        except ProtocolVersionError as exc:
+            self.send_http_error(400, "unsupported-protocol-version", str(exc))
+            return
+        except CIMVersionError as exc:
+            self.send_http_error(400, "unsupported-version", str(exc))
             return
 
         if methodname == 'ExportIndication':
@@ -538,24 +538,12 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if tup_tree[0] != 'CIM':
             raise CIMXMLParseError(
                 _format("Expecting CIM element, got {0}", tup_tree[0]))
-        dtd_version = tup_tree[1]['DTDVERSION']
-        if not re.match(SUPPORTED_DTD_VERSION_PATTERN, dtd_version):
-            raise VersionError(
-                _format("DTD version {0} not supported. Supported versions "
-                        "are: {1!A}",
-                        dtd_version, SUPPORTED_DTD_VERSION_STR))
         tup_tree = tup_tree[2]
 
         if tup_tree[0] != 'MESSAGE':
             raise CIMXMLParseError(
                 _format("Expecting MESSAGE element, got {0}", tup_tree[0]))
         msgid = tup_tree[1]['ID']
-        protocol_version = tup_tree[1]['PROTOCOLVERSION']
-        if not re.match(SUPPORTED_PROTOCOL_VERSION_PATTERN, protocol_version):
-            raise VersionError(
-                _format("Protocol version {0} not supported. "
-                        "Supported versions are: {1!A}",
-                        protocol_version, SUPPORTED_PROTOCOL_VERSION_STR))
         tup_tree = tup_tree[2]
 
         if tup_tree[0] != 'SIMPLEEXPREQ':

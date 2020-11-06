@@ -23,6 +23,17 @@ Released: not yet
 
 **Incompatible changes:**
 
+* Unsupported CIM infrastructure versions returned in CIM-XML responses from
+  WBEM servers are now raised as a new exception `pywbem.CIMVersionError`, and
+  were previously raised as `pywbem.CIMXMLParseError`.
+  Unsupported DTD versions and CIM-XML protocol versions returned in CIM-XML
+  responses from WBEM servers are now raised as new exceptions
+  `pywbem.DTDVersionError` and `pywbem.ProtocolVersionError`, and were
+  previously ignored by pywbem.
+  Since these new exceptions are derived from `pywbem.VersionError` which is
+  derived from `pywbem.VersionError`, this change is only incompatible
+  if such unsupported versions were specifically handled by users.
+
 **Deprecations:**
 
 **Bug fixes:**
@@ -88,6 +99,20 @@ Released: not yet
 
 * Added Python 3.9 to the supported Python versions and added tests for
   it on Travis.
+
+* Added a check for the DTDVERSION attribute value in CIM-XML responses from
+  WBEM servers to start with '2.'. A different version of the CIM-XML DTD
+  standard DSP0203 was never published, so this is not expected to be an
+  incompatible change.
+
+* Unsupported versions for CIM infrastructure, DTD or protocol version returned
+  in CIM-XML responses from WBEM servers are now raised as new exceptions
+  `pywbem.CIMVersionError`, `pywbem.DTDVersionError`, and
+  `pywbem.ProtocolVersionError`, respectively. These new exceptions are
+  derived from the existing exception `pywbem.VersionError`. Previously,
+  unsupported CIM infrastructure versions were raised as
+  `pywbem.CIMXMLParseError`, and unsupported DTD or protocol versions were
+  ignored by pywbem.
 
 **Cleanup:**
 

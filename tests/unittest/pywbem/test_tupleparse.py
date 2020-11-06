@@ -19,6 +19,7 @@ from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMDateTime, Uint8, Sint8, Uint16, Sint16, Uint32, Sint32, Uint64, Sint64, \
     Real32, Real64, XMLParseError, CIMXMLParseError, \
     ToleratedServerIssueWarning, MissingKeybindingsWarning, \
+    CIMVersionError, DTDVersionError, ProtocolVersionError, \
     __version__  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
@@ -805,7 +806,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</CIM>',
             exp_result=None,
         ),
-        CIMXMLParseError, None, True
+        CIMVersionError, None, True
     ),
     (
         "CIM with invalid value for attribute CIMVERSION '1.0'",
@@ -820,7 +821,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</CIM>',
             exp_result=None,
         ),
-        CIMXMLParseError, None, True
+        CIMVersionError, None, True
     ),
     (
         "CIM with invalid value for attribute DTDVERSION 'foo'",
@@ -835,7 +836,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</CIM>',
             exp_result=None,
         ),
-        CIMXMLParseError, None, True
+        DTDVersionError, None, True
     ),
     (
         "CIM with invalid value for attribute DTDVERSION '1.0'",
@@ -850,7 +851,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</CIM>',
             exp_result=None,
         ),
-        CIMXMLParseError, None, True
+        DTDVersionError, None, True
     ),
     (
         "CIM with DECLARATION child element (minimal case)",
@@ -11943,7 +11944,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</MESSAGE>',
             exp_result=None,
         ),
-        CIMXMLParseError, None, True
+        ProtocolVersionError, None, True
     ),
     (
         "MESSAGE with PROTOCOLVERSION version '2.4' (invalid)",
@@ -11960,7 +11961,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</MESSAGE>',
             exp_result=None,
         ),
-        CIMXMLParseError, None, True
+        ProtocolVersionError, None, True
     ),
     (
         "MESSAGE with missing child (invalid)",

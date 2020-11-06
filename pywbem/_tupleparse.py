@@ -88,7 +88,8 @@ from ._cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMQualifierDeclaration
 from ._cim_types import CIMDateTime, type_from_name
 from ._tupletree import xml_to_tupletree_sax
-from ._exceptions import CIMXMLParseError
+from ._exceptions import CIMXMLParseError, CIMVersionError, DTDVersionError, \
+    ProtocolVersionError
 from ._warnings import ToleratedServerIssueWarning, MissingKeybindingsWarning
 
 
@@ -399,9 +400,15 @@ class TupleParser(object):
         self.check_node(tup_tree, 'CIM', ('CIMVERSION', 'DTDVERSION'))
 
         if not attrs(tup_tree)['CIMVERSION'].startswith('2.'):
-            raise CIMXMLParseError(
+            raise CIMVersionError(
                 _format("CIMVERSION is {0}, expected 2.x.y",
                         attrs(tup_tree)['CIMVERSION']),
+                conn_id=self.conn_id)
+
+        if not attrs(tup_tree)['DTDVERSION'].startswith('2.'):
+            raise DTDVersionError(
+                _format("DTDVERSION is {0}, expected 2.x.y",
+                        attrs(tup_tree)['DTDVERSION']),
                 conn_id=self.conn_id)
 
         child = self.one_child(tup_tree, ('MESSAGE', 'DECLARATION'))
@@ -1819,6 +1826,12 @@ class TupleParser(object):
         """
 
         self.check_node(tup_tree, 'MESSAGE', ('ID', 'PROTOCOLVERSION'))
+
+        if not attrs(tup_tree)['PROTOCOLVERSION'].startswith('1.'):
+            raise ProtocolVersionError(
+                _format("PROTOCOLVERSION is {0}, expected 1.x.y",
+                        attrs(tup_tree)['PROTOCOLVERSION']),
+                conn_id=self.conn_id)
 
         child = self.one_child(tup_tree,
                                ('SIMPLEREQ', 'MULTIREQ', 'SIMPLERSP',
