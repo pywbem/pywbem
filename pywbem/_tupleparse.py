@@ -1230,23 +1230,17 @@ class TupleParser(object):
 
         qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER',))
 
+        # This may raise CIMXMLParseError e.g. when a reference property is set
+        # to an invalid reference value (e.g. to a class).
         props = self.list_of_matching(tup_tree,
                                       ('PROPERTY.REFERENCE', 'PROPERTY',
                                        'PROPERTY.ARRAY'))
 
-        try:
-            inst = CIMInstance(classname, qualifiers=qualifiers)
-            for prop in props:
-                inst.__setitem__(prop.name, prop)
-        except (TypeError, ValueError) as exc:
-            new_exc = CIMXMLParseError(
-                _format("Element {0!A} has invalid input for creating a "
-                        "CIMInstance object for class {1!A}: {2}; "
-                        "CIM-XML tuple tree: {3}",
-                        name(tup_tree), classname, exc, tup_tree),
-                conn_id=self.conn_id)
-            new_exc.__cause__ = None
-            raise new_exc
+        # CIMInstance() can raise TypeError and ValueError due to invalid
+        # init arguments, but this cannot possibly be triggered here.
+        inst = CIMInstance(classname, qualifiers=qualifiers)
+        for prop in props:
+            inst.__setitem__(prop.name, prop)
 
         return inst
 
