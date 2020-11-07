@@ -1338,6 +1338,8 @@ class TupleParser(object):
                 # Raises CIMXMLParseError for any other elements or if it
                 # occurs more than once.
                 assert value is None  # Verify we come here first time in loop
+
+                # May raise CIMXMLParseError for invalid values
                 value = self.unpack_value(tup_tree)
 
         overridable = self.unpack_boolean(attrl.get('OVERRIDABLE', 'true'))
@@ -1388,6 +1390,7 @@ class TupleParser(object):
         qname = attrl['NAME']
         _type = attrl['TYPE']
 
+        # May raise CIMXMLParseError for invalid values
         value = self.unpack_value(tup_tree)
 
         propagated = self.unpack_boolean(attrl.get('PROPAGATED', 'false'))
@@ -1441,16 +1444,9 @@ class TupleParser(object):
         attrl = attrs(tup_tree)
         pname = attrl['NAME']
         ptype = attrl['TYPE']
-        try:
-            val = self.unpack_value(tup_tree)
-        except ValueError as exc:
-            new_exc = CIMXMLParseError(
-                _format("Cannot parse content of 'VALUE' child element of "
-                        "'PROPERTY' element with name {0!A}: {1}",
-                        pname, exc),
-                conn_id=self.conn_id)
-            new_exc.__cause__ = None
-            raise new_exc
+
+        # May raise CIMXMLParseError for invalid values
+        val = self.unpack_value(tup_tree)
 
         class_origin = attrl.get('CLASSORIGIN', None)
         propagated = self.unpack_boolean(attrl.get('PROPAGATED', 'false'))
@@ -1503,10 +1499,12 @@ class TupleParser(object):
 
         # The 'xml:lang' attribute is tolerated but ignored.
 
-        values = self.unpack_value(tup_tree)
         attrl = attrs(tup_tree)
         pname = attrl['NAME']
         ptype = attrl['TYPE']
+
+        # May raise CIMXMLParseError for invalid values
+        values = self.unpack_value(tup_tree)
 
         class_origin = attrl.get('CLASSORIGIN', None)
         propagated = self.unpack_boolean(attrl.get('PROPAGATED', 'false'))
