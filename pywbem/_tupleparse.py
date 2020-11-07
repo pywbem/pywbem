@@ -1579,21 +1579,14 @@ class TupleParser(object):
 
         qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER',))
 
-        try:
-            return CIMProperty(
-                pname, value, type='reference', reference_class=reference_class,
-                is_array=False,
-                class_origin=class_origin, propagated=propagated,
-                embedded_object=False, qualifiers=qualifiers)
-        except (TypeError, ValueError) as exc:
-            new_exc = CIMXMLParseError(
-                _format("Element {0!A} has invalid input for creating a "
-                        "CIMProperty object for property {1!A}: {2}; "
-                        "CIM-XML tuple tree: {3}",
-                        name(tup_tree), pname, exc, tup_tree),
-                conn_id=self.conn_id)
-            new_exc.__cause__ = None
-            raise new_exc
+        # It is not possible to create CIM-XML that triggers the ValueError
+        # or TypeError exceptions that can potentially be raised from
+        # CIMProperty() when used with type='reference'.
+        return CIMProperty(
+            pname, value, type='reference', reference_class=reference_class,
+            is_array=False,
+            class_origin=class_origin, propagated=propagated,
+            embedded_object=False, qualifiers=qualifiers)
 
     def parse_method(self, tup_tree):
         """
@@ -1702,19 +1695,12 @@ class TupleParser(object):
 
         qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER',))
 
-        try:
-            return CIMParameter(
-                pname, type='reference', reference_class=reference_class,
-                is_array=False, embedded_object=False, qualifiers=qualifiers)
-        except (TypeError, ValueError) as exc:
-            new_exc = CIMXMLParseError(
-                _format("Element {0!A} has invalid input for creating a "
-                        "CIMParameter object for parameter {1!A}: {2}; "
-                        "CIM-XML tuple tree: {3}",
-                        name(tup_tree), pname, exc, tup_tree),
-                conn_id=self.conn_id)
-            new_exc.__cause__ = None
-            raise new_exc
+        # It is not possible to create CIM-XML that triggers the ValueError
+        # or TypeError exceptions that can potentially be raised from
+        # CIMParameter() when used with type='reference'.
+        return CIMParameter(
+            pname, type='reference', reference_class=reference_class,
+            is_array=False, embedded_object=False, qualifiers=qualifiers)
 
     def parse_parameter_array(self, tup_tree):
         """
@@ -1780,20 +1766,13 @@ class TupleParser(object):
 
         qualifiers = self.list_of_matching(tup_tree, ('QUALIFIER',))
 
-        try:
-            return CIMParameter(
-                pname, type='reference', reference_class=reference_class,
-                is_array=True, array_size=array_size,
-                embedded_object=False, qualifiers=qualifiers)
-        except (TypeError, ValueError) as exc:
-            new_exc = CIMXMLParseError(
-                _format("Element {0!A} has invalid input for creating a "
-                        "CIMParameter object for parameter {1!A}: {2}; "
-                        "CIM-XML tuple tree: {3}",
-                        name(tup_tree), pname, exc, tup_tree),
-                conn_id=self.conn_id)
-            new_exc.__cause__ = None
-            raise new_exc
+        # It is not possible to create CIM-XML that triggers the ValueError
+        # or TypeError exceptions that can potentially be raised from
+        # CIMParameter() when used with type='reference'.
+        return CIMParameter(
+            pname, type='reference', reference_class=reference_class,
+            is_array=True, array_size=array_size,
+            embedded_object=False, qualifiers=qualifiers)
 
     #
     # Message elements
