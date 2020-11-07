@@ -7866,7 +7866,6 @@ TESTCASES_CIMINSTANCE_HASH_EQ = [
                     'Name': 'Foo',
                     'Boolean': False,
                     'Number': Uint8(42),
-                    'Ref': CIMInstanceName('CIM_Bar'),
                 }
             ),
             obj2=CIMInstance(
@@ -7875,7 +7874,6 @@ TESTCASES_CIMINSTANCE_HASH_EQ = [
                     'Name': 'Foo',
                     'Boolean': False,
                     'Number': Uint8(42),
-                    'Ref': CIMInstanceName('CIM_Bar'),
                 }
             ),
             exp_equal=True,
@@ -14709,7 +14707,6 @@ TESTCASES_CIMPROPERTY_HASH_EQ = [
                     'Name': 'Foo',
                     'Boolean': False,
                     'Number': Uint8(42),
-                    'Ref': CIMInstanceName('CIM_Bar'),
                 }
             ),
             obj2=CIMProperty(
@@ -14718,7 +14715,6 @@ TESTCASES_CIMPROPERTY_HASH_EQ = [
                     'Name': 'Foo',
                     'Boolean': False,
                     'Number': Uint8(42),
-                    'Ref': CIMInstanceName('CIM_Bar'),
                 }
             ),
             exp_equal=True,
@@ -18324,6 +18320,15 @@ TESTCASES_CIMQUALIFIER_INIT = [
 
     # Value/type tests
     (
+        "Verify that reference type fails",
+        dict(
+            init_args=[],
+            init_kwargs=dict(name='FooQual', type='reference', value=None),
+            exp_attrs=None
+        ),
+        ValueError, None, True
+    ),
+    (
         "Verify that bytes value is converted to unicode and "
         "type is implied to string",
         dict(
@@ -19310,40 +19315,6 @@ TESTCASES_CIMQUALIFIER_SETATTR = [
                 name='Q1',
                 value=42,
                 type='real64',
-            ),
-            item='value',
-            new_value=None,
-            exp_attrs=dict(
-                value=None,
-            ),
-        ),
-        None, None, True
-    ),
-
-    # Tests that set the value attribute for reference type
-    (
-        "For reference type, set value to CIMInstanceName",
-        dict(
-            obj_kwargs=dict(
-                name='Q1',
-                value=CIMINSTANCENAME_C1_OBJ,
-                type='reference',
-            ),
-            item='value',
-            new_value=CIMInstanceName('C2'),
-            exp_attrs=dict(
-                value=CIMInstanceName('C2'),
-            ),
-        ),
-        None, None, True
-    ),
-    (
-        "For reference type, set value to None",
-        dict(
-            obj_kwargs=dict(
-                name='Q1',
-                value=CIMINSTANCENAME_C1_OBJ,
-                type='reference',
             ),
             item='value',
             new_value=None,
@@ -26689,7 +26660,6 @@ TESTCASES_CIMCLASS_HASH_EQ = [
                     'Name': 'Foo',
                     'Boolean': False,
                     'Number': Uint8(42),
-                    'Ref': CIMInstanceName('CIM_Bar'),
                 }
             ),
             obj2=CIMClass(
@@ -26698,7 +26668,6 @@ TESTCASES_CIMCLASS_HASH_EQ = [
                     'Name': 'Foo',
                     'Boolean': False,
                     'Number': Uint8(42),
-                    'Ref': CIMInstanceName('CIM_Bar'),
                 }
             ),
             exp_equal=True,
@@ -28899,7 +28868,6 @@ TESTCASES_CIMMETHOD_HASH_EQ = [
                     'Name': 'Foo',
                     'Boolean': False,
                     'Number': Uint8(42),
-                    'Ref': CIMInstanceName('CIM_Bar'),
                 }
             ),
             obj2=CIMMethod(
@@ -28908,7 +28876,6 @@ TESTCASES_CIMMETHOD_HASH_EQ = [
                     'Name': 'Foo',
                     'Boolean': False,
                     'Number': Uint8(42),
-                    'Ref': CIMInstanceName('CIM_Bar'),
                 }
             ),
             exp_equal=True,
@@ -33243,7 +33210,6 @@ TESTCASES_CIMPARAMETER_HASH_EQ = [
                     'Name': 'Foo',
                     'Boolean': False,
                     'Number': Uint8(42),
-                    'Ref': CIMInstanceName('CIM_Bar'),
                 }
             ),
             obj2=CIMParameter(
@@ -33252,7 +33218,6 @@ TESTCASES_CIMPARAMETER_HASH_EQ = [
                     'Name': 'Foo',
                     'Boolean': False,
                     'Number': Uint8(42),
-                    'Ref': CIMInstanceName('CIM_Bar'),
                 }
             ),
             exp_equal=True,
@@ -37116,6 +37081,15 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
 
     # Type tests
     (
+        "Verify that reference type fails",
+        dict(
+            init_args=[],
+            init_kwargs=dict(name='FooQual', type='reference', value=None),
+            exp_attrs=None
+        ),
+        ValueError, None, True
+    ),
+    (
         "Verify that bytes name and return type are converted to unicode",
         dict(
             init_args=[],
@@ -38355,40 +38329,6 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
                 name='Q1',
                 value=42,
                 type='real64',
-            ),
-            item='value',
-            new_value=None,
-            exp_attrs=dict(
-                value=None,
-            ),
-        ),
-        None, None, True
-    ),
-
-    # Tests that set the value attribute for scalar reference type
-    (
-        "For scalar reference type, set value to CIMInstanceName",
-        dict(
-            obj_kwargs=dict(
-                name='Q1',
-                value=CIMINSTANCENAME_C1_OBJ,
-                type='reference',
-            ),
-            item='value',
-            new_value=CIMInstanceName('C2'),
-            exp_attrs=dict(
-                value=CIMInstanceName('C2'),
-            ),
-        ),
-        None, None, True
-    ),
-    (
-        "For scalar reference type, set value to None",
-        dict(
-            obj_kwargs=dict(
-                name='Q1',
-                value=CIMINSTANCENAME_C1_OBJ,
-                type='reference',
             ),
             item='value',
             new_value=None,

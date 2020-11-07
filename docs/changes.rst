@@ -63,6 +63,13 @@ Released: not yet
 * Test: Disabled 'make resourcetest' in Travis on Pypy2+3, and suppressed Pylint
   issues about using 'tracemalloc' methods and disabled its unit tests.
 
+* Fixed the bug that pywbem allowed reference typed CIMQualifier and
+  CIMQualifierDeclaration objects. DSP0004 disallows reference types on
+  qualifiers and qualifier declarations. This fix now causes CIM-XML responses
+  received from a WBEM server with reference typed qualifier values and qualifier
+  declarations to raise `pywbem.CIMXMLParseError` from `WBEMConnection`
+  operations.
+
 **Enhancements:**
 
 * Logging: Added a value 'off' for the log destination in the

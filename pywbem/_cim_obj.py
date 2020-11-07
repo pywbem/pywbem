@@ -340,6 +340,24 @@ ALL_CIMTYPES = set([
     'reference',
 ])
 
+# CIM data type names, used for checking
+QUALIFIER_CIMTYPES = set([
+    'boolean',
+    'string',
+    'char16',
+    'datetime',
+    'uint8',
+    'uint16',
+    'uint32',
+    'uint64',
+    'sint8',
+    'sint16',
+    'sint32',
+    'sint64',
+    'real32',
+    'real64',
+])
+
 
 class _DictView(object):
     # pylint: disable=too-few-public-methods
@@ -6731,9 +6749,9 @@ class CIMQualifier(_CIMComparisonMixin, SlottedPickleMixin):
 
         # We perform this check after the initialization to avoid errors
         # in test tools that show the object with repr().
-        if type not in ALL_CIMTYPES:
+        if type not in QUALIFIER_CIMTYPES:
             raise ValueError(
-                _format("Invalid CIM type: {0}", type))
+                _format("Invalid CIM type for a qualifier: {0}", type))
 
         # pylint: disable=attribute-defined-outside-init
         self._type = type
@@ -7359,9 +7377,9 @@ class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
 
         # We perform this check after the initialization to avoid errors
         # in test tools that show the object with repr().
-        if type not in ALL_CIMTYPES:
+        if type not in QUALIFIER_CIMTYPES:
             raise ValueError(
-                _format("Invalid CIM type: {0}", type))
+                _format("Invalid CIM type for a qualifier: {0}", type))
 
         # pylint: disable=attribute-defined-outside-init
         self._type = type

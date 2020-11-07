@@ -10485,6 +10485,26 @@ TESTCASES_TUPLEPARSE_XML = [
         ),
         None, None, True
     ),
+    (
+        "QUALIFIER with reference typed value None",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="reference"/>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "QUALIFIER with reference typed simple value 'foo'",
+        dict(
+            xml_str=''
+            '<QUALIFIER NAME="Qual" TYPE="reference">'
+            '  <VALUE>foo</VALUE>'
+            '</QUALIFIER>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
 
     # QUALIFIER.DECLARATION tests:
     #
@@ -11809,6 +11829,28 @@ TESTCASES_TUPLEPARSE_XML = [
             ),
         ),
         None, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with reference typed default value None "
+        "(invalid type)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="reference"/>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
+    ),
+    (
+        "QUALIFIER.DECLARATION with reference typed simple default value 'foo' "
+        "(invalid type)",
+        dict(
+            xml_str=''
+            '<QUALIFIER.DECLARATION NAME="Qual" TYPE="reference">'
+            '  <VALUE>foo</VALUE>'
+            '</QUALIFIER.DECLARATION>',
+            exp_result=None,
+        ),
+        CIMXMLParseError, None, True
     ),
     (
         "QUALIFIER.DECLARATION with empty SCOPE",
