@@ -236,6 +236,37 @@ py_src_files := \
     mof_compiler \
     $(wildcard $(mock_package_name)/*.py) \
 
+# Issues reported by safety command that are ignored.
+# Package upgrade strategy due to reported safety issues:
+# - For packages that are direct or indirect runtime requirements, upgrade
+#   the package version only if possible w.r.t. the supported environments and
+#   if the issue affects pywbem, and add to the ignore list otherwise.
+# - For packages that are direct or indirect development or test requirements,
+#   upgrade the package version only if possible w.r.t. the supported
+#   environments and add to the ignore list otherwise.
+# Current safety ignore list, with reasons:
+# Runtime dependencies:
+# - 38100: PyYAML on py34 cannot be upgraded; no issue since PyYAML FullLoader is not used
+# - 38834: urllib3 on py34 cannot be upgraded -> remains an issue on py34
+# Development and test dependencies:
+# - 38765: We want to test install with minimum pip versions.
+# - 38892: lxml cannot be upgraded on py34; no issue since HTML Cleaner of lxml is not used
+# - 38224: pylint cannot be upgraded on py27+py34
+# - 37504: twine cannot be upgraded on py34
+# - 37765: psutil cannot be upgraded on PyPy
+# - 38107: bleach cannot be upgraded on py34
+# - 38330: Sphinx cannot be upgraded on py27+py34
+safety_ignore_opts := \
+    -i 38100 \
+		-i 38834 \
+		-i 38765 \
+		-i 38892 \
+		-i 38224 \
+    -i 37504 \
+    -i 37765 \
+		-i 38107 \
+		-i 38330 \
+
 # Python source files for test (unit test and function test)
 test_src_files := \
     $(wildcard $(test_dir)/unittest/*.py) \
@@ -678,7 +709,7 @@ endif
 safety_$(pymn).done: develop_$(pymn).done makefile minimum-constraints.txt
 	@echo "makefile: Running pyup.io safety check"
 	-$(call RM_FUNC,$@)
-	-safety check -r minimum-constraints.txt --full-report
+	safety check -r minimum-constraints.txt --full-report $(safety_ignore_opts)
 	echo "done" >$@
 	@echo "makefile: Done running pyup.io safety check"
 

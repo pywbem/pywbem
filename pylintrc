@@ -72,7 +72,8 @@ disable=I0011, bad-option-value,
         too-many-nested-blocks, too-many-return-statements, too-many-arguments,
         wildcard-import, unused-wildcard-import,
         locally-enabled, superfluous-parens, useless-object-inheritance,
-        consider-using-set-comprehension, unnecessary-pass, useless-return
+        consider-using-set-comprehension, unnecessary-pass, useless-return,
+        signature-differs, raise-missing-from, super-with-arguments
 
 # Note: "useless-object-inheritance" is python 3 only. In Python 2,
 #        "new-style" objects must inherit from object, or else

@@ -73,6 +73,22 @@ Released: not yet
 * Fixed a `DeprecationWarning` issued by urllib3 about using the
   `whitelist_methods` parameter of `Retry`.
 
+* Security: Increased minimum version of 'PyYAML' to 5.2 on Python 3.4 and to
+  5.3.1 on Python 2.7 and >=3.5 to address security issues reported by safety.
+  The relevant functions of 'PyYAML' are not used by pywbem, though.
+
+* Security: Increased minimum version of 'urllib3' to 1.24.2 on Python 3.4 and
+  to 1.25.9 on Python 2.7 and >=3.5 to address security issues reported by
+  safety. To support these versions of 'urllib3', increased minimum version of
+  'requests' to 2.20.1 on Python 3.4 and to 2.22.0 on Python 2.7 and >=3.5.
+
+* Security: Increased minimum versions of several packages that are needed only
+  for test or development of pywbem to address security issues reported by
+  safety: requests-toolbelt to 0.8.0; lxml to 4.6.1 (except for Python 3.4);
+  pylint to 2.5.2 and astroid to 2.4.0 on Python >=3.5; typed-ast to 1.3.2 on
+  Python 3.4; twine to 3.0.0 on Python >=3.6; pkginfo to 1.4.2; bleach to 3.1.2
+  on Python 3.4 and to 3.1.4 on Python 2.7 and Python >=3.5.
+
 **Enhancements:**
 
 * Logging: Added a value 'off' for the log destination in the
@@ -124,6 +140,16 @@ Released: not yet
   `pywbem.CIMXMLParseError`, and unsupported DTD or protocol versions were
   ignored by pywbem.
 
+* Removed the pinning of Pylint to 2.5.2 on Python >=3.5. Disabled the following
+  warnings that were newly reported by the latest version (2.6.0) of Pylint:
+  'signature-differs' because it does not recognize compatible signature changes;
+  'raise-missing-from' and 'super-with-arguments' because these issues cannot
+  reasonably be addressed as long as Python 2.7 is supported.
+
+* In the makefile, added an ignore list for issues reported by safety along
+  with the reasons why each issue is ignored. This allowed enforcing that the
+  safety command reports no issues.
+
 **Cleanup:**
 
 * Test: Fixed all remaining ResourceWarnings during test. (issue #86)
@@ -132,6 +158,11 @@ Released: not yet
   introduced in pywbem 1.1.0. (see issue #2498)
 
 **Known issues:**
+
+* On Python 3.4, the urllib3 package is pinned to <1.25.8 because 1.25.9 removed
+  Python 3.4 support. As a consequence,
+  `safety issue <https://github.com/pyupio/safety-db/blob/master/data/insecure_full.json>`_
+  38834 cannot be addressed on Python 3.4.
 
 * See `list of open issues`_.
 
