@@ -56,8 +56,9 @@ def get_requirements(requirements_file):
         lines = fp.readlines()
     reqs = []
     for line in lines:
-        line = line.strip('\n')
-        if not line.startswith('#') and line != '':
+        line = line.strip(' \n')
+        if not line.startswith('#') and not line.startswith('-r ') and \
+                line != '':
             reqs.append(line)
     return reqs
 
