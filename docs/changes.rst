@@ -150,6 +150,9 @@ Released: not yet
   with the reasons why each issue is ignored. This allowed enforcing that the
   safety command reports no issues.
 
+* Migrated from Travis and Appveyor to GitHub Actions. This required several
+  changes in package dependencies for development.
+
 **Cleanup:**
 
 * Test: Fixed all remaining ResourceWarnings during test. (issue #86)

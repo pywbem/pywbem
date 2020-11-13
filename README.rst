@@ -5,6 +5,10 @@ Pywbem - A WBEM client and related utilities, written in pure Python
     :target: https://pypi.python.org/pypi/pywbem/
     :alt: PyPI Version
 
+.. image:: https://github.com/pywbem/pywbem/workflows/test/badge.svg?branch=master
+    :target: https://github.com/pywbem/pywbem/actions/
+    :alt: Actions status
+
 .. image:: https://readthedocs.org/projects/pywbem/badge/?version=latest
     :target: https://readthedocs.org/projects/pywbem/builds/
     :alt: ReadTheDocs status
