@@ -229,6 +229,8 @@ elif [[ "$distro_family" == "debian" ]]; then
 
   if [[ "$purpose" == "develop" ]]; then
     install_debian libxml2-utils
+    install_debian libxml2-dev
+    install_debian libxslt1-dev
   fi
 
 elif [[ "$distro_family" == "suse" ]]; then
