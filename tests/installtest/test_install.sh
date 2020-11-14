@@ -136,11 +136,13 @@ function make_virtualenv()
   envnamep="${ENVPREFIX}$envname"
   envdir=$VIRTUALENV_DIR/$envnamep
 
-  echo "Saving location of current virtualenv: $VIRTUAL_ENV"
-  VIRTUAL_ENV_SAVED=$VIRTUAL_ENV
+  if [[ -n $VIRTUAL_ENV ]]; then
+    echo "Saving location of current virtualenv: $VIRTUAL_ENV"
+    VIRTUAL_ENV_SAVED=$VIRTUAL_ENV
+  fi
 
   if [[ -d $envdir ]]; then
-    verbose "Removing new virtualenv: $envdir"
+    verbose "Removing leftover virtualenv from previous run: $envdir"
     remove_virtualenv $envname
   fi
 
@@ -173,6 +175,13 @@ function make_virtualenv()
     pip list --format=columns 2>/dev/null || pip list 2>/dev/null
   fi
 
+  pip_version=$(pip --version | sed -e 's/pip \([0-9.]*\) .*/\1/')
+  verbose "Debug: pip_version='$pip_version'"
+  if [[ $pip_version =~ (^[1-8]\..*) ]]; then
+    run "pip install 'pip==9.0.1'" "Upgrading pip $pip_version to 9.0.1"
+    run "pip --version"
+  fi
+
   run "pip install pip $PIP_OPTS" "Reinstalling pip with PACKAGE_LEVEL=$PACKAGE_LEVEL"
   run "pip install setuptools $PIP_OPTS" "Reinstalling setuptools with PACKAGE_LEVEL=$PACKAGE_LEVEL"
   run "pip install wheel $PIP_OPTS" "Reinstalling wheel with PACKAGE_LEVEL=$PACKAGE_LEVEL"
@@ -199,6 +208,8 @@ function remove_virtualenv()
 
   if [[ -n $VIRTUAL_ENV_SAVED ]]; then
     run "source $VIRTUAL_ENV_SAVED/bin/activate" "Re-activating saved virtualenv: $VIRTUAL_ENV_SAVED"
+  else
+    unset VIRTUAL_ENV
   fi
 }
 
