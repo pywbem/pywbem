@@ -45,6 +45,9 @@ Released: not yet
 
 * Test: Disabled leaktest in travis also on PyPy3 (in addition to PyPy2).
 
+* Fixed a `DeprecationWarning` issued by urllib3 about using the
+  `whitelist_methods` parameter of `Retry`.
+
 **Enhancements:**
 
 **Cleanup:**
