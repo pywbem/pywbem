@@ -138,6 +138,7 @@ from datetime import datetime, timedelta
 from xml.dom import minidom
 from collections import namedtuple
 import logging
+import warnings
 
 import requests
 from requests.packages import urllib3
@@ -169,6 +170,28 @@ HTTP_CONNECT_RETRIES = 2         # Max number of HTTP connect retries
 HTTP_READ_RETRIES = 2            # Max number of HTTP read retries
 HTTP_RETRY_BACKOFF_FACTOR = 0.1  # Backoff factor for retries
 HTTP_MAX_REDIRECTS = 5           # Max number of HTTP redirects
+
+# urllib3 1.26.0 started issuing a DeprecationWarning for using the
+# 'method_whitelist' init parameter of Retry and announced its removal in
+# version 2.0. The replacement parameter is 'allowed_methods'.
+# Find out which init parameter to use:
+with warnings.catch_warnings():
+    warnings.filterwarnings('error')
+    try:
+        urllib3.Retry(method_whitelist={})
+    except (DeprecationWarning, TypeError):
+        RETRY_METHODS_PARM = 'allowed_methods'
+    else:
+        RETRY_METHODS_PARM = 'method_whitelist'
+
+RETRY_KWARGS = dict(
+    total=HTTP_TOTAL_RETRIES,
+    connect=HTTP_CONNECT_RETRIES,
+    read=HTTP_READ_RETRIES,
+    redirect=HTTP_MAX_REDIRECTS,
+    backoff_factor=HTTP_RETRY_BACKOFF_FACTOR
+)
+RETRY_KWARGS[RETRY_METHODS_PARM] = {'POST'}
 
 # Global named tuples. Used by the pull operation responses to return
 # (entities, end_of_sequence, and enumeration_context) to the caller.
@@ -770,13 +793,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                         type(self.ca_certs)))
         self.session.verify = verify
 
-        retry = urllib3.Retry(
-            total=HTTP_TOTAL_RETRIES,
-            connect=HTTP_CONNECT_RETRIES,
-            read=HTTP_READ_RETRIES,
-            method_whitelist={'POST'},
-            redirect=HTTP_MAX_REDIRECTS,
-            backoff_factor=HTTP_RETRY_BACKOFF_FACTOR)
+        retry = urllib3.Retry(**RETRY_KWARGS)
 
         # While it would be technically sufficient to set a retry transport
         # adapter only for the scheme specified in the input URL, we are

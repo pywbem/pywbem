@@ -70,6 +70,9 @@ Released: not yet
   declarations to raise `pywbem.CIMXMLParseError` from `WBEMConnection`
   operations.
 
+* Fixed a `DeprecationWarning` issued by urllib3 about using the
+  `whitelist_methods` parameter of `Retry`.
+
 **Enhancements:**
 
 * Logging: Added a value 'off' for the log destination in the
