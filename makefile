@@ -405,6 +405,7 @@ endif
 
 pip_upgrade_$(pymn).done: makefile
 	-$(call RM_FUNC,$@)
+	bash -c 'pv=$$($(PIP_CMD) --version); if [[ $$pv =~ (^pip [1-8]\..*) ]]; then $(PIP_INSTALL_CMD) pip==9.0.1; fi'
 	$(PIP_INSTALL_CMD) $(pip_level_opts) pip
 	echo "done" >$@
 
