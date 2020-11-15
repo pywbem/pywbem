@@ -1,9 +1,16 @@
 Pywbem - A WBEM client and related utilities, written in pure Python
 ====================================================================
 
+![test](https://github.com/pywbem/pywbem/workflows/test/badge.svg?branch=andy-maier-patch-1)
+
+
 .. image:: https://badge.fury.io/py/pywbem.svg
     :target: https://pypi.python.org/pypi/pywbem/
     :alt: PyPI Version
+
+.. image:: https://github.com/pywbem/pywbem/workflows/test/badge.svg?branch=master
+    :target: https://github.com/pywbem/pywbem/actions/
+    :alt: Actions status
 
 .. image:: https://travis-ci.org/pywbem/pywbem.svg?branch=master
     :target: https://travis-ci.org/github/pywbem/pywbem/builds
