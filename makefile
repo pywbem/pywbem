@@ -285,6 +285,12 @@ else
 endif
 pytest_end2end_opts := -v --tb=short $(pytest_opts)
 
+ifeq ($(python_mn_version),3.4)
+  pytest_cov_opts :=
+else
+  pytest_cov_opts := --cov $(package_name) --cov $(mock_package_name) $(coverage_report) --cov-config coveragerc
+endif
+
 ifeq ($(python_m_version),3)
   pytest_warning_opts := -W default -W ignore::PendingDeprecationWarning
   pytest_end2end_warning_opts := $(pytest_warning_opts)
@@ -738,7 +744,7 @@ endif
 .PHONY: test
 test: $(test_deps)
 	@echo "makefile: Running unit and function tests"
-	py.test --color=yes --cov $(package_name) --cov $(mock_package_name) $(coverage_report) --cov-config coveragerc $(pytest_warning_opts) $(pytest_opts) $(test_dir)/unittest $(test_dir)/functiontest -s
+	py.test --color=yes $(pytest_cov_opts) $(pytest_warning_opts) $(pytest_opts) $(test_dir)/unittest $(test_dir)/functiontest -s
 	@echo "makefile: Done running unit and function tests"
 
 .PHONY: installtest
