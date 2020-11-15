@@ -5,14 +5,6 @@ Pywbem - A WBEM client and related utilities, written in pure Python
     :target: https://pypi.python.org/pypi/pywbem/
     :alt: PyPI Version
 
-.. image:: https://travis-ci.org/pywbem/pywbem.svg?branch=master
-    :target: https://travis-ci.org/github/pywbem/pywbem/builds
-    :alt: Travis status
-
-.. image:: https://ci.appveyor.com/api/projects/status/7bgmed9tk9sk0k8h/branch/master?svg=true
-    :target: https://ci.appveyor.com/project/andy-maier/pywbem/history
-    :alt: Appveyor status
-
 .. image:: https://readthedocs.org/projects/pywbem/badge/?version=latest
     :target: https://readthedocs.org/projects/pywbem/builds/
     :alt: ReadTheDocs status
