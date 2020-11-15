@@ -63,6 +63,27 @@ def create_conn(reg_dict):
     return conn
 
 
+def exp_normcwdpath(path):
+    """
+    Return the input file or directory path such that it is normalized and
+    accessible from the current working directory.
+    """
+    normpath = os.path.normcase(os.path.normpath(path))
+    if os.path.isabs(normpath):
+        cwdpath = normpath
+    else:
+        # If relative, it is always relative to the user's home directory
+        home_dir = os.path.expanduser('~')
+        cwdpath = os.path.join(home_dir, normpath)
+        try:
+            cwdpath = os.path.relpath(cwdpath)
+        except ValueError:
+            # On Windows, os.path.relpath() raises ValueError when the paths
+            # are on different drives
+            pass
+    return cwdpath
+
+
 TESTCASES_REGISTRY_REPR = [
 
     # Testcases for ProviderDependentRegistry.__repr__()
@@ -169,7 +190,10 @@ TESTCASES_REGISTRY_ADD_ITER_DEPENDENTS = [
         dict(
             mock_script='mock1',
             dependents=['dep1', 'dep2'],
-            exp_dependents=['dep1', 'dep2'],
+            exp_dependents=[
+                exp_normcwdpath('dep1'),
+                exp_normcwdpath('dep2')
+            ],
         ),
         None, None, True
     ),
@@ -179,8 +203,8 @@ TESTCASES_REGISTRY_ADD_ITER_DEPENDENTS = [
             mock_script='rel1/mock1',
             dependents=['rel1/dep1', 'rel2/dep2'],
             exp_dependents=[
-                os.path.join('rel1', 'dep1'),
-                os.path.join('rel2', 'dep2')
+                exp_normcwdpath('rel1/dep1'),
+                exp_normcwdpath('rel2/dep2')
             ],
         ),
         None, None, True
@@ -191,8 +215,8 @@ TESTCASES_REGISTRY_ADD_ITER_DEPENDENTS = [
             mock_script='/rel1/mock1',
             dependents=['/rel1/dep1', '/rel2/dep2'],
             exp_dependents=[
-                os.path.relpath('/rel1/dep1'),
-                os.path.relpath('/rel2/dep2'),
+                exp_normcwdpath('/rel1/dep1'),
+                exp_normcwdpath('/rel2/dep2')
             ],
         ),
         None, None, True
@@ -203,8 +227,8 @@ TESTCASES_REGISTRY_ADD_ITER_DEPENDENTS = [
             mock_script='rel1/rel2/../mock1',
             dependents=['rel1/rel2/../dep1', 'rel2/rel3/../dep2'],
             exp_dependents=[
-                os.path.join('rel1', 'dep1'),
-                os.path.join('rel2', 'dep2')
+                exp_normcwdpath('rel1/dep1'),
+                exp_normcwdpath('rel2/dep2')
             ],
         ),
         None, None, True
