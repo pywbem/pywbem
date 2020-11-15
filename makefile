@@ -707,7 +707,11 @@ endif
 .PHONY: test
 test: $(test_deps)
 	@echo "makefile: Running unit and function tests"
+ifeq ($(python_mn_version),3.4)
+	py.test --color=yes $(pytest_warning_opts) $(pytest_opts) $(test_dir)/unittest $(test_dir)/functiontest -s
+else
 	py.test --color=yes --cov $(package_name) --cov $(mock_package_name) $(coverage_report) --cov-config coveragerc $(pytest_warning_opts) $(pytest_opts) $(test_dir)/unittest $(test_dir)/functiontest -s
+endif
 	@echo "makefile: Done running unit and function tests"
 
 .PHONY: installtest

@@ -136,9 +136,9 @@ lxml==4.2.4; python_version <= '3.7'
 lxml==4.4.3; python_version >= '3.8'
 
 # Coverage reporting (no imports, invoked via coveralls script):
-coverage==4.5.2
-python-coveralls==2.9.2
-pytest-cov==2.7.0
+coverage==5.0; python_version == '2.7' or python_version >= '3.5'
+# python-coveralls==2.9.2
+pytest-cov==2.7.0; python_version == '2.7' or python_version >= '3.5'
 
 # Safety CI by pyup.io
 safety==1.8.4

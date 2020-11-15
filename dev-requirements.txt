@@ -13,10 +13,10 @@
 
 # Coverage reporting (no imports, invoked via coveralls script):
 # coverage 5.0 has removed support for py34
-coverage>=4.5.2,<5.0
+coverage>=5.0; python_version == '2.7' or python_version >= '3.5'
 # python-coveralls 2.9.2 no longer has requirement coverage==4.0.3.
-python-coveralls>=2.9.2
-pytest-cov>=2.7.0
+# python-coveralls>=2.9.2
+pytest-cov>=2.7.0; python_version == '2.7' or python_version >= '3.5'
 
 # Safety CI by pyup.io
 safety>=1.8.4
