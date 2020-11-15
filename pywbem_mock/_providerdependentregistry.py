@@ -58,19 +58,9 @@ class ProviderDependentRegistry(object):
     @staticmethod
     def _normpath(path):
         """
-        Return the input file or directory path in a normalized version,
-        as described in the class docstring.
+        Return the input file or directory path in a normalized version.
         """
-        home_dir = os.path.expanduser('~')
-        try:
-            normpath = os.path.relpath(path, home_dir)
-        except ValueError:
-            # On Windows, os.path.relpath() raises ValueError when the paths
-            # are on different drives
-            normpath = path
-        normpath = os.path.normpath(normpath)
-        normpath = os.path.normcase(normpath)
-        return normpath
+        return os.path.normcase(os.path.normpath(path))
 
     @staticmethod
     def _cwdpath(normpath):
@@ -84,7 +74,12 @@ class ProviderDependentRegistry(object):
             # If relative, it is always relative to the user's home directory
             home_dir = os.path.expanduser('~')
             cwdpath = os.path.join(home_dir, normpath)
-            cwdpath = os.path.relpath(cwdpath)
+            try:
+                cwdpath = os.path.relpath(cwdpath)
+            except ValueError:
+                # On Windows, os.path.relpath() raises ValueError when the paths
+                # are on different drives
+                pass
         return cwdpath
 
     def add_dependents(self, mock_script_path, dependent_paths):
