@@ -237,7 +237,7 @@ pyinstrument-cext==0.2.0  # from pyinstrument
 psutil==5.6.0; sys_platform != 'cygwin'
 
 pyzmq==16.0.4; python_version <= '3.8'
-pyzmq==19.0.0; python_version >= '3.9'
+pyzmq==20.0.0; python_version >= '3.9'
 
 # Indirect dependencies for develop that need constraints
 
