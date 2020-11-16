@@ -48,17 +48,12 @@ PyYAML>=5.1; python_version > '3.4'
 yamlloader>=0.5.5
 
 # Lxml
-# lxml 4.4.0 removed Python 3.4 support.
-# lxml 4.4.1 added Python 3.8 support. However, while providing binary wheel
-#   files, it did not register Python 3.8 as a supported version in the
-#   package metadata on Pypi. A fix for that is expected for the next lxml
-#   version after 4.4.2 (See https://bugs.launchpad.net/lxml/+bug/1854465
-#   and https://github.com/lxml/lxml/pull/291). Before that, pip 19.3.1
-#   is required to properly deal with this inconsistency (see issue #1980).
-lxml>=4.2.4; python_version == '2.7'
+# lxml 4.4.0 removed Python 3.4 support
+# lxml 4.4.3 added Python 3.8 support and exposed it correctly
+# lxml 4.6.1 addressed safety issue 38892
+lxml>=4.6.1; python_version == '2.7'
 lxml>=4.2.4,<4.4.0; python_version == '3.4'
-lxml>=4.2.4; python_version >= '3.5' and python_version <= '3.7'
-lxml>=4.4.3; python_version >= '3.8'
+lxml>=4.6.1; python_version >= '3.5'
 
 # Virtualenv
 # Virtualenv 20.0.19 has an issue where it does not install pip on Python 3.4.
