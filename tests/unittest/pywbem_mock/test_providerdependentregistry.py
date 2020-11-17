@@ -65,15 +65,31 @@ def create_conn(reg_dict):
 
 def exp_normcwdpath(path):
     """
-    Return the input file or directory path such that it is normalized and
-    accessible from the current working directory.
+    Return the input file as if it had been put into the
+    ProviderDependentRegistry and retrieved again.
+
+    Parameters:
+        path: Path name of file, accessible from current dir.
+
+    Returns:
+        Path name of file, accessible from current dir.
     """
-    normpath = os.path.normcase(os.path.normpath(path))
+
+    # Must be consistent with ProviderDependentRegistry.add_dependents():
+    home_dir = os.path.expanduser('~')
+    try:
+        normpath = os.path.relpath(path, home_dir)
+    except ValueError:
+        # On Windows, os.path.relpath() raises ValueError when the paths
+        # are on different drives
+        normpath = path
+    normpath = os.path.normcase(os.path.normpath(normpath))
+
+    # Must be consistent with ProviderDependentRegistry.iter_dependents():
     if os.path.isabs(normpath):
         cwdpath = normpath
     else:
         # If relative, it is always relative to the user's home directory
-        home_dir = os.path.expanduser('~')
         cwdpath = os.path.join(home_dir, normpath)
         try:
             cwdpath = os.path.relpath(cwdpath)

@@ -58,9 +58,17 @@ class ProviderDependentRegistry(object):
     @staticmethod
     def _normpath(path):
         """
-        Return the input file or directory path in a normalized version.
+        Return the input file or directory path in a normalized version,
+        as described in the class docstring.
         """
-        return os.path.normcase(os.path.normpath(path))
+        home_dir = os.path.expanduser('~')
+        try:
+            normpath = os.path.relpath(path, home_dir)
+        except ValueError:
+            # On Windows, os.path.relpath() raises ValueError when the paths
+            # are on different drives
+            normpath = path
+        return os.path.normcase(os.path.normpath(normpath))
 
     @staticmethod
     def _cwdpath(normpath):
