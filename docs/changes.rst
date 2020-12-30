@@ -89,6 +89,9 @@ Released: not yet
   Python 3.4; twine to 3.0.0 on Python >=3.6; pkginfo to 1.4.2; bleach to 3.1.2
   on Python 3.4 and to 3.1.4 on Python 2.7 and Python >=3.5.
 
+* Fixed issue on GitHub Actions with macos by no longer running "brew update"
+  in pywbem_os_setup.sh. (issue #2544)
+
 **Enhancements:**
 
 * Logging: Added a value 'off' for the log destination in the

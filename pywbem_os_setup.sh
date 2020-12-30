@@ -251,8 +251,6 @@ elif [[ "$distro_family" == "suse" ]]; then
 
 elif [[ "$distro_family" == "osx" ]]; then
 
-  brew update
-
   if [[ "$purpose" == "install" ]]; then
     # Python devel seems to be part of the python package.
     if [[ "$py_m" == "2" ]]; then
