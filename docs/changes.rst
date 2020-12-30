@@ -48,6 +48,9 @@ Released: not yet
 * Fixed a `DeprecationWarning` issued by urllib3 about using the
   `whitelist_methods` parameter of `Retry`.
 
+* Fixed issue on GitHub Actions with macos by no longer running "brew update"
+  in pywbem_os_setup.sh. (issue #2544)
+
 **Enhancements:**
 
 * Migrated from Travis and Appveyor to GitHub Actions. This required several
