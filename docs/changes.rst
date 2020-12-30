@@ -84,7 +84,7 @@ Released: not yet
 
 * Security: Increased minimum versions of several packages that are needed only
   for test or development of pywbem to address security issues reported by
-  safety: requests-toolbelt to 0.8.0; lxml to 4.6.1 (except for Python 3.4);
+  safety: requests-toolbelt to 0.8.0; lxml to 4.6.2 (except for Python 3.4);
   pylint to 2.5.2 and astroid to 2.4.0 on Python >=3.5; typed-ast to 1.3.2 on
   Python 3.4; twine to 3.0.0 on Python >=3.6; pkginfo to 1.4.2; bleach to 3.1.2
   on Python 3.4 and to 3.1.4 on Python 2.7 and Python >=3.5.
