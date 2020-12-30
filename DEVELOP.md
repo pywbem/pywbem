@@ -27,214 +27,213 @@ Releasing a version
 
 This section describes how to release a version of pywbem to PyPI.
 
-It covers all variants of versions:
+It covers all variants of versions that can be released:
 
-* Releasing the master branch as a new (major or minor) version
-* Releasing a fix stream branch of an already released version as a new fix
-  version
+* Releasing a new major version (Mnew.0.0) based on the master branch
+* Releasing a new minor version (M.Nnew.0) based on the master branch
+* Releasing a new update version (M.N.Unew) based on the stable branch of its
+  minor version
 
 The description assumes that the `pywbem/pywbem` repo and the
 `pywbem/pywbem.github.io` repo are both cloned locally in sibling directories
 named `pywbem` and `pywbem.github.io`.
 Their upstream repos are assumed to have the remote name `origin`.
 
-1.  Switch to your work directory of the `pywbem/pywbem` repo (this is where
-    the `makefile` is), and perform the following steps in that directory.
+Any commands in the following steps are executed in the main directory of your
+local clone of the `pywbem/pywbem` Git repo.
 
-2.  Set shell variables for the version and branch to be released:
+1.  Set shell variables for the version that is being released and the branch
+    it is based on:
 
-    - `MNU="0.9.0"` or `MNU="0.8.1"` - Full version number `M.N.U`
-    - `MN="0.9"` or `MN="0.8"` - Major and minor version number `M.N`
-    - `BRANCH="master"` or `BRANCH="stable_$MN"`
+    * ``MNU`` - Full version M.N.U that is being released
+    * ``MN`` - Major and minor version M.N of that full version
+    * ``BRANCH`` - Name of the branch the version that is being released is
+      based on
 
-3.  Check out the branch to be released, make sure it is up to date with
-    upstream, and create a topic branch for the version to be released:
+    When releasing a new major version (e.g. ``1.0.0``) based on the master
+    branch:
 
-    - `git checkout $BRANCH`
-    - `git pull`
-    - `git checkout -b release_$MNU`
+    .. code-block:: sh
 
-4.  Edit the version file and set the version to be released:
+        MNU=1.0.0
+        MN=1.0
+        BRANCH=master
 
-    - `vi pywbem/_version.py`
+    When releasing a new minor version (e.g. ``0.9.0``) based on the master
+    branch:
 
-    `__version__ = 'M.N.U'`
+    .. code-block:: sh
 
-    Where `M.N.U` is the version to be released, e.g. `0.8.1`.
+        MNU=0.9.0
+        MN=0.9
+        BRANCH=master
 
-    You can verify that this version is picked up by setup.py as follows::
+    When releasing a new update version (e.g. ``0.8.1``) based on the stable
+    branch of its minor version:
 
-    ```
-    ./setup.py --version
-    0.8.1
-    ```
+    .. code-block:: sh
 
-5.  Edit the change log:
+        MNU=0.8.1
+        MN=0.8
+        BRANCH=stable_${MN}
 
-    - `vi docs/changes.rst`
+2.  Create a topic branch for the version that is being released:
 
-    To make the following changes for the version to be released:
+    .. code-block:: sh
 
-    * Finalize the version to the version to be released.
+        git checkout ${BRANCH}
+        git pull
+        git checkout -b release_${MNU}
 
-    * Remove the statement that the version is in development.
+3.  Edit the version file:
 
-    * Update the statement which fixes of the previous stable version
-      are contained in this version.  If there is no fix release
-      of the previous stable version, the line can be removed.
+    .. code-block:: sh
 
-    * Change the release date to today´s date.
+        vi pywbem/_version.py
 
-    * Make sure that all changes are described. This can be done by comparing
-      the changes listed with the commit log of the master branch.
+    and set the ``__version__`` variable to the version that is being released:
 
-    * Make sure the items in the change log are relevant for and understandable
-      by users of pywbem.
+    .. code-block:: python
 
-    * In the "Known issues" list item, remove the link to the issue tracker
-      and add text for any known issues you want users to know about.
+        __version__ = 'M.N.U'
 
-      Note: Just linking to the issue tracker quickly becomes incorrect for a
-      released version and is therefore only good during development of a
-      version. In the "Starting a new version" section, the link will be added
-      again for the new version.
+4.  Edit the change log:
 
-6.  Edit the README file for PyPI:
+    .. code-block:: sh
+
+        vi docs/changes.rst
+
+    and make the following changes in the section of the version that is being
+    released:
+
+    * Finalize the version.
+    * Change the release date to today's date.
+    * Make sure that all changes are described.
+    * Make sure the items shown in the change log are relevant for and
+      understandable by users.
+    * In the "Known issues" list item, remove the link to the issue tracker and
+      add text for any known issues you want users to know about.
+    * Remove all empty list items.
+
+5.  Edit the README file for PyPI:
 
     - `vi README_PYPI.rst`
 
-    To make the following changes:
+    and update the constants near the top of the file::
 
-    * Update the constants near the top of the file::
+    ```
+    .. |pywbem-version-mn| replace:: M.N
+    .. _Readme file on GitHub: https://github.com/pywbem/pywbem/blob/stable_M.N/README.rst
+    .. _Documentation on RTD: https://pywbem.readthedocs.io/en/stable_M.N/
+    .. _Change log on RTD: https://pywbem.readthedocs.io/en/stable_M.N/changes.html
+    ```
 
-      ```
-      .. |pywbem-version-mn| replace:: {M.N}
-      .. _Readme file on GitHub: https://github.com/pywbem/pywbem/blob/stable_{M.N}/README.rst
-      .. _Documentation on RTD: https://pywbem.readthedocs.io/en/stable_{M.N}/
-      .. _Change log on RTD: https://pywbem.readthedocs.io/en/stable_{M.N}/changes.html
-      ```
+6.  When releasing based on the master branch, edit the GitHub workflow file
+    ``test.yml``:
 
-      Where the items in curly braces (e.g. `{M.N}`) are replaced with their
-      actual values.
+    .. code-block:: sh
 
-7.  If you released the `master` branch, it will get a new stable branch as
-    its fix stream (further down) and the new stable branch needs to be
-    updated in `.travis.yml` so that the weekly test run for the
-    `manual-ci-run-stable` branch can rebase itself on the current state
-    of that stable branch:
+        vi .github/workflows/test.yml
 
-    - `sed -E -e "s/export STABLE_BRANCH=.*/export STABLE_BRANCH=stable_$MN/" -i "" .travis.yml`
-    - `sed -E -e "s/set STABLE_BRANCH=.*/set STABLE_BRANCH=stable_$MN/" -i "" appveyor.yml`
-    - `grep STABLE_BRANCH .travis.yml appveyor.yml` - to double check the updates
+    and in the ``on`` section, increase the version of the ``stable_*`` branch
+    to the new stable branch ``stable_M.N`` created earlier:
 
-8.  Perform a complete build (in your favorite Python virtual environment):
+    .. code-block:: yaml
 
-    - `make clobber`
-    - `make all`
+        on:
+          schedule:
+            . . .
+          push:
+            branches: [ master, stable_M.N ]
+          pull_request:
+            branches: [ master, stable_M.N ]
 
-    If this fails, fix and iterate over this step until it succeeds.
+7.  Commit your changes and push the topic branch to the remote repo:
 
-9.  Commit the changes and push to upstream:
+    .. code-block:: sh
 
-    - `git status` - to double check which files have been changed
-    - `git commit -asm "Release $MNU"`
-    - `git push --set-upstream origin release_$MNU`
+        git status  # Double check the changed files
+        git commit -asm "Release ${MNU}"
+        git push --set-upstream origin release_${MNU}
 
-10. On Github, create a Pull Request for branch `release_$MNU`. This will
-    trigger the CI runs in Travis and Appveyor.
+8.  On GitHub, create a Pull Request for branch ``release_M.N.U``. This will
+    trigger the CI runs.
 
-    Important: When creating Pull Requests, GitHub by default targets
-    the `master` branch. If you are releasing a fix version, you need to
-    change the target branch of the Pull Request to `stable_M.N`.
+    Important: When creating Pull Requests, GitHub by default targets the
+    ``master`` branch. When releasing based on a stable branch, you need to
+    change the target branch of the Pull Request to ``stable_M.N``.
 
-11. Optional: Perform a complete test using Tox:
+9.  On GitHub, close milestone ``M.N.U``.
 
-    - `tox`
+10. On GitHub, once the checks for the Pull Request for branch ``start_M.N.U``
+    have succeeded, merge the Pull Request (no review is needed). This
+    automatically deletes the branch on GitHub.
 
-    This will create virtual Python environments for all supported versions
-    and will invoke `make test` (with its prerequisite make targets) in each
-    of them.
+11. Add a new tag for the version that is being released and push it to
+    the remote repo. Clean up the local repo:
 
-12. Optional: Perform a test in a local multi-platform test environment (Andy):
+    .. code-block:: sh
 
-    - Post the results to the release PR.
+        git checkout ${BRANCH}
+        git pull
+        git tag -f ${MNU}
+        git push -f --tags
+        git branch -d release_${MNU}
 
-13. Optional: Perform a test against a real WBEM server (Karl):
+12. When releasing based on the master branch, create and push a new stable
+    branch for the same minor version:
 
-    - Post the results to the release PR.
+    .. code-block:: sh
 
-14. If any of the tests mentioned above fails, fix the problem and iterate
-    back to step 6. until they all succeed.
+        git checkout -b stable_${MN}
+        git push --set-upstream origin stable_${MN}
+        git checkout ${BRANCH}
 
-15. On GitHub, once the CI runs for the Pull Request succeed:
+    Note that no GitHub Pull Request is created for any ``stable_*`` branch.
 
-    - Merge the Pull Request (no review is needed)
-    - Delete the branch of the Pull Request (`release_M.N.U`)
+13. On GitHub, edit the new tag ``M.N.U``, and create a release description on
+    it. This will cause it to appear in the Release tab.
 
-16. Checkout the branch you are releasing, update it from upstream, and
-    delete the local topic branch you created:
+    You can see the tags in GitHub via Code -> Releases -> Tags.
 
-    - `git checkout $BRANCH`
-    - `git pull`
-    - `git branch -d release_$MNU`
+14. On ReadTheDocs, activate the new version ``M.N.U``:
 
-17. Tag the version:
+    * Go to https://readthedocs.org/projects/pywbem/versions/
+      and log in.
 
-    This step tags the local repo and pushes it upstream:
+    * Activate the new version ``M.N.U``.
 
-    - `git status` - double check that the branch to be released
-      (`$BRANCH`) is checked out
-    - `git tag $MNU`
-    - `git push --tags`
+      This triggers a build of that version. Verify that the build succeeds
+      and that new version is shown in the version selection popup at
+      https://pywbem.readthedocs.io/
 
-18. If you released the `master` branch (for a new minor or major version),
-    it will be fixed separately, so it needs a new fix stream.
+15. Upload the package to PyPI:
 
-    * Create a branch for its fix stream and push it upstream:
+    .. code-block:: sh
 
-      - `git status` - double check that the branch to be released
-        (`$BRANCH`) is checked out
-      - `git checkout -b stable_$MN`
-      - `git push --set-upstream origin stable_$MN`
+        make upload
 
-    * Log on to [RTD](https://readthedocs.org/), go to the `pywbem` project,
-      and activate the new branch `stable_M.N` as a version to be built.
+    This will show the package version and will ask for confirmation.
 
-    * On Github, modify the pull request for branch `manual-ci-run-stable` to
-      change its target branch to the new fix stream branch `stable_M.N`.
-      See [here](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/changing-the-base-branch-of-a-pull-request)
-      for details on how to do that.
+    **Attention!** This only works once for each version. You cannot release
+    the same version twice to PyPI.
 
-19. On GitHub, edit the new tag, and create a release description on it. This
-    will cause it to appear in the Release tab.
+    Verify that the released version arrived on PyPI at
+    https://pypi.python.org/pypi/pywbem/
 
-20. On GitHub, close milestone `M.N.U`.
-
-    Note: Issues with that milestone will be moved forward in the section
-    "Starting a new version".
-
-21. Upload the package to PyPI:
-
-    **Attention!!** This only works once. You cannot re-release the same
-    version to PyPI.
-
-    - `make upload`
-
-    Verify that it arrived on PyPI: https://pypi.python.org/pypi/pywbem/
-
-22. Switch to the directory of the `pywbem.github.io` repo and perform the
+16. Switch to the directory of the `pywbem.github.io` repo and perform the
     following steps from that directory:
 
     - `cd ../pywbem.github.io`
 
-23. Check out the `master` branch and update it from upstream:
+17. Check out the `master` branch and update it from upstream:
 
     - `git checkout master`
     - `git pull`
 
     In this repo, we don´t use a topic branch for these changes.
 
-24. Edit the installation page:
+18. Edit the installation page:
 
     - `vi pywbem/installation.html`
 
@@ -248,107 +247,152 @@ Their upstream repos are assumed to have the remote name `origin`.
     `pywbem/installation.html` that the new release shows up correctly,
     and that all of its links work.
 
-25. Commit the changes and push to the upstream repo:
+19. Commit the changes and push to the upstream repo:
 
     - `git status` - to double check which files have been changed
     - `git commit -asm "Release $MNU"`
     - `git push`
 
-26. Announce the new version on the
-    [pywbem-devel mailing list](https://sourceforge.net/p/pywbem/mailman/pywbem-devel/).
 
 Starting a new version
 ----------------------
 
 This section shows the steps for starting development of a new version of pywbem.
 
-It covers all variants of new versions:
+This section covers all variants of new versions:
 
-* A new (major or minor) version for new development based upon the `master`
-  branch
-* A new fix version based on a `stable_M.N` fix stream branch.
+* Starting a new major version (Mnew.0.0) based on the master branch
+* Starting a new minor version (M.Nnew.0) based on the master branch
+* Starting a new update version (M.N.Unew) based on the stable branch of its
+  minor version
 
-1.  Switch to the directory of the `pywbem` repo, and perform the following
-    steps in that directory.
+The description assumes that the `pywbem/pywbem` repo is cloned locally in a
+directory named `pywbem`. Its upstream repo is assumed to have the remote name
+`origin`.
 
-2.  Set shell variables for the version to be started and for the branch it is
-    based upon:
+Any commands in the following steps are executed in the main directory of your
+local clone of the `pywbem/pywbem` Git repo.
 
-    - `MNU="0.10.0"` or `MNU="0.9.1"` - Full version number `M.N.U`
-    - `MN="0.10"` or `MN="0.9"` - Major and minor version number `M.N`
-    - `BRANCH="master"` or `BRANCH="stable_$MN"`
+1.  Set shell variables for the version that is being started and the branch it
+    is based on:
 
-3.  Check out the branch the new version is based upon, make sure it is up to
-    date with upstream, and create a topic branch for the new version:
+    * ``MNU`` - Full version M.N.U that is being started
+    * ``MN`` - Major and minor version M.N of that full version
+    * ``BRANCH`` -  Name of the branch the version that is being started is
+      based on
 
-    - `git checkout $BRANCH`
-    - `git pull`
-    - `git checkout -b start_$MNU`
+    When starting a new major version (e.g. ``1.0.0``) based on the master
+    branch:
 
-4.  Edit the version file and set the version to the new development version:
+    .. code-block:: sh
 
-    - `vi pywbem/_version.py`
+        MNU=1.0.0
+        MN=1.0
+        BRANCH=master
 
-    `__version__ = 'M.N.U.dev1'`
+    When starting a new minor version (e.g. ``0.9.0``) based on the master
+    branch:
 
-    Where `M.N.U` is the new version to be started, e.g. `0.10.0`.
+    .. code-block:: sh
 
-5.  Edit the change log:
+        MNU=0.9.0
+        MN=0.9
+        BRANCH=master
 
-    - `vi docs/changes.rst`
+    When starting a new minor version (e.g. ``0.8.1``) based on the stable
+    branch of its minor version:
 
-    To insert the following section before the top-most section:
+    .. code-block:: sh
 
-    ```
-    pywbem 0.10.0.dev1
-    ------------------
+        MNU=0.8.1
+        MN=0.8
+        BRANCH=stable_${MN}
 
-    This version contains all fixes up to pywbem 0.9.x.
+2.  Create a topic branch for the version that is being started:
 
-    Released: not yet
+    .. code-block:: sh
 
-    **Incompatible changes:**
+        git checkout ${BRANCH}
+        git pull
+        git checkout -b start_${MNU}
 
-    **Deprecations:**
+3.  Edit the version file:
 
-    **Bug fixes:**
+    .. code-block:: sh
 
-    **Enhancements:**
+        vi pywbem/_version.py
 
-    **Cleanup:**
+    and update the version to a draft version of the version that is being
+    started:
 
-    **Known issues:**
+    .. code-block:: python
 
-    * See `list of open issues`_.
+        __version__ = 'M.N.U.dev1'
 
-    .. _`list of open issues`: https://github.com/pywbem/pywbem/issues
-    ```
+4.  Edit the change log:
 
-6. Commit the changes and push to upstream:
+    .. code-block:: sh
 
-    - `git status` - to double check which files have been changed
-    - `git commit -asm "Start $MNU"`
-    - `git push --set-upstream origin start_$MNU`
+        vi docs/changes.rst
 
-7.  On Github, create a Pull Request for branch `start_$MNU`.
+    and insert the following section before the top-most section:
 
-    Important: When creating Pull Requests, GitHub by default targets
-    the `master` branch. If you are starting a fix version, you need to
-    change the target branch of the Pull Request to `stable_M.N`.
+    .. code-block:: rst
 
-8.  On GitHub, once all of these tests succeed:
+        Version M.N.U.dev1
+        ^^^^^^^^^^^^^^^^^^
 
-    - Merge the Pull Request (no review is needed)
-    - Delete the branch of the Pull Request (`release_M.N.U`)
+        This version contains all fixes up to version M.N-1.x.
 
-9.  Checkout the branch the new version is based upon, update it from
-    upstream, and delete the local topic branch you created:
+        Released: not yet
 
-    - `git checkout $BRANCH`
-    - `git pull`
-    - `git branch -d start_$MNU`
+        **Incompatible changes:**
 
-10. On GitHub, create a new milestone `M.N.U` for the version that is started.
+        **Deprecations:**
 
-11. On GitHub, list all open issues that still have a milestone of less than
-    `M.N.U` set, and update them as needed to target milestone `M.N.U`.
+        **Bug fixes:**
+
+        **Enhancements:**
+
+        **Cleanup:**
+
+        **Known issues:**
+
+        * See `list of open issues`_.
+
+        .. _`list of open issues`: https://github.com/pywbem/pywbem/issues
+
+5.  Commit your changes and push them to the remote repo:
+
+    .. code-block:: sh
+
+        git status  # Double check the changed files
+        git commit -asm "Start ${MNU}"
+        git push --set-upstream origin start_${MNU}
+
+6.  On GitHub, create a Pull Request for branch ``start_M.N.U``.
+
+    Important: When creating Pull Requests, GitHub by default targets the
+    ``master`` branch. When starting a version based on a stable branch, you
+    need to change the target branch of the Pull Request to ``stable_M.N``.
+
+7.  On GitHub, create a milestone for the new version ``M.N.U``.
+
+    You can create a milestone in GitHub via Issues -> Milestones -> New
+    Milestone.
+
+8.  On GitHub, go through all open issues and pull requests that still have
+    milestones for previous releases set, and either set them to the new
+    milestone, or to have no milestone.
+
+9.  On GitHub, once the checks for the Pull Request for branch ``start_M.N.U``
+    have succeeded, merge the Pull Request (no review is needed). This
+    automatically deletes the branch on GitHub.
+
+10. Update and clean up the local repo:
+
+    .. code-block:: sh
+
+        git checkout ${BRANCH}
+        git pull
+        git branch -d start_${MNU}
