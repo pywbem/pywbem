@@ -47,9 +47,10 @@ FormEncode>=1.3.1
 # lxml 4.4.0 removed Python 3.4 support
 # lxml 4.4.3 added Python 3.8 support and exposed it correctly
 # lxml 4.6.1 addressed safety issue 38892
-lxml>=4.6.1; python_version == '2.7'
+# lxml 4.6.2 addressed safety issue 39194
+lxml>=4.6.2; python_version == '2.7'
 lxml>=4.2.4,<4.4.0; python_version == '3.4'
-lxml>=4.6.1; python_version >= '3.5'
+lxml>=4.6.2; python_version >= '3.5'
 
 # Virtualenv
 # Virtualenv 20.0.19 has an issue where it does not install pip on Python 3.4.
