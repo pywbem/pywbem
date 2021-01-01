@@ -14,14 +14,10 @@ Change log
       :revisions: 1
 
 
-pywbem 1.1.3.dev1
------------------
+pywbem 1.1.3
+------------
 
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
+Released: 2021-01-01
 
 **Bug fixes:**
 
@@ -55,14 +51,6 @@ Released: not yet
 
 * Migrated from Travis and Appveyor to GitHub Actions. This required several
   changes in package dependencies for development.
-
-**Cleanup:**
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 1.1.2
