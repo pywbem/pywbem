@@ -234,6 +234,9 @@ if not "%_RC%"=="0" goto error1
 echo %myname%: Done installing Win32OpenSSL
 :done_winopenssl
 
+echo %myname%: Skipping installation of M2Crypto version %_M2CRYPTO_VERSION% ...
+goto done_m2crypto
+
 pip show M2Crypto >nul 2>nul
 if %errorlevel%==0 (
     echo %myname%: Python package M2Crypto is already installed ... skipping
