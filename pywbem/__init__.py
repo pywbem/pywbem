@@ -47,6 +47,7 @@ from ._warnings import *  # noqa: F403,F401 pylint: disable=redefined-builtin
 from ._cim_types import *  # noqa: F403,F401
 from ._cim_constants import *  # noqa: F403,F401
 from ._cim_operations import *  # noqa: F403,F401
+from ._rollback_conn import *  # noqa: F403,F401
 from ._nocasedict import *  # noqa: F403,F401
 from ._cim_obj import *  # noqa: F403,F401
 from ._tupleparse import *  # noqa: F403,F401

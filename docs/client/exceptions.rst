@@ -213,3 +213,35 @@ Exceptions
       :attributes:
 
    .. rubric:: Details
+
+.. autoclass:: pywbem.RollbackError
+   :members:
+
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem.RollbackError
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem.RollbackError
+      :attributes:
+
+   .. rubric:: Details
+
+.. autoclass:: pywbem.RollbackPreparationError
+   :members:
+
+   .. rubric:: Methods
+
+   .. autoautosummary:: pywbem.RollbackPreparationError
+      :methods:
+      :nosignatures:
+
+   .. rubric:: Attributes
+
+   .. autoautosummary:: pywbem.RollbackPreparationError
+      :attributes:
+
+   .. rubric:: Details

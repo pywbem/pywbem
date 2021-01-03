@@ -27,7 +27,8 @@ from ._cim_constants import _statuscode2name, _statuscode2string
 __all__ = ['Error', 'ConnectionError', 'AuthError', 'HTTPError', 'TimeoutError',
            'VersionError', 'ParseError', 'CIMVersionError', 'DTDVersionError',
            'ProtocolVersionError', 'CIMXMLParseError', 'XMLParseError',
-           'HeaderParseError', 'CIMError', 'ModelError',
+           'HeaderParseError', 'CIMError', 'ModelError', 'RollbackError',
+           'RollbackPreparationError',
            '_RequestExceptionMixin', '_ResponseExceptionMixin']
 
 
@@ -700,3 +701,77 @@ class ModelError(Error):
         assert message is None or isinstance(message, six.string_types), \
             str(type(message))
         super(ModelError, self).__init__(message, conn_id=conn_id)
+
+
+class RollbackError(Error):
+    """
+    This exception indicates an error during rollback of a
+    :class:`~pywbem.RollbackWBEMConnection` object.
+
+    The attributes indicate the original operation that is being undone,
+    the undo operation, and the keyword arguments for the undo operation.
+
+    *New in pywbem 1.2.*
+    """
+
+    def __init__(self, message, orig_name=None, undo_name=None,
+                 undo_kwargs=None, conn_id=None):
+        """
+        Parameters:
+
+          message (:term:`string`): Exception message.
+
+          orig_name (:term:`string`): Name of the original WBEM operation
+            that was attempted to be undone.
+
+          undo_name (:term:`string`): Name of the WBEM operation that was
+            invoked to undo the original WBEM operation and that failed.
+
+          undo_kwargs (dict): Keyword arguments for the undo WBEM operation.
+
+          conn_id (:term:`connection id`):
+            Connection ID of the target connection in whose context the error
+            happened.
+            Omitted or `None` if the error did not happen in context of any
+            connection, or if the connection context was not known.
+
+        :ivar args: A tuple (message, orig_name, undo_name, undo_kwargs) set
+            from the corresponding init arguments.
+        """
+        assert message is None or isinstance(message, six.string_types), \
+            str(type(message))
+        super(RollbackError, self).__init__(
+            message, orig_name, undo_name, undo_kwargs, conn_id=conn_id)
+
+    @property
+    def orig_name(self):
+        """
+        :term:`string`: Name of the original WBEM operation that was attempted
+            to be undone.
+        """
+        return self.args[1]  # pylint: disable=unsubscriptable-object
+
+    @property
+    def undo_name(self):
+        """
+        :term:`string`: Name of the WBEM operation that was invoked to undo
+            the original WBEM operation and that failed.
+        """
+        return self.args[2]  # pylint: disable=unsubscriptable-object
+
+    @property
+    def undo_kwargs(self):
+        """
+        dict: Keyword arguments for the undo WBEM operation.
+        """
+        return self.args[3]  # pylint: disable=unsubscriptable-object
+
+
+class RollbackPreparationError(Error):
+    """
+    This exception indicates an error during preparation for a future rollback
+    in a :class:`~pywbem.RollbackWBEMConnection` object.
+
+    *New in pywbem 1.2.*
+    """
+    pass

@@ -15,7 +15,8 @@ from ...utils import import_installed
 pywbem = import_installed('pywbem')
 from pywbem import Error, ConnectionError, AuthError, HTTPError, TimeoutError, \
     ParseError, CIMXMLParseError, XMLParseError, HeaderParseError, \
-    VersionError, CIMError, ModelError, CIMInstance  # noqa: E402
+    VersionError, CIMError, ModelError, RollbackError, \
+    RollbackPreparationError, CIMInstance  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 # pylint: enable=redefined-builtin
 
@@ -107,6 +108,10 @@ def _assert_connection(exc, conn_id_kwarg, exp_conn_str):
     ),
     (
         ModelError,
+        ('conn_id'),
+    ),
+    (
+        RollbackPreparationError,
         ('conn_id'),
     ),
 ], scope='module')
@@ -485,6 +490,59 @@ def test_parseerror(parseerror_class, parseerror_args, conn_info):
 
     assert exc.args[0] == message
     assert len(exc.args) == 1
+
+    _assert_connection(exc, conn_id_kwarg, exp_conn_str)
+    _assert_subscription(exc)
+
+
+@pytest.fixture(params=[
+    # The init arguments for the RollbackError exception class:
+    # (msg, orig_name=None, undo_name=None, undo_kwargs=None)
+    ('bla',),
+    ('Error', 'CreateClass', 'DeleteClass', dict(InstanceName='Foo')),
+], scope='module')
+def rollbackerror_args(request):
+    """
+    Fixture representing variations of positional init arguments for the
+    RollbackError exception class.
+
+    Returns a tuple of positional arguments for initializing a RollbackError
+    exception object.
+    """
+    return request.param
+
+
+def test_rollbackerror(rollbackerror_args, conn_info):
+    # pylint: disable=redefined-outer-name
+    """
+    Test RollbackError exception class.
+    """
+
+    conn_id_kwarg, exp_conn_str = conn_info
+    message = rollbackerror_args[0]
+    try:
+        orig_name = rollbackerror_args[1]
+    except IndexError:
+        orig_name = None  # The default for the init argument
+    try:
+        undo_name = rollbackerror_args[2]
+    except IndexError:
+        undo_name = None  # The default for the init argument
+    try:
+        undo_kwargs = rollbackerror_args[3]
+    except IndexError:
+        undo_kwargs = None  # The default for the init argument
+
+    exc = RollbackError(*rollbackerror_args, **conn_id_kwarg)
+
+    assert len(exc.args) == 4
+    assert exc.args[0] == message
+    assert exc.args[1] == orig_name
+    assert exc.orig_name == orig_name
+    assert exc.args[2] == undo_name
+    assert exc.undo_name == undo_name
+    assert exc.args[3] == undo_kwargs
+    assert exc.undo_kwargs == undo_kwargs
 
     _assert_connection(exc, conn_id_kwarg, exp_conn_str)
     _assert_subscription(exc)

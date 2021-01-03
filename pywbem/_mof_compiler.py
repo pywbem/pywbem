@@ -73,7 +73,7 @@ import sys
 import os
 import re
 import tempfile
-
+import warnings
 from abc import ABCMeta, abstractmethod
 try:
     from collections import OrderedDict
@@ -96,7 +96,7 @@ from ._cim_constants import CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, \
     CIM_ERR_INVALID_SUPERCLASS, CIM_ERR_INVALID_PARAMETER, \
     CIM_ERR_NOT_SUPPORTED
 from ._exceptions import Error, CIMError
-from ._utils import _format
+from ._utils import _format, _stacklevel_above_module
 
 __all__ = ['MOFCompileError', 'MOFParseError', 'MOFDependencyError',
            'MOFRepositoryError', 'MOFCompiler', 'BaseRepositoryConnection']
@@ -2163,6 +2163,11 @@ class MOFWBEMConnection(BaseRepositoryConnection):
     A CIM repository connection to an in-memory repository on top of an
     optional underlying WBEM connection.
 
+    Deprecated: This class is deprecated and will be removed in a future version
+    of pywbem. Use :class:`~pywbem.RollbackWBEMConnection` if you need rollback
+    functionality or :class:`~pywbem_mock.FakedWBEMConnection` if you need an
+    in-memory CIM repository.
+
     If a WBEM connection is provided with the conn parameter, that connection
     is the target for any operations that acquire CIM objects and the in-memory
     store acts as a cache for CIM qualifiers declarations, CIM Classes, and CIM
@@ -2212,6 +2217,11 @@ class MOFWBEMConnection(BaseRepositoryConnection):
             # of 'default_namespace' behave as it should, in the case
             # of conn=None.
             self.__default_namespace = 'root/cimv2'
+
+        warnings.warn(
+            "The pywbem.MOFWBEMConnection class is deprecated and will be "
+            "removed in a future version of pywbem.",
+            DeprecationWarning, _stacklevel_above_module(__name__))
 
     def _getns(self):
         """

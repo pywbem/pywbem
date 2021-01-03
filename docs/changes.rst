@@ -36,6 +36,11 @@ Released: not yet
 
 **Deprecations:**
 
+* Deprecated class `pywbem.MOFWBEMConnection` due to its limitations. Use the
+  new class `pywbem.RollbackWBEMConnection` if you need rollback functionality,
+  or class `pywbem_mock.FakedWBEMConnection` if you need an in-memory CIM
+  repository. (issue #2500)
+
 **Bug fixes:**
 
 * MOF compiler: Fixed bug where MOF compiler did not correctly install a CIM schema
@@ -155,6 +160,12 @@ Released: not yet
 
 * Migrated from Travis and Appveyor to GitHub Actions. This required several
   changes in package dependencies for development.
+
+* Added a new class `pywbem.RollbackWBEMConnection` that is able to commit
+  and roll back WBEM operations. (issue #2500)
+
+* Changed the MOF compiler to use the new class `pywbem.RollbackWBEMConnection`
+  instead of class `pywbem.MOFWBEMConnection`. (issue #2500)
 
 **Cleanup:**
 
