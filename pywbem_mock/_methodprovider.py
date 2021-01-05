@@ -57,7 +57,7 @@ and returns it as its output parameter ``OutputParam2``:
 
     class MyMethodProvider(MethodProvider):
 
-        provider_classname = 'CIM_Foo_sub_sub'
+        provider_classnames = 'CIM_Foo_sub_sub'
 
         def InvokeMethod(self, methodname, localobject, params):
 
