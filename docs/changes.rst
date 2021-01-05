@@ -69,6 +69,9 @@ Released: 2021-01-01
 * Fixed issue on GitHub Actions with macos by no longer running "brew update"
   in pywbem_os_setup.sh. (issue #2544)
 
+* Docs: Fixed incorrect attribute name 'provider_classnames' in method provider
+  example. (issue #2564)
+
 **Enhancements:**
 
 * Migrated from Travis and Appveyor to GitHub Actions. This required several
