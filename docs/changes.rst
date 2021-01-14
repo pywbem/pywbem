@@ -95,6 +95,9 @@ Released: not yet
 * Docs: Fixed incorrect attribute name 'provider_classnames' in method provider
   example. (issue #2564)
 
+* Mitigated the coveralls HTTP status 422 by pinning coveralls-python to
+  <3.0.0.
+
 **Enhancements:**
 
 * Logging: Added a value 'off' for the log destination in the
