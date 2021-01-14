@@ -385,6 +385,7 @@ help:
 	@echo "  test       - Run unit and function tests (in tests/unittest and tests/functiontest)"
 	@echo "  leaktest   - Run memory leak tests (in tests/leaktest)"
 	@echo "  resourcetest - Run resource consumption tests (in tests/resourcetest)"
+	@echo "  perftest   - Run performance tests (in tests/perftest)"
 	@echo "  all        - Do all of the above"
 	@echo "  buildc     - Build the cythonized wheel distribution archive in: $(dist_dir)"
 	@echo "  installc   - Install the cythonized wheel distribution archive"
@@ -585,7 +586,7 @@ todo: todo_$(pymn).done
 	@echo "Makefile: Target $@ done."
 
 .PHONY: all
-all: install develop build builddoc check pylint installtest test leaktest resourcetest
+all: install develop build builddoc check pylint installtest test leaktest resourcetest perftest
 	@echo "Makefile: Target $@ done."
 
 .PHONY: clobber
@@ -869,6 +870,16 @@ else
 	@echo "Makefile: Running resource consumption tests"
 	py.test --color=yes $(pytest_warning_opts) $(pytest_opts) $(test_dir)/resourcetest -s
 	@echo "Makefile: Done running resource consumption tests"
+endif
+
+.PHONY: perftest
+perftest: develop_$(pymn).done $(moftab_files)
+ifeq ($(python_m_version),2)
+	@echo "makefile: Warning: Skipping performance tests on Python $(python_version)" >&2
+else
+	@echo "makefile: Running performance tests"
+	py.test --color=yes $(pytest_warning_opts) $(pytest_opts) $(test_dir)/perftest -s
+	@echo "makefile: Done running performance tests"
 endif
 
 $(doc_conf_dir)/mof_compiler.help.txt: mof_compiler $(package_name)/_mof_compiler.py

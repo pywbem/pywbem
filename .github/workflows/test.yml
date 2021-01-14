@@ -212,6 +212,11 @@ jobs:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
       run: |
         make resourcetest
+    - name: Run perftest
+      env:
+        PACKAGE_LEVEL: ${{ matrix.package_level }}
+      run: |
+        make perftest
     - name: Build cythonized archive
       if: steps.run_cythonized.outcome == 'success'
       env:
