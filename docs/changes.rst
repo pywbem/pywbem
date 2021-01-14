@@ -98,6 +98,10 @@ Released: not yet
 * Mitigated the coveralls HTTP status 422 by pinning coveralls-python to
   <3.0.0.
 
+* Test: Add tests to test_mof_compiler to test for errors where the namespace
+  name component of the namespace pragma is missing.
+
+
 **Enhancements:**
 
 * Logging: Added a value 'off' for the log destination in the
@@ -164,6 +168,16 @@ Released: not yet
 
 * Docs: Added examples to the `pywbem.siunit()` and `pywbem.siunit_obj()`
   functions.
+
+* Extend the MOF compiler so that the pywbem_mock can compile MOF containing
+  the namespace pragma that defines a namespace other than the one defined in
+  the compile_mof_string() or compile_mof_file() methods namespace parameter if
+  the namespace exists. Extend documentation on use of the namespace parameter
+  to reflect the behavior if the MOF contains a namespace pragma. Since the
+  code gives precedence to tha pragma over the namespace specified
+  in in the namespace parameter, the documentation reflects this. (see issue
+  #2256 partial fix).
+
 
 **Cleanup:**
 

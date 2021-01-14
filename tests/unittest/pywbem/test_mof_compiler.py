@@ -896,6 +896,57 @@ class TestParseError(MOFTest):
 
         self.mofcomp.compile_string(mof_str, NAME_SPACE)
 
+    def test_missing_namespace_pragma_value_name(self):
+        """Test Current behavior where #pragma namespace contains no
+           namespace name."""
+        mof_str = """
+        #pragma namespace ()
+        Qualifier Key : boolean = false,
+            Scope(property, reference),
+            Flavor(DisableOverride, ToSubclass);
+        """
+
+        skip_if_moftab_regenerated()
+
+        try:
+            self.mofcomp.compile_string(mof_str, NAME_SPACE)
+        except MOFParseError as pe:
+            self.assertEqual(pe.msg, 'MOF grammar error')
+
+    def test_missing_namespace_pragma_value(self):
+        """Test Current behavior where spragma namespace contains no
+           namespace."""
+        mof_str = """
+        #pragma namespace
+        Qualifier Key : boolean = false,
+            Scope(property, reference),
+            Flavor(DisableOverride, ToSubclass);
+        """
+
+        skip_if_moftab_regenerated()
+
+        try:
+            self.mofcomp.compile_string(mof_str, NAME_SPACE)
+        except MOFParseError as pe:
+            self.assertEqual(pe.msg, 'MOF grammar error')
+
+    def test_invalid_namespace_pragma_ns(self):
+        """Test Current behavior where spragma namespace contains no
+           namespace."""
+        mof_str = """
+        #pragma namespace http://acme.com/root/cimv2
+        Qualifier Key : boolean = false,
+            Scope(property, reference),
+            Flavor(DisableOverride, ToSubclass);
+        """
+
+        skip_if_moftab_regenerated()
+
+        try:
+            self.mofcomp.compile_string(mof_str, NAME_SPACE)
+        except MOFParseError as pe:
+            self.assertEqual(pe.msg, 'MOF grammar error')
+
 
 class TestPropertyAlternatives(MOFTest):
     """
@@ -2692,10 +2743,12 @@ class TestNamespacePragma(MOFTest):
     """Test use of the namespace pragma"""
 
     def test_single_namespace(self):
-
         """
         Test that uses namespace pragma. NOTE: This only tests the use
-        of the pragma, not using it for different namespace
+        of the pragma, not using it for different namespace and that
+        instances are created in the pragma defined namespace. Since the test
+        uses MOFWBEMConnection as the repository which always creates a
+        new namespace it cannot test for invalid namespace
         """
 
         mof_str = """
@@ -2731,6 +2784,35 @@ class TestNamespacePragma(MOFTest):
         self.assertEqual(cl.properties['name'].type, 'string')
 
         self.assertEqual(len(repo.instances[NAME_SPACE]), 2)
+
+    def test_invalid_namespace(self):
+        """
+        Test that uses namespace pragma. NOTE: This only tests the use
+        of the pragma, not using it for different namespace and that
+        instances are created in the pragma defined namespace. Since the test
+        uses MOFWBEMConnection as the repository which always creates a
+        new namespace it cannot test for invalid namespace
+        """
+
+        mof_str = """
+            #pragma namespace ("http://acme.com/root/test")
+            Qualifier Key : boolean = false,
+                Scope(property, reference),
+                Flavor(DisableOverride, ToSubclass);
+
+            class TST_Person{
+                [Key] string name;
+                Uint32 value;
+            };
+        """
+        skip_if_moftab_regenerated()
+
+        test_namespace = 'root/test'
+        try:
+            self.mofcomp.compile_string(mof_str, test_namespace)
+            assert(False)
+        except MOFParseError:
+            pass
 
 
 EMBEDDED_INSTANCE_TEST_MOF = """

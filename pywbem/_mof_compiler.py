@@ -51,6 +51,11 @@ The pywbem MOF compiler will compile MOF files whose syntax complies with
    requirement is documented.
    (See `pywbem issue #1079 <https://github.com/pywbem/pywbem/issues/1079>`_).
 
+4. The namespace pragma only accepts CIM namespace name and not full
+   CIM namespace path as defined in DSP0004. If the host component is part
+   of the namespace name in a namespace pragma, the compiler generates an
+   exception.
+
 The MOF compiler API provides for invoking the MOF compiler programmatically.
 It consists of the following parts, which are described in the remaining
 sections of this chapter:
@@ -113,6 +118,13 @@ _lextab = '_moflextab'
 
 # Directory for _tabmodule and _lextab
 _tabdir = os.path.dirname(os.path.abspath(__file__))
+
+# wbem_uri Namespace path regex used to test pragma namespace
+WBEM_URI_NAMESPACEPATH_REGEXP = re.compile(
+    r'^(?:([\w\-]+):)?'  # namespace type (URI scheme)
+    r'(?://([\w.:@\[\]]*))?'  # authority (host)
+    r'(?:/|^/?)(\w+(?:/\w+)*)$',  # namespace name (leading slash optional)
+    flags=re.UNICODE)
 
 # -----------------------------------------------------------------------------
 #
@@ -599,7 +611,10 @@ def p_mp_createClass(p):
                 if p.parser.verbose:
                     p.parser.log(
                         _format("Created class {0!A}:{1!A}", ns, cc.classname))
-                p.parser.classnames[ns].append(cc.classname.lower())
+                try:
+                    p.parser.classnames[ns].append(cc.classname.lower())
+                except KeyError:
+                    p.parser.classnames[ns] = [cc.classname.lower()]
                 break
             except CIMError as ce:
                 errcode = ce.status_code
@@ -855,6 +870,7 @@ def p_compilerDirective(p):
     """compilerDirective : '#' PRAGMA pragmaName '(' pragmaParameter ')'"""
     directive = p[3].lower()
     param = p[5]
+
     if directive == 'include':
         fname = param
         if p.parser.file:
@@ -862,7 +878,20 @@ def p_compilerDirective(p):
                 fname = os.path.join(os.path.dirname(p.parser.file),
                                      fname)
         p.parser.mofcomp.compile_file(fname, p.parser.target_namespace)
+
     elif directive == 'namespace':
+        # parse the param to separate out namespace from other wbemuri pieces
+        m = WBEM_URI_NAMESPACEPATH_REGEXP.match(param)
+        ns_type = m.group(1) or None
+        host = m.group(2) or None
+        namespace = m.group(3) or None
+        if m is None or ns_type or host or namespace is None:
+            raise MOFParseError(
+                msg=_format(
+                    "Invalid pragma namespace path: {0!A}. Only namespace name "
+                    "component allowed", param),
+                parser_token=p)
+
         p.parser.target_namespace = param
         if param not in p.parser.qualcache:
             p.parser.qualcache[param] = NocaseDict()
@@ -1703,7 +1732,10 @@ def p_instanceDeclaration(p):
     try:
         cc = p.parser.handle.GetClass(cname, namespace=ns, LocalOnly=False,
                                       IncludeQualifiers=True)
-        p.parser.classnames[ns].append(cc.classname.lower())
+        try:
+            p.parser.classnames[ns].append(cc.classname.lower())
+        except KeyError:
+            p.parser.classnames[ns] = [cc.classname.lower()]
     except CIMError as ce:
         if ce.status_code == CIM_ERR_NOT_FOUND:
             if p.parser.verbose:
@@ -2832,9 +2864,14 @@ class MOFCompiler(object):
             The string of MOF statements to be compiled.
 
           ns (:term:`string`):
-            The name of the CIM namespace in the associated CIM repository
-            that is used for lookup of any dependent CIM elements, and that
-            is also the target of the compilation.
+            The name of the CIM namespace in the associated CIM repository that
+            is the target of the compilation, and is also used for lookup of any
+            dependent CIM elements. If `None`, the default namespace of the
+            connection is used. A namespace defined in a namespace pragma of
+            the MOF superceeds this namespace from the point in the
+            compilation unit(string/file) where it is declared. The namespace
+            specified in this parameter or the MOF inamespace pragma must
+            exist.
 
           filename (:term:`string`):
             The path name of the file that the MOF statements were read from.
@@ -2894,14 +2931,18 @@ class MOFCompiler(object):
             compiled.
 
           ns (:term:`string`):
-            The name of the CIM namespace in the associated CIM repository
-            that is used for lookup of any dependent CIM elements, and that
-            is also the target of the compilation.
+            The name of the CIM namespace in the associated CIM repository that
+            is the target of the compilation, and is also used for lookup of any
+            dependent CIM elements. If `None`, the default namespace of the
+            connection is used. A namespace defined in a namespace pragma of
+            the MOF superceeds this namespace from the point in the
+            compilation unit(string/file) where it is declared.  The namespace
+            specified in this parameter or the MOF inamespace pragma must
+            exist.
 
         Raises:
 
           IOError: MOF file not found.
-
           MOFCompileError: Error compiling the MOF.
         """
         if self.parser.verbose:
