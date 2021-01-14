@@ -72,6 +72,9 @@ Released: 2021-01-01
 * Docs: Fixed incorrect attribute name 'provider_classnames' in method provider
   example. (issue #2564)
 
+* Mitigated the coveralls HTTP status 422 by pinning coveralls-python to
+  <3.0.0.
+
 **Enhancements:**
 
 * Migrated from Travis and Appveyor to GitHub Actions. This required several
