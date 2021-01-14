@@ -165,6 +165,9 @@ Released: not yet
 * Docs: Added examples to the `pywbem.siunit()` and `pywbem.siunit_obj()`
   functions.
 
+* Added 'make perftest' to run performance tests. At this point, the performance
+  tests measure the sending of indications to the pywbem.WBEMListener.
+
 **Cleanup:**
 
 * Test: Fixed all remaining ResourceWarnings during test. (issue #86)
