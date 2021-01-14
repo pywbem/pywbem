@@ -7,9 +7,7 @@ Positional arguments:
                         Can be specified multiple times.
 
 Server related options:
-  Specify the WBEM server and namespace the MOF compiler works against, for
-  looking up existing elements, and for applying the MOF compilation results
-  to.
+  Specify the WBEM server and namespace the MOF compiler works against.
 
   -s url, --server url  Host name or URL of the WBEM server (required),
                         in this format:
@@ -33,20 +31,19 @@ Server related options:
                         Default: root/cimv2
 
 Connection security related options:
-  Specify user name and password or certificates and keys
+  Specify user name and password or certificates and keys.
 
   -u user, --user user  User name for authenticating with the WBEM server.
                         Default: No user name.
   -p password, --password password
                         Password for authenticating with the WBEM server.
-                        Default: Will be prompted for, if user name
-                        specified.
+                        Default: Will be prompted for, if user name specified.
   -nvc, --no-verify-cert
-                        Client will not verify certificate returned by the
-                        WBEM server (see cacerts). This bypasses the client-
-                        side verification of the server identity, but allows
-                        encrypted communication with a server for which the
-                        client does not have certificates.
+                        Client will not verify certificate returned by the WBEM
+                        server (see cacerts). This bypasses the client-side
+                        verification of the server identity, but allows encrypted
+                        communication with a server for which the client does not have
+                        certificates.
   --cacerts cacerts     CA certificates to be used for verifying the server
                         certificate presented by the WBEM server during TLS/SSL
                         handshake:
@@ -61,18 +58,17 @@ Connection security related options:
                         WBEM server. Not required if private key is part of the
                         certfile option. Not allowed if no certfile option.
                         Default: No client key file. Client private key should
-                        then be part  of the certfile
+                        then be part of the certfile.
 
 Action related options:
-  Specify actions against the WBEM server's namespace. Default:
-  Create/update elements.
+  Specify actions against the WBEM server's namespace.
 
-  -r, --remove          Removal mode: Remove elements (found in the MOF files)
-                        from the WBEM server's namespace, instead of creating
-                        or updating them
+  -r, --remove          Removal mode: Remove elements (found in the MOF files) from
+                        the WBEM server's namespace, instead of creating or updating
+                        them.
   -d, --dry-run         Dry-run mode: Don't actually modify the WBEM server's
-                        namespace, just check MOF syntax. Connection to WBEM
-                        server is still required to check qualifiers.
+                        namespace, just check MOF syntax. Connection to WBEM server is
+                        still required to check qualifiers.
 
 General options:
   -I dir, --include dir
@@ -87,7 +83,7 @@ General options:
                          COMP=[DEST[:DETAIL]] where:
                            COMP:   Logger component name:[api|http|all].
                                    (Default=all)
-                           DEST:   Destination for component:[file|stderr].
+                           DEST:   Destination for component:[file|stderr|off].
                                    (Default=file)
                            DETAIL: Detail Level to log: [all|paths|summary] or
                                    an integer that defines the maximum length of

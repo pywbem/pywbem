@@ -520,10 +520,14 @@ class FakedWBEMConnection(WBEMConnection):
             Path name of the file containing the MOF definitions to be compiled.
 
           namespace (:term:`string`):
-            The name of the target CIM namespace in the CIM repository. This
-            namespace is also used for lookup of any existing or dependent
-            CIM objects. If `None`, the default namespace of the connection is
-            used.
+            The name of the CIM namespace in the associated CIM repository that
+            is the target of the compilation, and is also used for lookup of any
+            dependent CIM elements. If `None`, the default namespace of the
+            connection is used. A namespace defined in a namespace pragma of
+            the MOF superceeds this namespace from the point in the
+            compilation unit(string/file) where it is declared.  The namespace
+            specified in this parameter or the MOF inamespace pragma must
+            exist.
 
           search_paths (:term:`py:iterable` of :term:`string`):
             An iterable of directory path names where MOF dependent files will
@@ -585,10 +589,14 @@ class FakedWBEMConnection(WBEMConnection):
             A string with the MOF definitions to be compiled.
 
           namespace (:term:`string`):
-            The name of the target CIM namespace in the CIM repository. This
-            namespace is also used for lookup of any existing or dependent
-            CIM objects. If `None`, the default namespace of the connection is
-            used.
+            The name of the CIM namespace in the associated CIM repository that
+            is the target of the compilation, and is also used for lookup of any
+            dependent CIM elements. If `None`, the default namespace of the
+            connection is used. A namespace defined in a namespace pragma of
+            the MOF superceeds this namespace from the point in the
+            compilation unit(string/file) where it is declared.  The namespace
+            specified in this parameter or the MOF inamespace pragma must
+            exist.
 
           search_paths (:term:`py:iterable` of :term:`string`):
             An iterable of directory path names where MOF dependent files will
@@ -664,8 +672,14 @@ class FakedWBEMConnection(WBEMConnection):
             :attr:`pywbem_mock.DMTFCIMSchema.schema_pragma_file`.
 
           namespace (:term:`string`):
-            Namespace into which the classes and qualifier declarations will
-            be installed.
+            The name of the CIM namespace in the associated CIM repository that
+            is the target of the compilation, and is also used for lookup of any
+            dependent CIM elements. If `None`, the default namespace of the
+            connection is used. A namespace defined in a namespace pragma of
+            the MOF superceeds this namespace from the point in the
+            compilation unit(string/file) where it is declared.  The namespace
+            specified in this parameter or the MOF inamespace pragma must
+            exist.
 
           verbose (:class:`py:bool`):
             If `True`, progress messages are output to stdout as the schema is

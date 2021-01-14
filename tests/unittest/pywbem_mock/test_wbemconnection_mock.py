@@ -61,7 +61,8 @@ from pywbem import CIMClass, CIMProperty, CIMInstance, CIMMethod, \
     CIM_ERR_ALREADY_EXISTS, CIM_ERR_INVALID_ENUMERATION_CONTEXT, \
     CIM_ERR_NAMESPACE_NOT_EMPTY, CIM_ERR_INVALID_SUPERCLASS, \
     CIM_ERR_NOT_SUPPORTED, CIM_ERR_METHOD_NOT_AVAILABLE, \
-    CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED, CIM_ERR_METHOD_NOT_FOUND  # noqa: E402
+    CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED, CIM_ERR_METHOD_NOT_FOUND, \
+    MOFParseError  # noqa: E402
 from pywbem._nocasedict import NocaseDict  # noqa: E402
 from pywbem._utils import _format  # noqa: E402
 from pywbem._cim_operations import pull_path_result_tuple  # noqa: E402
@@ -593,6 +594,11 @@ def tst_insts_big():
     for i in six.moves.range(4, list_size + 1):
         big_list.append(build_cimfoo_instance(i))
     return big_list
+
+
+#
+#   Test fixtures that return MOF
+#
 
 
 @pytest.fixture
@@ -2029,7 +2035,7 @@ class TestRepoMethods(object):
         # pylint: disable=no-self-use
         """
         Test compile of classes into multiple namespaces where the input
-        is both the qualifier declarations and the classes
+        is both the qualifier declarations and the classes.
         """
         skip_if_moftab_regenerated()
 
@@ -2055,7 +2061,7 @@ class TestRepoMethods(object):
 
         quals = conn.EnumerateQualifiers()
 
-        # Compile into second repository
+        # Compile into second repository added by add_namespaces
         ns = 'interop'
         conn.add_namespace(ns)
         conn.compile_mof_string(tst_classes_mof, namespace=ns)
@@ -2063,6 +2069,138 @@ class TestRepoMethods(object):
         assert conn.EnumerateQualifiers(namespace=ns) == quals
         assert clns == conn.EnumerateClassNames(namespace=ns,
                                                 DeepInheritance=True)
+
+    def test_compile_classes_nspragma(self, conn, tst_classes_mof):
+        # pylint: disable=no-self-use
+        """
+        Test compile of classes into multiple namespaces using the
+        namespace pragma.
+        """
+        skip_if_moftab_regenerated()
+
+        # The code to be tested
+        ns = conn.default_namespace
+        conn.compile_mof_string(tst_classes_mof, namespace=ns)
+
+        assert conn.GetClass('CIM_Foo', namespace=ns).classname == 'CIM_Foo'
+        assert conn.GetClass('CIM_Foo_sub',
+                             namespace=ns).classname == 'CIM_Foo_sub'
+        assert conn.GetClass('CIM_Foo_sub2',
+                             namespace=ns).classname == 'CIM_Foo_sub2'
+        assert conn.GetClass('CIM_Foo_sub_sub',
+                             namespace=ns).classname == 'CIM_Foo_sub_sub'
+
+        clns = conn.EnumerateClassNames(namespace=ns)
+        assert len(clns) == 2
+        clns = conn.EnumerateClassNames(namespace=ns, DeepInheritance=True)
+        assert len(clns) == 5
+        cls = conn.EnumerateClasses(namespace=ns, DeepInheritance=True)
+        assert len(cls) == 5
+        assert set(clns) == set([cl_.classname for cl_ in cls])
+
+        quals = conn.EnumerateQualifiers()
+
+        # Compile into second repository added by add_namespaces and with
+        # the namespace pragma in the mof
+        ns = 'new_namespace'
+        conn.add_namespace(ns)
+        new_class_mof = '#pragma namespace ("{}")'.format(ns) + tst_classes_mof
+        conn.compile_mof_string(new_class_mof, namespace=ns)
+
+        assert conn.EnumerateQualifiers(namespace=ns) == quals
+        assert clns == conn.EnumerateClassNames(namespace=ns,
+                                                DeepInheritance=True)
+
+    def test_compile_classes_nspragma_2(self, conn, tst_classes_mof):
+        # pylint: disable=no-self-use
+        """
+        Test compile of classes into multiple namespaces using the
+        namespace pragma but without the namespace defined in the
+        conn.compile_mof_string method call
+        """
+        skip_if_moftab_regenerated()
+
+        # The code to be tested
+        ns = conn.default_namespace
+        conn.compile_mof_string(tst_classes_mof, namespace=ns)
+
+        assert conn.GetClass('CIM_Foo', namespace=ns).classname == 'CIM_Foo'
+        assert conn.GetClass('CIM_Foo_sub',
+                             namespace=ns).classname == 'CIM_Foo_sub'
+        assert conn.GetClass('CIM_Foo_sub2',
+                             namespace=ns).classname == 'CIM_Foo_sub2'
+        assert conn.GetClass('CIM_Foo_sub_sub',
+                             namespace=ns).classname == 'CIM_Foo_sub_sub'
+
+        clns = conn.EnumerateClassNames(namespace=ns)
+        assert len(clns) == 2
+        clns = conn.EnumerateClassNames(namespace=ns, DeepInheritance=True)
+        assert len(clns) == 5
+        cls = conn.EnumerateClasses(namespace=ns, DeepInheritance=True)
+        assert len(cls) == 5
+        assert set(clns) == set([cl_.classname for cl_ in cls])
+
+        quals = conn.EnumerateQualifiers()
+
+        # Compile into second repository added by add_namespaces and with
+        # the namespace pragma in the mof
+        ns = 'new_namespace'
+        conn.add_namespace(ns)
+        new_class_mof = '#pragma namespace ("{}")'.format(ns) + tst_classes_mof
+        # Compile without the ns parameter. The pragma should determine
+        # the namespace
+        conn.compile_mof_string(new_class_mof)
+
+        assert conn.EnumerateQualifiers(namespace=ns) == quals
+        assert clns == conn.EnumerateClassNames(namespace=ns,
+                                                DeepInheritance=True)
+
+    def test_compile_classes_nspragma_err1(self, conn, tst_classes_mof):
+        # pylint: disable=no-self-use
+        """
+        Test compile of classes into multiple namespaces where second
+        namespace not created. Generates error
+        """
+        pytest.skip("This test fails. See issue #2575 ")
+        skip_if_moftab_regenerated()
+        ns = conn.default_namespace
+        conn.compile_mof_string(tst_classes_mof, namespace=ns)
+
+        # Compile into second repository added by add_namespaces and with
+        # the namespace pragma in the mof
+        conn.add_namespace('interop')
+        ns = 'new_namespace'
+        new_class_mof = '#pragma namespace ("{}")'.format(ns) + tst_classes_mof
+        # Compile without the ns parameter and namespace does not exist.
+        # should fail.
+        try:
+            conn.compile_mof_string(new_class_mof)
+
+        except MOFParseError:
+            return
+
+    def test_compile_classes_nspragma_err2(self, conn, tst_classes_mof):
+        # pylint: disable=no-self-use
+        """
+        Test compile of classes into multiple namespaces where second
+        namespace not created. Generates error
+        """
+        pytest.skip("This test fails. See issue #2575 ")
+        skip_if_moftab_regenerated()
+        ns = conn.default_namespace
+        conn.compile_mof_string(tst_classes_mof, namespace=ns)
+
+        # Compile into second repository added by add_namespaces and with
+        # the namespace pragma in the mof with no interop namespace defined.
+        ns = 'new_namespace'
+        new_class_mof = '#pragma namespace ("{}")'.format(ns) + tst_classes_mof
+        # Compile without the ns parameter and namespace does not exist.
+        # should fail.
+        try:
+            conn.compile_mof_string(new_class_mof)
+
+        except MOFParseError:
+            return
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
