@@ -162,6 +162,9 @@ Released: not yet
 * Migrated from Travis and Appveyor to GitHub Actions. This required several
   changes in package dependencies for development.
 
+* Docs: Added examples to the `pywbem.siunit()` and `pywbem.siunit_obj()`
+  functions.
+
 **Cleanup:**
 
 * Test: Fixed all remaining ResourceWarnings during test. (issue #86)

@@ -72,9 +72,9 @@ following Unicode characters outside of the 7-bit ASCII range. If the
 
 Examples:
 
-* ``PUnit("byte / second * 10^3")``-> ``kB/s``
-* ``PUnit("byte * 2^10")``-> ``KiB``
-* ``PUnit("hertz * 10^6")``-> ``MHz``
+* ``PUnit("byte / second * 10^3")`` -> ``kB/s``
+* ``PUnit("byte * 2^10")`` -> ``KiB``
+* ``PUnit("hertz * 10^6")`` -> ``MHz``
 * ``PUnit("ampere * 10^-3")`` -> ``mA``
 * ``Units("KiloBits per Second")`` -> ``kbit/s``
 * ``Units("Tenths of Degrees C")`` -> ``1/10 °C``
@@ -143,6 +143,13 @@ def siunit_obj(cim_obj, use_ascii=False):
       ValueError: Invalid format in PUnit qualifier
       ValueError: Unknown base unit in PUnit qualifier
       ValueError: Unknown unit in Units qualifier
+
+    Example::
+
+        >>> cls = conn.GetClass("CIM_StorageSetting", IncludeQualifiers=True)
+        >>> prop = cls['InterconnectSpeed']
+        >>> print(pywbem.siunit_obj(prop))
+        bit/s
     """  # noqa: E501
     # pylint: enable=line-too-long
 
@@ -193,6 +200,23 @@ def siunit(punit=None, units=None, use_ascii=False):
       ValueError: Invalid format in PUnit qualifier
       ValueError: Unknown base unit in PUnit qualifier
       ValueError: Unknown unit in Units qualifier
+
+    Examples::
+
+        >>> print(pywbem.siunit(punit="byte / second * 10^3"))
+        kB/s
+        >>> print(pywbem.siunit(punit="byte * 2^10"))
+        KiB
+        >>> print(pywbem.siunit(punit="hertz * 10^6"))
+        MHz
+        >>> print(pywbem.siunit(punit="ampere * 10^-3"))
+        mA
+        >>> print(pywbem.siunit(units="KiloBits per Second"))
+        kbit/s
+        >>> print(pywbem.siunit(units="Tenths of Degrees C"))
+        1/10 °C
+        >>> print(pywbem.siunit(units="Tenths of Degrees C", use_ascii=True))
+        1/10 degC
     """
 
     if punit is not None:
