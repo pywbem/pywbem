@@ -269,6 +269,9 @@ Released: not yet
   the underlying connection. Used that function in the 'mof_compiler' script
   to remove a ResourceWarning about unclosed sockets. (issue #2610)
 
+* Added 'make perftest' to run performance tests. At this point, the performance
+  tests measure the sending of indications to the pywbem.WBEMListener.
+
 **Cleanup:**
 
 * Test: Fixed all remaining ResourceWarnings during test. (issue #86)
