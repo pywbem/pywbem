@@ -524,6 +524,56 @@ TESTCASES_SIUNIT_GENERAL = [
         None, None, True
     ),
     (
+        "PUnit with extended format (unit1 * mod1 / unit2)",
+        dict(
+            in_kwargs=dict(
+                punit="meter * 1000 / second",
+            ),
+            exp_result=u'km/s',
+        ),
+        None, None, True
+    ),
+    (
+        "PUnit with extended format (unit1 / mod2 * unit2)",
+        dict(
+            in_kwargs=dict(
+                punit="watt / 10^3 * second",
+            ),
+            exp_result=u'mWs',
+        ),
+        None, None, True
+    ),
+    (
+        "PUnit with extended format (unit1 / mod1 * mod2 / unit2)",
+        dict(
+            in_kwargs=dict(
+                punit="meter / 10 * 10^3 / second",
+            ),
+            exp_result=u'1/10 km/s',
+        ),
+        None, None, True
+    ),
+    (
+        "PUnit with invalid extended format (more than one mod1)",
+        dict(
+            in_kwargs=dict(
+                punit="watt / 10 / 100",
+            ),
+            exp_result=None,
+        ),
+        ValueError, None, True
+    ),
+    (
+        "PUnit with invalid extended format (more than one mod2)",
+        dict(
+            in_kwargs=dict(
+                punit="watt / 10^1 / 10^2",
+            ),
+            exp_result=None,
+        ),
+        ValueError, None, True
+    ),
+    (
         "Invalid Units value",
         dict(
             in_kwargs=dict(

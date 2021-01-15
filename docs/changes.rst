@@ -178,6 +178,11 @@ Released: not yet
   in in the namespace parameter, the documentation reflects this. (see issue
   #2256 partial fix).
 
+* The `pywbem.siunit()` function supported the PUnit format as defined in
+  DSP0004. It turned out that the CIM Schema used PUnit qualifiers with a
+  slightly extended format where the numeric modifiers were the middle instead
+  of just at the end. Extened the PUnit format supported by the `siunit()`
+  function accordingly. (issue #2574)
 
 **Cleanup:**
 

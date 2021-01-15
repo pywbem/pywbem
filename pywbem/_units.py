@@ -32,8 +32,11 @@ have the ``Units`` qualifier but not the ``PUnit`` qualifier set.
 The format and valid base units for the ``PUnit`` qualifier and the
 valid values for the ``Units`` qualifier are defined in Annex C of
 :term:`DSP0004`. Pywbem supports the definitions from :term:`DSP0004`
-version 2.8, and the following additional ``Units`` qualifier values that are
-used in DMTF CIM Schema version 2.49:
+version 2.8, with two extensions:
+
+Pywbem supports the following additional ``Units`` qualifier values that are
+used in the DMTF CIM Schema (as of its version 2.49) but are not defined in
+:term:`DSP0004`:
 
 +--------------------------------------+
 | Additional ``Units`` values          |
@@ -48,6 +51,10 @@ used in DMTF CIM Schema version 2.49:
 +--------------------------------------+
 | ``Tenths of Revolutions per Minute`` |
 +--------------------------------------+
+
+Pywbem supports a slightly more flexible version of the ``PUnit`` format that
+is used in DMTF CIM Schema version 2.49 but not defined in :term:`DSP0004`:
+The numeric element may appear anywhere in the formula and not just at the end.
 
 By default, the string value returned from these functions may contain the
 following Unicode characters outside of the 7-bit ASCII range. If the
@@ -271,18 +278,32 @@ NUMBER = r'[\+\-]?{pn}'.format(pn=POSITIVE_NUMBER)
 EXPONENT = r'[\+\-]?{pwn}'.format(pwn=POSITIVE_WHOLE_NUMBER)
 DECIBEL_BASE_UNIT = r'decibel{sp}\({sn}\)'.format(sp=SP, sn=SIMPLE_NAME)
 
-# The pattern for programmatic-unit.
-# Because re returns only the last match of a group repetition, we need to
-# parse the multiplied-base-unit and divided-base-unit components first as
-# a whole, and then process them afterwards.
-PUNIT = r'^({sn}|{dbu})' \
-    r'((?:{ws}\*{ws}(?:{sn}|{dbu}))*)' \
-    r'((?:{ws}/{ws}(?:{sn}|{dbu}))*)' \
-    r'(?:{ws}(\*|/){ws}({n}))?' \
-    r'(?:{ws}(\*|/){ws}({pwn}){ws}\^{ws}({e}))?$'. \
-    format(sn=SIMPLE_NAME, dbu=DECIBEL_BASE_UNIT, ws=WS,
-           pwn=POSITIVE_WHOLE_NUMBER, n=NUMBER, e=EXPONENT)
+BASE_UNIT = r'(?:{sn}|{dbu})'.format(sn=SIMPLE_NAME, dbu=DECIBEL_BASE_UNIT)
+
+# The top-level components in the (extended) PUnit formula
+TOP_COMP = r'(?:{bu}|{n}|{pwn}{ws}\^{ws}{e})'. \
+    format(bu=BASE_UNIT, ws=WS, n=NUMBER, pwn=POSITIVE_WHOLE_NUMBER, e=EXPONENT)
+
+# The pattern for the (extended) PUnit formula. This is an extended version
+# of the programmatic-unit term in DSP0004, whereby the top-level components
+# and their operators may appear in any order (except for the first top-level
+# component which must be a base unit). DSP0004 allows them only in
+# a specific order, but the CIM Schema started using an order that is not
+# allowed as per DSP0004 (e.g. in class CIM_VTLResourceUsage), so pywbem
+# expanded the allowable syntax to allow any order. The pattern delivers the
+# top-level components which must be parsed in a second step.
+# Note that the pattern allows for numeric modifiers to appear more than
+# once, but DSP0004 allows only one whole number modifier (mod1) and one
+# exponential number modifier (mod2). This is verified in the function.
+PUNIT = r'^({bu})((?:{ws}(?:\*|/){ws}{tc})*)$'. \
+    format(bu=BASE_UNIT, tc=TOP_COMP, ws=WS)
 PUNIT_PATTERN = re.compile(PUNIT)
+
+# The modifier 1 and 2 patterns
+MOD1_PATTERN = re.compile(r'^{ws}({n}){ws}$'.
+                          format(ws=WS, n=NUMBER))
+MOD2_PATTERN = re.compile(r'^{ws}({pwn}){ws}\^{ws}({e}){ws}$'.
+                          format(ws=WS, pwn=POSITIVE_WHOLE_NUMBER, e=EXPONENT))
 
 # The abbreviated SI units for each PUnit base unit defined in DSP0004
 PUNIT_SIUNIT = NocaseDict([
@@ -614,30 +635,24 @@ def _siunit_from_punit(punit):
     if m is None:
         raise ValueError(
             "Invalid format in PUnit qualifier: {!r}".format(punit))
+
     base_unit = m.group(1)
-    mul_units_str = m.group(2)  # all multiplied-base-unit repetitions
-    div_units_str = m.group(3)  # all divided-base-unit repetitions
-    mod1_op = m.group(4)
-    mod1_num = m.group(5)
-    mod2_op = m.group(6)
-    mod2_base = m.group(7)
-    mod2_exp = m.group(8)
+    comp_str = m.group(2)
 
-    # Process the units into mul_units and div_units
-    _mul_units_str = base_unit
-    if mul_units_str:
-        _mul_units_str += mul_units_str
-    mul_units = [s.strip() for s in _mul_units_str.split('*')]
-    if div_units_str:
-        div_units = [s.strip() for s in div_units_str.split('/')][1:]
-    else:
-        div_units = []
-
-    if mod1_op:
-        mod1_num = int(mod1_num)
-    if mod2_op:
-        mod2_base = int(mod2_base)
-        mod2_exp = int(mod2_exp)
+    mod1 = None  # numeric modifier 1: tuple(op, number)
+    mod2 = None  # numeric modifier 2: tuple(op, base, exponent)
+    mul_units = [base_unit]
+    div_units = []
+    for m in re.finditer(r'(\*|/)([^\*/]+)', comp_str):
+        op = m.group(1)
+        comp = m.group(2).strip()
+        mod1, mod2, comp = _mod12(op, comp, mod1, mod2, punit)
+        if comp:
+            if op == '*':
+                mul_units.append(comp)
+            else:
+                assert op == '/'
+                div_units.append(comp)
 
     # Translate the punits into SI units, combining repetitions into powers
     mul_siunit_str = _siunit_from_punit_base_units(mul_units)
@@ -647,44 +662,80 @@ def _siunit_from_punit(punit):
         siunit_str += '/' + div_siunit_str
 
     # Prefix for modifier2 (has precedence over modifier1)
-    if mod2_op == '*':
-        try:
-            mod2_prefix = PUNIT_MOD2_SIPREFIX[(mod2_base, mod2_exp)]
-        except KeyError:
-            mod2_prefix = "{}^{} ".format(mod2_base, mod2_exp)
-    elif mod2_op == '/':
-        try:
-            mod2_prefix = PUNIT_MOD2_SIPREFIX[(mod2_base, -mod2_exp)]
-        except KeyError:
-            mod2_prefix = "{}^{} ".format(mod2_base, -mod2_exp)
+    if mod2:
+        mod2_op, mod2_base, mod2_exp = mod2
+        if mod2_op == '*':
+            try:
+                mod2_prefix = PUNIT_MOD2_SIPREFIX[(mod2_base, mod2_exp)]
+            except KeyError:
+                mod2_prefix = "{}^{} ".format(mod2_base, mod2_exp)
+        else:
+            assert mod2_op == '/'
+            try:
+                mod2_prefix = PUNIT_MOD2_SIPREFIX[(mod2_base, -mod2_exp)]
+            except KeyError:
+                mod2_prefix = "{}^{} ".format(mod2_base, -mod2_exp)
     else:
         mod2_prefix = ""
 
     # Prefix for modifier1
-    if mod1_op == '*':
-        mod1_str = "{}".format(mod1_num)
-        if mod2_prefix:
-            mod1_prefix = "{} ".format(mod1_str)
-        else:
-            try:
-                mod1_prefix = PUNIT_MOD1_SIPREFIX[mod1_str]
-            except KeyError:
+    if mod1:
+        mod1_op, mod1_num = mod1
+        if mod1_op == '*':
+            mod1_str = "{}".format(mod1_num)
+            if mod2_prefix:
                 mod1_prefix = "{} ".format(mod1_str)
-    elif mod1_op == '/':
-        mod1_str = "1/{}".format(mod1_num)
-        if mod2_prefix:
-            mod1_prefix = "{} ".format(mod1_str)
+            else:
+                try:
+                    mod1_prefix = PUNIT_MOD1_SIPREFIX[mod1_str]
+                except KeyError:
+                    mod1_prefix = "{} ".format(mod1_str)
         else:
-            try:
-                mod1_prefix = PUNIT_MOD1_SIPREFIX[mod1_str]
-            except KeyError:
+            assert mod1_op == '/'
+            mod1_str = "1/{}".format(mod1_num)
+            if mod2_prefix:
                 mod1_prefix = "{} ".format(mod1_str)
+            else:
+                try:
+                    mod1_prefix = PUNIT_MOD1_SIPREFIX[mod1_str]
+                except KeyError:
+                    mod1_prefix = "{} ".format(mod1_str)
     else:
         mod1_prefix = ""
 
     siunit_str = mod1_prefix + mod2_prefix + siunit_str
 
     return siunit_str
+
+
+def _mod12(op, comp, mod1, mod2, punit):
+    """
+    Parse the component to see if it is one of the numeric modifiers.
+
+    Raise ValueError if the modifier has been seen before.
+    """
+    m = MOD1_PATTERN.match(comp)
+    if m:
+        if mod1:
+            raise ValueError(
+                "Numeric modifier 1 appears more than once in PUnit "
+                "qualifier: {!r}".format(punit))
+        mod1_num = int(m.group(1))
+        mod1 = (op, mod1_num)
+        return mod1, mod2, None
+
+    m = MOD2_PATTERN.match(comp)
+    if m:
+        if mod2:
+            raise ValueError(
+                "Numeric modifier 2 appears more than once in PUnit "
+                "qualifier: {!r}".format(punit))
+        mod2_base = int(m.group(1))
+        mod2_exp = int(m.group(2))
+        mod2 = (op, mod2_base, mod2_exp)
+        return mod1, mod2, None
+
+    return mod1, mod2, comp
 
 
 def _uc2ascii(uc_str):
