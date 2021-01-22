@@ -184,6 +184,14 @@ Released: not yet
   of just at the end. Extened the PUnit format supported by the `siunit()`
   function accordingly. (issue #2574)
 
+* Improved and fixed the messages in the compile log of class `MOFCompiler`
+  and ensured that the target namespace of the compiled objects is included
+  in the messages and added messages for changes to the target namespace
+  caused by 'pragma namespace' directives.
+
+* The 'mof_compiler' script now displays the compiled objects and their target
+  namespace when specifying verbose mode (-v option).
+
 **Cleanup:**
 
 * Test: Fixed all remaining ResourceWarnings during test. (issue #86)
