@@ -21,11 +21,19 @@ Released: not yet
 
 **Incompatible changes:**
 
+* The `pywbem.WBEMServer.get_selected_profiles()` method now raises
+  `pywbem.ModelError` instead of `KeyError` when required properties were found
+  to be missing. This is an incompatible change for users that catch this
+  exception. (related to issue #2580).
+
 **Deprecations:**
 
 **Bug fixes:**
 
 **Enhancements:**
+
+* In `CIMNamespaceProvider.post_register_setup()`, fixed an `AttributeError`
+  when accessing the 'Name' property of a CIM instance (related to issue #2580).
 
 **Cleanup:**
 

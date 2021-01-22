@@ -46,6 +46,13 @@ has a default CIM namespace that is created in the CIM repository upon
 Additional namespaces in the CIM repository can be created with
 :meth:`~pywbem_mock.FakedWBEMConnection.add_namespace()` .
 
+An Interop namespace can be created by adding it via
+:meth:`~pywbem_mock.FakedWBEMConnection.add_namespace`. The Interop
+namespace will be initially empty, and the necessary instance(s) of a CIM
+namespace class will be automatically created when registering the namespace
+provider :class:`~pywbem_mock.CIMNamespaceProvider`. See
+:ref:`Mocking multiple CIM namespaces` for details.
+
 The CIM repository must contain the CIM classes, CIM instances and CIM qualifier
 declaration types that are needed for the operations that are invoked. This
 results in a behavior of the mock WBEM server that is close to the behavior of
@@ -913,17 +920,18 @@ However, a working WBEM environment normally includes at least two namespaces:
 
 Pywbem_mock includes a user-defined provider for the CIM_Namespace class that
 can be enabled by adding code similar to the following to the setup of a
-mock environment.
+mock environment:
 
-.. code-block:: text
+.. code-block:: python
 
-    # Register the provider for the CIM_Namespace class, assuming that
-    # dependent classes and qualifier types have already been created in
-    # the interop namespace.
+    conn = pywbem_mock.FakedWBEMConnection(...)
+
+    . . .
+
+    interop_ns = "interop"   # or "root/interop"
+    conn.add_namespace(interop_ns)
     ns_provider = pywbem_mock.CIMNamespaceProvider(conn.cimrepository)
-    interop_namespace = "interop"   # or "root/interop"
-    conn.add_namespace(interop_namespace)
-    conn.register_provider(ns_provider, namespaces=interop_namespace)
+    conn.register_provider(ns_provider, namespaces=interop_ns)
 
 
 .. index:: pair: User defined providers; user providers

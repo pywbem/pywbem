@@ -382,6 +382,11 @@ class WBEMServer(object):
         update this WBEMServer object to reflect the new namespace
         there.
 
+        This method cannot create an Interop namespace because creating the
+        first Interop namespace with client operations depends on the prior
+        existence of an Interop namespace, and creating additional Interop
+        namespaces is usually prevented by servers.
+
         This method attempts the following approaches for creating the
         namespace, in order, until an approach succeeds:
 
@@ -423,7 +428,10 @@ class WBEMServer(object):
 
         std_namespace = _ensure_unicode(namespace.strip('/'))
 
-        ws_profiles = self.get_selected_profiles('DMTF', 'WBEM Server')
+        try:
+            ws_profiles = self.get_selected_profiles('DMTF', 'WBEM Server')
+        except (CIMError, ModelError):
+            ws_profiles = None
         if ws_profiles:
 
             # Use approach 1: Method defined in WBEM Server profile
@@ -519,6 +527,9 @@ class WBEMServer(object):
 
         The specified namespace must be empty (i.e. must not contain any
         classes, instances, or qualifier types.
+
+        This method cannot delete the Interop namespace because servers will
+        usually prevent their deletion.
 
         This method attempts the following approaches for deleting the
         namespace, in order, until an approach succeeds:
@@ -647,7 +658,7 @@ class WBEMServer(object):
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
             CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
               determined.
-            KeyError: If an instance in the list of profiles is incomplete
+            ModelError: If an instance in the list of profiles is incomplete
               and does not include the required properties.
         """
 
@@ -666,7 +677,7 @@ class WBEMServer(object):
             try:
                 inst_org_value = inst['RegisteredOrganization']
             except KeyError:
-                raise KeyError(
+                raise ModelError(
                     _format("CIM_RegisteredProfile instance in namespace "
                             "{0!A} does not have a property "
                             "'RegisteredOrganization'",
@@ -675,7 +686,7 @@ class WBEMServer(object):
             try:
                 inst_name = inst['RegisteredName']
             except KeyError:
-                raise KeyError(
+                raise ModelError(
                     _format("CIM_RegisteredProfile instance in namespace "
                             "{0!A} does not have a property "
                             "'RegisteredName'",
@@ -683,7 +694,7 @@ class WBEMServer(object):
             try:
                 inst_version = inst['RegisteredVersion']
             except KeyError:
-                raise KeyError(
+                raise ModelError(
                     _format("CIM_RegisteredProfile instance in namespace "
                             "{0!A} does not have a property "
                             "'RegisteredVersion'",
