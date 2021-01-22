@@ -606,11 +606,9 @@ def p_mp_createClass(p):
             try:
                 if p.parser.verbose:
                     p.parser.log(
-                        _format("Creating class {0!A}:{1!A}", ns, cc.classname))
+                        _format("Creating class {0!A} in namespace {1!A}",
+                                cc.classname, ns))
                 p.parser.handle.CreateClass(cc, namespace=ns)
-                if p.parser.verbose:
-                    p.parser.log(
-                        _format("Created class {0!A}:{1!A}", ns, cc.classname))
                 try:
                     p.parser.classnames[ns].append(cc.classname.lower())
                 except KeyError:
@@ -778,7 +776,8 @@ def p_mp_createInstance(p):
 
     if p.parser.verbose:
         p.parser.log(
-            _format("Creating instance of {0!A}.", inst.classname))
+            _format("Creating instance of {0!A} in namespace {1!A}",
+                    inst.classname, ns))
 
     # If embedded_instances flag set, save instance to this
     # variable to be set into instance value rather than inserting
@@ -831,7 +830,7 @@ def p_mp_setQualifier(p):
     ns = p.parser.target_namespace
     if p.parser.verbose:
         p.parser.log(
-            _format("Setting qualifier {0!A} namespace {0!A}",
+            _format("Setting qualifier {0!A} in namespace {1!A}",
                     qualdecl.name, ns))
     try:
         p.parser.handle.SetQualifier(qualdecl, namespace=ns)
@@ -892,9 +891,13 @@ def p_compilerDirective(p):
                     "component allowed", param),
                 parser_token=p)
 
-        p.parser.target_namespace = param
-        if param not in p.parser.qualcache:
-            p.parser.qualcache[param] = NocaseDict()
+        if p.parser.verbose:
+            p.parser.log(
+                _format("Switching target namespace to {0!A}", namespace))
+        p.parser.target_namespace = namespace
+
+        if namespace not in p.parser.qualcache:
+            p.parser.qualcache[namespace] = NocaseDict()
 
     p[0] = None
 
@@ -2817,6 +2820,9 @@ class MOFCompiler(object):
         self.parser.mof = mof
 
         # Save the namespace parameter in variable known to the parser.
+        if self.parser.verbose:
+            self.parser.log(
+                _format("Target namespace {0!A}", ns))
         self.parser.target_namespace = ns
 
         if ns not in self.parser.qualcache:
@@ -2898,6 +2904,9 @@ class MOFCompiler(object):
         self.parser.mof = mof
 
         # Save the namespace parameter in variable known to the parser.
+        if self.parser.verbose:
+            self.parser.log(
+                _format("Target namespace {0!A}", ns))
         self.parser.target_namespace = ns
 
         if ns not in self.parser.qualcache:
