@@ -34,6 +34,11 @@ Released: not yet
   derived from `pywbem.VersionError`, this change is only incompatible
   if such unsupported versions were specifically handled by users.
 
+* The `pywbem.WBEMServer.get_selected_profiles()` method now raises
+  `pywbem.ModelError` instead of `KeyError` when required properties were found
+  to be missing. This is an incompatible change for users that catch this
+  exception. (related to issue #2580).
+
 **Deprecations:**
 
 **Bug fixes:**
@@ -101,6 +106,8 @@ Released: not yet
 * Test: Add tests to test_mof_compiler to test for errors where the namespace
   name component of the namespace pragma is missing.
 
+* In `CIMNamespaceProvider.post_register_setup()`, fixed an `AttributeError`
+  when accessing the 'Name' property of a CIM instance (related to issue #2580).
 
 **Enhancements:**
 
@@ -191,6 +198,9 @@ Released: not yet
 
 * The 'mof_compiler' script now displays the compiled objects and their target
   namespace when specifying verbose mode (-v option).
+
+* Improvements in `pywbem_mock.CIMNamespaceProvider` and `pywbem.WBEMServer` to
+  more cleanly handle Interop namespaces (related to issue #2580).
 
 **Cleanup:**
 

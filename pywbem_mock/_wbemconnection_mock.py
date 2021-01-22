@@ -183,6 +183,9 @@ class FakedWBEMConnection(WBEMConnection):
 
             The :attr:`~pywbem_mock.FakedWBEMConnection.disable_pull_operations`
             property can be used to set this variable.
+
+        Raises:
+          ValueError for invalid arguments
         """
 
         # Response delay in seconds. Any operation is delayed by this time.

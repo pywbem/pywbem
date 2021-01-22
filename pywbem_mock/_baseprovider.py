@@ -160,6 +160,9 @@ class BaseProvider(object):
         The namespace must not yet exist in the CIM repository and the
         repository can contain only one Interop namespace.
 
+        An Interop namespace can be added with this method, if an Interop
+        namespace does not yet exist in the CIM repository.
+
         Parameters:
 
           namespace (:term:`string`):
@@ -179,6 +182,8 @@ class BaseProvider(object):
 
         if namespace is None:
             raise ValueError("Namespace argument must not be None")
+
+        namespace = namespace.strip('/')  # Just for appearance in exc messages
 
         # Cannot add more than one of the possible Interop namespace names
         if self.is_interop_namespace(namespace):
@@ -202,6 +207,8 @@ class BaseProvider(object):
 
         The namespace must exist in the CIM repository and must be empty.
 
+        The Interop namespace cannot be removed from the CIM repository.
+
         Parameters:
 
           namespace (:term:`string`):
@@ -214,6 +221,8 @@ class BaseProvider(object):
           ValueError: Namespace argument must not be None.
           :exc:`~pywbem.CIMError`:  CIM_ERR_NOT_FOUND if the namespace does
             not exist in the CIM repository.
+          :exc:`~pywbem.CIMError`:  CIM_ERR_INVALID_NAMESPACE if the Interop
+            namespace was specified.
           :exc:`~pywbem.CIMError`:  CIM_ERR_NAMESPACE_NOT_EMPTY if the
             namespace icontains objects.
           :exc:`~pywbem.CIMError`:  CIM_ERR_NAMESPACE_NOT_EMPTY if attempting
@@ -223,13 +232,23 @@ class BaseProvider(object):
         if namespace is None:
             raise ValueError("Namespace argument must not be None")
 
-        try:
-            self.cimrepository.remove_namespace(namespace)
-        except KeyError:
+        namespace = namespace.strip('/')
+
+        if namespace not in self.cimrepository.namespaces:
             raise CIMError(
                 CIM_ERR_NOT_FOUND,
                 _format("Namespace {0!A} does not exist in the CIM repository ",
                         namespace))
+
+        if self.is_interop_namespace(namespace):
+            raise CIMError(
+                CIM_ERR_INVALID_NAMESPACE,
+                _format("The Interop namespace {0!A} cannot be removed from "
+                        "the CIM repository.", namespace))
+
+        try:
+            self.cimrepository.remove_namespace(namespace)
+        # KeyError cannot happen because existence was already verified
         except ValueError:
             raise CIMError(
                 CIM_ERR_NAMESPACE_NOT_EMPTY,
