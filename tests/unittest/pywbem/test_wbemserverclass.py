@@ -195,9 +195,17 @@ TESTCASES_CREATE_NAMESPACE = [
         None, None, True
     ),
     (
-        "Existing top level namespace",
+        "Existing Interop namespace",
         dict(
             new_namespace='interop',
+            exp_namespace=None,
+        ),
+        CIMError, None, True
+    ),
+    (
+        "Non-existing second Interop namespace",
+        dict(
+            new_namespace='root/interop',
             exp_namespace=None,
         ),
         CIMError, None, True
@@ -305,6 +313,24 @@ TESTCASES_DELETE_NAMESPACE = [
             namespace_content={'abc': [
                 CIMQualifierDeclaration('Foo', 'string')
             ]},
+            exp_namespace=None,
+        ),
+        CIMError, None, True
+    ),
+    (
+        "Existing Interop namespace",
+        dict(
+            namespace='interop',
+            namespace_content={},
+            exp_namespace=None,
+        ),
+        CIMError, None, True
+    ),
+    (
+        "Second non-existing Interop namespace",
+        dict(
+            namespace='root/interop',
+            namespace_content={},
             exp_namespace=None,
         ),
         CIMError, None, True

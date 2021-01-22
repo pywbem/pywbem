@@ -176,8 +176,10 @@ class CIMNamespaceProvider(InstanceWriteProvider):
                     ccn_pname, new_instance[ccn_pname]))
 
         # Create the new namespace in the CIM repository, if needed.
+        # The add_namespace() method will prevent the creation of a second
+        # Interop namespace, raising CIMError(CIM_ERR_ALREADY_EXISTS).
         if new_namespace not in self.cimrepository.namespaces:
-            self.cimrepository.add_namespace(new_namespace)
+            self.add_namespace(new_namespace)
 
         # Create the CIM instance for the new namespace in the CIM repository,
         # by delegating to the default provider method.
@@ -278,7 +280,8 @@ class CIMNamespaceProvider(InstanceWriteProvider):
                                         DeepInheritance=False)
 
         # List of namespaces for which there are CIM instances
-        inst_ns_list = NocaseList([inst.name for inst in insts])
+        inst_ns_list = NocaseList(
+            [inst['Name'] for inst in insts if 'Name' in inst])
 
         klass = conn.GetClass(provider_classname, interop_namespace,
                               LocalOnly=False,
