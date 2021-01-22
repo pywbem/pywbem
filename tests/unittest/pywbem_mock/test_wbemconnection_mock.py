@@ -2503,12 +2503,12 @@ class TestRepoMethods(object):
 
         ns = 'root/cimv2'
         schema = DMTFCIMSchema(DMTF_TEST_SCHEMA_VER, TESTSUITE_SCHEMA_DIR,
-                               verbose=True)
+                               verbose=False)
 
         # The code to be tested
         conn.compile_schema_classes(classnames,
                                     schema.schema_pragma_file,
-                                    verbose=True)
+                                    verbose=VERBOSE)
 
         # Test the set of created classnames for match to exp_classnames
         exp_classnames = classnames
@@ -2536,7 +2536,7 @@ class TestRepoMethods(object):
         skip_if_moftab_regenerated()
 
         schema = DMTFCIMSchema(DMTF_TEST_SCHEMA_VER, TESTSUITE_SCHEMA_DIR,
-                               verbose=True)
+                               verbose=False)
 
         test_class = 'CIM_ComputerSystem'
         classnames = [test_class]
@@ -5643,7 +5643,7 @@ class TestInstanceOperations(object):
         conn.install_namespace_provider(
             interop_ns,
             schema_pragma_file=schema.schema_pragma_file,
-            verbose=None)
+            verbose=False)
 
         for ns in additional_ns:
             conn.add_namespace(ns)
@@ -8993,7 +8993,7 @@ class TestInvokeMethod(object):
 
         conn.register_provider(test_class(conn.cimrepository),
                                namespaces=tst_ns,
-                               schema_pragma_files=None, verbose=None)
+                               schema_pragma_files=None, verbose=False)
 
         # set namespace in ObjectName if required.
         object_name = inputs['ObjectName']
@@ -9468,7 +9468,7 @@ class TestDMTFCIMSchema(object):
         with pytest.raises(type(exp_exc)):
 
             # The code to be tested
-            DMTFCIMSchema(schema_version, test_schema_root_dir, verbose=False)
+            DMTFCIMSchema(schema_version, test_schema_root_dir, verbose=VERBOSE)
 
     @pytest.mark.parametrize(
         "clns, exp_rslt",
