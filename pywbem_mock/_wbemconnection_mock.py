@@ -545,7 +545,6 @@ class FakedWBEMConnection(WBEMConnection):
           :exc:`~pywbem.MOFCompileError`: Compile error in the MOF.
         """
 
-        log_func = print if verbose else None
         stats_name = "compile_mof_file(ns={!r})".format(namespace)
         with self.statistics(stats_name):
 
@@ -556,7 +555,7 @@ class FakedWBEMConnection(WBEMConnection):
             # WBEMConnection
             mofcomp = MOFCompiler(self._mofwbemconnection,
                                   search_paths=search_paths,
-                                  verbose=verbose, log_func=log_func)
+                                  verbose=verbose)
 
             mofcomp.compile_file(mof_file, namespace)
 
@@ -615,7 +614,6 @@ class FakedWBEMConnection(WBEMConnection):
           :exc:`~pywbem.MOFCompileError`: Compile error in the MOF.
         """
 
-        log_func = print if verbose else None
         stats_name = "compile_mof_string(ns={!r})".format(namespace)
         with self.statistics(stats_name):
 
@@ -624,7 +622,7 @@ class FakedWBEMConnection(WBEMConnection):
 
             mofcomp = MOFCompiler(self._mofwbemconnection,
                                   search_paths=search_paths,
-                                  verbose=verbose, log_func=log_func)
+                                  verbose=verbose)
 
             mofcomp.compile_string(mof_str, namespace)
 
