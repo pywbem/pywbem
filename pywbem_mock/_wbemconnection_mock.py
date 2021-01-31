@@ -548,6 +548,13 @@ class FakedWBEMConnection(WBEMConnection):
           :exc:`~pywbem.MOFCompileError`: Compile error in the MOF.
         """
 
+        # By default, error messages are always printed in addition to being
+        # raised as MOFCompileError. We only want them to be printed in verbose
+        # mode:
+        log_func_kwargs = dict()
+        if not verbose:
+            log_func_kwargs['log_func'] = None
+
         stats_name = "compile_mof_file(ns={!r})".format(namespace)
         with self.statistics(stats_name):
 
@@ -558,7 +565,7 @@ class FakedWBEMConnection(WBEMConnection):
             # WBEMConnection
             mofcomp = MOFCompiler(self._mofwbemconnection,
                                   search_paths=search_paths,
-                                  verbose=verbose)
+                                  verbose=verbose, **log_func_kwargs)
 
             mofcomp.compile_file(mof_file, namespace)
 
@@ -617,6 +624,13 @@ class FakedWBEMConnection(WBEMConnection):
           :exc:`~pywbem.MOFCompileError`: Compile error in the MOF.
         """
 
+        # By default, error messages are always printed in addition to being
+        # raised as MOFCompileError. We only want them to be printed in verbose
+        # mode:
+        log_func_kwargs = dict()
+        if not verbose:
+            log_func_kwargs['log_func'] = None
+
         stats_name = "compile_mof_string(ns={!r})".format(namespace)
         with self.statistics(stats_name):
 
@@ -625,7 +639,7 @@ class FakedWBEMConnection(WBEMConnection):
 
             mofcomp = MOFCompiler(self._mofwbemconnection,
                                   search_paths=search_paths,
-                                  verbose=verbose)
+                                  verbose=verbose, **log_func_kwargs)
 
             mofcomp.compile_string(mof_str, namespace)
 
