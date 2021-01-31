@@ -109,6 +109,13 @@ Released: not yet
 * In `CIMNamespaceProvider.post_register_setup()`, fixed an `AttributeError`
   when accessing the 'Name' property of a CIM instance (related to issue #2580).
 
+* In the `MOFCompiler` class, fixed that if a MOF instance already exists, the
+  ModifyInstance operation failed because the instance path was not specified.
+  The fix is to construct the instance path from the key properties in instance
+  specified in MOF. That fix has the limitation that it does not account for
+  instance providers that add key properties or that ignore provided key
+  properties (e.g. InstanceID). (issue #2586)
+
 **Enhancements:**
 
 * Logging: Added a value 'off' for the log destination in the
@@ -201,6 +208,9 @@ Released: not yet
 
 * Improvements in `pywbem_mock.CIMNamespaceProvider` and `pywbem.WBEMServer` to
   more cleanly handle Interop namespaces (related to issue #2580).
+
+* Improvements in the log messages of the `MOFCompiler` class.
+  (related to issue #2586)
 
 **Cleanup:**
 

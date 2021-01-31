@@ -91,9 +91,9 @@ from ply import yacc, lex
 from nocaselist import NocaseList
 
 from ._nocasedict import NocaseDict
-from ._cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMProperty, \
-    CIMMethod, CIMParameter, CIMQualifier, CIMQualifierDeclaration, \
-    cimvalue
+from ._cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
+    CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
+    CIMQualifierDeclaration, cimvalue
 from ._cim_operations import WBEMConnection
 from ._server import WBEMServer
 from ._cim_constants import CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, \
@@ -590,8 +590,9 @@ def p_mp_createClass(p):
 
     # pylint: disable=too-many-branches,too-many-statements,too-many-locals
 
-    ns = p.parser.target_namespace
+    ns = p.parser.target_namespace or p.parser.handle.default_namespace
     cc = p[1]
+    cc_path = CIMClassName(namespace=ns, classname=cc.classname)
 
     # Compile class invalid when in mode to compile embedded instance
     if p.parser.embedded_objects is not None:
@@ -606,8 +607,7 @@ def p_mp_createClass(p):
             try:
                 if p.parser.verbose:
                     p.parser.log(
-                        _format("Creating class {0!A} in namespace {1!A}",
-                                cc.classname, ns))
+                        _format("Creating class {0}", cc_path))
                 p.parser.handle.CreateClass(cc, namespace=ns)
                 try:
                     p.parser.classnames[ns].append(cc.classname.lower())
@@ -621,7 +621,7 @@ def p_mp_createClass(p):
                     assert not fixedNS  # Should not happen if we created it
                     if p.parser.verbose:
                         p.parser.log(
-                            _format("Creating namespace {0!A}", ns))
+                            _format("Creating namespace {0}", ns))
                     p.parser.server.create_namespace(ns)
                     fixedNS = True
                     continue  # Try again to create the class
@@ -632,11 +632,11 @@ def p_mp_createClass(p):
                     if not moffile:
                         raise MOFDependencyError(
                             msg=_format(
-                                "Cannot compile class {0!A} because its "
+                                "Cannot compile class {0} because its "
                                 "superclass {1!A} does not exist in the CIM "
                                 "repository and a MOF file for it was not "
                                 "found on the search path",
-                                cc.classname, cc.superclass),
+                                cc_path, cc.superclass),
                             parser_token=p)
                     p.parser.mofcomp.compile_file(moffile, ns)
                     fixedSuper = True
@@ -649,11 +649,11 @@ def p_mp_createClass(p):
                     if fixedRefs:
                         raise MOFDependencyError(
                             msg=_format(
-                                "Cannot compile class {0!A} because "
+                                "Cannot compile class {0} because "
                                 "errorcode={1} ({2!A}) was returned from "
                                 "CreateClass. The CreateClass exception was "
                                 "{3!A}",
-                                cc.classname, errcode, ce.status_code_name,
+                                cc_path, errcode, ce.status_code_name,
                                 ce),
                             parser_token=p)
 
@@ -665,13 +665,13 @@ def p_mp_createClass(p):
                     if not p.parser.qualcache[ns]:
                         raise MOFDependencyError(
                             msg=_format(
-                                "Cannot compile class {0!A} because the CIM "
+                                "Cannot compile class {0} because the CIM "
                                 "repository does not contain any qualifiers "
                                 "and the qualifier files 'qualifiers.mof' and "
                                 "'qualifiers_optional.mof' were not found on "
                                 "the search path or did not specify any "
                                 "qualifiers",
-                                cc.classname),
+                                cc_path),
                             parser_token=p)
                     objects = list(cc.properties.values())
                     for meth in cc.methods.values():
@@ -711,19 +711,18 @@ def p_mp_createClass(p):
                             if not moffile:
                                 raise MOFDependencyError(
                                     msg=_format(
-                                        "Cannot compile class {0!A} because "
+                                        "Cannot compile class {0} because "
                                         "its dependent class {1!A} does not "
                                         "exist in the CIM repository and a "
                                         "MOF file for it was not found on the "
                                         "search path",
-                                        cc.classname, cln),
+                                        cc_path, cln),
                                     parser_token=p)
                             if p.parser.verbose:
                                 p.parser.log(
-                                    _format("Class {0!A} namespace {1!A} "
-                                            "depends on class {2!A} which "
-                                            "is not in repository.",
-                                            cc.classname, ns, cln))
+                                    _format("Class {0} depends on class {1!A} "
+                                            "which is not in repository.",
+                                            cc_path, cln))
                             p.parser.mofcomp.compile_file(moffile, ns)
 
                         p.parser.classnames[ns].append(cln)
@@ -739,28 +738,28 @@ def p_mp_createClass(p):
         if ce.status_code != CIM_ERR_ALREADY_EXISTS:
             raise MOFRepositoryError(
                 msg=_format(
-                    "Cannot compile class {0!A} because the CIM repository "
+                    "Cannot compile class {0} because the CIM repository "
                     "returned an error for CreateClass",
-                    cc.classname),
+                    cc_path),
                 parser_token=p,
                 cim_error=ce)
 
         if p.parser.verbose:
             p.parser.log(
-                _format("Class {0!A} already exist. Modifying...",
-                        cc.classname))
+                _format("Class already exists - modifying class {0}",
+                        cc_path))
         try:
             p.parser.handle.ModifyClass(cc, ns)
         except CIMError as ce:
             p.parser.log(
-                _format("Error modifying class {0!A}: {1}, {2}",
-                        cc.classname, ce.status_code, ce.status_description))
+                _format("Error modifying class {0}: {1}, {2}",
+                        cc_path, ce.status_code, ce.status_description))
             raise MOFRepositoryError(
                 msg=_format(
-                    "Cannot compile class {0!A} because the class already "
+                    "Cannot compile class {0} because the class already "
                     "existed and the CIM repository returned an error for "
                     "ModifyClass",
-                    cc.classname),
+                    cc_path),
                 parser_token=p,
                 cim_error=ce)
 
@@ -772,12 +771,12 @@ def p_mp_createInstance(p):
     input_ = p[1]
     inst = input_[0]
     alias = input_[1]  # alias may be valid alias or None
-    ns = p.parser.target_namespace
+    ns = p.parser.target_namespace or p.parser.handle.default_namespace
+    classpath = CIMClassName(namespace=ns, classname=inst.classname)
 
     if p.parser.verbose:
         p.parser.log(
-            _format("Creating instance of {0!A} in namespace {1!A}",
-                    inst.classname, ns))
+            _format("Creating instance of class {0}", classpath))
 
     # If embedded_instances flag set, save instance to this
     # variable to be set into instance value rather than inserting
@@ -788,15 +787,52 @@ def p_mp_createInstance(p):
 
     try:
         instpath = p.parser.handle.CreateInstance(inst, namespace=ns)
-        # Set the returned instance path into the alias table
-        if alias:
-            p.parser.aliases[alias] = instpath
     except CIMError as ce:
         if ce.status_code == CIM_ERR_ALREADY_EXISTS:
+
+            # If CreateInstance fails with CIM_ERR_ALREADY_EXISTS, the client
+            # does not get back the instance path of the already existing
+            # instance.
+            # We therefore create an instance path from the key properties
+            # specified in the input instance.
+            # The basic issue with this approach is that an instance provider
+            # in the WBEM server could have determined key properties different
+            # from or in addition to the ones specified in the input instance.
+            # A typical example is InstanceID that is not specified in the
+            # input instance but is determined by the provider.
+            # This issue results in a limitation of this approach.
             if p.parser.verbose:
                 p.parser.log(
-                    _format("Instance of class {0!A} already exist. "
-                            "Modifying...", inst.classname))
+                    _format("Instance already exists - retrieving its class "
+                            "{0}:{1}", ns, inst.classname))
+            try:
+                cls = p.parser.handle.GetClass(
+                    inst.classname, namespace=ns, LocalOnly=False)
+            except CIMError as ce2:
+                raise MOFRepositoryError(
+                    msg=_format(
+                        "Cannot compile instance of {0!A} because the CIM "
+                        "repository returned an error for GetClass",
+                        inst.classname),
+                    parser_token=p,
+                    cim_error=ce2)
+            try:
+                instpath = CIMInstanceName.from_instance(
+                    cls, inst, namespace=ns, strict=True)
+            except ValueError as ve:
+                # key properties do not exist in the instance
+                raise MOFRepositoryError(
+                    msg=_format(
+                        "Cannot compile instance of {0!A} because its instance "
+                        "path cannot be created from the instance: {}",
+                        inst.classname, ve),
+                    parser_token=p)
+
+            if p.parser.verbose:
+                p.parser.log(
+                    _format("Modifying instance {0}", instpath))
+
+            inst.path = instpath
             try:
                 p.parser.handle.ModifyInstance(inst)
             except CIMError as ce2:
@@ -817,6 +853,10 @@ def p_mp_createInstance(p):
                 parser_token=p,
                 cim_error=ce)
 
+    # Set the returned or constructed instance path into the alias table
+    if alias:
+        p.parser.aliases[alias] = instpath
+
 
 def p_mp_setQualifier(p):
     """mp_setQualifier : qualifierDeclaration"""
@@ -827,32 +867,32 @@ def p_mp_setQualifier(p):
                 "Invalid compile of CIMQualifierDeclaration {0}. "
                 "Compiler in mode to compile Embedded instance and"
                 "compile of other types is invalid", qualdecl))
-    ns = p.parser.target_namespace
+    ns = p.parser.target_namespace or p.parser.handle.default_namespace
     if p.parser.verbose:
         p.parser.log(
-            _format("Setting qualifier {0!A} in namespace {1!A}",
-                    qualdecl.name, ns))
+            _format("Setting qualifier {0}:{1}",
+                    ns, qualdecl.name))
     try:
         p.parser.handle.SetQualifier(qualdecl, namespace=ns)
     except CIMError as ce:
         if ce.status_code == CIM_ERR_INVALID_NAMESPACE:
             if p.parser.verbose:
                 p.parser.log(
-                    _format("Creating namespace {0!A}", ns))
+                    _format("Creating namespace {0}", ns))
             p.parser.server.create_namespace(ns)
             if p.parser.verbose:
                 p.parser.log(
-                    _format("Setting qualifier {0!A}", qualdecl.name))
+                    _format("Setting qualifier {0}:{1}", ns, qualdecl.name))
             p.parser.handle.SetQualifier(qualdecl, namespace=ns)
         elif ce.status_code == CIM_ERR_NOT_SUPPORTED:
             if p.parser.verbose:
                 p.parser.log(
-                    _format("Qualifier {0!A} already exists. Deleting...",
-                            qualdecl.name))
+                    _format("Qualifier {0}:{1} already exists. Deleting...",
+                            ns, qualdecl.name))
             p.parser.handle.DeleteQualifier(qualdecl.name)
             if p.parser.verbose:
                 p.parser.log(
-                    _format("Setting qualifier {0!A}", qualdecl.name))
+                    _format("Setting qualifier {0}:{1}", ns, qualdecl.name))
             p.parser.handle.SetQualifier(qualdecl, namespace=ns)
         else:
             raise MOFRepositoryError(
@@ -1034,7 +1074,7 @@ def p_qualifier(p):
 
     # pylint: disable=too-many-branches
     qname = p[1]
-    ns = p.parser.target_namespace
+    ns = p.parser.target_namespace or p.parser.handle.default_namespace
     qval = None
     flavorlist = []
     if len(p) == 3:
@@ -1061,7 +1101,7 @@ def p_qualifier(p):
                     cim_error=ce)
             if p.parser.verbose:
                 p.parser.log(
-                    _format("Creating namespace {0!A}", ns))
+                    _format("Creating namespace {0}", ns))
             p.parser.server.create_namespace(ns)
             quals = None
 
@@ -1715,7 +1755,7 @@ def p_instanceDeclaration(p):
     # pylint: disable=too-many-locals,too-many-branches,too-many-statements
     alias = None
     quals = OrderedDict()
-    ns = p.parser.target_namespace
+    ns = p.parser.target_namespace or p.parser.handle.default_namespace
     if isinstance(p[1], six.string_types):  # no qualifiers
         cname = p[3]
         if p[4] == '{':
@@ -2411,8 +2451,8 @@ class MOFWBEMConnection(BaseRepositoryConnection):
         """
 
         cc = args[0] if args else kwargs['NewClass']
-
         ns = kwargs.get('namespace', self.default_namespace)
+        cc_path = CIMClassName(namespace=ns, classname=cc.classname)
 
         if cc.superclass:
             try:
@@ -2425,10 +2465,9 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                 if ce.status_code == CIM_ERR_NOT_FOUND:
                     raise CIMError(
                         CIM_ERR_INVALID_SUPERCLASS,
-                        _format("Cannot create class {0!A} in namespace "
-                                "{1!A} because its superclass {2!A} does "
-                                "not exist",
-                                cc.classname, self.getns(), cc.superclass),
+                        _format("Cannot create class {0} because its "
+                                "superclass {1!A} does not exist",
+                                cc_path, cc.superclass),
                         conn_id=self.conn_id)
                 raise
 
@@ -2459,11 +2498,10 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                     if ce.status_code == CIM_ERR_NOT_FOUND:
                         raise CIMError(
                             CIM_ERR_INVALID_PARAMETER,
-                            _format("Cannot create class {0!A} in namespace "
-                                    "{1!A} because class {2!A} referenced by "
-                                    "its element {3!A} does not exist",
-                                    cc.classname, self.getns(),
-                                    obj.reference_class, obj.name),
+                            _format("Cannot create class {0} because class "
+                                    "{1!A} referenced by its element {2!A} "
+                                    "does not exist",
+                                    cc_path, obj.reference_class, obj.name),
                             conn_id=self.conn_id)
                     # NOTE: Only delete when this is total failure
                     del self.classes[this_ns][cc.classname]
@@ -2483,13 +2521,11 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                         if ce.status_code == CIM_ERR_NOT_FOUND:
                             raise CIMError(
                                 CIM_ERR_INVALID_PARAMETER,
-                                _format("Cannot create class {0!A} in "
-                                        "namespace {1!A} because class {2!A} "
-                                        "specified by the EmbeddedInstance "
-                                        "qualifier on its element {3!A} does "
-                                        "not exist",
-                                        cc.classname, self.getns(),
-                                        eiqualifier.value, obj.name),
+                                _format("Cannot create class {0} because class "
+                                        "{1!A} specified by the "
+                                        "EmbeddedInstance qualifier on its "
+                                        "element {2!A} does not exist",
+                                        cc_path, eiqualifier.value, obj.name),
                                 conn_id=self.conn_id)
                         # Only delete when total failure
                         del self.classes[this_ns][cc.classname]
@@ -2610,14 +2646,13 @@ class MOFWBEMConnection(BaseRepositoryConnection):
             self.default_namespace = ns
             cnames.reverse()
             for cname in cnames:
+                classpath = CIMClassName(namespace=ns, classname=cname)
                 try:
                     if verbose:
-                        print(_format("Deleting class {0!A}:{1!A}",
-                                      ns, cname))
+                        print(_format("Deleting class {0}", classpath))
                     self.conn.DeleteClass(cname)
                 except CIMError as ce:
-                    print(_format("Error deleting class {0!A}:{1!A}",
-                                  ns, cname))
+                    print(_format("Error deleting class {0}", classpath))
                     print(_format("     {0} {1}",
                                   ce.status_code, ce.status_description))
         # Issue #990: Also roll back changes to qualifier declarations
@@ -2790,7 +2825,9 @@ class MOFCompiler(object):
           ns (:term:`string`):
             The name of the CIM namespace in the associated CIM repository
             that is used for lookup of any dependent CIM elements, and that
-            is also the target of the compilation.
+            is also the target of the compilation. If `None`, the default
+            namespace of the connection is used. The namespace specified in
+            this parameter must exist.
 
           filename (:term:`string`):
             The path name of the file that the MOF statements were read from.
@@ -2818,6 +2855,13 @@ class MOFCompiler(object):
         except AttributeError:
             oldmof = None
         self.parser.mof = mof
+
+        # The client operations would automatically use the connection's
+        # default namespace if we passed `None`. However, in order to show
+        # the default namespace in compiler messages, we apply the defaulting
+        # here.
+        if not ns:
+            ns = self.handle.default_namespace
 
         # Save the namespace parameter in variable known to the parser.
         if self.parser.verbose:
@@ -2873,11 +2917,11 @@ class MOFCompiler(object):
             The name of the CIM namespace in the associated CIM repository that
             is the target of the compilation, and is also used for lookup of any
             dependent CIM elements. If `None`, the default namespace of the
-            connection is used. A namespace defined in a namespace pragma of
-            the MOF superceeds this namespace from the point in the
+            connection is used. A namespace defined in a MOF '#pragma namespace'
+            directive supersedes this namespace from the point in the
             compilation unit(string/file) where it is declared. The namespace
-            specified in this parameter or the MOF inamespace pragma must
-            exist.
+            specified in this parameter or in the MOF '#pragma namespace'
+            directive must exist.
 
           filename (:term:`string`):
             The path name of the file that the MOF statements were read from.
@@ -2902,6 +2946,13 @@ class MOFCompiler(object):
         except AttributeError:
             oldmof = None
         self.parser.mof = mof
+
+        # The client operations would automatically use the connection's
+        # default namespace if we passed `None`. However, in order to show
+        # the default namespace in compiler messages, we apply the defaulting
+        # here.
+        if not ns:
+            ns = self.handle.default_namespace
 
         # Save the namespace parameter in variable known to the parser.
         if self.parser.verbose:
