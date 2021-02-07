@@ -219,6 +219,8 @@ Released: not yet
 * Test: Cleaned up DeprecationWarning for the propagation of key property values
   introduced in pywbem 1.1.0. (see issue #2498)
 
+* Add index section to generated documentation.
+
 **Known issues:**
 
 * On Python 3.4, the urllib3 package is pinned to <1.25.8 because 1.25.9 removed

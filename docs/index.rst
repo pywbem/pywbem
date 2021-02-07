@@ -40,3 +40,5 @@ https://pywbem.github.io/.
    development.rst
    appendix.rst
    changes.rst
+   genindex.rst
+.. The genindex.rst above and corresponding file required to include index
