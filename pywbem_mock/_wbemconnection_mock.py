@@ -31,7 +31,10 @@ import os
 import time
 import re
 from xml.dom import minidom
-from mock import Mock
+try:
+    from unittest.mock import Mock
+except ImportError:
+    from mock import Mock
 import six
 
 

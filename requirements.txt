@@ -9,8 +9,7 @@
 
 # Direct dependencies (except pip, setuptools, wheel):
 
-mock>=2.0.0,<4.0.0; python_version < '3.6'
-mock>=2.0.0; python_version >= '3.6'
+mock>=2.0.0; python_version < "3.3"
 ply>=3.10
 # PyYAML 5.3 removed support for Python 3.4
 # PyYAML 5.3 fixed narrow build error on Python 2.7
