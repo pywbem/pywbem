@@ -24,7 +24,10 @@ from __future__ import absolute_import, print_function
 import pytest
 import six
 
-from mock import Mock
+try:
+    from unittest.mock import Mock
+except ImportError:
+    from mock import Mock
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed

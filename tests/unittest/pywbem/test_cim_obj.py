@@ -9,7 +9,10 @@ from __future__ import absolute_import, print_function
 import sys
 import re
 from datetime import timedelta, datetime
-from mock import patch
+try:
+    from unittest.mock import patch
+except ImportError:
+    from mock import patch
 try:
     from collections import OrderedDict
 except ImportError:

@@ -41,7 +41,12 @@ try:
 except ImportError:
     from ordereddict import OrderedDict  # pylint: disable=import-error
 import six
-from mock import Mock
+
+try:
+    from unittest.mock import Mock
+except ImportError:
+    from mock import Mock
+
 import pytest
 from nocaselist import NocaseList
 from testfixtures import OutputCapture
