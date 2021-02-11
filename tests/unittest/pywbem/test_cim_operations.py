@@ -21,6 +21,9 @@ pywbem = import_installed('pywbem')
 from pywbem import WBEMConnection, ParseError, DEFAULT_NAMESPACE, \
     CIMError, CIMInstanceName, CIMClassName, CIMInstance, \
     CIMClass  # noqa: E402
+# pylint: disable=redefined-builtin
+from pywbem import ConnectionError  # noqa: E402
+# pylint: enable=redefined-builtin
 from pywbem._recorder import LogOperationRecorder  # noqa: E402
 from pywbem._recorder import TestClientRecorder as \
     MyTestClientRecorder  # noqa: E402
@@ -401,6 +404,61 @@ class TestCreateConnection(object):
 
         with pytest.raises(ValueError):
             conn.add_operation_recorder(LogOperationRecorder('fake_conn_id'))
+
+    def test_close(self):  # pylint: disable=no-self-use
+        """
+        Test closing a connection once.
+        """
+        conn = WBEMConnection('http://localhost')
+        assert conn.session is not None
+        conn.close()
+        assert conn.session is None
+
+    def test_close_twice(self):  # pylint: disable=no-self-use
+        """
+        Test closing a connection twice.
+        """
+        conn = WBEMConnection('http://localhost')
+        conn.close()
+        assert conn.session is None
+        with pytest.raises(ConnectionError) as exc_info:
+            conn.close()
+            exc = exc_info.value
+            assert re.match(r'is closed', str(exc))
+
+    def test_close_imethod(self):  # pylint: disable=no-self-use
+        """
+        Test closing a connection and invoking an intrinsic operation.
+        """
+        conn = WBEMConnection('http://localhost')
+        conn.close()
+        assert conn.session is None
+        with pytest.raises(ConnectionError) as exc_info:
+            conn.GetClass('CIM_Foo')
+            exc = exc_info.value
+            assert re.match(r'is closed', str(exc))
+
+    def test_close_method(self):  # pylint: disable=no-self-use
+        """
+        Test closing a connection and invoking a CIM method.
+        """
+        conn = WBEMConnection('http://localhost')
+        conn.close()
+        assert conn.session is None
+        with pytest.raises(ConnectionError) as exc_info:
+            conn.InvokeMethod(ObjectName='CIM_Foo', MethodName='M1')
+            exc = exc_info.value
+            assert re.match(r'is closed', str(exc))
+
+    def test_context_manager(self):  # pylint: disable=no-self-use
+        """
+        Test the use of WBEMConnection as a context manager.
+        """
+        with WBEMConnection('http://localhost:5988') as conn:
+            assert isinstance(conn, WBEMConnection)
+            assert conn.url == 'http://localhost:5988'
+            assert conn.session is not None
+        assert conn.session is None
 
 
 class TestGetRsltParams(object):
@@ -883,3 +941,23 @@ def test_request_invalid_params(testcase, init_kwargs, method, args, kwargs):
     # Ensure that exceptions raised in the remainder of this function
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
+
+
+def test_close():
+    """
+    Test WBEMConnection.close().
+    """
+
+    conn = WBEMConnection('http://localhost')
+
+    assert conn.session is not None
+
+    # The code to be tested, good case
+    conn.close()
+
+    assert conn.session is None
+
+    with pytest.raises(ConnectionError):
+
+        # The code to be tested, error case
+        conn.close()

@@ -155,6 +155,7 @@ from ._cim_http import get_cimobject_header, wbem_request, parse_url
 from ._tupleparse import TupleParser
 from ._tupletree import xml_to_tupletree_sax
 from ._exceptions import CIMXMLParseError, XMLParseError, CIMError
+from ._exceptions import ConnectionError  # pylint: disable=redefined-builtin
 from ._statistics import Statistics
 from ._recorder import LogOperationRecorder
 from ._logging import DEFAULT_LOG_DETAIL_LEVEL, LOG_DESTINATIONS, \
@@ -376,6 +377,16 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     each subsequent WBEM operation performs an independent, state-less
     HTTP/HTTPS request. Usage of the `requests` Python package causes the
     underlying resources such as sockets to be pooled, though.
+    A :meth:`~pywbem.WBEMConnection.close` method closes the underlying
+    session of the `requests` package, releasing any sockets.
+
+    The WBEMConnection class can also be used as a context manager, which
+    causes the connection to be closed at context manager exit:
+
+    .. code-block:: python
+
+        with WBEMConnection('https://myserver') as conn:
+            conn.EnumerateInstances('CIM_Foo')
 
     The :class:`~pywbem.WBEMConnection` class supports connection through
     HTTP and SOCKS proxies, by utilizing the proxy support in the `requests`
@@ -847,6 +858,27 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 conn_id=self.conn_id,
                 detail_levels=self._log_detail_levels)
             self.add_operation_recorder(recorder)
+
+    def __enter__(self):
+        """
+        *New in pywbem 1.2.*
+
+        Enter method when the class is used as a context manager.
+        Returns the connection object.
+        """
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """
+        *New in pywbem 1.2.*
+
+        Exit method when the class is used as a context manager.
+
+        It closes the connection by calling
+        :meth:`~pywbem.WBEMConnection.close`.
+        """
+        self.close()
+        return False  # re-raise any exceptions
 
     @property
     def url(self):
@@ -1599,6 +1631,36 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 # TODO execute stage of wbem connection if not already executed.
                 # How do we know it is already executed???
 
+    def _verify_open(self):
+        """
+        Verify that this connection is open and raise ConnectionError otherwise.
+
+        Raises:
+          :exc:`~pywbem.ConnectionError`: WBEMConnection is closed
+        """
+        if self.session is None:
+            raise ConnectionError(
+                "WBEMConnection is closed",
+                conn_id=self.conn_id)
+
+    def close(self):
+        """
+        Closes this connection.
+
+        *New in pywbem 1.2.*
+
+        This method closes the session in the underlying requests package,
+        causing it to close any sockets it has pooled and marks the connection
+        closed. Any subsequent WBEM connection operation requests will generate
+        an exception.
+
+        Raises:
+          :exc:`~pywbem.ConnectionError`: WBEMConnection is closed
+        """
+        self._verify_open()
+        self.session.close()
+        self.session = None  # Indicates closed state
+
     def add_operation_recorder(self, operation_recorder):
         # pylint: disable=line-too-long
         """
@@ -1723,6 +1785,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
           - zero or more PARAMVALUE (unpacked) for the operation output
             parameters.
         """
+
+        self._verify_open()
 
         # Create HTTP extension headers for CIM-XML.
         # Note: The two-step encoding required by DSP0200 will be performed in
@@ -1917,6 +1981,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               * key (:term:`unicode string`): Parameter name
               * value (:term:`CIM data type`): Parameter value
         """
+
+        self._verify_open()
 
         if isinstance(objectname, (CIMInstanceName, CIMClassName)):
             localobject = objectname.copy()
