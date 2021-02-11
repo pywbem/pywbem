@@ -212,6 +212,12 @@ Released: not yet
 * Improvements in the log messages of the `MOFCompiler` class.
   (related to issue #2586)
 
+* Added a `close()` method to `pywbem.WBEMConnection` that closes the underlying
+  session of the 'requests' package. This avoids the ResourceWarning
+  'unclosed socket' that the 'requests' package issued so far when the Python
+  process terminates. Added the ability for `pywbem.WBEMConnection` to be used
+  as a context manager, that closes the connection at the end. (see issue #2591)
+
 **Cleanup:**
 
 * Test: Fixed all remaining ResourceWarnings during test. (issue #86)
