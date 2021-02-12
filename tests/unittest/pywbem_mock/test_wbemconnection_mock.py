@@ -62,7 +62,7 @@ from pywbem import CIMClass, CIMProperty, CIMInstance, CIMMethod, \
     CIM_ERR_NAMESPACE_NOT_EMPTY, CIM_ERR_INVALID_SUPERCLASS, \
     CIM_ERR_NOT_SUPPORTED, CIM_ERR_METHOD_NOT_AVAILABLE, \
     CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED, CIM_ERR_METHOD_NOT_FOUND, \
-    MOFParseError  # noqa: E402
+    CIM_ERR_FAILED, MOFParseError  # noqa: E402
 from pywbem._nocasedict import NocaseDict  # noqa: E402
 from pywbem._utils import _format  # noqa: E402
 from pywbem._cim_operations import pull_path_result_tuple  # noqa: E402
@@ -6932,27 +6932,55 @@ class TestQualifierOperations(object):
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
     @pytest.mark.parametrize(
-        "qname, exp_exc",
+        "qname, mof, exp_exc",
         [
             # qname: QualifierName input parameter for DeleteQualifier()
+            # mof is a test class is to be added (To test the reject if used)
+            #     None if not used
             # exp_exc: None, or expected exception object
 
-            ['FooQualDecl1', None],
-            ['badqualname', CIMError(CIM_ERR_NOT_FOUND)],
-            ['whatever', CIMError(CIM_ERR_INVALID_NAMESPACE)],
+            ['FooQualDecl1', False, None],
+            ['badqualname', False, CIMError(CIM_ERR_NOT_FOUND)],
+            ['whatever', False, CIMError(CIM_ERR_INVALID_NAMESPACE)],
             # Invalid tyoes
-            [42, TypeError()],
-            [None, TypeError()],
+            [42, False, TypeError()],
+            [None, False, TypeError()],
+            # Tests for deleting qdecl when used. Tests with qual decl Blah
+            # Class qualifier
+            ['Blah', '[Blah] class C_X{};', CIMError(CIM_ERR_FAILED)],
+            # property qualifier
+            ['Blah', 'class C_X{[blah] string p;};', CIMError(CIM_ERR_FAILED)],
+            ['Blah', 'class C_X{[blah] uint32 m();};',
+             CIMError(CIM_ERR_FAILED)],
+            ['Blah', 'class C_X{[blah] uint32 m();};',
+             CIMError(CIM_ERR_FAILED)],
+            ['Blah', 'class C_X{[blah] uint32 m([Blah] string parm);};',
+             CIMError(CIM_ERR_FAILED)],
+            ['FooQualDecl1', 'class C_X{[blah] string p;};', None],
+            ['FooQualDecl1', 'class C_X{[blah] uint32 m();};', None],
+            ['FooQualDecl1', 'class C_X{[blah] uint32 m();};', None],
+            ['FooQualDecl1', 'class C_X{[blah] uint32 m([Blah] string parm);};',
+             None],
+
         ]
     )
-    def test_deletequalifier(self, conn, ns, qname, exp_exc):
+    def test_deletequalifier(self, conn, ns, qname, mof, exp_exc):
         """
-        Test  fake delete of qualifier declaration method. Adds qualifier
+        Test  fake DeleteQualifier declaration method. Adds qualifier
         declarations to repository and then deletes qualifier defined
         by qname. Tries to delete again and this should fail as not found.
         """
         tst_quals = self._build_qualifiers()
         conn.add_cimobjects(tst_quals, namespace=ns)
+
+        # Add a class that uses the qualifier we want to delete to test
+        # for exception. Also adds new qualifier decl just to keep things
+        # simple for the tests
+        if mof:
+            qdecl = "Qualifier Blah: boolean = true, Scope(any), " \
+                    "Flavor(EnableOverride);"
+            conn.compile_mof_string(qdecl, namespace=ns)
+            conn.compile_mof_string(mof, namespace=ns)
 
         if not exp_exc:
 
