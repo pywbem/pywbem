@@ -116,6 +116,10 @@ Released: not yet
   instance providers that add key properties or that ignore provided key
   properties (e.g. InstanceID). (issue #2586)
 
+* Corrected issue in pywbem_mock where DeleteQualifier() was not checking whether
+  the qualifier was used in any classes in the namespace before being deleted.
+  (see #2585)
+
 **Enhancements:**
 
 * Logging: Added a value 'off' for the log destination in the

@@ -57,7 +57,7 @@ from pywbem import CIMClass, CIMClassName, CIMInstanceName, \
     CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_PARAMETER, CIM_ERR_INVALID_CLASS, \
     CIM_ERR_ALREADY_EXISTS, CIM_ERR_INVALID_ENUMERATION_CONTEXT, \
     CIM_ERR_NOT_SUPPORTED, CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED, \
-    CIM_ERR_INVALID_QUERY
+    CIM_ERR_INVALID_QUERY, CIM_ERR_FAILED
 from pywbem._utils import _format
 
 from pywbem_mock.config import IGNORE_INSTANCE_IQ_PARAM, \
@@ -1153,8 +1153,8 @@ class MainProvider(ResolverMixin, BaseProvider):
         Provider method for
         :meth:`pywbem.WBEMConnection.DeleteQualifier`.
 
-        Deletes a single qualifier if it is in the
-        CIM repository for this class and namespace
+        Deletes a single qualifier declaration if it is in the CIM repository
+        for this namespace and is not being used by any class in the namespace.
 
         Parameters:
 
@@ -1171,8 +1171,35 @@ class MainProvider(ResolverMixin, BaseProvider):
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
             :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_FOUND)
-        """
+            :exc:`~pywbem.CIMError`: (CIM_ERR_FAILED)
 
+        """
+        def qualifier_exists_in_cls(cls, qualifier_name):
+            """
+            Test for qualifier exists in any component of the class cls.
+
+            Parameters:
+              cls (:class:`~pywbem.CIMClass`)
+                CIM class to search for existence of qualifier
+              qualifier_name (:term:`string`):
+                Name of qualifier for which search is executed
+
+            Returns:
+                :class:`py:bool` True if qualifier exists, False if qualifier
+                not found in the class
+            """
+            if qualifier_name in cls.qualifiers:
+                return True
+            for prop in six.itervalues(cls.properties):
+                if qualifier_name in prop.qualifiers:
+                    return True
+            for method in six.itervalues(cls.methods):
+                if qualifier_name in method.qualifiers:
+                    return True
+                for parameter in six.itervalues(method.parameters):
+                    if qualifier_name in parameter.qualifiers:
+                        return True
+            return False
         # Parameter types are already checked by WBEMConnection operation
         assert isinstance(namespace, six.string_types)
         assert isinstance(QualifierName, six.string_types)
@@ -1182,6 +1209,16 @@ class MainProvider(ResolverMixin, BaseProvider):
         qualifier_store = self.cimrepository.get_qualifier_store(namespace)
 
         if qualifier_store.object_exists(QualifierName):
+            # if qualifier exists in any class in ns generate exception
+            class_store = self.cimrepository.get_class_store(namespace)
+            for cls in class_store.iter_values(copy=False):
+                if qualifier_exists_in_cls(cls, QualifierName):
+                    raise CIMError(
+                        CIM_ERR_FAILED,
+                        _format("QualifierDeclaration {0!A} namespace {1!A} "
+                                "cannot be deleted. "
+                                "It is being used at least in class {2!A}.",
+                                QualifierName, namespace, cls.classname))
             qualifier_store.delete(QualifierName)
         else:
             raise CIMError(
