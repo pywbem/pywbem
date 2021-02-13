@@ -258,6 +258,8 @@ py_src_files := \
 # - 38330: Sphinx cannot be upgraded on py27+py34
 # - 39194: lxml cannot be upgraded on py34; no issue since HTML Cleaner of lxml is not used
 # - 39195: lxml cannot be upgraded on py34; no issue since output file paths do not come from untrusted sources
+# - 39462: The CVE for tornado will be replaced by a CVE for Python, see https://github.com/tornadoweb/tornado/issues/2981
+
 safety_ignore_opts := \
     -i 38100 \
 		-i 38834 \
@@ -270,6 +272,7 @@ safety_ignore_opts := \
 		-i 38330 \
 		-i 39194 \
 		-i 39195 \
+		-i 39462 \
 
 # Python source files for test (unit test and function test)
 test_src_files := \
