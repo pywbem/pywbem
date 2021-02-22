@@ -957,6 +957,7 @@ class WBEMListener(object):
                         server_side=True)
                 except AttributeError:
                     # Fall back to deprecated ssl.wrap_socket() before Py 2.7.9
+                    # pylint: disable=deprecated-method
                     server.socket = ssl.wrap_socket(
                         server.socket,
                         certfile=self._certfile,

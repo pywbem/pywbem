@@ -1840,7 +1840,7 @@ def p_instanceDeclaration(p):
             # If embedded instance/object property, compile the value component
             # and put into the property value.
             if 'EmbeddedInstance' in cprop.qualifiers:
-                allowed_types = (CIMInstance)
+                allowed_types = (CIMInstance,)
                 embedded_object_type = "instance"
                 # Issue: 2340: Extend to test with is_subclass from
                 # base repository when that is committed
@@ -1849,7 +1849,7 @@ def p_instanceDeclaration(p):
                 #   if not is_subclass(cprop, qclass):
                 #       raise MOFDependencyError ...
             elif 'EmbeddedObject' in cprop.qualifiers:
-                allowed_types = (CIMInstance)
+                allowed_types = (CIMInstance,)
                 embedded_object_type = "object"
 
             if embedded_object_type:

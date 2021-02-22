@@ -231,6 +231,10 @@ Released: not yet
 
 * Add index section to generated documentation.
 
+* Fixed new issues reported by pylint 2.7.0. At the same time, needed to
+  temporarily pin pylint to <2.7.0 and astroid to <2.5.0 due to massive
+  elongation of the run time of pylint in the pywbem project.
+
 **Known issues:**
 
 * On Python 3.4, the urllib3 package is pinned to <1.25.8 because 1.25.9 removed
