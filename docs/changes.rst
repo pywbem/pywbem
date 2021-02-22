@@ -120,6 +120,9 @@ Released: not yet
   the qualifier was used in any classes in the namespace before being deleted.
   (see #2585)
 
+* Fixed an incorrect calculation of the min/max values for the server response
+  time in the statistics support of pywbem (issue #2599)
+
 **Enhancements:**
 
 * Logging: Added a value 'off' for the log destination in the
