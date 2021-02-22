@@ -73,7 +73,11 @@ disable=I0011, bad-option-value,
         wildcard-import, unused-wildcard-import,
         locally-enabled, superfluous-parens, useless-object-inheritance,
         consider-using-set-comprehension, unnecessary-pass, useless-return,
-        signature-differs, raise-missing-from, super-with-arguments
+        signature-differs, raise-missing-from, super-with-arguments,
+        R0801
+
+# TODO: Remove R0801 from disabled list again once pylint issue
+#       https://github.com/PyCQA/pylint/issues/4118 is addressed.
 
 # Note: "useless-object-inheritance" is python 3 only. In Python 2,
 #        "new-style" objects must inherit from object, or else
@@ -364,7 +368,7 @@ logging-modules=logging
 [SIMILARITIES]
 
 # Minimum lines number of a similarity.
-min-similarity-lines=8
+min-similarity-lines=40
 
 # Ignore comments when computing similarities.
 ignore-comments=yes
@@ -373,7 +377,7 @@ ignore-comments=yes
 ignore-docstrings=yes
 
 # Ignore imports when computing similarities.
-ignore-imports=no
+ignore-imports=yes
 
 
 [FORMAT]

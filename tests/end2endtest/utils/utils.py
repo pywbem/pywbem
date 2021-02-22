@@ -265,18 +265,18 @@ class WBEMConnectionAsserted(WBEMConnection):
             try:
                 return func(*args, **kwargs)
             except Error as exc:
-                self.raise_as_assertion_error(exc, funcname, *args, **kwargs)
+                raise self._assertion_error(exc, funcname, *args, **kwargs)
         else:
             return func(*args, **kwargs)
 
-    def raise_as_assertion_error(self, exc, funcname, *args, **kwargs):
+    def _assertion_error(self, exc, funcname, *args, **kwargs):
         """
-        Raise an AssertionError about the specified exception.
+        Return an AssertionError about the specified exception.
         """
         parm_list = ["{0!r}".format(a) for a in args]
         parm_list.extend(["{0}={1!r}".format(k, kwargs[k]) for k in kwargs])
         parm_str = ", ".join(parm_list)
-        raise AssertionError(
+        return AssertionError(
             "Server {0} at {1}: WBEMConnection.{2}() failed and raised "
             "{3} - {4}. "
             "Parameters: ({5})".
