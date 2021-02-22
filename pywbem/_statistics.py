@@ -454,9 +454,9 @@ class OperationStatistic(object):
         if server_time:
             self._server_time_stored = True
             self._server_time_sum += server_time
-            if dt > self._server_time_max:
+            if server_time > self._server_time_max:
                 self._server_time_max = server_time
-            if dt < self._server_time_min:
+            if server_time < self._server_time_min:
                 self._server_time_min = server_time
 
         if request_len is not None:
