@@ -67,6 +67,13 @@ operation:
 
   * OpenPegasus
 
+  Because the interpretation of the calculated average and min/max server times
+  becomes incorrect if only a subset of the operations return the server
+  response time, the statistics counting for the server time is suspended if
+  one or more operations do not return the server response time.
+  Resetting the statistics via :meth:`~pywbem.Statistics.reset` clears this
+  condition again.
+
 The difference between client time and server time is the time spent in the
 pywbem client, plus the time spent on the network between client and server.
 
@@ -174,19 +181,20 @@ class OperationStatistic(object):
         """
         self._container = container
         self._stat_start_time = None
+        self._start_time = None
         self._name = name
+
         self._count = 0
         self._exception_count = 0
+
         self._time_sum = float(0)
         self._time_min = float('inf')
         self._time_max = float(0)
 
+        self._server_time_suspended = False
         self._server_time_sum = float(0)
         self._server_time_min = float('inf')
         self._server_time_max = float(0)
-        self._server_time_stored = False
-
-        self._start_time = None
 
         self._request_len_sum = float(0)
         self._request_len_min = float('inf')
@@ -360,17 +368,19 @@ class OperationStatistic(object):
         """
         Reset the statistics data for this object.
         """
+        self._stat_start_time = None
+
         self._count = 0
         self._exception_count = 0
-        self._stat_start_time = None
+
         self._time_sum = float(0)
         self._time_min = float('inf')
         self._time_max = float(0)
 
+        self._server_time_suspended = False
         self._server_time_sum = float(0)
         self._server_time_min = float('inf')
         self._server_time_max = float(0)
-        self._server_time_stored = False
 
         self._request_len_sum = float(0)
         self._request_len_min = float('inf')
@@ -419,7 +429,14 @@ class OperationStatistic(object):
             Time in seconds that the server optionally returns to the
             client in the HTTP response defining the time from when the
             server received the request to when it started sending the
-            response. If `None`, there is no time from the server.
+            response.
+
+            If `None`, the server did not report server response time. Since
+            this can happen in the middle of a statistics measurement interval
+            if the corresponding config setting of the server was changed,
+            the server time is then reset to 0 and no longer maintained
+            during the remainder of the current statistics measurement interval.
+            A reset of the statistics clears that condition again.
 
         Returns:
 
@@ -437,22 +454,30 @@ class OperationStatistic(object):
         dt = time.time() - self._start_time
         self._start_time = None
         self._count += 1
-        self._time_sum += dt
-        if request_len is not None:
-            self._request_len_sum += request_len
-        if reply_len is not None:
-            self._reply_len_sum += reply_len
-
         if exception:
             self._exception_count += 1
 
+        self._time_sum += dt
         if dt > self._time_max:
             self._time_max = dt
         if dt < self._time_min:
             self._time_min = dt
 
-        if server_time:
-            self._server_time_stored = True
+        if self._server_time_suspended:
+            # Server time statistics has been suspended. Ignore server time
+            # even if the server returned it for this operation.
+            pass
+        elif server_time is None:
+            # Server did not return server response time for this operation.
+            # Suspend server time statistics and reset the counters.
+            self._server_time_suspended = True
+            self._server_time_sum = float(0)
+            self._server_time_min = float('inf')
+            self._server_time_max = float(0)
+        else:
+            # Server did return server response time for this operation, and
+            # server time statistics has not been suspended. Apply the time
+            # to the counnters.
             self._server_time_sum += server_time
             if server_time > self._server_time_max:
                 self._server_time_max = server_time
@@ -460,12 +485,14 @@ class OperationStatistic(object):
                 self._server_time_min = server_time
 
         if request_len is not None:
+            self._request_len_sum += request_len
             if request_len > self._request_len_max:
                 self._request_len_max = request_len
             if request_len < self._request_len_min:
                 self._request_len_min = request_len
 
         if reply_len is not None:
+            self._reply_len_sum += reply_len
             if reply_len > self._reply_len_max:
                 self._reply_len_max = reply_len
             if reply_len < self._reply_len_min:
@@ -729,7 +756,7 @@ class Statistics(object):
         The operations are sorted by decreasing average time.
 
         The three columns for `ServerTime` are included only if the WBEM server
-        has returned WBEM server response times.
+        has returned WBEM server response times for all operations.
 
         The six columns for `RequestLen` and `ReplyLen` are included only if
         they are non-zero (this allows using this class for other purposes).
@@ -760,7 +787,7 @@ class Statistics(object):
             include_len = False
             for _, stats in snapshot:
                 # pylint: disable=protected-access
-                if stats._server_time_stored:
+                if not stats._server_time_suspended:
                     include_svr = True
                 # pylint: disable=protected-access
                 if stats._request_len_sum > 0 or stats._reply_len_sum > 0:
