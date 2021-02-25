@@ -225,6 +225,11 @@ Released: not yet
   process terminates. Added the ability for `pywbem.WBEMConnection` to be used
   as a context manager, that closes the connection at the end. (see issue #2591)
 
+* Added a mechanism to suspend the statistics counting of server time if
+  one or more operations do not return the server response time, in order to
+  prevent incorrect interpretations of the counters when only a subset of the
+  operations returned server response time. (issue #2603)
+
 **Cleanup:**
 
 * Test: Fixed all remaining ResourceWarnings during test. (issue #86)

@@ -544,6 +544,95 @@ def test_Statistics_reset():
     assert not snapshot
 
 
+def test_Statistics_server_time_suspension():
+    """
+    Test suspending server time and resetting.
+
+    Server time suspension occurs at the level of operations (i.e.
+    OperationStatistics object) if not all executions of the operation return
+    the server response time. Once it has occurred, the server time values
+    are reset and this condition is remembered until the OperationStatistics
+    object's reset() is called (which normally is not used and not tested here)
+    or the parent Statistic object's reset() is called.
+    """
+
+    statistics = Statistics()
+    statistics.enable()
+
+    duration = 1.0
+    server_resp_time = 0.8
+
+    # Allowable delta in seconds between expected and actual duration.
+    # Notes:
+    # * Windows has only a precision of 1/60 sec.
+    # * In CI environments, the tests sometimes run slow.
+    delta = 0.5
+
+    stats = statistics.start_timer('GetInstance')
+    time.sleep(duration)
+    stats.stop_timer(100, 200, server_resp_time)
+
+    # verify server time after server response time was provided
+    snapshot = statistics.snapshot()
+    for _, stats in snapshot:
+        assert stats.count == 1
+        assert time_abs_delta(stats.avg_time, duration) < delta
+        assert time_abs_delta(stats.min_time, duration) < delta
+        assert time_abs_delta(stats.max_time, duration) < delta
+        assert time_abs_delta(stats.avg_server_time, server_resp_time) < delta
+        assert time_abs_delta(stats.min_server_time, server_resp_time) < delta
+        assert time_abs_delta(stats.max_server_time, server_resp_time) < delta
+
+    stats = statistics.start_timer('GetInstance')
+    time.sleep(duration)
+    stats.stop_timer(120, 250, None)
+
+    # verify server time (and only that) is suspended when server response
+    # time was not provided
+    snapshot = statistics.snapshot()
+    for _, stats in snapshot:
+        assert stats.count == 2
+        assert time_abs_delta(stats.avg_time, duration) < delta
+        assert time_abs_delta(stats.min_time, duration) < delta
+        assert time_abs_delta(stats.max_time, duration) < delta
+        assert stats.avg_server_time == float(0)
+        assert stats.min_server_time == float('inf')
+        assert stats.max_server_time == float(0)
+
+    stats = statistics.start_timer('GetInstance')
+    time.sleep(duration)
+    stats.stop_timer(120, 250, server_resp_time)
+
+    # verify that server time suspension is sticky once it occurred, even if
+    # server response time is provided again
+    snapshot = statistics.snapshot()
+    for _, stats in snapshot:
+        assert stats.count == 3
+        assert time_abs_delta(stats.avg_time, duration) < delta
+        assert time_abs_delta(stats.min_time, duration) < delta
+        assert time_abs_delta(stats.max_time, duration) < delta
+        assert stats.avg_server_time == float(0)
+        assert stats.min_server_time == float('inf')
+        assert stats.max_server_time == float(0)
+
+    assert statistics.reset() is True
+
+    stats = statistics.start_timer('GetInstance')
+    time.sleep(duration)
+    stats.stop_timer(100, 200, server_resp_time)
+
+    # verify that reset() also resets server time suspension
+    snapshot = statistics.snapshot()
+    for _, stats in snapshot:
+        assert stats.count == 1
+        assert time_abs_delta(stats.avg_time, duration) < delta
+        assert time_abs_delta(stats.min_time, duration) < delta
+        assert time_abs_delta(stats.max_time, duration) < delta
+        assert time_abs_delta(stats.avg_server_time, server_resp_time) < delta
+        assert time_abs_delta(stats.min_server_time, server_resp_time) < delta
+        assert time_abs_delta(stats.max_server_time, server_resp_time) < delta
+
+
 def test_Statistics_print_statistics():
     """
     Test repr() and formatted() for a small statistics.
