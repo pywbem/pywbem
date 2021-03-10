@@ -748,7 +748,7 @@ ifeq ($(python_mn_version),3.4)
 else
 	@echo "makefile: Checking for TODOs"
 	-$(call RM_FUNC,$@)
-	pylint --exit-zero --reports=n --disable=all --enable=fixme $(py_src_files)
+	pylint --exit-zero --reports=n --jobs=1 --disable=all --enable=fixme $(py_src_files)
 	-grep TODO $(doc_conf_dir) -r --include="*.rst"
 	echo "done" >$@
 	@echo "makefile: Done checking for TODOs"
