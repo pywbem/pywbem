@@ -11,6 +11,9 @@
 
 # Direct dependencies:
 
+# Cythonize
+Cython>=0.29.22
+
 # Coverage reporting (no imports, invoked via coveralls script):
 # We exclude Python 3.4 from coverage testing and reporting.
 # coverage 5.0 has removed support for py34

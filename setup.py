@@ -25,9 +25,17 @@ Setup script for pywbem project.
 import sys
 import os
 import re
+import fnmatch
 # setuptools needs to be imported before distutils in order to work.
 import setuptools
 from distutils import log  # pylint: disable=wrong-import-order
+# Just in case, we keep Cython usage conditional on package availability
+try:
+    from Cython.Build import cythonize
+    from Cython.Compiler.Errors import CompileError
+except ImportError:
+    cythonize = None
+from wheel.bdist_wheel import bdist_wheel as bdist_wheel_base
 
 
 def get_version(version_file):
@@ -70,6 +78,38 @@ def read_file(a_file):
     with open(a_file, 'r') as fp:
         content = fp.read()
     return content
+
+
+def find_files(dir_path, fn_pattern):
+    """
+    Find files in a directory and its subdirectories that match a file name
+    pattern.
+
+    Returns a list of path names of the found files. The path names begin
+    with the specified directory path name, so if that was absolute or relative,
+    the returned file path names will be absolute or relative, respectively.
+    """
+    found_files = []
+    for dirpath, _, filenames in os.walk(dir_path):
+        for filename in fnmatch.filter(filenames, fn_pattern):
+            found_files.append(os.path.join(dirpath, filename))
+    return found_files
+
+
+def cythonizable_source_files():
+    """
+    Return the list of path names of files to be cythonized (relative to
+    current directory).
+    """
+    setup_dir = os.path.dirname(__file__)
+    # os.path.dirname() returns the empty string on Python 2.7 when run from
+    # the work directory, and the empty string is rejected by os.path.relpath().
+    if os.path.isabs(setup_dir):
+        setup_dir = os.path.relpath(setup_dir)
+    py_files = []
+    py_files += find_files(os.path.join(setup_dir, 'pywbem'), '*.py')
+    py_files += find_files(os.path.join(setup_dir, 'pywbem_mock'), '*.py')
+    return py_files
 
 
 class PytestCommand(setuptools.Command):
@@ -178,6 +218,23 @@ class end2endtest(PytestCommand):
         ])
 
 
+class bdist_wheel(bdist_wheel_base):
+    # pylint: disable=invalid-name
+    """
+    Replacement for setup.py command 'bdist_wheel' that provides a
+    '--cythonized' option that causes the wheel archive to be built as
+    a cythonized version.
+
+    The handling of the option is in the module level code because it needs
+    to change the setuptools.setup() arguments.
+    """
+    user_options = bdist_wheel_base.user_options + [
+        # (long option, short option, description)
+        ('cythonized', None,
+         'pywbem: Make a cythonized wheel (default: uncythonized wheel)'),
+    ]
+
+
 # pylint: disable=invalid-name
 requirements = get_requirements('requirements.txt')
 install_requires = [req for req in requirements
@@ -194,7 +251,7 @@ package_version = get_version(os.path.join('pywbem', '_version.py'))
 #   highlight=setup#distutils.core.setup
 # * https://setuptools.readthedocs.io/en/latest/setuptools.html#
 #   new-and-changed-setup-keywords
-setuptools.setup(
+setup_options = dict(
     name='pywbem',
     version=package_version,
     packages=[
@@ -205,6 +262,7 @@ setuptools.setup(
     scripts=[
         'mof_compiler', 'mof_compiler.bat'
     ],
+    requires=['setuptools', 'wheel'],
     install_requires=install_requires,
     dependency_links=dependency_links,
     extras_require={
@@ -214,6 +272,7 @@ setuptools.setup(
         'test': test,
         'leaktest': leaktest,
         'end2endtest': end2endtest,
+        'bdist_wheel': bdist_wheel,
     },
     description='pywbem - A WBEM client',
     long_description=read_file('README_PYPI.rst'),
@@ -257,3 +316,35 @@ setuptools.setup(
         'Topic :: System :: Systems Administration',
     ]
 )
+
+CYTHONIZED = False
+if cythonize and '--cythonized' in sys.argv:
+    sys.argv.remove('--cythonized')
+    if 'bdist_wheel' in sys.argv:
+        CYTHONIZED = True
+
+if CYTHONIZED:
+    src_files = cythonizable_source_files()
+    print("Cythonizing pywbem source files")
+    if '--dry-run' in sys.argv:
+        for fn in src_files:
+            print("Dry-run: Cythonizing: {}".format(fn))
+        cython_ext_modules = []
+    else:
+        try:
+            cython_ext_modules = cythonize(
+                src_files,
+                build_dir='build_cythonize',
+                annotate=False,
+                compiler_directives=dict(
+                    language_level=str(sys.version_info[0])))
+        except CompileError as exc:
+            print("Error: Cython compile error: {}".format(exc))
+            sys.exit(1)
+
+    setup_options['requires'] += ['Cython']
+    setup_options['ext_modules'] = cython_ext_modules
+    setup_options['options']['build'] = {'build_lib': 'build_build_ext'}
+    setup_options['zip_safe'] = False
+
+setuptools.setup(**setup_options)

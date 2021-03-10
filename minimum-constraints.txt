@@ -110,6 +110,9 @@ urllib3==1.25.9; python_version >= '3.5'
 
 # Direct dependencies for development (must be consistent with dev-requirements.txt)
 
+# Cythonize
+Cython==0.29.22
+
 # Unit test (imports into testcases):
 packaging==17.0
 funcsigs==1.0.2; python_version < '3.3'

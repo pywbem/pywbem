@@ -238,6 +238,42 @@ can be installed.
 .. _PyPI: https://pypi.python.org/pypi
 
 
+.. _`Building a compiled archive with Cython`:
+
+Building a compiled archive with Cython
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The 'Cython' package allows building a wheel distribution archive containing
+compiled code for Python packages such as pywbem. These distribution archives
+are nicknamed "cythonized" wheel distribution archives. They have the wheel
+format, but are specific to a Python version and to the target operating system.
+
+Since the code in a cythonized wheel archive is native machine code for the
+target system, this speeds up execution in compute-intensive areas of pywbem
+such as when parsing the CIM-XML responses of a WBEM server. The downside is
+that a cythonized wheel archive is significantly larger than a universal wheel
+archive, and the memory consumption is also larger.
+
+The pywbem project does not provide cythonized wheel distribution archives, but
+allows users to build them on their own. The build process for them is part of
+the regular tests to ensure they can be built.
+
+To build the cythonized wheel distribution archive of pywbem, execute:
+
+.. code-block:: bash
+
+    $ make buildc
+
+The resulting distribution archive can be installed with Pip, for example:
+
+.. code-block:: bash
+
+    $ pip install dist/pywbem-1.2.0.dev1-cp38-cp38-macosx_10_15_x86_64.whl
+
+Pip will verify that the target system and Python version matches what the wheel
+archive was built for.
+
+
 .. _`Verifying the installation`:
 
 Verifying the installation

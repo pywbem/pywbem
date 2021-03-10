@@ -164,6 +164,11 @@ python_mn_version := $(shell $(PYTHON_CMD) tools/python_version.py 2)
 python_m_version := $(shell $(PYTHON_CMD) tools/python_version.py 1)
 pymn := py$(python_mn_version)
 
+# Tags for file name of cythonized wheel archive
+cython_pytag := $(shell $(PYTHON_CMD) -c "import sys; print('cp{}{}'.format(*sys.version_info[0:2]))")
+cython_abitag := $(shell $(PYTHON_CMD) -c "import sys; print('cp{}{}{}'.format(sys.version_info[0],sys.version_info[1],getattr(sys, 'abiflags','mu')))")
+cython_platform := $(shell $(PYTHON_CMD) -c "import distutils.util; print(distutils.util.get_platform().replace('.','_').replace('-','_'))")
+
 # OpenSSL version used by Python's ssl
 openssl_version := $(shell $(PYTHON_CMD) -c "import ssl; print(ssl.OPENSSL_VERSION)")
 
@@ -173,9 +178,14 @@ dist_dir := dist
 # Distribution archives
 # These variables are set with "=" for the same reason as package_version.
 bdist_file = $(dist_dir)/$(package_name)-$(package_version)-py2.py3-none-any.whl
+bdistc_file = $(dist_dir)/$(package_name)-$(package_version)-$(cython_pytag)-$(cython_abitag)-$(cython_platform).whl
 sdist_file = $(dist_dir)/$(package_name)-$(package_version).tar.gz
 
+# Only the normal wheel and source distribution archives
 dist_files = $(bdist_file) $(sdist_file)
+
+# Cython compiler flags (for clang compiler)
+cython_cflags = -g0 -Wno-deprecated-declarations
 
 # Source files in the packages
 package_py_files := \
@@ -367,7 +377,7 @@ help:
 	@echo "Make targets:"
 	@echo "  install    - Install pywbem and its Python installation and runtime prereqs"
 	@echo "  develop    - Install Python development prereqs (includes develop_os once after clobber)"
-	@echo "  build      - Build the distribution archive files in: $(dist_dir)"
+	@echo "  build      - Build the source and wheel distribution archives in: $(dist_dir)"
 	@echo "  builddoc   - Build documentation in: $(doc_build_dir)"
 	@echo "  check      - Run Flake8 on sources"
 	@echo "  pylint     - Run PyLint on sources"
@@ -376,6 +386,9 @@ help:
 	@echo "  leaktest   - Run memory leak tests (in tests/leaktest)"
 	@echo "  resourcetest - Run resource consumption tests (in tests/resourcetest)"
 	@echo "  all        - Do all of the above"
+	@echo "  buildc     - Build the cythonized wheel distribution archive in: $(dist_dir)"
+	@echo "  installc   - Install the cythonized wheel distribution archive"
+	@echo "  testc      - Run unit and function tests against cythonized wheel distribution archive"
 	@echo "  todo       - Check for TODOs in Python and docs sources"
 	@echo "  end2endtest - Run end2end tests (in tests/end2endtest)"
 	@echo "  develop_os - Install OS-level development prereqs"
@@ -484,6 +497,20 @@ else
 endif
 	echo "done" >$@
 
+installc_pywbem_$(pymn).done: Makefile pip_upgrade_$(pymn).done $(bdistc_file)
+	-$(call RM_FUNC,$@)
+ifdef TEST_INSTALLED
+	@echo "Makefile: Skipping installation of pywbem and its Python runtime prerequisites because TEST_INSTALLED is set"
+	@echo "Makefile: Checking whether pywbem is actually installed:"
+	$(PIP_CMD) show $(package_name)
+else
+	@echo "Makefile: Installing cythonized wheel archive"
+	$(PIP_CMD) uninstall -y $(package_name)
+	$(PIP_INSTALL_CMD) $(bdistc_file)
+	@echo "Makefile: Done installing cythonized wheel archive"
+endif
+	echo "done" >$@
+
 .PHONY: install
 install: install_$(pymn).done
 	@echo "Makefile: Target $@ done."
@@ -492,6 +519,19 @@ install_$(pymn).done: Makefile install_basic_$(pymn).done install_pywbem_$(pymn)
 	-$(call RM_FUNC,$@)
 	$(PYTHON_CMD) -c "import $(package_name)"
 	$(PYTHON_CMD) -c "import $(mock_package_name)"
+	echo "done" >$@
+
+.PHONY: installc
+installc: installc_$(pymn).done
+	@echo "Makefile: Target $@ done."
+
+installc_$(pymn).done: Makefile install_basic_$(pymn).done installc_pywbem_$(pymn).done
+	-$(call RM_FUNC,$@)
+ifeq ($(PLATFORM),Windows_native)
+	cmd /c "set TEST_INSTALLED=1 & $(PYTHON_CMD) -c "from tests.utils import import_installed; pkg=import_installed('$(package_name)'); print('$(package_name).__file__={}'.format(pkg.__file__))""
+else
+	TEST_INSTALLED=1 $(PYTHON_CMD) -c "from tests.utils import import_installed; pkg=import_installed('$(package_name)'); print('$(package_name).__file__={}'.format(pkg.__file__))"
+endif
 	echo "done" >$@
 
 .PHONY: develop_os
@@ -524,6 +564,10 @@ develop_$(pymn).done: pip_upgrade_$(pymn).done install_$(pymn).done develop_os_$
 build: _check_version $(bdist_file) $(sdist_file)
 	@echo "Makefile: Target $@ done."
 
+.PHONY: buildc
+buildc: _check_version $(bdistc_file)
+	@echo "makefile: Target $@ done."
+
 .PHONY: builddoc
 builddoc: html
 	@echo "Makefile: Target $@ done."
@@ -548,7 +592,7 @@ all: install develop build builddoc check pylint installtest test leaktest resou
 clobber: clean
 	@echo "Makefile: Removing everything for a fresh start"
 	-$(call RM_FUNC,*.done epydoc.log $(moftab_files) $(dist_files) $(dist_dir)/$(package_name)-$(package_version)*.egg pywbem/*cover pywbem_mock/*cover)
-	-$(call RMDIR_FUNC,$(doc_build_dir) .tox $(coverage_html_dir))
+	-$(call RMDIR_FUNC,$(doc_build_dir) .tox $(coverage_html_dir) build_build_ext build_cythonize)
 	@echo "Makefile: Done removing everything for a fresh start"
 	@echo "Makefile: Target $@ done."
 
@@ -673,12 +717,30 @@ endif
 # regenerate MANIFEST. Otherwise, changes in MANIFEST.in will not be used.
 # Note: Deleting build is a safeguard against picking up partial build products
 # which can lead to incorrect hashbangs in the pywbem scripts in wheel archives.
-$(bdist_file) $(sdist_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
-	@echo "Makefile: Creating the distribution archive files"
+$(sdist_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
+	@echo "Makefile: Creating the source distribution archive: $(sdist_file)"
 	-$(call RM_FUNC,MANIFEST)
 	-$(call RMDIR_FUNC,build $(package_name).egg-info-INFO .eggs)
-	$(PYTHON_CMD) setup.py sdist -d $(dist_dir) bdist_wheel -d $(dist_dir) --universal
-	@echo "Makefile: Done creating the distribution archive files: $(bdist_file) $(sdist_file)"
+	$(PYTHON_CMD) setup.py sdist -d $(dist_dir)
+	@echo "Makefile: Done creating the source distribution archive: $(sdist_file)"
+
+$(bdist_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
+	@echo "Makefile: Creating the normal wheel distribution archive: $(bdist_file)"
+	-$(call RM_FUNC,MANIFEST)
+	-$(call RMDIR_FUNC,build $(package_name).egg-info-INFO .eggs)
+	$(PYTHON_CMD) setup.py bdist_wheel -d $(dist_dir) --universal
+	@echo "Makefile: Done creating the normal wheel distribution archive: $(bdist_file)"
+
+$(bdistc_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
+	@echo "Makefile: Creating the cythonized wheel distribution archive: $(bdistc_file)"
+	-$(call RM_FUNC,MANIFEST)
+	-$(call RMDIR_FUNC,build $(package_name).egg-info-INFO .eggs)
+ifeq ($(PLATFORM),Windows_native)
+	cmd /c "set CFLAGS=$(cython_cflags) & $(PYTHON_CMD) setup.py bdist_wheel -d $(dist_dir) --universal --cythonized"
+else
+	CFLAGS='$(cython_cflags)' $(PYTHON_CMD) setup.py bdist_wheel -d $(dist_dir) --universal --cythonized
+endif
+	@echo "Makefile: Done creating the cythonized wheel distribution archive: $(bdistc_file)"
 
 # Note: The mof*tab files need to be removed in order to rebuild them (make rules vs. ply rules)
 # Note: Because the current directory is by default in front of the Python module
@@ -766,6 +828,16 @@ test: $(test_deps)
 	@echo "Makefile: Running unit and function tests"
 	py.test --color=yes $(pytest_cov_opts) $(pytest_warning_opts) $(pytest_opts) $(test_dir)/unittest $(test_dir)/functiontest -s
 	@echo "Makefile: Done running unit and function tests"
+
+.PHONY: testc
+testc: $(test_deps) installc_$(pymn).done
+	@echo "Makefile: Running unit and function tests on cythonized archive"
+ifeq ($(PLATFORM),Windows_native)
+	cmd /c "set TEST_INSTALLED=1 & py.test --color=yes $(pytest_cov_opts) $(pytest_warning_opts) $(pytest_opts) $(test_dir)/unittest $(test_dir)/functiontest -s"
+else
+	TEST_INSTALLED=1 py.test --color=yes $(pytest_cov_opts) $(pytest_warning_opts) $(pytest_opts) $(test_dir)/unittest $(test_dir)/functiontest -s
+endif
+	@echo "Makefile: Done running unit and function tests on cythonized archive"
 
 .PHONY: installtest
 installtest: $(bdist_file) $(sdist_file) $(test_dir)/installtest/test_install.sh

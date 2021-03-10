@@ -29,6 +29,8 @@ pylint_done
 cprofilerstats*.profile
 /build/
 /build_doc/
+/build_build_ext/
+/build_cythonize/
 mofparsetab.py
 _mofparsetab.py
 moflextab.py

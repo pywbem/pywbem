@@ -126,6 +126,12 @@ jobs:
       matrix: ${{ fromJson(needs.set_matrix.outputs.matrix) }}
     runs-on: ${{ matrix.os }}
     steps:
+    - name: Select whether to run steps for cythonized archive
+      id: run_cythonized
+      # TODO: Remove 'andy/cythonize' branch once tests succeed
+      if: "! startsWith(matrix.os, 'windows-') && (github.event_name == 'schedule' || startsWith(github.head_ref, 'release_') || github.head_ref == 'andy/cythonize')"
+      run: |
+        echo "Running steps for cythonized archive"
     - name: Checkout repo
       uses: actions/checkout@v2
       with:
@@ -206,6 +212,29 @@ jobs:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
       run: |
         make resourcetest
+    - name: Build cythonized archive
+      if: steps.run_cythonized.outcome == 'success'
+      env:
+        PACKAGE_LEVEL: ${{ matrix.package_level }}
+      run: |
+        make buildc
+    - name: Install cythonized archive
+      # Excluded py27 because the abitag in the dist file name is hard to predict
+      # Excluded py27 and py34 because they do not have a __file__ member in a module
+      if: steps.run_cythonized.outcome == 'success' && matrix.python-version != '2.7' && matrix.python-version != '3.4'
+      env:
+        PACKAGE_LEVEL: ${{ matrix.package_level }}
+      run: |
+        make installc
+    - name: Test cythonized archive
+      # Excluded py27 and py34 because they do not have a __file__ member in a module
+      if: steps.run_cythonized.outcome == 'success' && matrix.python-version != '2.7' && matrix.python-version != '3.4'
+      env:
+        PACKAGE_LEVEL: ${{ matrix.package_level }}
+        # TODO: Remove -x option once tests succeed
+        TESTOPTS: "-x"
+      run: |
+        make testc
 
   test_finish:
     needs: test
