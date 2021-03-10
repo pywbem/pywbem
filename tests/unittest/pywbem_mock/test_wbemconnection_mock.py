@@ -67,7 +67,8 @@ from pywbem import CIMClass, CIMProperty, CIMInstance, CIMMethod, \
     CIM_ERR_NAMESPACE_NOT_EMPTY, CIM_ERR_INVALID_SUPERCLASS, \
     CIM_ERR_NOT_SUPPORTED, CIM_ERR_METHOD_NOT_AVAILABLE, \
     CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED, CIM_ERR_METHOD_NOT_FOUND, \
-    CIM_ERR_FAILED, MOFParseError  # noqa: E402
+    CIM_ERR_FAILED, CIM_ERR_CLASS_HAS_CHILDREN, \
+    CIM_ERR_CLASS_HAS_INSTANCES, MOFParseError  # noqa: E402
 from pywbem._nocasedict import NocaseDict  # noqa: E402
 from pywbem._utils import _format  # noqa: E402
 from pywbem._cim_operations import pull_path_result_tuple  # noqa: E402
@@ -3828,15 +3829,36 @@ class TestClassOperations(object):
         """Support method for createclass. Executes createclass on the
            pre_tst_classes parameter. Compiles all classes found in the
            parameter
+
+           Parameters:
+             conn:
+
+             pre_tst_classes (list or string or CIMClass):
+                If list, it is a list of classnames from tst_classes to
+                be passed to CreateClass.
+                If string it is a single classname from tst_classes to be
+                passed to CreateClass.
+                If CIMClass, it is a CIMClass pywbem object to be passed
+                to CreateClass
+
+             ns (:term:`string`):
+               String defining target namespace for adding classes
+
+             tst_classes (list): list of classes availiable for test
         """
         if pre_tst_classes:
+            # if is list of classnames, recursively call for each one
             if isinstance(pre_tst_classes, list):
-                for cl_ in pre_tst_classes:
-                    self.process_pretcl(conn, cl_, ns, tst_classes)
+                for cln in pre_tst_classes:
+                    self.process_pretcl(conn, cln, ns, tst_classes)
+
+            # If string, it is a classname of class in tst_classes
             elif isinstance(pre_tst_classes, six.string_types):
-                for cl_ in tst_classes:
-                    if cl_.classname == pre_tst_classes:
-                        conn.CreateClass(cl_, namespace=ns)
+                for tst_cls in tst_classes:
+                    if tst_cls.classname == pre_tst_classes:
+                        conn.CreateClass(tst_cls, namespace=ns)
+                        return
+
             elif isinstance(pre_tst_classes, CIMClass):
                 conn.CreateClass(pre_tst_classes, namespace=ns)
 
@@ -4390,6 +4412,9 @@ class TestClassOperations(object):
 
         # if pretcl, create/install the pre test class.  Installs the
         # prerequisite classes into the repository.
+        if isinstance(pre_tst_classes, list):
+            pre_tst_classes = NocaseList(pre_tst_classes)
+
         self.process_pretcl(conn, pre_tst_classes, ns, tst_classes)
 
         # Create the new_class to send to CreateClass from the
@@ -4671,7 +4696,526 @@ class TestClassOperations(object):
             assert exp_rslt is None
             assert False, "This part of test_createclass_mof_err not implemente"
 
-    # Issue # 2210, TODO: implement a specifc test for ModifyClass
+    # Test ModifyClass
+    @pytest.mark.parametrize(
+        "ns", INITIAL_NAMESPACES + [None])
+    @pytest.mark.parametrize(
+        "desc, pre_tst_classes, has_insts, tst_cls, exp_rslt, exp_exc, "
+        "condition",
+        [
+            # desc: Description of testcase for ModifyClass operation
+            # pre_tst_classes: The classes in the repository
+            #                  when ModifyClass on tst_cls
+            #                  is executed
+            #                  May be:
+            #                   * pywbem CIMClass definition,
+            #                   * string defining name of class in tst_classes
+            #                   * list of class/classnames
+            # has_insts: If True add instances for tst_cls
+            # tst_cls: Either string defining test class name in tst_classes or
+            #         CIMClass to be passed to CreateClass
+            # exp_rstl: None or expected CIMClass returned from GetClass for
+            #             verifying the created class
+            # exp_exc: None or expected exception object
+            # condition: If False, skip this test
+
+            ['Modify CIM_Foo class, no superclass correctly replace CIM_Foo '
+             'with same class',
+             ['CIM_Foo'],  # Pre test classes list
+             False,        # no install of instances
+             'CIM_Foo',    # modified class
+             CIMClass(     # Expected result
+                 'CIM_Foo', superclass=None,
+                 qualifiers={
+                     'Description': CIMQualifier(
+                         'Description', "CIM_Foo description",
+                         overridable=True,
+                         tosubclass=True,
+                         translatable=True,
+                         propagated=False)},
+                 properties={
+                     'InstanceID': CIMProperty(
+                         'InstanceID', None,
+                         qualifiers={
+                             'Key': CIMQualifier(
+                                 'Key', True, type='boolean',
+                                 overridable=False,
+                                 tosubclass=True,
+                                 propagated=False), },
+                         type='string', class_origin='CIM_Foo',
+                         propagated=False), },
+                 methods={
+                     'Delete': CIMMethod(
+                         'Delete', 'uint32',
+                         qualifiers={
+                             'Description': CIMQualifier(
+                                 'Description', "qualifier description",
+                                 overridable=True,
+                                 tosubclass=True,
+                                 translatable=True,
+                                 propagated=False)},
+                         class_origin='CIM_Foo',
+                         propagated=False),
+                     'Fuzzy': CIMMethod(
+                         'Fuzzy', 'string',
+                         qualifiers={
+                             'Description': CIMQualifier(
+                                 'Description', "qualifier description",
+                                 overridable=True,
+                                 tosubclass=True,
+                                 translatable=True,
+                                 propagated=False)},
+                         class_origin='CIM_Foo',
+                         propagated=False), },
+             ),
+             None, OK],
+
+            ['Modify CIM_Foo_sub class, with superclass correctly replace '
+             'with same class',
+             ['CIM_Foo', 'CIM_Foo_sub'],  # Pre test classes list
+             False,                       # no install of instances
+             'CIM_Foo_sub',               # modified class
+             CIMClass(                    # Expected result
+                 'CIM_Foo_sub', superclass='CIM_Foo',
+                 qualifiers={
+                     'Description': CIMQualifier(
+                         'Description', "Subclass Description",
+                         overridable=True,
+                         tosubclass=True,
+                         translatable=True,
+                         propagated=False)},
+                 properties={
+                     'InstanceID': CIMProperty(
+                         'InstanceID', None,
+                         qualifiers={
+                             'Key': CIMQualifier(
+                                 'Key', True, type='boolean',
+                                 overridable=False,
+                                 tosubclass=True,
+                                 propagated=True)},
+                         type='string', class_origin='CIM_Foo',
+                         propagated=True),
+                     'cimfoo_sub': CIMProperty(
+                         'cimfoo_sub', None,
+                         qualifiers={
+                             'Description': CIMQualifier(
+                                 'Description',
+                                 'qualifier description',
+                                 overridable=True,
+                                 tosubclass=True,
+                                 translatable=True,
+                                 propagated=False)},
+                         type='string', class_origin='CIM_Foo_sub',
+                         propagated=False)},
+                 methods={
+                     'Delete': CIMMethod(
+                         'Delete', 'uint32',
+                         qualifiers={
+                             'Description': CIMQualifier(
+                                 'Description', "qualifier description",
+                                 overridable=True,
+                                 tosubclass=True,
+                                 translatable=True,
+                                 propagated=True)},
+                         class_origin='CIM_Foo',
+                         propagated=True),
+                     'Fuzzy': CIMMethod(
+                         'Fuzzy', 'string',
+                         qualifiers={
+                             'Description': CIMQualifier(
+                                 'Description', "qualifier description",
+                                 overridable=True,
+                                 tosubclass=True,
+                                 translatable=True,
+                                 propagated=True)},
+                         class_origin='CIM_Foo',
+                         propagated=True), },
+             ),
+             None, OK],
+
+            ['Modify CIM_Foo_sub class, modify only defines new properties',
+             ['CIM_Foo', 'CIM_Foo_sub'],  # Pre test classes list
+             False,                       # no install of instances
+             # modified class with only new props
+             CIMClass(
+                 'CIM_Foo_sub', superclass='CIM_Foo',
+                 qualifiers={
+                     'Description': CIMQualifier(
+                         'Description', 'Subclass Description')},
+                 properties={
+                     'cimfoo_sub':
+                     CIMProperty('cimfoo_sub', None, type='string',
+                                 qualifiers={'Description':
+                                             CIMQualifier(
+                                                 'Description',
+                                                 'qualifier description')})}),
+             CIMClass(                    # Expected result
+                 'CIM_Foo_sub', superclass='CIM_Foo',
+                 qualifiers={
+                     'Description': CIMQualifier(
+                         'Description', "Subclass Description",
+                         overridable=True,
+                         tosubclass=True,
+                         translatable=True,
+                         propagated=False)},
+                 properties={
+                     'InstanceID': CIMProperty(
+                         'InstanceID', None,
+                         qualifiers={
+                             'Key': CIMQualifier(
+                                 'Key', True, type='boolean',
+                                 overridable=False,
+                                 tosubclass=True,
+                                 propagated=True)},
+                         type='string', class_origin='CIM_Foo',
+                         propagated=True),
+                     'cimfoo_sub': CIMProperty(
+                         'cimfoo_sub', None,
+                         qualifiers={
+                             'Description': CIMQualifier(
+                                 'Description',
+                                 'qualifier description',
+                                 overridable=True,
+                                 tosubclass=True,
+                                 translatable=True,
+                                 propagated=False)},
+                         type='string', class_origin='CIM_Foo_sub',
+                         propagated=False)},
+                 methods={
+                     'Delete': CIMMethod(
+                         'Delete', 'uint32',
+                         qualifiers={
+                             'Description': CIMQualifier(
+                                 'Description', "qualifier description",
+                                 overridable=True,
+                                 tosubclass=True,
+                                 translatable=True,
+                                 propagated=True)},
+                         class_origin='CIM_Foo',
+                         propagated=True),
+                     'Fuzzy': CIMMethod(
+                         'Fuzzy', 'string',
+                         qualifiers={
+                             'Description': CIMQualifier(
+                                 'Description', "qualifier description",
+                                 overridable=True,
+                                 tosubclass=True,
+                                 translatable=True,
+                                 propagated=True)},
+                         class_origin='CIM_Foo',
+                         propagated=True), },
+             ),
+             None, OK],
+
+
+            ['Modify CIM_Foo class, change property type, remove methods'
+             'with same class',
+             ['CIM_Foo'],  # Pre test classes list
+             False,        # no install of instances
+             # Modified class
+             CIMClass(
+                 'CIM_Foo', superclass=None,
+                 qualifiers={},
+                 properties={
+                     'blahID': CIMProperty(
+                         'blahID', None,
+                         type='uint32')},
+             ),
+             # Expected result
+             CIMClass(
+                 'CIM_Foo', superclass=None,
+                 qualifiers={},
+                 properties={
+                     'BlahID': CIMProperty(
+                         'BlahID', None,
+                         qualifiers={},
+                         type='uint32', class_origin='CIM_Foo',
+                         propagated=False), },
+             ),
+             None, OK],
+
+            #
+            # Test superclass names do not match
+            #
+            ['Modify CIM_Foo, Fails. Modify adds superclass name',
+             ['CIM_Foo'],      # pre-test class list
+             False,            # no install of instances
+             # Modified class.
+             CIMClass('CIM_Foo', superclass='CIM_Foo'),
+             None,             # Expected result. Not used
+             CIMError(CIM_ERR_INVALID_SUPERCLASS), OK],  # expect error response
+
+            ['Modify CIM_Foo, Fails. orig/modified superclass do not match',
+             ['CIM_Foo', 'CIM_Foo_sub'],      # pre-test class list
+             False,                         # no install of instances
+             # Modified class.
+             CIMClass('CIM_Foo_sub', superclass='CIM_Foo_sub'),
+             None,                          # Expected result. Not used
+             CIMError(CIM_ERR_INVALID_SUPERCLASS), OK],  # expect error response
+
+
+            ['Modify CIM_Foo, Fails. modify forgets superclass name',
+             ['CIM_Foo', 'CIM_Foo_sub'],      # pre-test class list
+             False,                         # no install of instances
+             # Modified class.
+             CIMClass('CIM_Foo_sub'),
+             None,                          # Expected result. Not used
+             CIMError(CIM_ERR_INVALID_SUPERCLASS), OK],  # expect error response
+
+            #
+            # Test general error responses
+            #
+            ['Modify CIM_Foo class, Fails, class does not exist, no superclass',
+             [],  # pre-test class list
+             False,                       # no install of instances
+             'CIM_Foo',                   # Class to modif
+             None,                        # Expected result. Not used
+             CIMError(CIM_ERR_NOT_FOUND), OK],  # expect error response
+            ['Modify CIM_Foo class, Fails, subclass exists',
+             ['CIM_Foo', 'CIM_Foo_sub'],  # pre-test class list
+             False,                       # no install of instances
+             'CIM_Foo',                   # Class to modif
+             None,                        # Expected result. Not used
+             CIMError(CIM_ERR_CLASS_HAS_CHILDREN), OK],  # expect error response
+
+            ['Modify CIM_Foo_sub class, Fails w superclass that does not exist',
+             ['CIM_Foo'],      # pre-test class list
+             False,            # no install of instances
+             'CIM_Foo_sub',    # Class to modify
+             None,             # Expected result. Not used
+             CIMError(CIM_ERR_NOT_FOUND), OK],  # expect error response
+
+            ['Modify CIM_Foo class, Fails. Invalid superclass',
+             ['CIM_Foo'],                   # pre-test class list
+             False,                # no install of instances
+             CIMClass('CIM_Foo',   # Class to modify
+                      superclass="CIM_NoExist",
+                      properties={'InstanceID':
+                                  CIMProperty('InstanceID', None,
+                                              qualifiers={
+                                                  'Key':
+                                                  CIMQualifier('Key', True)},
+                                              type='string')}),
+             None,                       # Expected result. Not used
+             CIMError(CIM_ERR_INVALID_SUPERCLASS), OK],  # expect err response
+
+            ['Modify CIM_Foo class, Fails, instances exist, no superclass',
+             ['CIM_Foo'],  # pre-test class list
+             True,         # install instances
+             'CIM_Foo',    # Class to modify
+             None,         # Expected result. Not used
+             CIMError(CIM_ERR_CLASS_HAS_INSTANCES), OK],  # expect err response
+
+            ['Modify CIM_Foo_sub class, Fails, instances exist, has superclass',
+             ['CIM_Foo', 'CIM_Foo_sub'],  # pre-test class list
+             True,                        # install instances
+             'CIM_Foo_sub',               # Class to modify
+             None,                        # Expected result. Not used
+             CIMError(CIM_ERR_CLASS_HAS_INSTANCES), OK],  # expect err response
+        ],
+    )
+    def test_modifyclass(self, conn, tst_qualifiers_mof, tst_classes,
+                         tst_instances, ns, desc, pre_tst_classes, has_insts,
+                         tst_cls, exp_rslt, exp_exc, condition):
+        # pylint: disable=no-self-use,protected-access,unused-argument
+        """
+            Test create class. Tests for namespace variable,
+            correctly adding, and invalid add where class has superclass
+            No way to do bad namespace error because this  method creates
+            namespace if it does not exist.
+        """
+        if not condition:
+            pytest.skip("This test marked to be skipped by condition")
+        skip_if_moftab_regenerated()
+
+        # preinstall required qualifiers
+        conn.compile_mof_string(tst_qualifiers_mof, namespace=ns)
+
+        # Added when we added tests for compiling embeddedinstance qualifier
+        # TODO Future: Merge this qual decl into tst_qualifiers_mof
+        conn.compile_mof_string("Qualifier EmbeddedInstance : string = null, "
+                                "Scope(property, method, parameter);")
+
+        # If pretcl, create/install the pre test class.  Installs the
+        # prerequisite classes into the repository.
+
+        if isinstance(pre_tst_classes, list):
+            pre_tst_classes = NocaseList(pre_tst_classes)
+        self.process_pretcl(conn, pre_tst_classes, ns, tst_classes)
+
+        # Create the modified_class to send to ModifyClass from the
+        # existing tst_classes (if tst_cls is a string) or class defined
+        # for this test
+        if isinstance(tst_cls, six.string_types):
+            for cl_ in tst_classes:
+                if cl_.classname == tst_cls:
+                    modified_class = cl_
+        else:
+            modified_class = tst_cls
+
+        # If has_insts is True, add instances for tst_class.
+        if has_insts:
+            for inst in tst_instances:
+                if inst.classname.lower() == modified_class.classname.lower():
+                    conn.CreateInstance(inst, namespace=ns)
+
+        # Execute test code
+
+        if exp_exc is not None:
+            with pytest.raises(type(exp_exc)) as exec_info:
+
+                # The code to be tested
+                conn.ModifyClass(modified_class, namespace=ns)
+
+            exc = exec_info.value
+            if isinstance(exp_exc, CIMError):
+                assert exc.status_code == exp_exc.status_code
+
+        else:
+            # The code to be tested
+            conn.ModifyClass(modified_class, namespace=ns)
+
+            # Get class with LocalOnly=False and confirm against the
+            # test class.
+            get_cl = conn.GetClass(modified_class.classname,
+                                   namespace=ns,
+                                   IncludeQualifiers=True,
+                                   IncludeClassOrigin=True,
+                                   LocalOnly=False)
+            get_cl.path = None
+
+            # test for propagated set
+            for pname, pvalue in get_cl.properties.items():
+                assert pvalue.propagated is not None
+                if modified_class.superclass is None:
+                    assert pvalue.class_origin == modified_class.classname
+            for mname, mvalue in get_cl.methods.items():
+                assert mvalue.propagated is not None
+                if modified_class.superclass is None:
+                    assert mvalue.class_origin == modified_class.classname
+
+            # if expected rtn is a CIMClass, compare the classes
+            if isinstance(exp_rslt, CIMClass):
+                assert_classes_equal(get_cl, exp_rslt)
+
+            # if exp_rslt is string, resolve item from tst_classes
+            elif isinstance(exp_rslt, six.string_types):
+                for cl_ in tst_classes:
+                    if cl_.classname == exp_rslt:
+                        clsr = resolve_class(conn, cl_, ns)
+                        assert_classes_equal(clsr, get_cl)
+
+            # if exp_rslt is None, resolve tst_cls or clean it up
+            elif exp_rslt is None:
+                if isinstance(tst_cls, CIMClass):
+                    tst_cls_resolved = resolve_class(conn, tst_cls, ns)
+                    assert_classes_equal(tst_cls_resolved, get_cl)
+                else:
+                    assert set(get_cl.properties) == \
+                        set(modified_class.properties)
+                    assert set(get_cl.methods) == set(modified_class.methods)
+                    assert set(get_cl.qualifiers) == \
+                        set(modified_class.qualifiers)
+
+            else:
+                assert False, "test_create_class invalid test definition {}". \
+                    format(desc)
+
+            # Get the class with local only False. and test for valid
+            # ico, lo and non-lo properties/methods.
+
+            rslt_cls = conn.GetClass(modified_class.classname,
+                                     namespace=ns,
+                                     IncludeQualifiers=True,
+                                     IncludeClassOrigin=True,
+                                     LocalOnly=False)
+            ns = ns or conn.default_namespace
+            class_store = conn.cimrepository.get_class_store(ns)
+            superclasses = conn._mainprovider._get_superclass_names(
+                modified_class.classname, class_store)
+
+            if modified_class.superclass is None:
+                superclass = None
+            else:
+                superclass = conn.GetClass(modified_class.superclass,
+                                           namespace=ns,
+                                           IncludeQualifiers=True,
+                                           IncludeClassOrigin=True,
+                                           LocalOnly=False)
+            # Issue #2327 FUTURE, 18: TODO: More specific tests for the
+            # characteristics of resolving classes to assure that all resolved
+            # parameters are correct for each test case.
+            if superclass:
+                for prop in superclass.properties:
+                    assert prop in rslt_cls.properties
+                for method in superclass.methods:
+                    assert method in rslt_cls.methods
+
+            # Test for correct qualifier attributes in create class
+            for pname, pvalue in rslt_cls.properties.items():
+                if superclass:
+                    # If there is a superclass
+                    if 'Override' in pvalue.qualifiers:
+                        ov_qual = pvalue.qualifiers['Override']
+                        sc_pname = ov_qual.value
+                        if sc_pname in superclass.properties:
+                            assert pvalue.propagated is True
+                            assert pvalue.class_origin in superclasses
+                            if pvalue.type != 'reference':
+                                spvalue = superclass.properties[pname]
+                                assert spvalue.type == pvalue.type
+                            else:  # property type ref with override
+                                spvalue = superclass.properties[sc_pname]
+                                assert spvalue.type == pvalue.type
+                        else:
+                            assert False, "Override %s without property %s " \
+                                          "in superclass" % (pname, sc_pname)
+                    else:   # superclass but no override
+                        if pname in superclass.properties:
+                            assert pvalue.propagated is True
+                            assert pvalue.class_origin in superclasses
+                            assert pvalue.type == \
+                                superclass.properties[pname].type
+                        else:  # pname not in superclass properties
+                            assert pvalue.propagated is False
+                            assert pvalue.class_origin == rslt_cls.classname
+                else:  # No superclass
+                    assert pvalue.propagated is False
+                    assert pvalue.class_origin == rslt_cls.classname
+
+            for mname, mvalue in get_cl.methods.items():
+                if superclass:
+                    if 'Override' in mvalue.qualifiers:
+                        sc_mname = mvalue.qualifiers['Override']
+                        if sc_mname in superclass.methods:
+                            assert mvalue.propagated is True
+                            assert mvalue.class_origin == superclass.classname
+                            if mvalue.type != 'reference':
+                                assert superclass.pname == mname
+                                smvalue = superclass.methods[mname]
+                                assert smvalue.type == mvalue.type
+                            else:  # property type ref with override
+                                smvalue = superclass.methods[sc_mname]
+                                assert smvalue.type == mvalue.type
+                        else:
+                            assert False, "Override %s without property %s " \
+                                          "in superclass" % (pname, sc_mname)
+                    else:   # superclass but no override
+                        if mname in superclass.methods:
+                            assert mvalue.propagated is True
+                            assert mvalue.class_origin in superclasses
+                            assert mvalue.return_type == \
+                                superclass.methods[mname].return_type
+                        else:
+                            assert mvalue.propagated is False
+                            assert mvalue.class_origin == rslt_cls.classname
+                    for pname, pvalue in mvalue.parameters.items():
+                        assert pname in superclass.methods[mname].parameters
+                        assert pvalue == \
+                            superclass.methods[mname].parameters[pname]
+                else:
+                    assert mvalue.propagated is False
+                    assert mvalue.class_origin == rslt_cls.classname
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])

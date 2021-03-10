@@ -456,13 +456,17 @@ Class operations only work if the CIM repository is in full operation mode.
   :meth:`~pywbem.WBEMConnection.CreateClass`. Requires that the superclass of
   the new class (if it specifies one) is in the CIM repository.
 
-- **DeleteClass:** Behaves like
-  :meth:`~pywbem.WBEMConnection.DeleteClass`, with the following difference:
-  This operation additionally deletes all direct and indirect subclasses of the
-  class to be deleted, and all instances of the classes that are being deleted.
-  Requires that the class to be deleted is in the CIM repository.
+- **DeleteClass:** Behaves like :meth:`~pywbem.WBEMConnection.DeleteClass`,
+  with the following difference: This operation additionally deletes all direct
+  and indirect subclasses of the class to be deleted, and all instances of the
+  classes that are being deleted. Requires that the class to be deleted is in
+  the CIM repository.
 
-- **ModifyClass:** Not currently implemented.
+- **ModifyClass:** Behaves like :meth:`~pywbem.WBEMConnection.ModifyClass`.
+  The pywbem_mock implementation rejects modifications where the class to
+  modifiy has either subclasses or instances and resolves the various
+  qualifiers, class origin values and propagated values as the the CreateClass
+  operation.
 
 
 .. _`Faked qualifier declaration operations`:

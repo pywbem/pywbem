@@ -230,6 +230,10 @@ Released: not yet
   prevent incorrect interpretations of the counters when only a subset of the
   operations returned server response time. (issue #2603)
 
+* Added validation tests to pywbem_mock ModifyClass to limit classes
+  that can be modified (no subclasses, and no instances exist, and
+  correct superclass) (see issue #2447)
+
 **Cleanup:**
 
 * Test: Fixed all remaining ResourceWarnings during test. (issue #86)
@@ -242,6 +246,9 @@ Released: not yet
 * Fixed new issues reported by pylint 2.7.0. At the same time, needed to
   temporarily pin pylint to <2.7.0 and astroid to <2.5.0 due to massive
   elongation of the run time of pylint in the pywbem project.
+
+* Added tests for pywbem_mock ModifyClass request operation to test the
+  validation exceptions and correctness of modified class. (see issue #2210)
 
 **Known issues:**
 

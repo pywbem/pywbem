@@ -57,7 +57,8 @@ from pywbem import CIMClass, CIMClassName, CIMInstanceName, \
     CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_PARAMETER, CIM_ERR_INVALID_CLASS, \
     CIM_ERR_ALREADY_EXISTS, CIM_ERR_INVALID_ENUMERATION_CONTEXT, \
     CIM_ERR_NOT_SUPPORTED, CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED, \
-    CIM_ERR_INVALID_QUERY, CIM_ERR_FAILED
+    CIM_ERR_INVALID_QUERY, CIM_ERR_FAILED, CIM_ERR_CLASS_HAS_CHILDREN, \
+    CIM_ERR_CLASS_HAS_INSTANCES, CIM_ERR_INVALID_SUPERCLASS
 from pywbem._utils import _format
 
 from pywbem_mock.config import IGNORE_INSTANCE_IQ_PARAM, \
@@ -504,6 +505,60 @@ class MainProvider(ResolverMixin, BaseProvider):
                         "does not match request namespace parameter {2!A}.",
                         object_name.namespace, object_name, namespace))
 
+    @staticmethod
+    def _validate_dependencies_exist(klass, class_store, namespace):
+        """
+        Validate that class dependencies (reference classnames and Embedded
+        object classnames) exist in the class repository
+
+        Parameters:
+
+          klass (:class:`~pywbem.CIMClassName`):
+            The class to be inspected
+          class_store (:class:`~pywbem_mock.BaseObjectStore):
+            The CIM repository class store to to search for the
+            classes.
+
+        Raises:
+            CIMError if any of the classes upon which this class depends
+            does not exist in the CIM repository
+        """
+        # Validate that dependent classes exist
+        objects = list(klass.properties.values())
+        klass_namelc = klass.classname.lower()
+        for meth in klass.methods.values():
+            objects += list(meth.parameters.values())
+
+        for obj in objects:
+            # Validate that reference_class exists in repo
+            if obj.type == 'reference':
+                if obj.reference_class.lower() == klass_namelc:
+                    continue
+                if not class_store.object_exists(obj.reference_class):
+                    raise CIMError(
+                        CIM_ERR_INVALID_PARAMETER,
+                        _format("Class {0!A} referenced by element {1!A} "
+                                "of class {2!A} in namespace {3!A} does "
+                                "not exist",
+                                obj.reference_class, obj.name,
+                                klass.classname, namespace))
+            elif obj.type == 'string':
+                if 'EmbeddedInstance' in obj.qualifiers:
+                    eiqualifier = obj.qualifiers['EmbeddedInstance']
+                    # The DMTF spec allows the value to be None
+                    if eiqualifier.value is None or \
+                            eiqualifier.value.lower() == klass_namelc:
+                        continue
+                    if not class_store.object_exists(eiqualifier.value):
+                        raise CIMError(
+                            CIM_ERR_INVALID_PARAMETER,
+                            _format("Class {0!A} specified by "
+                                    "EmbeddInstance qualifier on element "
+                                    "{1!A} of class {2!A} in namespace "
+                                    "{3!A} does not exist",
+                                    eiqualifier.value, obj.name,
+                                    klass.classname, namespace))
+
     #####################################################################
     #
     #   Mock WBEM server provider methods.
@@ -850,44 +905,11 @@ class MainProvider(ResolverMixin, BaseProvider):
                 _format("Class {0!A} already exists in namespace {1!A}.",
                         NewClass.classname, namespace))
 
+        # Validate that classes upon which this class depends exist
+        self._validate_dependencies_exist(NewClass, class_store, namespace)
+
         # Create copy because resolve_class modifies elements of class
         new_class = deepcopy(NewClass)
-
-        # Validate that dependent classes exist
-        objects = list(new_class.properties.values())
-        new_class_namelc = new_class.classname.lower()
-        for meth in new_class.methods.values():
-            objects += list(meth.parameters.values())
-
-        for obj in objects:
-            # Validate that reference_class exists in repo
-            if obj.type == 'reference':
-                if obj.reference_class.lower() == new_class_namelc:
-                    continue
-                if not class_store.object_exists(obj.reference_class):
-                    raise CIMError(
-                        CIM_ERR_INVALID_PARAMETER,
-                        _format("Class {0!A} referenced by element {1!A} "
-                                "of class {2!A} in namespace {3!A} does "
-                                "not exist",
-                                obj.reference_class, obj.name,
-                                NewClass.classname, namespace))
-            elif obj.type == 'string':
-                if 'EmbeddedInstance' in obj.qualifiers:
-                    eiqualifier = obj.qualifiers['EmbeddedInstance']
-                    # The DMTF spec allows the value to be None
-                    if eiqualifier.value is None or \
-                            eiqualifier.value.lower() == new_class_namelc:
-                        continue
-                    if not class_store.object_exists(eiqualifier.value):
-                        raise CIMError(
-                            CIM_ERR_INVALID_PARAMETER,
-                            _format("Class {0!A} specified by "
-                                    "EmbeddInstance qualifier on element "
-                                    "{1!A} of class {2!A} in namespace "
-                                    "{3!A} does not exist",
-                                    eiqualifier.value, obj.name,
-                                    NewClass.classname, namespace))
 
         qualifier_store = self.cimrepository.get_qualifier_store(namespace)
         self._resolve_class(new_class, namespace, qualifier_store,
@@ -899,10 +921,17 @@ class MainProvider(ResolverMixin, BaseProvider):
     def ModifyClass(self, namespace, ModifiedClass):
         # pylint: disable=no-self-use,unused-argument
         """
-        Provider method for
-        :meth:`pywbem.WBEMConnection.ModifyClass`.
+        Provider method for :meth:`pywbem.WBEMConnection.ModifyClass`.
 
-        Modifies a class in the CIM repository.  Nothing is returned.
+        Modifies an existing class in the CIM repository.  Nothing is returned.
+
+        The modified class is rejected if subclasses to ModifiedClass exist,
+        instances of ModifiedClass exist,  or the superclass name is different
+        than the original superclass name.
+
+        The ModifiedClass is resolved to validate properties, methods,
+        parameters, qualifiers, and propagated values if a superclass is
+        defined before it is inserted into the CIM repository.
 
         Parameters:
 
@@ -923,7 +952,6 @@ class MainProvider(ResolverMixin, BaseProvider):
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_PARAMETER)
             :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_FOUND)
         """
-
         # Parameter types are already checked by WBEMConnection operation
         assert isinstance(namespace, six.string_types)
         assert isinstance(ModifiedClass, CIMClass)
@@ -931,14 +959,82 @@ class MainProvider(ResolverMixin, BaseProvider):
         self.validate_namespace(namespace)
 
         class_store = self.cimrepository.get_class_store(namespace)
+        instance_store = self.cimrepository.get_instance_store(namespace)
 
-        if not class_store.object_exists(ModifiedClass.classname):
+        modifiedclass_name = ModifiedClass.classname
+
+        if not class_store.object_exists(modifiedclass_name):
             raise CIMError(
                 CIM_ERR_NOT_FOUND,
                 _format("Class {0!A} does not exist in namespace {1!A}.",
+                        modifiedclass_name, namespace))
+
+        # Error if there are subclasses
+        subclns = self._get_subclass_names(modifiedclass_name,
+                                           class_store, False)
+        if subclns:
+            raise CIMError(
+                CIM_ERR_CLASS_HAS_CHILDREN,
+                _format("Class {0!A} namespace {1!A} cannot be modified "
+                        "because it has subclasses.",
+                        modifiedclass_name, namespace))
+
+        # Error if there are instances
+        clns = NocaseList([modifiedclass_name])
+        inst_paths = [inst.path for inst in instance_store.iter_values()
+                      if inst.path.classname in clns]
+        if inst_paths:
+            raise CIMError(
+                CIM_ERR_CLASS_HAS_INSTANCES,
+                _format("Class {0!A} namespace {1!A} cannot be modified "
+                        "because it has instances.",
                         ModifiedClass.classname, namespace))
 
-        # create copy because resolve_class can modify elements of class
+        # Error if superclass defined and does not exist.
+        if ModifiedClass.superclass:
+            if not class_store.object_exists(ModifiedClass.superclass):
+                raise CIMError(
+                    CIM_ERR_INVALID_SUPERCLASS,
+                    _format("Superclass {0!A} for class {1!A} does not exist "
+                            "in namespace {2!A}.", ModifiedClass.superclass,
+                            modifiedclass_name, namespace))
+
+        # Get original class
+        orig_class = class_store.get(modifiedclass_name)
+
+        # Error if original and modified classes do not have the same
+        # superclass name or both both not None
+        if (ModifiedClass.superclass is None and orig_class.superclass) \
+                or (ModifiedClass.superclass and orig_class.superclass is None):
+            raise CIMError(
+                CIM_ERR_INVALID_SUPERCLASS,
+                _format("Superclass name in modified class {0!A} "
+                        "in namespace {1!A} and in original class "
+                        "must both exist: original superclass ",
+                        "name {2!A}; modified superclass name {3!A}",
+                        modifiedclass_name, namespace,
+                        orig_class.superclass or "''",
+                        ModifiedClass.superclass or "''"))
+
+        # else they must both exist and be equal
+        if ModifiedClass.superclass and orig_class.superclass:
+            if orig_class.superclass.lower() != \
+                    ModifiedClass.superclass.lower():
+                raise CIMError(
+                    CIM_ERR_INVALID_SUPERCLASS,
+                    _format("Superclass name in modified class {0!A} "
+                            "in namespace {1!A} different than superclass "
+                            "name in the modified class: original "
+                            "superclass name {2!A}; modified superclass "
+                            "name {3!A}",
+                            modifiedclass_name, namespace,
+                            orig_class.superclass,
+                            ModifiedClass.superclass))
+
+        # Validate that classes upon which this class depends exist
+        self._validate_dependencies_exist(ModifiedClass, class_store, namespace)
+
+        # Create copy because resolve_class can modify elements of class
         modified_class = deepcopy(ModifiedClass)
 
         qualifier_store = self.cimrepository.get_qualifier_store(namespace)
@@ -2620,8 +2716,8 @@ class MainProvider(ResolverMixin, BaseProvider):
         except KeyError:
             raise CIMError(
                 CIM_ERR_INVALID_ENUMERATION_CONTEXT,
-                _format("EnumerationContext {0!A} not an open "
-                        "enumeration contexts.", EnumerationContext))
+                _format("EnumerationContext {0!A} does not exist.",
+                        EnumerationContext))
 
         # validate that namespace still exists for pull
         self.validate_namespace(context_data['namespace'])
