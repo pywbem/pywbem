@@ -215,12 +215,9 @@ class SlottedPickleMixin(object):
 
     def __setstate__(self, dct):
 
-        try:
-            class_type = CIMClass
-        except NameError:
-            # Defer import due to circular import dependencies:
-            # pylint: disable=import-outside-toplevel
-            from pywbem._cim_obj import CIMClass as class_type
+        # Defer import due to circular import dependencies:
+        # pylint: disable=import-outside-toplevel
+        from pywbem._cim_obj import CIMClass as class_type
 
         for attr in dct:
 
@@ -1174,30 +1171,24 @@ def cimtype(obj):
     if isinstance(obj, (datetime, timedelta)):
         return 'datetime'
 
-    try:
-        instancename_type = CIMInstanceName
-    except NameError:
-        # Defer import due to circular import dependencies:
-        # pylint: disable=import-outside-toplevel
-        from pywbem._cim_obj import CIMInstanceName as instancename_type
+    # Defer import due to circular import dependencies:
+    # pylint: disable=import-outside-toplevel
+    from pywbem._cim_obj import CIMInstanceName as instancename_type
+
     if isinstance(obj, instancename_type):
         return 'reference'
 
-    try:
-        instance_type = CIMInstance
-    except NameError:
-        # Defer import due to circular import dependencies:
-        # pylint: disable=import-outside-toplevel
-        from pywbem._cim_obj import CIMInstance as instance_type
+    # Defer import due to circular import dependencies:
+    # pylint: disable=import-outside-toplevel
+    from pywbem._cim_obj import CIMInstance as instance_type
+
     if isinstance(obj, instance_type):  # embedded instance
         return 'string'
 
-    try:
-        class_type = CIMClass
-    except NameError:
-        # Defer import due to circular import dependencies:
-        # pylint: disable=import-outside-toplevel
-        from pywbem._cim_obj import CIMClass as class_type
+    # Defer import due to circular import dependencies:
+    # pylint: disable=import-outside-toplevel
+    from pywbem._cim_obj import CIMClass as class_type
+
     if isinstance(obj, class_type):  # embedded class
         return 'string'
 
