@@ -22,6 +22,10 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'failure' }}
     steps:
 
+    - name: Debug - show workflow_run
+      run: |
+        echo "${{ github.event.workflow_run }}"
+
     - name: Post failure to Slack
 #      if: ${{ github.event_name == 'schedule' }}
       run: |
