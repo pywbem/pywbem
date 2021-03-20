@@ -28,5 +28,5 @@ jobs:
         run_id=$(echo "${{ github.event.workflow_run.url }}" | rev | cut -d '/' -f 1 | rev)
         run_url="https://github.com/pywbem/pywbem/actions/runs/$run_id"
         branch="${{ github.event.workflow_run.head_branch }}"
-        json="{ \"icon_emoji\": \":thumbsdown:\", \"text\": \"${{ github.repository }}: Test workflow failed on branch $branch: $run_url\" }"
+        json="{ \"icon_emoji\": \":-1:\", \"text\": \"${{ github.repository }}: Test workflow failed: Run <$run_url|$run_id> on branch $branch\" }"
         curl -s -d "payload=$json" ${{ secrets.SLACK_HOOK }}
