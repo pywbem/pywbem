@@ -221,8 +221,6 @@ class ProviderDispatcher(BaseProvider):
 
         # The providers are guaranteed to get a deep copy of the original
         # new instance since they may update properties.
-        # TODO: Consolidate this deep copy with the shallow copy in
-        #       WBEMConnection.CreateInstance().
         new_instance = deepcopy(NewInstance)
 
         # Adjust the lexical case of the property names in the new instance
@@ -355,8 +353,6 @@ class ProviderDispatcher(BaseProvider):
 
         # The providers are guaranteed to get a deep copy of the original
         # modified instance since they may update properties.
-        # TODO: Consolidate this deep copy with the shallow copy in
-        #       WBEMConnection.ModifyInstance().
         modified_instance = deepcopy(ModifiedInstance)
 
         # Reduce modified_instance to have just the properties to be modified

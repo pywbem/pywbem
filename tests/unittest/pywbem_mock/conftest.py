@@ -88,4 +88,7 @@ def tst_qualifiers_mof():
         Qualifier Static : boolean = false,
             Scope(property, method),
             Flavor(DisableOverride, ToSubclass);
+
+        Qualifier EmbeddedInstance : string = null,
+            Scope(property, method, parameter);
         """

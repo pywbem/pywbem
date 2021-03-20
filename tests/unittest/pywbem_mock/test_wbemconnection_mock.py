@@ -1591,7 +1591,7 @@ class TestRepoMethods(object):
         assert "class CIM_Foo_sub_sub : CIM_Foo_sub {" in result
         assert "instance of CIM_Foo {" in result
         for ns in namespaces:
-            assert _format("// Namespace {0!A}: contains 10 Qualifier "
+            assert _format("// Namespace {0!A}: contains 11 Qualifier "
                            "Declarations", ns) \
                 in result
             assert _format("// Namespace {0!A}: contains 5 Classes", ns) \
@@ -1656,7 +1656,7 @@ class TestRepoMethods(object):
             "// ========Mock Repo Display fmt=mof namespaces=all")
         assert 'class CIM_Foo_sub_sub : CIM_Foo_sub {' in data
         assert "NAMESPACE 'root/cimv2'" in data
-        assert "Namespace 'root/cimv2': contains 10 Qualifier Declarations" \
+        assert "Namespace 'root/cimv2': contains 11 Qualifier Declarations" \
             in data
         assert 'instance of CIM_Foo {' in data
         assert 'Qualifier Abstract : boolean = false,' in data
@@ -1781,7 +1781,7 @@ class TestRepoMethods(object):
         assert conn.GetQualifier('Key', namespace=ns).name == 'Key'
 
         quals = conn.EnumerateQualifiers(namespace=ns)
-        assert len(quals) == 10
+        assert len(quals) == 11
 
     @pytest.mark.parametrize(
         "default_ns, additional_ns, in_ns, exp_ns, exp_exc",
@@ -4129,7 +4129,7 @@ class TestClassOperations(object):
              ),
              None, OK],
 
-            ['Fails Create where property exists with different type',
+            ['Validate fails create where property exists with different type',
              ['CIM_Foo'],
              CIMClass(
                  'CIM_Foo_testOverride', superclass='CIM_Foo',
@@ -4384,7 +4384,12 @@ class TestClassOperations(object):
              ),
              None, None, FAIL],  # TODO: Fails in test resolve (override)
 
-            # No invalid namespace test defined because createclass creates
+            ['Validate createclass with chass that already exists fails',
+             ['CIM_Foo'],
+             CIMClass('CIM_Foo'),
+             None, CIMError(CIM_ERR_ALREADY_EXISTS), OK],
+
+            # NOTE:No invalid namespace test defined because createclass creates
             # namespace if one does not exist
         ],
     )
@@ -4405,12 +4410,7 @@ class TestClassOperations(object):
         # preinstall required qualifiers
         conn.compile_mof_string(tst_qualifiers_mof, namespace=ns)
 
-        # Added when we added tests for compiling embeddedinstance qualifier
-        # TODO Future: Merge this qual decl into tst_qualifiers_mof
-        conn.compile_mof_string("Qualifier EmbeddedInstance : string = null, "
-                                "Scope(property, method, parameter);")
-
-        # if pretcl, create/install the pre test class.  Installs the
+        # If pretcl, create/install the pre test class.  Installs the
         # prerequisite classes into the repository.
         if isinstance(pre_tst_classes, list):
             pre_tst_classes = NocaseList(pre_tst_classes)
@@ -4601,7 +4601,7 @@ class TestClassOperations(object):
             # exp_exc: None or expected exception object
             # condition: If False, skip this test
 
-            ['Create class wherequalifier wrong scope, fails (Key on class)',
+            ['Create class where qualifier wrong scope, fails (Key on class)',
              [],
              """
              [Key]
@@ -4662,9 +4662,6 @@ class TestClassOperations(object):
         """
         Test for errors with compiled mof.  This tests for specific errors
         that can occur between the compiler and CreateClass.
-        TODO:Future; merge this and previous test method into single method
-        to make test of compiled mof and Pywbem CIM objects to CreateClass
-        a single test.
         """
         if not condition:
             pytest.skip("This test marked to be skipped by condition")
@@ -4673,12 +4670,7 @@ class TestClassOperations(object):
         # preinstall required qualifiers
         conn.compile_mof_string(tst_qualifiers_mof, namespace=ns)
 
-        # Added when we added tests for compiling embeddedinstance qualifier
-        # TODO Future: Merge this qual decl into tst_qualifiers_mof
-        conn.compile_mof_string("Qualifier EmbeddedInstance : string = null, "
-                                "Scope(property, method, parameter);")
-
-        # if pretcl, create/install the pre test class.  Installs the
+        # If pretcl, create/install the pre test class.  Installs the
         # prerequisite classes into the repository.
         if pre_tst_mof:
             conn.compile_mof_string(pre_tst_mof, namespace=ns)
@@ -5030,11 +5022,6 @@ class TestClassOperations(object):
 
         # preinstall required qualifiers
         conn.compile_mof_string(tst_qualifiers_mof, namespace=ns)
-
-        # Added when we added tests for compiling embeddedinstance qualifier
-        # TODO Future: Merge this qual decl into tst_qualifiers_mof
-        conn.compile_mof_string("Qualifier EmbeddedInstance : string = null, "
-                                "Scope(property, method, parameter);")
 
         # If pretcl, create/install the pre test class.  Installs the
         # prerequisite classes into the repository.
