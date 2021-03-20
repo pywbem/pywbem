@@ -13,15 +13,15 @@ jobs:
 
   notify:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.head_branch == 'master' }}
     steps:
 
-    - name: Display github.event.workflow_run properties
+    - name: Display test workflow trigger event
       run: |
         echo "event=${{ github.event.workflow_run.event }}"
-        echo "pull_requests[0].url=${{ github.event.workflow_run.pull_requests[0].url }}"
 
-    - name: Post success to Slack (master)
-      if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'master' }}
+    - name: Post success to Slack
+      if: ${{ github.event.workflow_run.conclusion == 'success' }}
       run: |
         run_id=$(echo "${{ github.event.workflow_run.url }}" | rev | cut -d '/' -f 1 | rev)
         run_url="https://github.com/${{ github.repository }}/actions/runs/$run_id"
@@ -30,8 +30,8 @@ jobs:
         json="{ \"text\": \":white_check_mark: Test workflow succeeded on ${{ github.repository }}: Run <$run_url|$run_id> on branch <$branch_url|$branch>\" }"
         curl -s -d "payload=$json" ${{ secrets.SLACK_HOOK }}
 
-    - name: Post failure to Slack (master)
-      if: ${{ github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.head_branch == 'master' }}
+    - name: Post failure to Slack
+      if: ${{ github.event.workflow_run.conclusion == 'failure' }}
       run: |
         run_id=$(echo "${{ github.event.workflow_run.url }}" | rev | cut -d '/' -f 1 | rev)
         run_url="https://github.com/${{ github.repository }}/actions/runs/$run_id"
