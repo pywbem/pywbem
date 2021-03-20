@@ -134,6 +134,9 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+    - name: test - Intentional failure
+      run: |
+        xxxxpip list
     - name: Display initial Python packages
       run: |
         echo "Installed Python packages:"
