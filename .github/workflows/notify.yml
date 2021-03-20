@@ -24,7 +24,7 @@ jobs:
         echo "event_name=${{ github.event_name }}"
 
     - name: Post success to Slack (master)
-      if: ${{ github.event.workflow_run.conclusion == 'success' and github.event.workflow_run.head_branch == 'master' }}
+      if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'master' }}
       run: |
         run_id=$(echo "${{ github.event.workflow_run.url }}" | rev | cut -d '/' -f 1 | rev)
         run_url="https://github.com/${{ github.repository }}/actions/runs/$run_id"
@@ -34,7 +34,7 @@ jobs:
         curl -s -d "payload=$json" ${{ secrets.SLACK_HOOK }}
 
     - name: Post failure to Slack (master)
-      if: ${{ github.event.workflow_run.conclusion == 'failure' and github.event.workflow_run.head_branch == 'master' }}
+      if: ${{ github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.head_branch == 'master' }}
       run: |
         run_id=$(echo "${{ github.event.workflow_run.url }}" | rev | cut -d '/' -f 1 | rev)
         run_url="https://github.com/${{ github.repository }}/actions/runs/$run_id"
