@@ -22,9 +22,17 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'failure' }}
     steps:
 
-    - name: Debug - show workflow_run
+    - name: Debug - show workflow_run.head_branch
       run: |
-        echo "${{ github.event.workflow_run }}"
+        echo "head_branch=${{ github.event.workflow_run.head_branch }}"
+
+    - name: Debug - show workflow_run.pull_requests
+      run: |
+        echo "head_branch=${{ github.event.workflow_run.pull_requests }}"
+
+    - name: Debug - show workflow_run.url
+      run: |
+        echo "url=${{ github.event.workflow_run.url }}"
 
     - name: Post failure to Slack
 #      if: ${{ github.event_name == 'schedule' }}
