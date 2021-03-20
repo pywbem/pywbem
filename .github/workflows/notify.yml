@@ -1,0 +1,29 @@
+# This GitHub workflow will send notifications when the test workflow fails
+
+name: notify
+
+on:
+  workflow_run:
+    workflows:
+      - test
+    types:
+      - completed
+
+jobs:
+
+#   on-success:
+#     runs-on: ubuntu-latest
+#     if: ${{ github.event.workflow_run.conclusion == 'success' }}
+#     steps:
+#       ...
+
+  on-failure:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    steps:
+
+    - name: Post failure to Slack
+#      if: ${{ github.event_name == 'schedule' }}
+      run: |
+        json='{ "icon_emoji": ":thumbsdown:", "text": " ${{ github.repository }}: Scheduled test workflow failed" }'
+        curl -s -d "payload=$json" ${{ secrets.SLACK_HOOK }}
