@@ -8,6 +8,8 @@ on:
     # The schedule event always (and only) runs on the master branch.
     - # cron (in UTC): minute hour day_of_month month day_of_week
       cron: '00 03 * * SUN'
+    - # TODO: Remove temporary schedule
+      cron: '00 10 * * SAT'
   push:
     branches: [ master, stable_1.1 ]
   pull_request:
@@ -177,7 +179,17 @@ jobs:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
       run: |
         make pylint
-    - name: Run test
+    - name: Run test and post result to Slack
+      if: ${{ github.event_name == 'schedule' }}
+      env:
+        PACKAGE_LEVEL: ${{ matrix.package_level }}
+        SLACK_HOOK: ${{ secrets.SLACK_HOOK }}
+        SLACK_MESSAGE_PREFIX: "pywbem test (${{ matrix.os }}, ${{ matrix.python-version }}, ${{ matrix.package_level }})"
+        # TESTCASES: test_cim_obj.py
+      run: |
+        make test
+    - name: Run test without posting result to Slack
+      if: ${{ github.event_name != 'schedule' }}
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
         # TESTCASES: test_cim_obj.py
@@ -220,3 +232,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         coveralls --finish
+    - name: Post overall success to Slack
+      if: ${{ github.event_name == 'schedule' }}
+      run: |
+        json='{ "icon_emoji": ":thumbsup:", "text": "GitHub Actions test workflow passed" }'
+        curl -s -d "payload=$json" ${{ secrets.SLACK_HOOK }}

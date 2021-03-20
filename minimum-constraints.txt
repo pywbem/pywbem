@@ -150,6 +150,9 @@ pytest-cov==2.7.0; python_version == '2.7' or python_version >= '3.5'
 # git+https://github.com/andy-maier/coveralls-python.git@andy/add-py27#egg=coveralls; python_version == '2.7'
 coveralls==2.1.2; python_version >= '3.5'
 
+# Reporting of pytest results to Slack
+pytest-messenger==3.0.0; python_version >= '3.6'
+
 # Safety CI by pyup.io
 safety==1.8.7; python_version <= '3.4'
 safety==1.9.0; python_version >= '3.5'
