@@ -292,11 +292,19 @@ test_yaml_files := \
     $(wildcard $(test_dir)/functiontest/*.y*ml) \
 
 ifdef TESTCASES
-  pytest_opts := $(TESTOPTS) -k $(TESTCASES)
+  pytest_test_opts := $(TESTOPTS) -k $(TESTCASES)
 else
-  pytest_opts := $(TESTOPTS)
+  pytest_test_opts := $(TESTOPTS)
 endif
+pytest_opts := -s $(pytest_test_opts)
 pytest_end2end_opts := -v --tb=short $(pytest_opts)
+
+slack_post := $(shell bash -c 'pip show pytest-messenger >/dev/null 2>&1; if [[ $$? == 0 && -n $$SLACK_HOOK ]]; then echo 1; else echo 0; fi')
+ifeq ($(slack_post),1)
+  pytest_slack_opts := --slack_hook="$(SLACK_HOOK)" --slack_message_prefix="$(SLACK_MESSAGE_PREFIX)"
+else
+  pytest_slack_opts :=
+endif
 
 ifeq ($(python_mn_version),3.4)
   pytest_cov_opts :=
@@ -758,7 +766,7 @@ endif
 .PHONY: test
 test: $(test_deps)
 	@echo "makefile: Running unit and function tests"
-	py.test --color=yes $(pytest_cov_opts) $(pytest_warning_opts) $(pytest_opts) $(test_dir)/unittest $(test_dir)/functiontest -s
+	py.test --color=yes $(pytest_cov_opts) $(pytest_warning_opts) $(pytest_opts) $(pytest_slack_opts) $(test_dir)/unittest $(test_dir)/functiontest
 	@echo "makefile: Done running unit and function tests"
 
 .PHONY: installtest
@@ -774,13 +782,13 @@ endif
 .PHONY: leaktest
 leaktest: $(test_deps)
 	@echo "makefile: Running memory leak tests"
-	py.test --color=yes $(pytest_warning_opts) $(pytest_opts) $(test_dir)/leaktest -s
+	py.test --color=yes $(pytest_warning_opts) $(pytest_opts) $(test_dir)/leaktest
 	@echo "makefile: Done running memory leak tests"
 
 .PHONY: end2endtest
 end2endtest: develop_$(pymn).done $(moftab_files)
 	@echo "makefile: Running end2end tests"
-	py.test --color=yes $(pytest_end2end_warning_opts) $(pytest_end2end_opts) $(test_dir)/end2endtest -s
+	py.test --color=yes $(pytest_end2end_warning_opts) $(pytest_end2end_opts) $(test_dir)/end2endtest
 	@echo "makefile: Done running end2end tests"
 
 .PHONY: resourcetest
@@ -789,7 +797,7 @@ ifeq ($(python_m_version),2)
 	@echo "makefile: Warning: Skipping resource consumption tests on Python $(python_version)" >&2
 else
 	@echo "makefile: Running resource consumption tests"
-	py.test --color=yes $(pytest_warning_opts) $(pytest_opts) $(test_dir)/resourcetest -s
+	py.test --color=yes $(pytest_warning_opts) $(pytest_opts) $(test_dir)/resourcetest
 	@echo "makefile: Done running resource consumption tests"
 endif
 
