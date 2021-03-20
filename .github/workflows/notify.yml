@@ -26,13 +26,26 @@ jobs:
       run: |
         echo "head_branch=${{ github.event.workflow_run.head_branch }}"
 
-    - name: Debug - show workflow_run.pull_requests
+    - name: Debug - show workflow_run.pull_requests[0]
       run: |
-        echo "head_branch=${{ github.event.workflow_run.pull_requests }}"
+        echo "pull_requests[0]=${{ github.event.workflow_run.pull_requests[0] }}"
 
     - name: Debug - show workflow_run.url
       run: |
         echo "url=${{ github.event.workflow_run.url }}"
+
+    - name: Debug - show workflow_run.external_id
+      run: |
+        echo "external_id=${{ github.event.workflow_run.external_id }}"
+
+    - name: Debug - show workflow_run.details_url
+      run: |
+        echo "details_url=${{ github.event.workflow_run.details_url }}"
+
+    - name: Debug - show actions run url
+      run: |
+        run_id=$(echo "${{ github.event.workflow_run.url }}" | rev | cut -d '/' -f 1 | rev)
+        echo "https://github.com/pywbem/pywbem/actions/runs/$run_id"
 
     - name: Post failure to Slack
 #      if: ${{ github.event_name == 'schedule' }}
