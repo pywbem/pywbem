@@ -1100,7 +1100,7 @@ class MainProvider(ResolverMixin, BaseProvider):
             inst_paths = [inst.path for inst in instance_store.iter_values()
                           if inst.path.classname in sub_clns]
 
-            # TODO/KS: Future: This should route through DeleteInstance to
+            # Issue: 2643 TODO/KS: This should route through DeleteInstance to
             # assure that providers get called rather than calling the
             # CIM repository directly. It must call the ProviderDispatcher
             # to get the request routed to the correct
