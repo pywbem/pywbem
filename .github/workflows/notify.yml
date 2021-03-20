@@ -11,22 +11,30 @@ on:
 
 jobs:
 
-#   on-success:
-#     runs-on: ubuntu-latest
-#     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-#     steps:
-#       ...
+  on-success:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+    - name: Post success to Slack
+#      if: ${{ github.event_name == 'schedule' }}
+      run: |
+        run_id=$(echo "${{ github.event.workflow_run.url }}" | rev | cut -d '/' -f 1 | rev)
+        run_url="https://github.com/${{ github.repository }}/actions/runs/$run_id"
+        branch="${{ github.event.workflow_run.head_branch }}"
+        branch_url="https://github.com/${{ github.repository }}/pulls?q=head%3A$branch"
+        json="{ \"icon_emoji\": \":+1:\", \"text\": \"${{ github.repository }}: Test workflow succeeded: Run <$run_url|$run_id> on branch <$branch_url|$branch>\" }"
+        curl -s -d "payload=$json" ${{ secrets.SLACK_HOOK }}
 
   on-failure:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'failure' }}
     steps:
-
     - name: Post failure to Slack
 #      if: ${{ github.event_name == 'schedule' }}
       run: |
         run_id=$(echo "${{ github.event.workflow_run.url }}" | rev | cut -d '/' -f 1 | rev)
-        run_url="https://github.com/pywbem/pywbem/actions/runs/$run_id"
+        run_url="https://github.com/${{ github.repository }}/actions/runs/$run_id"
         branch="${{ github.event.workflow_run.head_branch }}"
-        json="{ \"icon_emoji\": \":-1:\", \"text\": \"${{ github.repository }}: Test workflow failed: Run <$run_url|$run_id> on branch $branch\" }"
+        branch_url="https://github.com/${{ github.repository }}/pulls?q=head%3A$branch"
+        json="{ \"icon_emoji\": \":-1:\", \"text\": \"${{ github.repository }}: Test workflow failed: Run <$run_url|$run_id> on branch <$branch_url|$branch>\" }"
         curl -s -d "payload=$json" ${{ secrets.SLACK_HOOK }}
