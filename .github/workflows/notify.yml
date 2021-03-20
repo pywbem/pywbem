@@ -22,7 +22,7 @@ jobs:
         run_url="https://github.com/${{ github.repository }}/actions/runs/$run_id"
         branch="${{ github.event.workflow_run.head_branch }}"
         branch_url="https://github.com/${{ github.repository }}/pulls?q=head:$branch"
-        json="{ \"icon_emoji\": \":+1:\", \"text\": \":+1: ${{ github.repository }}: Test workflow succeeded: Run <$run_url|$run_id> on branch <$branch_url|$branch>\" }"
+        json="{ \"text\": \":thumbsup: ${{ github.repository }}: Test workflow succeeded: Run <$run_url|$run_id> on branch <$branch_url|$branch>\" }"
         curl -s -d "payload=$json" ${{ secrets.SLACK_HOOK }}
 
   on-failure:
@@ -36,5 +36,5 @@ jobs:
         run_url="https://github.com/${{ github.repository }}/actions/runs/$run_id"
         branch="${{ github.event.workflow_run.head_branch }}"
         branch_url="https://github.com/${{ github.repository }}/pulls?q=head:$branch"
-        json="{ \"icon_emoji\": \":-1:\", \"text\": \":-1: ${{ github.repository }}: Test workflow failed: Run <$run_url|$run_id> on branch <$branch_url|$branch>\" }"
+        json="{ \"text\": \":thumbsdown: ${{ github.repository }}: Test workflow failed: Run <$run_url|$run_id> on branch <$branch_url|$branch>\" }"
         curl -s -d "payload=$json" ${{ secrets.SLACK_HOOK }}
