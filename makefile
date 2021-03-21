@@ -705,12 +705,16 @@ else
 ifeq ($(python_mn_version),3.4)
 	@echo "makefile: Warning: Skipping Pylint on Python $(python_version)" >&2
 else
+ifeq ($(python_mn_version),3.5)
+	@echo "makefile: Warning: Skipping Pylint on Python $(python_version)" >&2
+else
 	@echo "makefile: Running Pylint"
 	-$(call RM_FUNC,$@)
 	pylint --version
 	pylint $(pylint_opts) --rcfile=$(pylint_rc_file) $(py_src_files)
 	echo "done" >$@
 	@echo "makefile: Done running Pylint"
+endif
 endif
 endif
 
