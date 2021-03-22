@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
 # Makefile for pybem repository of pywbem project
 #
-# Supported OS platforms for this makefile:
+# Supported OS platforms for this Makefile:
 #     Linux (any distro)
 #     OS-X
 #     Windows with UNIX-like env such as CygWin (with a UNIX-like shell and
@@ -9,7 +9,7 @@
 #     native Windows (with the native Windows command processor and Python in
 #       Windows)
 #
-# Prerequisites for running this makefile:
+# Prerequisites for running this Makefile:
 #   These commands are used on all supported OS platforms. On native Windows,
 #   they may be provided by UNIX-like environments such as CygWin:
 #     make (GNU make)
@@ -419,7 +419,7 @@ help:
 
 .PHONY: platform
 platform:
-	@echo "makefile: Platform related information as seen by make:"
+	@echo "Makefile: Platform related information as seen by make:"
 	@echo "Platform: $(PLATFORM)"
 	@echo "Shell used for commands: $(SHELL)"
 	@echo "Shell flags: $(.SHELLFLAGS)"
@@ -439,12 +439,12 @@ platform:
 
 .PHONY: pip_list
 pip_list:
-	@echo "makefile: Python packages as seen by make:"
+	@echo "Makefile: Python packages as seen by make:"
 	$(PIP_CMD) list
 
 .PHONY: env
 env:
-	@echo "makefile: Environment as seen by make:"
+	@echo "Makefile: Environment as seen by make:"
 	$(ENV)
 
 .PHONY: _check_version
@@ -453,40 +453,40 @@ ifeq (,$(package_version))
 	$(error Package version could not be determined)
 endif
 
-pip_upgrade_$(pymn).done: makefile
+pip_upgrade_$(pymn).done: Makefile
 	-$(call RM_FUNC,$@)
 	bash -c 'pv=$$($(PIP_CMD) --version); if [[ $$pv =~ (^pip [1-8]\..*) ]]; then $(PIP_INSTALL_CMD) pip==9.0.1; fi'
 	$(PIP_INSTALL_CMD) $(pip_level_opts) pip
 	echo "done" >$@
 
-install_basic_$(pymn).done: makefile pip_upgrade_$(pymn).done
-	@echo "makefile: Installing/upgrading basic Python packages with PACKAGE_LEVEL=$(PACKAGE_LEVEL)"
+install_basic_$(pymn).done: Makefile pip_upgrade_$(pymn).done
+	@echo "Makefile: Installing/upgrading basic Python packages with PACKAGE_LEVEL=$(PACKAGE_LEVEL)"
 	-$(call RM_FUNC,$@)
 	$(PYTHON_CMD) remove_duplicate_setuptools.py
 	$(PIP_INSTALL_CMD) $(pip_level_opts) setuptools wheel
 	echo "done" >$@
-	@echo "makefile: Done installing/upgrading basic Python packages"
+	@echo "Makefile: Done installing/upgrading basic Python packages"
 
-install_pywbem_$(pymn).done: makefile pip_upgrade_$(pymn).done requirements.txt setup.py
+install_pywbem_$(pymn).done: Makefile pip_upgrade_$(pymn).done requirements.txt setup.py
 	-$(call RM_FUNC,$@)
 ifdef TEST_INSTALLED
-	@echo "makefile: Skipping installation of pywbem and its Python runtime prerequisites because TEST_INSTALLED is set"
-	@echo "makefile: Checking whether pywbem is actually installed:"
+	@echo "Makefile: Skipping installation of pywbem and its Python runtime prerequisites because TEST_INSTALLED is set"
+	@echo "Makefile: Checking whether pywbem is actually installed:"
 	$(PIP_CMD) show $(package_name)
 else
-	@echo "makefile: Installing pywbem (as editable) and its Python installation prerequisites (with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
+	@echo "Makefile: Installing pywbem (as editable) and its Python installation prerequisites (with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
 	-$(call RMDIR_FUNC,build $(package_name).egg-info .eggs)
 	$(PIP_INSTALL_CMD) $(pip_level_opts) -r requirements.txt
 	$(PIP_INSTALL_CMD) $(pip_level_opts) -e .
-	@echo "makefile: Done installing pywbem and its Python runtime prerequisites"
+	@echo "Makefile: Done installing pywbem and its Python runtime prerequisites"
 endif
 	echo "done" >$@
 
 .PHONY: install
 install: install_$(pymn).done
-	@echo "makefile: Target $@ done."
+	@echo "Makefile: Target $@ done."
 
-install_$(pymn).done: makefile install_basic_$(pymn).done install_pywbem_$(pymn).done
+install_$(pymn).done: Makefile install_basic_$(pymn).done install_pywbem_$(pymn).done
 	-$(call RM_FUNC,$@)
 	$(PYTHON_CMD) -c "import $(package_name)"
 	$(PYTHON_CMD) -c "import $(mock_package_name)"
@@ -494,10 +494,10 @@ install_$(pymn).done: makefile install_basic_$(pymn).done install_pywbem_$(pymn)
 
 .PHONY: develop_os
 develop_os: develop_os_$(pymn).done
-	@echo "makefile: Target $@ done."
+	@echo "Makefile: Target $@ done."
 
-develop_os_$(pymn).done: makefile pip_upgrade_$(pymn).done pywbem_os_setup.sh pywbem_os_setup.bat
-	@echo "makefile: Installing OS-level development requirements"
+develop_os_$(pymn).done: Makefile pip_upgrade_$(pymn).done pywbem_os_setup.sh pywbem_os_setup.bat
+	@echo "Makefile: Installing OS-level development requirements"
 	-$(call RM_FUNC,$@)
 ifeq ($(PLATFORM),Windows_native)
 	pywbem_os_setup.bat develop
@@ -505,55 +505,55 @@ else
 	./pywbem_os_setup.sh develop
 endif
 	echo "done" >$@
-	@echo "makefile: Done installing OS-level development requirements"
+	@echo "Makefile: Done installing OS-level development requirements"
 
 .PHONY: develop
 develop: develop_$(pymn).done
-	@echo "makefile: Target $@ done."
+	@echo "Makefile: Target $@ done."
 
 develop_$(pymn).done: pip_upgrade_$(pymn).done install_$(pymn).done develop_os_$(pymn).done install_basic_$(pymn).done dev-requirements.txt test-requirements.txt
-	@echo "makefile: Installing Python development requirements (with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
+	@echo "Makefile: Installing Python development requirements (with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
 	-$(call RM_FUNC,$@)
 	$(PIP_INSTALL_CMD) $(pip_level_opts) -r dev-requirements.txt
 	echo "done" >$@
-	@echo "makefile: Done installing Python development requirements"
+	@echo "Makefile: Done installing Python development requirements"
 
 .PHONY: build
 build: _check_version $(bdist_file) $(sdist_file)
-	@echo "makefile: Target $@ done."
+	@echo "Makefile: Target $@ done."
 
 .PHONY: builddoc
 builddoc: html
-	@echo "makefile: Target $@ done."
+	@echo "Makefile: Target $@ done."
 
 .PHONY: check
 check: flake8_$(pymn).done safety_$(pymn).done
-	@echo "makefile: Target $@ done."
+	@echo "Makefile: Target $@ done."
 
 .PHONY: pylint
 pylint: pylint_$(pymn).done
-	@echo "makefile: Target $@ done."
+	@echo "Makefile: Target $@ done."
 
 .PHONY: todo
 todo: todo_$(pymn).done
-	@echo "makefile: Target $@ done."
+	@echo "Makefile: Target $@ done."
 
 .PHONY: all
 all: install develop build builddoc check pylint installtest test leaktest resourcetest
-	@echo "makefile: Target $@ done."
+	@echo "Makefile: Target $@ done."
 
 .PHONY: clobber
 clobber: clean
-	@echo "makefile: Removing everything for a fresh start"
+	@echo "Makefile: Removing everything for a fresh start"
 	-$(call RM_FUNC,*.done epydoc.log $(moftab_files) $(dist_files) $(dist_dir)/$(package_name)-$(package_version)*.egg pywbem/*cover pywbem_mock/*cover)
 	-$(call RMDIR_FUNC,$(doc_build_dir) .tox $(coverage_html_dir))
-	@echo "makefile: Done removing everything for a fresh start"
-	@echo "makefile: Target $@ done."
+	@echo "Makefile: Done removing everything for a fresh start"
+	@echo "Makefile: Target $@ done."
 
 # Also remove any build products that are dependent on the Python version
 .PHONY: clean
 clean:
-	@echo "makefile: Removing temporary build products"
+	@echo "Makefile: Removing temporary build products"
 	-$(call RM_R_FUNC,*.pyc)
 	-$(call RM_R_FUNC,*~)
 	-$(call RM_R_FUNC,.*~)
@@ -561,100 +561,100 @@ clean:
 	-$(call RM_FUNC,MANIFEST parser.out .coverage $(package_name)/parser.out)
 	-$(call RM_FUNC,$(package_name)/mofparsetab.py* $(package_name)/moflextab.py*)
 	-$(call RMDIR_FUNC,build .cache $(package_name).egg-info .eggs)
-	@echo "makefile: Done removing temporary build products"
-	@echo "makefile: Target $@ done."
+	@echo "Makefile: Done removing temporary build products"
+	@echo "Makefile: Target $@ done."
 
 .PHONY: upload
 upload: _check_version $(dist_files)
-	@echo "makefile: Checking files before uploading to PyPI"
+	@echo "Makefile: Checking files before uploading to PyPI"
 	twine check $(dist_files)
-	@echo "makefile: Uploading to PyPI: pywbem $(package_version)"
+	@echo "Makefile: Uploading to PyPI: pywbem $(package_version)"
 	twine upload $(dist_files)
-	@echo "makefile: Done uploading to PyPI"
-	@echo "makefile: Target $@ done."
+	@echo "Makefile: Done uploading to PyPI"
+	@echo "Makefile: Target $@ done."
 
 .PHONY: html
 html: develop_$(pymn).done $(doc_build_dir)/html/docs/index.html
-	@echo "makefile: Target $@ done."
+	@echo "Makefile: Target $@ done."
 
-$(doc_build_dir)/html/docs/index.html: makefile $(doc_utility_help_files) $(doc_dependent_files)
+$(doc_build_dir)/html/docs/index.html: Makefile $(doc_utility_help_files) $(doc_dependent_files)
 ifeq ($(python_mn_version),2.6)
-	@echo "makefile: Warning: Skipping Sphinx doc build for target $@ on Python $(python_version)" >&2
+	@echo "Makefile: Warning: Skipping Sphinx doc build for target $@ on Python $(python_version)" >&2
 else
-	@echo "makefile: Creating the documentation as HTML pages"
+	@echo "Makefile: Creating the documentation as HTML pages"
 	-$(call RM_FUNC,$@)
 	$(doc_cmd) -b html $(doc_opts) $(doc_build_dir)/html
-	@echo "makefile: Done creating the documentation as HTML pages; top level file: $@"
+	@echo "Makefile: Done creating the documentation as HTML pages; top level file: $@"
 endif
 
 .PHONY: pdf
-pdf: develop_$(pymn).done makefile $(doc_utility_help_files) $(doc_dependent_files)
+pdf: develop_$(pymn).done Makefile $(doc_utility_help_files) $(doc_dependent_files)
 ifeq ($(python_mn_version),2.6)
-	@echo "makefile: Warning: Skipping Sphinx doc build for target $@ on Python $(python_version)" >&2
+	@echo "Makefile: Warning: Skipping Sphinx doc build for target $@ on Python $(python_version)" >&2
 else
-	@echo "makefile: Creating the documentation as PDF file"
+	@echo "Makefile: Creating the documentation as PDF file"
 	-$(call RM_FUNC,$@)
 	$(doc_cmd) -b latex $(doc_opts) $(doc_build_dir)/pdf
-	@echo "makefile: Running LaTeX files through pdflatex..."
+	@echo "Makefile: Running LaTeX files through pdflatex..."
 	$(MAKE) -C $(doc_build_dir)/pdf all-pdf
-	@echo "makefile: Done creating the documentation as PDF file in: $(doc_build_dir)/pdf/"
-	@echo "makefile: Target $@ done."
+	@echo "Makefile: Done creating the documentation as PDF file in: $(doc_build_dir)/pdf/"
+	@echo "Makefile: Target $@ done."
 endif
 
 .PHONY: man
-man: develop_$(pymn).done makefile $(doc_utility_help_files) $(doc_dependent_files)
+man: develop_$(pymn).done Makefile $(doc_utility_help_files) $(doc_dependent_files)
 ifeq ($(python_mn_version),2.6)
-	@echo "makefile: Warning: Skipping Sphinx doc build for target $@ on Python $(python_version)" >&2
+	@echo "Makefile: Warning: Skipping Sphinx doc build for target $@ on Python $(python_version)" >&2
 else
-	@echo "makefile: Creating the documentation as man pages"
+	@echo "Makefile: Creating the documentation as man pages"
 	-$(call RM_FUNC,$@)
 	$(doc_cmd) -b man $(doc_opts) $(doc_build_dir)/man
-	@echo "makefile: Done creating the documentation as man pages in: $(doc_build_dir)/man/"
-	@echo "makefile: Target $@ done."
+	@echo "Makefile: Done creating the documentation as man pages in: $(doc_build_dir)/man/"
+	@echo "Makefile: Target $@ done."
 endif
 
 .PHONY: docchanges
 docchanges: develop_$(pymn).done
 ifeq ($(python_mn_version),2.6)
-	@echo "makefile: Warning: Skipping Sphinx doc build for target $@ on Python $(python_version)" >&2
+	@echo "Makefile: Warning: Skipping Sphinx doc build for target $@ on Python $(python_version)" >&2
 else
-	@echo "makefile: Creating the doc changes overview file"
+	@echo "Makefile: Creating the doc changes overview file"
 	$(doc_cmd) -b changes $(doc_opts) $(doc_build_dir)/changes
 	@echo
-	@echo "makefile: Done creating the doc changes overview file in: $(doc_build_dir)/changes/"
-	@echo "makefile: Target $@ done."
+	@echo "Makefile: Done creating the doc changes overview file in: $(doc_build_dir)/changes/"
+	@echo "Makefile: Target $@ done."
 endif
 
 .PHONY: doclinkcheck
 doclinkcheck: develop_$(pymn).done
 ifeq ($(python_mn_version),2.6)
-	@echo "makefile: Warning: Skipping Sphinx doc build for target $@ on Python $(python_version)" >&2
+	@echo "Makefile: Warning: Skipping Sphinx doc build for target $@ on Python $(python_version)" >&2
 else
-	@echo "makefile: Creating the doc link errors file"
+	@echo "Makefile: Creating the doc link errors file"
 	$(doc_cmd) -b linkcheck $(doc_opts) $(doc_build_dir)/linkcheck
 	@echo
-	@echo "makefile: Done creating the doc link errors file: $(doc_build_dir)/linkcheck/output.txt"
-	@echo "makefile: Target $@ done."
+	@echo "Makefile: Done creating the doc link errors file: $(doc_build_dir)/linkcheck/output.txt"
+	@echo "Makefile: Target $@ done."
 endif
 
 .PHONY: doccoverage
 doccoverage: develop_$(pymn).done
 ifeq ($(python_mn_version),2.6)
-	@echo "makefile: Warning: Skipping Sphinx doc build for target $@ on Python $(python_version)" >&2
+	@echo "Makefile: Warning: Skipping Sphinx doc build for target $@ on Python $(python_version)" >&2
 else
-	@echo "makefile: Creating the doc coverage results file"
+	@echo "Makefile: Creating the doc coverage results file"
 	$(doc_cmd) -b coverage $(doc_opts) $(doc_build_dir)/coverage
-	@echo "makefile: Done creating the doc coverage results file: $(doc_build_dir)/coverage/python.txt"
-	@echo "makefile: Target $@ done."
+	@echo "Makefile: Done creating the doc coverage results file: $(doc_build_dir)/coverage/python.txt"
+	@echo "Makefile: Target $@ done."
 endif
 
 # Note: distutils depends on the right files specified in MANIFEST.in, even when
 # they are already specified e.g. in 'package_data' in setup.py.
 # We generate the MANIFEST.in file automatically, to have a single point of
-# control (this makefile) for what gets into the distribution archive.
-MANIFEST.in: makefile $(dist_manifest_in_files)
-	@echo "makefile: Creating the manifest input file"
-	echo "# file GENERATED by makefile, do NOT edit" >$@
+# control (this Makefile) for what gets into the distribution archive.
+MANIFEST.in: Makefile $(dist_manifest_in_files)
+	@echo "Makefile: Creating the manifest input file"
+	echo "# file GENERATED by Makefile, do NOT edit" >$@
 ifeq ($(PLATFORM),Windows_native)
 	for %%f in ($(dist_manifest_in_files)) do (echo include %%f >>$@)
 	echo recursive-include $(test_dir) * >>$@
@@ -664,7 +664,7 @@ else
 	echo "recursive-include $(test_dir) *" >>$@
 	echo "recursive-exclude $(test_dir) *.pyc" >>$@
 endif
-	@echo "makefile: Done creating the manifest input file: $@"
+	@echo "Makefile: Done creating the manifest input file: $@"
 
 # Distribution archives.
 # Note: Deleting MANIFEST causes distutils (setup.py) to read MANIFEST.in and to
@@ -672,11 +672,11 @@ endif
 # Note: Deleting build is a safeguard against picking up partial build products
 # which can lead to incorrect hashbangs in the pywbem scripts in wheel archives.
 $(bdist_file) $(sdist_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
-	@echo "makefile: Creating the distribution archive files"
+	@echo "Makefile: Creating the distribution archive files"
 	-$(call RM_FUNC,MANIFEST)
 	-$(call RMDIR_FUNC,build $(package_name).egg-info-INFO .eggs)
 	$(PYTHON_CMD) setup.py sdist -d $(dist_dir) bdist_wheel -d $(dist_dir) --universal
-	@echo "makefile: Done creating the distribution archive files: $(bdist_file) $(sdist_file)"
+	@echo "Makefile: Done creating the distribution archive files: $(bdist_file) $(sdist_file)"
 
 # Note: The mof*tab files need to be removed in order to rebuild them (make rules vs. ply rules)
 # Note: Because the current directory is by default in front of the Python module
@@ -684,10 +684,10 @@ $(bdist_file) $(sdist_file): setup.py MANIFEST.in $(dist_dependent_files) $(moft
 # when an installed version of pywbem is tested. This is correct, because the
 # purpose of this rule is to build the mof*tab files in ./pywbem.
 $(moftab_files): install_$(pymn).done $(moftab_dependent_files) build_moftab.py
-	@echo "makefile: Creating the LEX/YACC table modules"
+	@echo "Makefile: Creating the LEX/YACC table modules"
 	-$(call RM_FUNC,$(package_name)/_mofparsetab.py* $(package_name)/_moflextab.py*)
 	$(PYTHON_CMD) -c "from pywbem import _mof_compiler; _mof_compiler._build(verbose=True)"
-	@echo "makefile: Done creating the LEX/YACC table modules: $(moftab_files)"
+	@echo "Makefile: Done creating the LEX/YACC table modules: $(moftab_files)"
 
 # PyLint status codes:
 # * 0 if everything went fine
@@ -698,44 +698,44 @@ $(moftab_files): install_$(pymn).done $(moftab_dependent_files) build_moftab.py
 # * 16 if convention messages issued
 # * 32 on usage error
 # Status 1 to 16 will be bit-ORed.
-pylint_$(pymn).done: develop_$(pymn).done makefile $(pylint_rc_file) $(py_src_files)
+pylint_$(pymn).done: develop_$(pymn).done Makefile $(pylint_rc_file) $(py_src_files)
 ifeq ($(python_m_version),2)
-	@echo "makefile: Warning: Skipping Pylint on Python $(python_version)" >&2
+	@echo "Makefile: Warning: Skipping Pylint on Python $(python_version)" >&2
 else
 ifeq ($(python_mn_version),3.4)
-	@echo "makefile: Warning: Skipping Pylint on Python $(python_version)" >&2
+	@echo "Makefile: Warning: Skipping Pylint on Python $(python_version)" >&2
 else
 ifeq ($(python_mn_version),3.5)
-	@echo "makefile: Warning: Skipping Pylint on Python $(python_version)" >&2
+	@echo "Makefile: Warning: Skipping Pylint on Python $(python_version)" >&2
 else
-	@echo "makefile: Running Pylint"
+	@echo "Makefile: Running Pylint"
 	-$(call RM_FUNC,$@)
 	pylint --version
 	pylint $(pylint_opts) --rcfile=$(pylint_rc_file) $(py_src_files)
 	echo "done" >$@
-	@echo "makefile: Done running Pylint"
+	@echo "Makefile: Done running Pylint"
 endif
 endif
 endif
 
-flake8_$(pymn).done: develop_$(pymn).done makefile $(flake8_rc_file) $(py_src_files)
+flake8_$(pymn).done: develop_$(pymn).done Makefile $(flake8_rc_file) $(py_src_files)
 ifeq ($(python_mn_version),2.6)
-	@echo "makefile: Warning: Skipping Flake8 on Python $(python_version)" >&2
+	@echo "Makefile: Warning: Skipping Flake8 on Python $(python_version)" >&2
 else
-	@echo "makefile: Running Flake8"
+	@echo "Makefile: Running Flake8"
 	-$(call RM_FUNC,$@)
 	flake8 --version
 	flake8 --statistics --config=$(flake8_rc_file) --filename='*' $(py_src_files)
 	echo "done" >$@
-	@echo "makefile: Done running Flake8"
+	@echo "Makefile: Done running Flake8"
 endif
 
-safety_$(pymn).done: develop_$(pymn).done makefile minimum-constraints.txt
-	@echo "makefile: Running pyup.io safety check"
+safety_$(pymn).done: develop_$(pymn).done Makefile minimum-constraints.txt
+	@echo "Makefile: Running pyup.io safety check"
 	-$(call RM_FUNC,$@)
 	safety check -r minimum-constraints.txt --full-report $(safety_ignore_opts)
 	echo "done" >$@
-	@echo "makefile: Done running pyup.io safety check"
+	@echo "Makefile: Done running pyup.io safety check"
 
 ifdef TEST_INSTALLED
   test_deps =
@@ -745,63 +745,63 @@ endif
 
 todo_$(pymn).done: develop_$(pymn).done Makefile $(pylint_rc_file) $(py_src_files)
 ifeq ($(python_m_version),2)
-	@echo "makefile: Warning: Skipping checking for TODOs on Python $(python_version)" >&2
+	@echo "Makefile: Warning: Skipping checking for TODOs on Python $(python_version)" >&2
 else
 ifeq ($(python_mn_version),3.4)
-	@echo "makefile: Warning: Skipping checking for TODOs on Python $(python_version)" >&2
+	@echo "Makefile: Warning: Skipping checking for TODOs on Python $(python_version)" >&2
 else
-	@echo "makefile: Checking for TODOs"
+	@echo "Makefile: Checking for TODOs"
 	-$(call RM_FUNC,$@)
 	pylint --exit-zero --reports=n --jobs=1 --disable=all --enable=fixme $(py_src_files)
 	-grep TODO $(doc_conf_dir) -r --include="*.rst"
 	echo "done" >$@
-	@echo "makefile: Done checking for TODOs"
+	@echo "Makefile: Done checking for TODOs"
 endif
 endif
 
 .PHONY: test
 test: $(test_deps)
-	@echo "makefile: Running unit and function tests"
+	@echo "Makefile: Running unit and function tests"
 	py.test --color=yes $(pytest_cov_opts) $(pytest_warning_opts) $(pytest_opts) $(test_dir)/unittest $(test_dir)/functiontest -s
-	@echo "makefile: Done running unit and function tests"
+	@echo "Makefile: Done running unit and function tests"
 
 .PHONY: installtest
 installtest: $(bdist_file) $(sdist_file) $(test_dir)/installtest/test_install.sh
-	@echo "makefile: Running install tests"
+	@echo "Makefile: Running install tests"
 ifeq ($(PLATFORM),Windows_native)
-	@echo "makefile: Warning: Skipping install test on native Windows" >&2
+	@echo "Makefile: Warning: Skipping install test on native Windows" >&2
 else
 	$(test_dir)/installtest/test_install.sh $(bdist_file) $(sdist_file) $(PYTHON_CMD)
 endif
-	@echo "makefile: Done running install tests"
+	@echo "Makefile: Done running install tests"
 
 .PHONY: leaktest
 leaktest: $(test_deps)
-	@echo "makefile: Running memory leak tests"
+	@echo "Makefile: Running memory leak tests"
 	py.test --color=yes $(pytest_warning_opts) $(pytest_opts) $(test_dir)/leaktest -s
-	@echo "makefile: Done running memory leak tests"
+	@echo "Makefile: Done running memory leak tests"
 
 .PHONY: end2endtest
 end2endtest: develop_$(pymn).done $(moftab_files)
-	@echo "makefile: Running end2end tests"
+	@echo "Makefile: Running end2end tests"
 	py.test --color=yes $(pytest_end2end_warning_opts) $(pytest_end2end_opts) $(test_dir)/end2endtest -s
-	@echo "makefile: Done running end2end tests"
+	@echo "Makefile: Done running end2end tests"
 
 .PHONY: resourcetest
 resourcetest: develop_$(pymn).done $(moftab_files)
 ifeq ($(python_m_version),2)
-	@echo "makefile: Warning: Skipping resource consumption tests on Python $(python_version)" >&2
+	@echo "Makefile: Warning: Skipping resource consumption tests on Python $(python_version)" >&2
 else
-	@echo "makefile: Running resource consumption tests"
+	@echo "Makefile: Running resource consumption tests"
 	py.test --color=yes $(pytest_warning_opts) $(pytest_opts) $(test_dir)/resourcetest -s
-	@echo "makefile: Done running resource consumption tests"
+	@echo "Makefile: Done running resource consumption tests"
 endif
 
 $(doc_conf_dir)/mof_compiler.help.txt: mof_compiler $(package_name)/_mof_compiler.py
-	@echo "makefile: Creating mof_compiler script help message file"
+	@echo "Makefile: Creating mof_compiler script help message file"
 ifeq ($(PLATFORM),Windows_native)
 	mof_compiler.bat --help >$@
 else
 	./mof_compiler --help >$@
 endif
-	@echo "makefile: Done creating mof_compiler script help message file: $@"
+	@echo "Makefile: Done creating mof_compiler script help message file: $@"
