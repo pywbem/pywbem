@@ -377,4 +377,343 @@
       </MESSAGE>
       </CIM>
 
+- name: InvokeMethodError1
+  description: Invalid CIM Entity header on response
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: InvokeMethod
+      MethodName: SendTestIndicationsCount
+      ObjectName:
+        pywbem_object: CIMClassName
+        classname: Test_IndicationProviderClass
+        host: null
+        namespace: test/TestProvider
+      indicationSendCount:
+        pywbem_object: Uint32
+        x: 0
+  pywbem_response:
+    exception:  CIMXMLParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: SendTestIndicationsCount
+      CIMObject: test/TestProvider:Test_IndicationProviderClass
+    data: >
+      <?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <METHODCALL NAME="SendTestIndicationsCount">
+      <LOCALCLASSPATH>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="test"/>
+      <NAMESPACE NAME="TestProvider"/>
+      </LOCALNAMESPACEPATH>
+      <CLASSNAME NAME="Test_IndicationProviderClass"/>
+      </LOCALCLASSPATH>
+      <PARAMVALUE NAME="indicationSendCount" PARAMTYPE="uint32">
+      <VALUE>0</VALUE>
+      </PARAMVALUE>
+      </METHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>
+  http_response:
+    status: 200
+    headers:
+      CIMOperation: MethodResponse
+    data: >
+      <?xml version="1.0" encoding="utf-8" ?>
+      <CIMX CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <METHODRESPONSE NAME="SendTestIndicationsCount">
+      <RETURNVALUE PARAMTYPE="sint32">
+      <VALUE>0</VALUE>
+      </RETURNVALUE>
+      </METHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIMX>
+
+- name: InvokeMethodError2
+  description: Invalid MESSAGE Entity header on response
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: InvokeMethod
+      MethodName: SendTestIndicationsCount
+      ObjectName:
+        pywbem_object: CIMClassName
+        classname: Test_IndicationProviderClass
+        host: null
+        namespace: test/TestProvider
+      indicationSendCount:
+        pywbem_object: Uint32
+        x: 0
+  pywbem_response:
+    exception:  CIMXMLParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: SendTestIndicationsCount
+      CIMObject: test/TestProvider:Test_IndicationProviderClass
+    data: >
+      <?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <METHODCALL NAME="SendTestIndicationsCount">
+      <LOCALCLASSPATH>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="test"/>
+      <NAMESPACE NAME="TestProvider"/>
+      </LOCALNAMESPACEPATH>
+      <CLASSNAME NAME="Test_IndicationProviderClass"/>
+      </LOCALCLASSPATH>
+      <PARAMVALUE NAME="indicationSendCount" PARAMTYPE="uint32">
+      <VALUE>0</VALUE>
+      </PARAMVALUE>
+      </METHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>
+  http_response:
+    status: 200
+    headers:
+      CIMOperation: MethodResponse
+    data: >
+      <?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGEX ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <METHODRESPONSE NAME="SendTestIndicationsCount">
+      <RETURNVALUE PARAMTYPE="sint32">
+      <VALUE>0</VALUE>
+      </RETURNVALUE>
+      </METHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGEX>
+      </CIM>
+
+- name: InvokeMethodError3
+  description: Invalid SIMPLERSP Entity header on response
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: InvokeMethod
+      MethodName: SendTestIndicationsCount
+      ObjectName:
+        pywbem_object: CIMClassName
+        classname: Test_IndicationProviderClass
+        host: null
+        namespace: test/TestProvider
+      indicationSendCount:
+        pywbem_object: Uint32
+        x: 0
+  pywbem_response:
+    exception:  CIMXMLParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: SendTestIndicationsCount
+      CIMObject: test/TestProvider:Test_IndicationProviderClass
+    data: >
+      <?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <METHODCALL NAME="SendTestIndicationsCount">
+      <LOCALCLASSPATH>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="test"/>
+      <NAMESPACE NAME="TestProvider"/>
+      </LOCALNAMESPACEPATH>
+      <CLASSNAME NAME="Test_IndicationProviderClass"/>
+      </LOCALCLASSPATH>
+      <PARAMVALUE NAME="indicationSendCount" PARAMTYPE="uint32">
+      <VALUE>0</VALUE>
+      </PARAMVALUE>
+      </METHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>
+  http_response:
+    status: 200
+    headers:
+      CIMOperation: MethodResponse
+    data: >
+      <?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSPX>
+      <METHODRESPONSE NAME="SendTestIndicationsCount">
+      <RETURNVALUE PARAMTYPE="sint32">
+      <VALUE>0</VALUE>
+      </RETURNVALUE>
+      </METHODRESPONSE>
+      </SIMPLERSPX>
+      </MESSAGE>
+      </CIM>
+
+
+- name: InvokeMethodError
+  description: Invalid NAME Entity header on response invalid
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: InvokeMethod
+      MethodName: SendTestIndicationsCount
+      ObjectName:
+        pywbem_object: CIMClassName
+        classname: Test_IndicationProviderClass
+        host: null
+        namespace: test/TestProvider
+      indicationSendCount:
+        pywbem_object: Uint32
+        x: 0
+  pywbem_response:
+    exception:  CIMXMLParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: SendTestIndicationsCount
+      CIMObject: test/TestProvider:Test_IndicationProviderClass
+    data: >
+      <?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <METHODCALL NAME="SendTestIndicationsCount">
+      <LOCALCLASSPATH>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="test"/>
+      <NAMESPACE NAME="TestProvider"/>
+      </LOCALNAMESPACEPATH>
+      <CLASSNAME NAME="Test_IndicationProviderClass"/>
+      </LOCALCLASSPATH>
+      <PARAMVALUE NAME="indicationSendCount" PARAMTYPE="uint32">
+      <VALUE>0</VALUE>
+      </PARAMVALUE>
+      </METHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>
+  http_response:
+    status: 200
+    headers:
+      CIMOperation: MethodResponse
+    data: >
+      <?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <METHODRESPONSEX NAME="SendTestIndicationsCountXXXX">
+      <RETURNVALUE PARAMTYPE="sint32">
+      <VALUE>0</VALUE>
+      </RETURNVALUE>
+      </METHODRESPONSEX>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>
+
+- name: InvokeMethodError5
+  description: ERROR response
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: InvokeMethod
+      MethodName: SendTestIndicationsCount
+      ObjectName:
+        pywbem_object: CIMClassName
+        classname: Test_IndicationProviderClass
+        host: null
+        namespace: test/TestProvider
+      indicationSendCount:
+        pywbem_object: Uint32
+        x: 0
+  pywbem_response:
+        cim_status: 6
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: SendTestIndicationsCount
+      CIMObject: test/TestProvider:Test_IndicationProviderClass
+    data: >
+      <?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <METHODCALL NAME="SendTestIndicationsCount">
+      <LOCALCLASSPATH>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="test"/>
+      <NAMESPACE NAME="TestProvider"/>
+      </LOCALNAMESPACEPATH>
+      <CLASSNAME NAME="Test_IndicationProviderClass"/>
+      </LOCALCLASSPATH>
+      <PARAMVALUE NAME="indicationSendCount" PARAMTYPE="uint32">
+      <VALUE>0</VALUE>
+      </PARAMVALUE>
+      </METHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>
+  http_response:
+    status: 200
+    headers:
+      CIMOperation: MethodResponse
+    data: >
+      <?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <METHODRESPONSE NAME="SendTestIndicationsCount">
+      <ERROR CODE="6" DESCRIPTION="CIM_ERR_NOT_FOUND: PyWBEM_Person.CreationClassName=&quot;PyWBEM_Person&quot;,Name=&quot;run_cimoperations_test&quot;"/>
+      </METHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>
+
 # TODO 01/18 AM: Add testcases for namespaces with leading/trailing slashes
