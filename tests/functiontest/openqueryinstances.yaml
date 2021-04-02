@@ -254,6 +254,119 @@
       </MESSAGE>
       </CIM>'
 
+- name: OpenQueryInstancesError1
+  description: OpenQueryInstances request fails CIMXMLParseError (XML CIM entity)
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: OpenQueryInstances
+      MaxObjectCount: 100
+      FilterQuery: Select * from CIM_ComputerSystem
+      FilterQueryLanguage: WQL
+      ContinueOnError: null
+      OperationTimeout: null
+      namespace: null
+      ReturnQueryResultClass: null
+  pywbem_response:
+    exception: CIMXMLParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMObject: root/cimv2
+      CIMMethod: OpenQueryInstances
+      CIMOperation: MethodCall
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="OpenQueryInstances">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="MaxObjectCount">
+      <VALUE>100</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="FilterQuery">
+      <VALUE>Select * from CIM_ComputerSystem</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="FilterQueryLanguage">
+      <VALUE>WQL</VALUE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      CIMOperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIMX CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="OpenQueryInstances">
+      <IRETURNVALUE>
+      <INSTANCE CLASSNAME="PG_ComputerSystem" >
+      <PROPERTY NAME="Caption"  TYPE="string">
+      <VALUE>Computer System</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="Description"  TYPE="string">
+      <VALUE>Linux version 3.13.0-105-generic (buildd@lgw01-59) (gcc version 4.8.4
+      (Ubuntu 4.8.4-2ubuntu1~14.04.3) ) #152-Ubuntu SMP Fri Dec 2 15:37:11 UTC 2016</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="Status"  TYPE="string">
+      <VALUE>OK</VALUE>
+      </PROPERTY>
+      <PROPERTY.ARRAY NAME="OperationalStatus"  TYPE="uint16">
+      <VALUE.ARRAY>
+      <VALUE>2</VALUE>
+      </VALUE.ARRAY>
+      </PROPERTY.ARRAY>
+      <PROPERTY NAME="ElementName"  TYPE="string">
+      <VALUE>Computer System</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="CreationClassName"  TYPE="string">
+      <VALUE>PG_ComputerSystem</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="Name"  TYPE="string">
+      <VALUE>sheldon</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="NameFormat"  TYPE="string">
+      <VALUE>Other</VALUE>
+      </PROPERTY>
+      <PROPERTY.ARRAY NAME="PowerManagementCapabilities"  TYPE="uint16">
+      <VALUE.ARRAY>
+      <VALUE>1</VALUE>
+      </VALUE.ARRAY>
+      </PROPERTY.ARRAY>
+      <PROPERTY NAME="PowerManagementSupported"  TYPE="boolean">
+      <VALUE>FALSE</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="PowerState"  TYPE="uint16">
+      <VALUE>1</VALUE>
+      </PROPERTY>
+      </INSTANCE>
+      </IRETURNVALUE>
+      <PARAMVALUE NAME="EndOfSequence">
+      <VALUE>TRUE</VALUE>
+      </PARAMVALUE>
+      <PARAMVALUE NAME="EnumerationContext">
+      <VALUE>
+      </VALUE>
+      </PARAMVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIMX>'
+
 - name: OpenQueryInstancesNS1
   description: OpenQueryInstances, with leading/trailing slashes in default namespace
   pywbem_request:

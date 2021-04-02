@@ -405,6 +405,29 @@ class TestCreateConnection(object):
         with pytest.raises(ValueError):
             conn.add_operation_recorder(LogOperationRecorder('fake_conn_id'))
 
+    def test_stats_enabled(self):  # pylint: disable=no-self-use
+        """
+        Test the property stats_enabled setter
+        """
+        conn = WBEMConnection('http://localhost')
+        assert conn.stats_enabled is False
+        conn.stats_enabled = True
+        assert conn.stats_enabled is True
+        conn.stats_enabled = False
+        assert conn.stats_enabled is False
+
+    def test_operation_recorder_enabled(self):  # pylint: disable=no-self-use
+        """
+        Test the property operation_recorder enabled setter
+        """
+        conn = WBEMConnection('http://localhost')
+        conn.add_operation_recorder(LogOperationRecorder('fake_conn_id'))
+        assert conn.operation_recorder_enabled is True
+        conn.operation_recorder_enabled = False
+        assert conn.operation_recorder_enabled is False
+        conn.operation_recorder_enabled = True
+        assert conn.operation_recorder_enabled is True
+
     def test_close(self):  # pylint: disable=no-self-use
         """
         Test closing a connection once.
@@ -526,7 +549,7 @@ class TestGetRsltParams(object):
 
 def build_repo():
     """Fixture to initialize the mock environment and install classes.
-       Definde as a function without the pytest.fixture decorator becasue
+       Defined as a function without the pytest.fixture decorator because
        there is no way to include a fixture in the signature of a test
        function that uses simplified_test_function. Simplified_test_function
        reports a parameter count difference because of the extram parameter
@@ -764,6 +787,50 @@ TESTCASES_REQUEST_INVALID_PARAMS = [
     ),
 
     (
+        "Test OpenEnumerateInstances, Invalid type for operationtimeout",
+        dict(
+            init_kwargs={},
+            method='openenumerateinstances',
+            args=[CIMInstance("CIMBlah")],
+            kwargs={"OperationTimeout": "shouldbeinteger"},
+        ),
+        TypeError, None, OK
+    ),
+
+    (
+        "Test OpenEnumerateInstances, Invalid value for operationtimeout",
+        dict(
+            init_kwargs={},
+            method='openenumerateinstances',
+            args=[CIMInstance("CIMBlah")],
+            kwargs={"OperationTimeout": -30},
+        ),
+        TypeError, None, OK
+    ),
+
+    (
+        "Test OpenEnumerateInstancepaths, Invalid type for operationtimeout",
+        dict(
+            init_kwargs={},
+            method='openenumerateinstancepaths',
+            args=[CIMInstance("CIMBlah")],
+            kwargs={"OperationTimeout": "shouldbeinteger"},
+        ),
+        TypeError, None, OK
+    ),
+
+    (
+        "Test OpenEnumerateInstancePaths, Invalid value for operationtimeout",
+        dict(
+            init_kwargs={},
+            method='openenumerateinstancepaths',
+            args=[CIMInstance("CIMBlah")],
+            kwargs={"OperationTimeout": -30},
+        ),
+        TypeError, None, OK
+    ),
+
+    (
         "Test pullinstancewithpath, Invalid context type",
         dict(
             init_kwargs={},
@@ -924,6 +991,9 @@ def test_request_invalid_params(testcase, init_kwargs, method, args, kwargs):
 
     elif method == 'openenumerateinstances':
         _ = conn.OpenEnumerateInstances(*args, **kwargs)
+
+    elif method == 'openenumerateinstancepaths':
+        _ = conn.OpenEnumerateInstancePaths(*args, **kwargs)
 
     elif method == 'pullinstanceswithpath':
         _ = conn.PullInstancesWithPath(*args, **kwargs)

@@ -1395,6 +1395,63 @@
       </MESSAGE>
       </CIM>'
 
+- name: EnumerateQualifiersF2
+  description: EnumerateQualifiers fails CIMXMLParseError (Invalid XML CIMX)
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: null
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: EnumerateQualifiers
+      namespace: //root/mycim//
+  pywbem_response:
+    exception: CIMXMLParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: EnumerateQualifiers
+      CIMObject: root/mycim
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="EnumerateQualifiers">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="mycim"/>
+      </LOCALNAMESPACEPATH>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIMX CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="EnumerateQualifiers">
+      <IRETURNVALUE>
+      <QUALIFIER.DECLARATION NAME="Exception" TYPE="boolean"
+       TOSUBCLASS="FALSE" TOINSTANCE="TRUE" OVERRIDABLE="FALSE"
+       TRANSLATABLE="TRUE">
+      <SCOPE INDICATION="true" CLASS="true"/>
+      <VALUE>FALSE</VALUE>
+      </QUALIFIER.DECLARATION>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIMX>'
+
 - name: EnumerateQualifiersNS1
   description: EnumerateQualifiers, with leading/trailing slashes in default namespace
   pywbem_request:

@@ -50,6 +50,7 @@
       </SIMPLERSP>
       </MESSAGE>
       </CIM>'
+
 - name: CloseEnumerationF1
   description: CloseEnumeration on nonexistent(closed) enumeration sequence. Returns status CIM_ERR_INVALID_ENUMERATION_CONTEXT
   pywbem_request:
@@ -105,3 +106,59 @@
             </SIMPLERSP>
           </MESSAGE>
         </CIM>
+
+- name: CloseEnumerationF2
+  description: CloseEnumeration fails CIMXMLParseError (Returns CIMXXXX rather than CIM)
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: CloseEnumeration
+      context:
+      - '500063'
+      - root/cimv2
+  pywbem_response:
+     exception: CIMXMLParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: CloseEnumeration
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="CloseEnumeration">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="EnumerationContext">
+      <VALUE>500063</VALUE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: >
+        <?xml version="1.0" encoding="utf-8" ?>
+        <CIMXXXX CIMVERSION="2.0" DTDVERSION="2.0">
+          <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+            <SIMPLERSP>
+              <IMETHODRESPONSE NAME="CloseEnumeration">
+                <ERROR CODE="21" DESCRIPTION="CIM_ERR_INVALID_ENUMERATION_CONTEXT:"/>
+              </IMETHODRESPONSE>
+            </SIMPLERSP>
+          </MESSAGE>
+        </CIMXXXX>
