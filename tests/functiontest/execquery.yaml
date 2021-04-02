@@ -263,6 +263,65 @@
       </MESSAGE>
       </CIM>'
 
+- name: ExecQuery2
+  description: ExecQuery request returns no instances. Successful
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: ExecQuery
+      QueryLanguage: WQL
+      Query: Select * from CIM_ComputerSystem
+      namespace: null
+  pywbem_response:
+    result: []
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMObject: root/cimv2
+      CIMMethod: ExecQuery
+      CIMOperation: MethodCall
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="ExecQuery">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="QueryLanguage">
+      <VALUE>WQL</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="Query">
+      <VALUE>Select * from CIM_ComputerSystem</VALUE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      CIMOperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="ExecQuery">
+      <IRETURNVALUE>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+
 - name: ExecQueryF1
   description: ExecQuery request fails, invalid query
   pywbem_request:
@@ -436,6 +495,65 @@
       </SIMPLERSP>
       </MESSAGE>
       </CIM>'
+
+
+- name: ExecQueryF4
+  description: ExecQueryRequest fails, XML entity bad (CIM -> CIMX) causes CIMXMLParserror
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: ExecQuery
+      QueryLanguage: WQL
+      Query: Select * from CIM_ComputerSystem
+      namespace: root/blah
+  pywbem_response:
+    exception: CIMXMLParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMObject: root/blah
+      CIMMethod: ExecQuery
+      CIMOperation: MethodCall
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="ExecQuery">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="blah"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="QueryLanguage">
+      <VALUE>WQL</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="Query">
+      <VALUE>Select * from CIM_ComputerSystem</VALUE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      CIMOperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIMX CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="ExecQuery">
+      <ERROR CODE="3" DESCRIPTION="CIM_ERR_INVALID_NAMESPACE: root/blah"/>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIMX>'
 
 - name: ExecQueryNS1
   description: ExecQuery, with leading/trailing slashes in default namespace

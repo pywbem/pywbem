@@ -164,6 +164,15 @@ class TestLoggingConfigure(object):
             # Disable logger to get log file closed.
             configure_logger(log_name, log_dest='off')
 
+    def test_configure_logger_nameerror(self):
+        """
+        Test that invalid logger name parameter generates exception. The
+        previous test handles valid names
+        """
+        with pytest.raises(ValueError):
+            configure_logger("BadLogName", log_dest='stderr',
+                             detail_level="all")
+
 
 TESTCASES_TEST_LOGGERS_FROM_STRING = [
     # Each list item is a testcase tuple with these items:

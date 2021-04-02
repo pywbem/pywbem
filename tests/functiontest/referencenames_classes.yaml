@@ -137,3 +137,152 @@
                 </SIMPLERSP>
               </MESSAGE>
             </CIM>
+
+- name: ReferenceNames_ClassesF2
+  description: ReferenceNames Fails, invalid XML CIMXXX in response
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: ReferenceNames
+      Role: member
+      ResultClass: PyWBEM_MemberOfPersonCollection
+      ObjectName: PyWBEM_Person
+  pywbem_response:
+    exception: CIMXMLParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: ReferenceNames
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="ReferenceNames">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="ResultClass">
+      <CLASSNAME NAME="PyWBEM_MemberOfPersonCollection"/>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="Role">
+      <VALUE>member</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="ObjectName">
+      <CLASSNAME NAME="PyWBEM_Person"/>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      CIMOperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIMXXX CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="ReferenceNames">
+      <IRETURNVALUE>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="PyWBEM_MemberOfPersonCollection"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIMXXX>'
+
+
+- name: ReferenceNames_ClassesF3
+  description: ReferenceNames Fails, returns instancenames
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: ReferenceNames
+      Role: member
+      ResultClass: PyWBEM_MemberOfPersonCollection
+      ObjectName: PyWBEM_Person
+  pywbem_response:
+    exception: CIMXMLParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: ReferenceNames
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="ReferenceNames">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="ResultClass">
+      <CLASSNAME NAME="PyWBEM_MemberOfPersonCollection"/>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="Role">
+      <VALUE>member</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="ObjectName">
+      <CLASSNAME NAME="PyWBEM_Person"/>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      CIMOperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIMXXX CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="ReferenceNames">
+      <IRETURNVALUE>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <INSTANCENAME CLASSNAME="PyWBEM_MemberOfPersonCollection"/>
+      </CLASSPATH>
+      </OBJECTPATH>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIMXXX>'

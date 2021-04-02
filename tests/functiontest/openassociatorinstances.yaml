@@ -141,6 +141,111 @@
       </MESSAGE>
       </CIM>'
 
+- name: OpenAssociatorInstancesError1
+  description: OpenAssociatorInstances fails with CIMXMLParseError (Bad XML Entity CIMX)
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: OpenAssociatorInstances
+      MaxObjectCount: 100
+      InstanceName:
+        pywbem_object: CIMInstanceName
+        classname: PyWBEM_Person
+        namespace: root/cimv2
+        keybindings:
+          CreationClassName: PyWBEM_Person
+          Name: Alice
+  pywbem_response:
+    exception: CIMXMLParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: OpenAssociatorInstances
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="OpenAssociatorInstances">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="InstanceName">
+      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+      <KEYBINDING NAME="CreationClassName">
+      <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
+      </KEYBINDING>
+      <KEYBINDING NAME="Name">
+      <KEYVALUE VALUETYPE="string" TYPE="string">Alice</KEYVALUE>
+      </KEYBINDING>
+      </INSTANCENAME>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="MaxObjectCount">
+      <VALUE>100</VALUE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIMX CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="OpenAssociatorInstances">
+      <IRETURNVALUE>
+      <VALUE.INSTANCEWITHPATH>
+      <INSTANCEPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <INSTANCENAME CLASSNAME="PyWBEM_PersonCollection">
+      <KEYBINDING NAME="InstanceID">
+      <KEYVALUE VALUETYPE="string" TYPE="string">PersonCollection</KEYVALUE>
+      </KEYBINDING>
+      </INSTANCENAME>
+      </INSTANCEPATH>
+      <INSTANCE CLASSNAME="PyWBEM_PersonCollection" >
+      <PROPERTY NAME="Caption"  PROPAGATED="true" TYPE="string">
+      </PROPERTY>
+      <PROPERTY NAME="Description"  PROPAGATED="true" TYPE="string">
+      </PROPERTY>
+      <PROPERTY NAME="ElementName"  PROPAGATED="true" TYPE="string">
+      </PROPERTY>
+      <PROPERTY NAME="InstanceID"  TYPE="string">
+      <VALUE>PersonCollection</VALUE>
+      </PROPERTY>
+      </INSTANCE>
+      </VALUE.INSTANCEWITHPATH>
+      </IRETURNVALUE>
+      <PARAMVALUE NAME="EndOfSequence">
+      <VALUE>FALSE</VALUE>
+      </PARAMVALUE>
+      <PARAMVALUE NAME="EnumerationContext">
+      <VALUE>500028</VALUE>
+      </PARAMVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIMX>'
+
+
 - name: OpenAssociatorInstancesNS1
   description: OpenAssociatorInstances, with leading/trailing slashes in default namespace
   pywbem_request:

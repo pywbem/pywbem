@@ -1040,7 +1040,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         when the connection has no operation recorders.
         """
         for recorder in self._operation_recorders:
-            if recorder.enabled():
+            if recorder.enabled:
                 return True
         return False
 
@@ -2473,22 +2473,29 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         return string_param
 
     @staticmethod
-    def _iparam_integer(integer_param, arg_name):
+    def _iparam_positive_integer(integer_param, arg_name):
         # pylint: disable=invalid-name,
         """
-        Validate a integer typed operation parameter that may be None.
+        Validate a integer typed operation parameter that may be None, zero,
+        or a positive integer.
 
         Returns:
            The input integer, or None.
 
         Raises:
           TypeError - integer_param has an invalid type
+          ValueError - integer param is LT 0
         """
         if not isinstance(integer_param, (six.integer_types, type(None))):
             raise TypeError(
                 _format("The {0!A} parameter of the WBEMConnection operation "
                         "has invalid type {1} (must be None, or an integer)",
                         arg_name, type(integer_param)))
+
+        if integer_param is not None and integer_param < 0:
+            raise ValueError(
+                _format("The {0!A} parameter must be >= 0 but is {0}",
+                        arg_name, integer_param))
         return integer_param
 
     @staticmethod
@@ -6771,7 +6778,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             FilterQueryLanguage = self._iparam_string(
                 FilterQueryLanguage, 'FilterQueryLanguage')
             FilterQuery = self._iparam_string(FilterQuery, 'FilterQuery')
-            OperationTimeout = self._iparam_integer(
+            OperationTimeout = self._iparam_positive_integer(
                 OperationTimeout, 'OperationTimeout')
             ContinueOnError = self._iparam_bool(
                 ContinueOnError, 'ContinueOnError')
@@ -7006,7 +7013,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             FilterQueryLanguage = self._iparam_string(
                 FilterQueryLanguage, 'FilterQueryLanguage')
             FilterQuery = self._iparam_string(FilterQuery, 'FilterQuery')
-            OperationTimeout = self._iparam_integer(
+            OperationTimeout = self._iparam_positive_integer(
                 OperationTimeout, 'OperationTimeout')
             ContinueOnError = self._iparam_bool(
                 ContinueOnError, 'ContinueOnError')
@@ -7283,7 +7290,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             FilterQueryLanguage = self._iparam_string(
                 FilterQueryLanguage, 'FilterQueryLanguage')
             FilterQuery = self._iparam_string(FilterQuery, 'FilterQuery')
-            OperationTimeout = self._iparam_integer(
+            OperationTimeout = self._iparam_positive_integer(
                 OperationTimeout, 'OperationTimeout')
             ContinueOnError = self._iparam_bool(
                 ContinueOnError, 'ContinueOnError')
@@ -7538,7 +7545,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             FilterQueryLanguage = self._iparam_string(
                 FilterQueryLanguage, 'FilterQueryLanguage')
             FilterQuery = self._iparam_string(FilterQuery, 'FilterQuery')
-            OperationTimeout = self._iparam_integer(
+            OperationTimeout = self._iparam_positive_integer(
                 OperationTimeout, 'OperationTimeout')
             ContinueOnError = self._iparam_bool(
                 ContinueOnError, 'ContinueOnError')
@@ -7801,7 +7808,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             FilterQueryLanguage = self._iparam_string(
                 FilterQueryLanguage, 'FilterQueryLanguage')
             FilterQuery = self._iparam_string(FilterQuery, 'FilterQuery')
-            OperationTimeout = self._iparam_integer(
+            OperationTimeout = self._iparam_positive_integer(
                 OperationTimeout, 'OperationTimeout')
             ContinueOnError = self._iparam_bool(
                 ContinueOnError, 'ContinueOnError')
@@ -8019,10 +8026,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 ContinueOnError=ContinueOnError,
                 MaxObjectCount=MaxObjectCount)
 
-        if MaxObjectCount is not None and MaxObjectCount < 0:
-            raise ValueError(
-                _format("MaxObjectCount must be >= 0 but is {0}",
-                        MaxObjectCount))
         try:
 
             stats = self.statistics.start_timer(method_name)
@@ -8035,7 +8038,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             FilterQueryLanguage = self._iparam_string(
                 FilterQueryLanguage, 'FilterQueryLanguage')
             FilterQuery = self._iparam_string(FilterQuery, 'FilterQuery')
-            OperationTimeout = self._iparam_integer(
+            OperationTimeout = self._iparam_positive_integer(
                 OperationTimeout, 'OperationTimeout')
             ContinueOnError = self._iparam_bool(
                 ContinueOnError, 'ContinueOnError')
@@ -8267,7 +8270,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             FilterQuery = self._iparam_string(FilterQuery, 'FilterQuery')
             ReturnQueryResultClass = self._iparam_bool(
                 ReturnQueryResultClass, 'ReturnQueryResultClass')
-            OperationTimeout = self._iparam_integer(
+            OperationTimeout = self._iparam_positive_integer(
                 OperationTimeout, 'OperationTimeout')
             ContinueOnError = self._iparam_bool(
                 ContinueOnError, 'ContinueOnError')

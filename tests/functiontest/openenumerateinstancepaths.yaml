@@ -705,6 +705,119 @@
               </MESSAGE>
             </CIM>
 
+-   name: OpenEnumerateInstancePaths1
+    description: OpenEnumerateInstancePaths fails, CIMXMLParseError from bad XML CIMX
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: true
+        operation:
+            pywbem_method: OpenEnumerateInstancePaths
+            ClassName: PyWBEM_Person
+    pywbem_response:
+        exception: CIMXMLParseError
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: OpenEnumerateInstancePaths
+            CIMObject: root/cimv2
+        data: >
+             <?xml version="1.0" encoding="utf-8" ?>
+             <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                 <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                     <SIMPLEREQ>
+                         <IMETHODCALL NAME="OpenEnumerateInstancePaths">
+                            <LOCALNAMESPACEPATH>
+                                 <NAMESPACE NAME="root"/>
+                                 <NAMESPACE NAME="cimv2"/>
+                             </LOCALNAMESPACEPATH>
+                             <IPARAMVALUE NAME="ClassName">
+                                 <CLASSNAME NAME="PyWBEM_Person"/>
+                             </IPARAMVALUE>
+                         </IMETHODCALL>
+                     </SIMPLEREQ>
+                 </MESSAGE>
+             </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIMX CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="OpenEnumerateInstancePaths">
+                            <IRETURNVALUE>
+                                <INSTANCEPATH>
+                                  <NAMESPACEPATH>
+                                    <HOST>sheldon</HOST>
+                                      <LOCALNAMESPACEPATH>
+                                        <NAMESPACE NAME="root"/>
+                                        <NAMESPACE NAME="cimv2"/>
+                                     </LOCALNAMESPACEPATH>
+                                  </NAMESPACEPATH>
+                                  <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                                    <KEYBINDING NAME="CreationClassName">
+                                        <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
+                                    </KEYBINDING>
+                                    <KEYBINDING NAME="Name">
+                                        <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
+                                    </KEYBINDING>
+                                  </INSTANCENAME>
+                                </INSTANCEPATH>
+                                <INSTANCEPATH>
+                                  <NAMESPACEPATH>
+                                    <HOST>sheldon</HOST>
+                                      <LOCALNAMESPACEPATH>
+                                        <NAMESPACE NAME="root"/>
+                                        <NAMESPACE NAME="cimv2"/>
+                                     </LOCALNAMESPACEPATH>
+                                  </NAMESPACEPATH>
+                                  <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                                    <KEYBINDING NAME="CreationClassName">
+                                        <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
+                                    </KEYBINDING>
+                                    <KEYBINDING NAME="Name">
+                                        <KEYVALUE VALUETYPE="string" TYPE="string">Alice</KEYVALUE>
+                                    </KEYBINDING>
+                                  </INSTANCENAME>
+                                </INSTANCEPATH>
+                                <INSTANCEPATH>
+                                  <NAMESPACEPATH>
+                                    <HOST>sheldon</HOST>
+                                      <LOCALNAMESPACEPATH>
+                                        <NAMESPACE NAME="root"/>
+                                        <NAMESPACE NAME="cimv2"/>
+                                     </LOCALNAMESPACEPATH>
+                                  </NAMESPACEPATH>
+                                  <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                                    <KEYBINDING NAME="CreationClassName">
+                                        <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
+                                    </KEYBINDING>
+                                    <KEYBINDING NAME="Name">
+                                        <KEYVALUE VALUETYPE="string" TYPE="string">Charlie</KEYVALUE>
+                                    </KEYBINDING>
+                                  </INSTANCENAME>
+                                </INSTANCEPATH>
+                            </IRETURNVALUE>
+                                <PARAMVALUE NAME="EndOfSequence">
+                                    <VALUE>TRUE</VALUE>
+                                </PARAMVALUE>
+                                <PARAMVALUE NAME="EnumerationContext">
+                                    <VALUE></VALUE>
+                                </PARAMVALUE>
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIMX>
+
 -   name: OpenEnumerateInstancePathsNS1
     description: OpenEnumerateInstancePaths, with leading/trailing slashes in default namespace
     pywbem_request:

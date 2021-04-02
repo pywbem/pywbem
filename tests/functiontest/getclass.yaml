@@ -851,6 +851,76 @@
 
 # TODO getclass needs more success tests with different input parameters.
 
+- name: GetClassError
+  description: GetClass fails, CIMXMLParseError (Bad element CIM)
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: GetClass
+      IncludeClassOrigin: null
+      IncludeQualifiers: null
+      PropertyList:
+      - PowerManagementCapabilities
+      namespace: null
+      LocalOnly: false
+      ClassName: CIM_ComputerSystem
+  pywbem_response:
+    exception: CIMXMLParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: GetClass
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="GetClass">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="ClassName">
+      <CLASSNAME NAME="CIM_ComputerSystem"/>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="PropertyList">
+      <VALUE.ARRAY>
+      <VALUE>PowerManagementCapabilities</VALUE>
+      </VALUE.ARRAY>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="LocalOnly">
+      <VALUE>FALSE</VALUE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIMX CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="GetClass">
+      <IRETURNVALUE>
+      <CLASS NAME="CIM_ComputerSystem"  SUPERCLASS="CIM_System" >
+      </CLASS>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIMX>'
+
 - name: GetClassNS1
   description: GetClass, with leading/trailing slashes in default namespace
   pywbem_request:

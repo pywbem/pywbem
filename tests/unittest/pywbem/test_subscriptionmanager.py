@@ -61,7 +61,7 @@ class BaseMethodsForTests(object):
     def setup_method(self):
         """
         Create the Fake connection and setup the connection. This
-        method first initialized the WbemServerMock and then suplements
+        method first initializes the WbemServerMock and then supplements
         it with the classes required for the subscription manager.
         """
         skip_if_moftab_regenerated()
@@ -242,7 +242,7 @@ class BaseMethodsForTests(object):
         return sum(self.count_outstanding(sub_mgr, server_id))
 
     def empty_expected(self, sub_mgr, server_id):
-        """ TODO """
+        """ Get outstanding objects from server. Return True if 0 objects """
         # pylint: disable=no-self-use
 
         counts = self.count_outstanding(sub_mgr, server_id)
@@ -292,8 +292,6 @@ class TestSubMgrClass(BaseMethodsForTests):
                                                       filter_path,
                                                       owned=True)
             subscription_paths = [inst.path for inst in subscriptions]
-
-            # self.conn.display_repository()
 
             self.confirm_created(sub_mgr, server_id, filter_path,
                                  subscription_paths, owned=True)

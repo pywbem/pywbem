@@ -239,6 +239,126 @@
               </MESSAGE>
             </CIM>
 
+- name: ModifyInstanceE2
+  description: ModifyInstance fail, CIMXMLParseError
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: ModifyInstance
+      IncludeQualifiers: null
+      PropertyList: null
+      ModifiedInstance:
+        pywbem_object: CIMInstance
+        classname: PyWBEM_Person
+        properties:
+          CreationClassName:
+            pywbem_object: CIMProperty
+            name: CreationClassName
+            value: PyWBEM_Person
+            type: string
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+          Name:
+            pywbem_object: CIMProperty
+            name: Name
+            value: Test
+            type: string
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+          Title:
+            pywbem_object: CIMProperty
+            name: Title
+            value: Sir
+            type: string
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+        path:
+          pywbem_object: CIMInstanceName
+          classname: PyWBEM_Person
+          namespace: root/cimv2
+          keybindings:
+            CreationClassName: PyWBEM_Person
+            Name: Test
+  pywbem_response:
+    exception: CIMXMLParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: ModifyInstance
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="ModifyInstance">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="ModifiedInstance">
+      <VALUE.NAMEDINSTANCE>
+      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+      <KEYBINDING NAME="CreationClassName">
+      <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
+      </KEYBINDING>
+      <KEYBINDING NAME="Name">
+      <KEYVALUE VALUETYPE="string" TYPE="string">Test</KEYVALUE>
+      </KEYBINDING>
+      </INSTANCENAME>
+      <INSTANCE CLASSNAME="PyWBEM_Person">
+      <PROPERTY NAME="CreationClassName" TYPE="string">
+      <VALUE>PyWBEM_Person</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="Name" TYPE="string">
+      <VALUE>Test</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="Title" TYPE="string">
+      <VALUE>Sir</VALUE>
+      </PROPERTY>
+      </INSTANCE>
+      </VALUE.NAMEDINSTANCE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGEXX ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="ModifyInstance">
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGEXX>
+      </CIM>'
+
 - name: ModifyInstanceNS1
   description: ModifyInstance, with leading/trailing slashes in default namespace
   pywbem_request:

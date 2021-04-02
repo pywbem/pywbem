@@ -1870,6 +1870,82 @@
               </MESSAGE>
             </CIM>
 
+-   name: EnumerateInstancesError8
+    description: EnumerateInstances Fail CIMXMLParseError, classes returned.
+    pywbem_request:
+        url: http://acme.com:80
+        creds:
+            - username
+            - password
+        namespace: root/cimv2
+        timeout: 10
+        debug: true
+        operation:
+            pywbem_method: EnumerateInstances
+            ClassName: PyWBEM_Person
+            LocalOnly: false
+            # These input parameters do not need to be varied, because they
+            # are just passed through and the test is that the specified
+            # parameters occur correctly in the request message, and any others
+            # don't.
+    pywbem_response:
+        exception: CIMXMLParseError
+    http_request:
+        verb: POST
+        url: http://acme.com:80/cimom
+        headers:
+            CIMOperation: MethodCall
+            CIMMethod: EnumerateInstances
+            CIMObject: root/cimv2
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+                    <SIMPLEREQ>
+                        <IMETHODCALL NAME="EnumerateInstances">
+                            <LOCALNAMESPACEPATH>
+                                <NAMESPACE NAME="root"/>
+                                <NAMESPACE NAME="cimv2"/>
+                            </LOCALNAMESPACEPATH>
+                            <IPARAMVALUE NAME="ClassName">
+                                <CLASSNAME NAME="PyWBEM_Person"/>
+                            </IPARAMVALUE>
+                            <IPARAMVALUE NAME="LocalOnly">
+                                <VALUE>FALSE</VALUE>
+                            </IPARAMVALUE>
+                        </IMETHODCALL>
+                    </SIMPLEREQ>
+                </MESSAGE>
+            </CIM>
+    http_response:
+        status: 200
+        headers:
+            CIMOperation: MethodResponse
+        data: >
+            <?xml version="1.0" encoding="utf-8" ?>
+            <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+                <MESSAGE ID="1000" PROTOCOLVERSION="1.0">
+                    <SIMPLERSP>
+                        <IMETHODRESPONSE NAME="EnumerateInstances">
+                            <IRETURNVALUE>
+                                <VALUE.NAMEDINSTANCE>
+                                    <INSTANCENAME CLASSNAME="PyWBEM_Person">
+                                        <KEYBINDING NAME="CreationClassName">
+                                            <KEYVALUE VALUETYPE="string" TYPE="string">PyWBEM_Person</KEYVALUE>
+                                        </KEYBINDING>
+                                        <KEYBINDING NAME="Name">
+                                            <KEYVALUE VALUETYPE="string" TYPE="string">Fritz</KEYVALUE>
+                                        </KEYBINDING>
+                                    </INSTANCENAME>
+                                    <CLASS CLASSNAME="PyWBEM_Person">
+                                    </CLASS>
+                                </VALUE.NAMEDINSTANCE>
+                            </IRETURNVALUE>
+                        </IMETHODRESPONSE>
+                    </SIMPLERSP>
+                </MESSAGE>
+            </CIM>
+
 -   name: EnumerateInstancesNS1
     description: EnumerateInstances, with leading/trailing slashes in default namespace
     pywbem_request:

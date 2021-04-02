@@ -147,6 +147,178 @@
       </MESSAGE>
       </CIM>'
 
+- name: Associators_ClassesError1
+  description: Associators fails, CIMXMLParseError (XML bad entity CIMX)
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: Associators
+      IncludeQualifiers: null
+      ObjectName: PyWBEM_Person
+      ResultClass: null
+      PropertyList: null
+      ResultRole: null
+      IncludeClassOrigin: null
+      Role: null
+      AssocClass: PyWBEM_MemberOfPersonCollection
+  pywbem_response:
+    exception: CIMXMLParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: Associators
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="Associators">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="ObjectName">
+      <CLASSNAME NAME="PyWBEM_Person"/>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="AssocClass">
+      <CLASSNAME NAME="PyWBEM_MemberOfPersonCollection"/>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIMX CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="Associators">
+      <IRETURNVALUE>
+      <VALUE.OBJECTWITHPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME CLASSNAME="CIM_Collection"/>
+      </CLASSPATH>
+      <INSTANCE CLASSNAME="CIM_Collection">
+      <PROPERTY NAME="InstanceID"  PROPAGATED="true" TYPE="string">
+      </PROPERTY>
+      <PROPERTY NAME="Caption"  PROPAGATED="true" TYPE="string">
+      </PROPERTY>
+      <PROPERTY NAME="Description"  PROPAGATED="true" TYPE="string">
+      </PROPERTY>
+      <PROPERTY NAME="ElementName"  PROPAGATED="true" TYPE="string">
+      </PROPERTY>
+      </INSTANCE>
+      </VALUE.OBJECTWITHPATH>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIMX>'
+
+- name: Associators_Classes_Error2
+  description: Associators fails, CIMXMLParseError, entity CIMXXXX
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: Associators
+      IncludeQualifiers: null
+      ObjectName: PyWBEM_Person
+      ResultClass: null
+      PropertyList: null
+      ResultRole: null
+      IncludeClassOrigin: null
+      Role: null
+      AssocClass: PyWBEM_MemberOfPersonCollection
+  pywbem_response:
+    exception: CIMXMLParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: Associators
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="Associators">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="ObjectName">
+      <CLASSNAME NAME="PyWBEM_Person"/>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="AssocClass">
+      <CLASSNAME NAME="PyWBEM_MemberOfPersonCollection"/>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIMXXXX CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="Associators">
+      <IRETURNVALUE>
+      <VALUE.OBJECTWITHPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <CLASSNAME NAME="CIM_Collection"/>
+      </CLASSPATH>
+      <CLASS NAME="CIM_Collection"  SUPERCLASS="CIM_ManagedElement" >
+      <PROPERTY NAME="InstanceID"  PROPAGATED="true" TYPE="string">
+      </PROPERTY>
+      <PROPERTY NAME="Caption"  PROPAGATED="true" TYPE="string">
+      </PROPERTY>
+      <PROPERTY NAME="Description"  PROPAGATED="true" TYPE="string">
+      </PROPERTY>
+      <PROPERTY NAME="ElementName"  PROPAGATED="true" TYPE="string">
+      </PROPERTY>
+      </CLASS>
+      </VALUE.OBJECTWITHPATH>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIMXXXX>'
+
 - name: Associators_ClassesNS1
   description: Associators on class, providing class name and default namespace with leading/trailing slashes
   pywbem_request:
