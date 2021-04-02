@@ -130,6 +130,9 @@ Released: not yet
 * Test: Pinned decorator package to python <=5.0.0 on Python 2+3.4 because
   decorator 5.0.0 does not support python < 3.5 (see issue #2647)
 
+* Fix pywem_mock issue with Delete class not calling providers to handle
+  the DeleteInstance (see issu #2643)
+
 **Enhancements:**
 
 * Logging: Added a value 'off' for the log destination in the
