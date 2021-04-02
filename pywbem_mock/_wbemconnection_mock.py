@@ -218,18 +218,19 @@ class FakedWBEMConnection(WBEMConnection):
         self._provider_dependent_registry = ProviderDependentRegistry()
 
         # Define the datastore to be used with an initial namespace, the client
-        # connection default namespace. This is passed to the mainprovider
-        # and not used further in this class.
+        # connection default namespace. This is passed to the providerdispatcher
+        # and mainprovider and not used further in this class.
+        # Initiate instance of the ProviderDispatcher with required
+        # parameters including the CIM repository. This call initializes
+        # self.cimrepository.
+        self._providerdispatcher = ProviderDispatcher(
+            self.cimrepository, self._provider_registry)
 
         # Initiate the MainProvider with parameters required to execute
         self._mainprovider = MainProvider(self.host,
                                           self.disable_pull_operations,
-                                          self.cimrepository)
-
-        # Initiate instance of the ProviderDispatcher with required
-        # parameters including the CIM repository
-        self._providerdispatcher = ProviderDispatcher(
-            self._cimrepository, self._provider_registry)
+                                          self.cimrepository,
+                                          self._providerdispatcher)
 
         # Flag to allow or disallow the use of the Open... and Pull...
         # operations. Uses the setter method

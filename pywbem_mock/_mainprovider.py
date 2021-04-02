@@ -129,7 +129,8 @@ class MainProvider(ResolverMixin, BaseProvider):
     For more details, see mocksupport.rst.
     """
 
-    def __init__(self, host, disable_pull_operations, cimrepository):
+    def __init__(self, host, disable_pull_operations, cimrepository,
+                 providerdispatcher):
         # pylint: disable=super-init-not-called
         """
         Parameters:
@@ -137,7 +138,7 @@ class MainProvider(ResolverMixin, BaseProvider):
           host (:term:`string`):
             Value of the host attribute from the class that called
             this constructor, normally FakedWBEMConnection.  This
-            attribute is used to contstruct the host component of
+            attribute is used to construct the host component of
             CIMNamespaces in some responses.
 
           disable_pull_operations (:class:`py:bool`):
@@ -148,11 +149,17 @@ class MainProvider(ResolverMixin, BaseProvider):
 
           cimrepository (:class:`~pywbem_mock.BaseRepository` or subclass):
             Defines the repository to be used by the providers.
+
+          providerdispatcher (:class:`~pywbem_mock.ProviderDispatcher`):
+            Defines the providerdispatcher object that is called in some
+            operations (see DeleteClass method).
         """
         super(MainProvider, self).__init__(cimrepository)
 
         # value of the host name.  This should be considered read-only
         self.host = host
+
+        self.providerdispatcher = providerdispatcher
 
         self.disable_pull_operations = disable_pull_operations
 
@@ -1100,12 +1107,11 @@ class MainProvider(ResolverMixin, BaseProvider):
             inst_paths = [inst.path for inst in instance_store.iter_values()
                           if inst.path.classname in sub_clns]
 
-            # Issue: 2643 TODO/KS: This should route through DeleteInstance to
+            # Routes instance delete calls through the ProviderDispatcher to
             # assure that providers get called rather than calling the
-            # CIM repository directly. It must call the ProviderDispatcher
-            # to get the request routed to the correct
+            # CIM repository directly.
             for ipath in inst_paths:
-                instance_store.delete(ipath)
+                self.providerdispatcher.DeleteInstance(ipath)
 
             class_store.delete(clname)
 
