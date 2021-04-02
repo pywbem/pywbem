@@ -262,6 +262,7 @@ py_src_files := \
 # - 39611: PyYAML cannot be upgraded on py34+py35; We are not using the FullLoader.
 # - 39621: Pylint cannot be upgraded on py27+py34
 # - 39525: Jinja2 cannot be upgraded on py34
+# - 40072: lxml HTML cleaner in lxml 4.6.3 no longer includes the HTML5 'formaction'
 
 safety_ignore_opts := \
     -i 38100 \
@@ -279,6 +280,7 @@ safety_ignore_opts := \
 		-i 39611 \
 		-i 39621 \
 		-i 39525 \
+		-i 40072 \
 
 # Python source files for test (unit test and function test)
 test_src_files := \

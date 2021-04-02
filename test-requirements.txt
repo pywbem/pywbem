@@ -38,7 +38,11 @@ pytz>=2016.10
 # Pluggy 0.12.0 has a bug causing pytest plugins to fail loading on py38
 pluggy>=0.7.1; python_version >= '2.7' and python_version <= '3.6'
 pluggy>=0.13.0; python_version >= '3.7'
-decorator>=4.0.11
+
+# Decorator version 5.0 no longer supports python < 3.5
+decorator>=4.0.11,<5.0.0; python_version < '3.5'
+decorator>=4.0.11; python_version >= '3.5'
+
 backports.statistics>=0.1.0; python_version == '2.7'
 # FormEncode is used for xml comparisons in unit test
 FormEncode>=1.3.1
@@ -48,6 +52,7 @@ FormEncode>=1.3.1
 # lxml 4.4.3 added Python 3.8 support and exposed it correctly
 # lxml 4.6.1 addressed safety issue 38892
 # lxml 4.6.2 addressed safety issue 39194
+# lxml 4.6.3 addressed safety issue 40072
 lxml>=4.6.2; python_version == '2.7'
 lxml>=4.2.4,<4.4.0; python_version == '3.4'
 lxml>=4.6.2; python_version >= '3.5'

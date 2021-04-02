@@ -123,6 +123,13 @@ Released: not yet
 * Fixed an incorrect calculation of the min/max values for the server response
   time in the statistics support of pywbem (issue #2599)
 
+* Security - Add safety issue 40072 (lxml version 4.6,3) to safety ignore
+  list. No change to pywbem since we apparently do not use the affected
+  component (see issue #2645)
+
+* Test: Pinned decorator package to python <=5.0.0 on Python 2+3.4 because
+  decorator 5.0.0 does not support python < 3.5 (see issue #2647)
+
 **Enhancements:**
 
 * Logging: Added a value 'off' for the log destination in the
