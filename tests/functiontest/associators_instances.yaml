@@ -719,7 +719,7 @@
       </MESSAGE>
       </CIMXXX>'
 
-- name: Associators_InstancesF6
+- name: Associators_InstancesF3
   description: Return Fails, returns CLASS Element
   pywbem_request:
     url: http://acme.com:80
@@ -794,7 +794,7 @@
       <IMETHODRESPONSE NAME="Associators">
       <IRETURNVALUE>
       <VALUE.OBJECTWITHPATH>
-      <INSTANCEPATH>
+      <CLASSPATH>
       <NAMESPACEPATH>
       <HOST>sheldon</HOST>
       <LOCALNAMESPACEPATH>
@@ -802,21 +802,16 @@
       <NAMESPACE NAME="cimv2"/>
       </LOCALNAMESPACEPATH>
       </NAMESPACEPATH>
-      <INSTANCENAME CLASSNAME="PyWBEM_PersonCollection">
-      <KEYBINDING NAME="InstanceID">
-      <KEYVALUE VALUETYPE="string" TYPE="string">PersonCollection</KEYVALUE>
-      </KEYBINDING>
-      </INSTANCENAME>
-      </INSTANCEPATH>
-      <CLASS NAME="PyWBEM_PersonCollection" >
+      <CLASSNAME NAME="CIM_Collection"/>
+      </CLASSPATH>
+      <CLASS NAME="CIM_Collection"  SUPERCLASS="CIM_ManagedElement" >
+      <PROPERTY NAME="InstanceID"  PROPAGATED="true" TYPE="string">
+      </PROPERTY>
       <PROPERTY NAME="Caption"  PROPAGATED="true" TYPE="string">
       </PROPERTY>
       <PROPERTY NAME="Description"  PROPAGATED="true" TYPE="string">
       </PROPERTY>
       <PROPERTY NAME="ElementName"  PROPAGATED="true" TYPE="string">
-      </PROPERTY>
-      <PROPERTY NAME="InstanceID"  TYPE="string">
-      <VALUE>PersonCollection</VALUE>
       </PROPERTY>
       </CLASS>
       </VALUE.OBJECTWITHPATH>

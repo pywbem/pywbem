@@ -377,6 +377,284 @@
       </MESSAGE>
       </CIM>
 
+- name: InvokeMethod5
+  description: InvokeMethod, return one parameter inferred type string
+  # Note: We can pass only one parameter because the **kwargs mechanism does not preserve the order
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: InvokeMethod
+      MethodName: InferredTypesTest
+      ObjectName:
+        pywbem_object: CIMClassName
+        classname: Test_InferredTypes
+        host: null
+        namespace: test/TestProvider
+  pywbem_response:
+    result:
+    - 0
+    - {'InferStringParam': 'Blah'}
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: InferredTypesTest
+      CIMObject: test/TestProvider:Test_InferredTypes
+    data: >
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEREQ>
+            <METHODCALL NAME="InferredTypesTest">
+              <LOCALCLASSPATH>
+                <LOCALNAMESPACEPATH>
+                  <NAMESPACE NAME="test"></NAMESPACE>
+                  <NAMESPACE NAME="TestProvider"></NAMESPACE>
+                </LOCALNAMESPACEPATH>
+                <CLASSNAME NAME="Test_InferredTypes"></CLASSNAME>
+              </LOCALCLASSPATH>
+            </METHODCALL>
+          </SIMPLEREQ>
+        </MESSAGE>
+      </CIM>
+
+  http_response:
+    status: 200
+    headers:
+      CIMOperation: MethodResponse
+    data: >
+      <?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <METHODRESPONSE NAME="InferredTypesTest">
+      <RETURNVALUE PARAMTYPE="sint32">
+      <VALUE>0</VALUE>
+      </RETURNVALUE>
+      <PARAMVALUE NAME="InferStringParam">
+      <VALUE>Blah</VALUE>
+      </PARAMVALUE>
+      </METHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>
+
+- name: InvokeMethod6
+  description: InvokeMethod, return one parameter inferred type boolean
+  ignore_test: true
+  # Ignoring this test because infer type with boolean does not work.
+  # Note: We can pass only one parameter because the **kwargs mechanism does not preserve the order
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: InvokeMethod
+      MethodName: InferredType
+      ObjectName:
+        pywbem_object: CIMClassName
+        classname: Test_InferredTypes
+        host: null
+        namespace: test/TestProvider
+  pywbem_response:
+    result:
+    - 0
+    - {'InferBoolParam': 'True'}
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: InferredType
+      CIMObject: test/TestProvider:Test_InferredTypes
+    data: >
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEREQ>
+            <METHODCALL NAME="InferredType">
+              <LOCALCLASSPATH>
+                <LOCALNAMESPACEPATH>
+                  <NAMESPACE NAME="test"></NAMESPACE>
+                  <NAMESPACE NAME="TestProvider"></NAMESPACE>
+                </LOCALNAMESPACEPATH>
+                <CLASSNAME NAME="Test_InferredTypes"></CLASSNAME>
+              </LOCALCLASSPATH>
+            </METHODCALL>
+          </SIMPLEREQ>
+        </MESSAGE>
+      </CIM>
+  http_response:
+    status: 200
+    headers:
+      CIMOperation: MethodResponse
+    data: >
+      <?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <METHODRESPONSE NAME="InferredType">
+      <RETURNVALUE PARAMTYPE="sint32">
+      <VALUE>0</VALUE>
+      </RETURNVALUE>
+      <PARAMVALUE NAME="InferBoolParam">
+        <VALUE>TRUE</VALUE>
+      </PARAMVALUE>
+      </METHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>
+
+
+- name: InvokeMethod7
+  description: InvokeMethod, return one parameter inferred type list of string
+  # Note: We can pass only one parameter because the **kwargs mechanism does not preserve the order
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: InvokeMethod
+      MethodName: InferredType
+      ObjectName:
+        pywbem_object: CIMClassName
+        classname: Test_InferredTypes
+        host: null
+        namespace: test/TestProvider
+  pywbem_response:
+    result:
+    - 0
+    - {'InferStringParam': ["StrParam1", "StrParam2"]}
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: InferredType
+      CIMObject: test/TestProvider:Test_InferredTypes
+    data: >
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEREQ>
+            <METHODCALL NAME="InferredType">
+              <LOCALCLASSPATH>
+                <LOCALNAMESPACEPATH>
+                  <NAMESPACE NAME="test"></NAMESPACE>
+                  <NAMESPACE NAME="TestProvider"></NAMESPACE>
+                </LOCALNAMESPACEPATH>
+                <CLASSNAME NAME="Test_InferredTypes"></CLASSNAME>
+              </LOCALCLASSPATH>
+            </METHODCALL>
+          </SIMPLEREQ>
+        </MESSAGE>
+      </CIM>
+  http_response:
+    status: 200
+    headers:
+      CIMOperation: MethodResponse
+    data: >
+      <?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <METHODRESPONSE NAME="InferredType">
+      <RETURNVALUE PARAMTYPE="sint32">
+      <VALUE>0</VALUE>
+      </RETURNVALUE>
+      <PARAMVALUE NAME="InferStringParam">
+        <VALUE.ARRAY>
+          <VALUE>StrParam1</VALUE>
+          <VALUE>StrParam2</VALUE>
+        </VALUE.ARRAY>
+      </PARAMVALUE>
+      </METHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>
+
+- name: InvokeMethod8
+  description: InvokeMethod, return one parameter inferred type CIMClass
+  ignore_test: true
+  # Ignoring this test because I do not know how to define CIMClass in a
+  # list in YAML
+  # Note: We can pass only one parameter because the **kwargs mechanism does not preserve the order
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: InvokeMethod
+      MethodName: ClassType
+      ObjectName:
+        pywbem_object: CIMClassName
+        classname: Test_ClassTypes
+        host: null
+        namespace: test/TestProvider
+  pywbem_response:
+    result:
+    - 0
+    - {"ClassParam": CIMClass("CIM_Blah")}
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: ClassType
+      CIMObject: test/TestProvider:Test_ClassTypes
+    data: >
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEREQ>
+            <METHODCALL NAME="ClassType">
+              <LOCALCLASSPATH>
+                <LOCALNAMESPACEPATH>
+                  <NAMESPACE NAME="test"></NAMESPACE>
+                  <NAMESPACE NAME="TestProvider"></NAMESPACE>
+                </LOCALNAMESPACEPATH>
+                <CLASSNAME NAME="Test_ClassTypes"></CLASSNAME>
+              </LOCALCLASSPATH>
+            </METHODCALL>
+          </SIMPLEREQ>
+        </MESSAGE>
+      </CIM>
+  http_response:
+    status: 200
+    headers:
+      CIMOperation: MethodResponse
+    data: >
+      <?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <METHODRESPONSE NAME="ClassType">
+      <RETURNVALUE PARAMTYPE="sint32">
+      <VALUE>0</VALUE>
+      </RETURNVALUE>
+      <PARAMVALUE NAME="ClassParam">
+        <CLASS NAME="CIM_BLAH"></CLASS>
+      </PARAMVALUE>
+      </METHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>
+
 - name: InvokeMethodError1
   description: Invalid CIM Entity header on response (CIMX)
   pywbem_request:
