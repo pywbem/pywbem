@@ -7,18 +7,19 @@ from __future__ import absolute_import, print_function
 
 import pytest
 
+from .utils.pytest_extensions import skip_if_unsupported_capability
 from .utils.utils import latest_profile_inst, server_func_asserted, \
     server_prop_asserted
 
-# Note: The wbem_connection fixture uses the server_definition fixture, and
+# Note: The wbem_connection fixture uses the es_server fixture, and
 # due to the way py.test searches for fixtures, it also need to be imported.
-# pylint: disable=unused-import
+# pylint: disable=unused-import,wrong-import-order
 from .utils.pytest_extensions import wbem_connection  # noqa: F401
-from .utils.pytest_extensions import server_definition  # noqa: F401
+from pytest_easy_server import es_server  # noqa: F401
 from .utils.pytest_extensions import assert_association_func  # noqa: F401
 from .utils.pytest_extensions import profile_definition  # noqa: F401
 from .utils.pytest_extensions import single_profile_definition  # noqa: F401
-# pylint: enable=unused-import
+# pylint: enable=unused-import,wrong-import-order
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ..utils import import_installed
@@ -34,6 +35,8 @@ def test_get_central_instances(
     Test that the central instances of the profile can be determined using
     WBEMServer.gen_central_instances().
     """
+    skip_if_unsupported_capability(wbem_connection, 'smis')
+
     server = WBEMServer(wbem_connection)
 
     profile_org = profile_definition['registered_org']
@@ -51,7 +54,7 @@ def test_get_central_instances(
     if not profile_insts:
         pytest.skip("Server {0} at {1}: The {2} {3!r} profile (version {4}) "
                     "is not advertised".
-                    format(wbem_connection.server_definition.nickname,
+                    format(wbem_connection.es_server.nickname,
                            wbem_connection.url, profile_org,
                            profile_name, profile_version or 'any'))
 
@@ -90,8 +93,9 @@ def test_undefined_profiles(wbem_connection):  # noqa: F811
     """
     Test that the server advertises only profiles defined in profiles.yml.
     """
+    skip_if_unsupported_capability(wbem_connection, 'smis')
+
     server = WBEMServer(wbem_connection)
-    server_def = wbem_connection.server_definition
 
     org_vm = ValueMapping.for_property(
         server,
@@ -114,5 +118,5 @@ def test_undefined_profiles(wbem_connection):  # noqa: F811
             "Server {0} at {1} advertises the following profiles that are "
             "not defined in profiles.yml. This may be caused by incorrectly "
             "implemented profile names:\n{2}".
-            format(server_def.nickname, wbem_connection.url,
+            format(wbem_connection.es_server.nickname, wbem_connection.url,
                    undefined_profile_lines))

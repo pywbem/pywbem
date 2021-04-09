@@ -28,6 +28,11 @@ testfixtures>=6.9.0
 colorama>=0.3.9,<0.4.0; python_version <= '3.4'
 colorama>=0.4.0; python_version >= '3.5'
 
+# Easy-server packages
+easy-vault>=0.7.0
+easy-server>=0.7.0
+pytest-easy-server>=0.7.0
+
 requests-mock>=1.6.0
 requests-toolbelt>=0.8.0
 yagot>=0.5.0

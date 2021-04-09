@@ -22,7 +22,7 @@ def assert_number_of_instances_equal(
 
     Parameters:
 
-        conn (WBEMConnection with 'server_definition' attribute)
+        conn (WBEMConnection with 'es_server' attribute)
 
         exp_number (integer): Expected number of instances or instance paths.
 
@@ -35,7 +35,7 @@ def assert_number_of_instances_equal(
         raise AssertionError(
             _format("Server {0} at {1}: List of instances ({2}) does not have "
                     "the expected exact size of {3} but is {4}",
-                    conn.server_definition.nickname, conn.url,
+                    conn.es_server.nickname, conn.url,
                     inst_list_msg, exp_number, len(inst_list)))
 
 
@@ -47,7 +47,7 @@ def assert_number_of_instances_minimum(
 
     Parameters:
 
-        conn (WBEMConnection with 'server_definition' attribute)
+        conn (WBEMConnection with 'es_server' attribute)
 
         exp_number (integer): Expected number of instances or instance paths.
 
@@ -60,7 +60,7 @@ def assert_number_of_instances_minimum(
         raise AssertionError(
             _format("Server {0} at {1}: List of instances ({2}) does not have "
                     "the expected minimum size of {3} but is {4}",
-                    conn.server_definition.nickname, conn.url,
+                    conn.es_server.nickname, conn.url,
                     inst_list_msg, exp_number, len(inst_list)))
 
 
@@ -77,7 +77,7 @@ def assert_instance_of(conn, obj_list, classname):
 
     Parameters:
 
-        conn (WBEMConnection with 'server_definition' attribute)
+        conn (WBEMConnection with 'es_server' attribute)
 
         obj_list (CIMInstanceName or CIMInstance or tuple/list thereof):
           The CIM instances and CIM instance paths to be evaluated.
@@ -99,7 +99,7 @@ def assert_instance_of(conn, obj_list, classname):
                     _format("Server {0} at {1}: Inconsistent class name in "
                             "CIMInstance object: obj.classname={2!A}, "
                             "obj.path.classname={3!A}, obj.path={4!A}",
-                            conn.server_definition.nickname, conn.url,
+                            conn.es_server.nickname, conn.url,
                             obj.classname, path.classname, path.to_wbem_uri()))
         else:
             path = obj
@@ -108,7 +108,7 @@ def assert_instance_of(conn, obj_list, classname):
             raise AssertionError(
                 _format("Server {0} at {1}: Instance at {2!A} is not of "
                         "class {3!A}",
-                        conn.server_definition.nickname, conn.url,
+                        conn.es_server.nickname, conn.url,
                         path.to_wbem_uri(), classname))
 
 
@@ -127,7 +127,7 @@ def assert_instance_consistency(conn, instance, path):
 
     Parameters:
 
-        conn (WBEMConnection with 'server_definition' attribute)
+        conn (WBEMConnection with 'es_server' attribute)
 
         instance (CIMInstance): The CIM instance to be verified.
 
@@ -143,7 +143,7 @@ def assert_instance_consistency(conn, instance, path):
             _format("Server {0} at {1}: Inconsistent instance and instance "
                     "path: Instance classname {2!A} does not match classname "
                     "of instance path {3!A}",
-                    conn.server_definition.nickname, conn.url,
+                    conn.es_server.nickname, conn.url,
                     instance.classname, path.to_wbem_uri()))
 
     for key_name in path.keybindings:
@@ -153,7 +153,7 @@ def assert_instance_consistency(conn, instance, path):
                 _format("Server {0} at {1}: Inconsistent instance and "
                         "instance path: Instance does not have key property "
                         "{2!A} of instance path {3!A}",
-                        conn.server_definition.nickname, conn.url,
+                        conn.es_server.nickname, conn.url,
                         key_name, path.to_wbem_uri()))
 
         if instance.properties[key_name].value != \
@@ -163,7 +163,7 @@ def assert_instance_consistency(conn, instance, path):
                         "instance path: For key {2!A}, instance property "
                         "value {3!A} does not match instance path keybinding "
                         "value {4!A}",
-                        conn.server_definition.nickname, conn.url,
+                        conn.es_server.nickname, conn.url,
                         key_name, instance.properties[key_name],
                         path.keybindings[key_name]))
 
@@ -174,7 +174,7 @@ def assert_mandatory_properties(conn, instance, property_list):
 
     Parameters:
 
-        conn (WBEMConnection with 'server_definition' attribute)
+        conn (WBEMConnection with 'es_server' attribute)
 
         instance (CIMInstance): The CIM instance to be verified.
 
@@ -193,7 +193,7 @@ def assert_mandatory_properties(conn, instance, property_list):
                 _format("Server {0} at {1}: Mandatory properties issue: "
                         "Instance of class {2!A} does not have mandatory "
                         "property {3!A}",
-                        conn.server_definition.nickname, conn.url,
+                        conn.es_server.nickname, conn.url,
                         instance.classname, prop_name))
 
         prop_value = instance.properties[prop_name]
@@ -202,7 +202,7 @@ def assert_mandatory_properties(conn, instance, property_list):
                 _format("Server {0} at {1}: Mandatory properties issue: "
                         "Instance of class {2!A} has mandatory property "
                         "{3!A} but with a value of NULL",
-                        conn.server_definition.nickname, conn.url,
+                        conn.es_server.nickname, conn.url,
                         instance.classname, prop_name))
 
 
@@ -213,7 +213,7 @@ def assert_property_one_of(conn, instance, prop_name, value_list):
 
     Parameters:
 
-        conn (WBEMConnection with 'server_definition' attribute)
+        conn (WBEMConnection with 'es_server' attribute)
 
         instance (CIMInstance): The CIM instance that has the property to
           be verified.
@@ -236,7 +236,7 @@ def assert_property_one_of(conn, instance, prop_name, value_list):
             _format("Server {0} at {1}: Property value issue: The value of "
                     "simple property {2!A} in an instance of class {3!A} is "
                     "not in the allowable set of values {4!A}, but is {5!A}",
-                    conn.server_definition.nickname, conn.url,
+                    conn.es_server.nickname, conn.url,
                     prop_name, instance.classname, value_list, prop_value))
 
 
@@ -247,7 +247,7 @@ def assert_property_contains(conn, instance, prop_name, value):
 
     Parameters:
 
-        conn (WBEMConnection with 'server_definition' attribute)
+        conn (WBEMConnection with 'es_server' attribute)
 
         instance (CIMInstance): The CIM instance that has the property to
           be verified.
@@ -269,7 +269,7 @@ def assert_property_contains(conn, instance, prop_name, value):
             _format("Server {0} at {1}: Property value issue: The value of "
                     "array property {2!A} in an instance of class {3!A} does "
                     "not contain value {4!A}, but is {5!A}",
-                    conn.server_definition.nickname, conn.url,
+                    conn.es_server.nickname, conn.url,
                     prop_name, instance.classname, value, prop_values))
 
 
@@ -288,7 +288,7 @@ def assert_path_equal(conn, path1, path1_msg, path2, path2_msg):
 
     Parameters:
 
-        conn (WBEMConnection with 'server_definition' attribute)
+        conn (WBEMConnection with 'es_server' attribute)
 
         path1 (CIMInstanceName): First instance path to be compared.
 
@@ -308,7 +308,7 @@ def assert_path_equal(conn, path1, path1_msg, path2, path2_msg):
         raise AssertionError(
             _format("Server {0} at {1}: Instance path issue: Instance path "
                     "{2!A} ({3}) does not match instance path {4!A} ({5})",
-                    conn.server_definition.nickname, conn.url,
+                    conn.es_server.nickname, conn.url,
                     path1.to_wbem_uri(), path1_msg,
                     path2.to_wbem_uri(), path2_msg))
 
@@ -321,7 +321,7 @@ def assert_path_in(conn, path, path_msg, path_list, path_list_msg):
 
     Parameters:
 
-        conn (WBEMConnection with 'server_definition' attribute)
+        conn (WBEMConnection with 'es_server' attribute)
 
         path (CIMInstanceName): Instance path to be tested for being contained
           in list.
@@ -344,7 +344,7 @@ def assert_path_in(conn, path, path_msg, path_list, path_list_msg):
             _format("Server {0} at {1}: Instance path issue: Instance path "
                     "{2!A} ({3}) is not in expected set of instance paths "
                     "({4})",
-                    conn.server_definition.nickname, conn.url,
+                    conn.es_server.nickname, conn.url,
                     path.to_wbem_uri(), path_msg, path_list_msg))
 
 
@@ -361,7 +361,7 @@ def assert_association_a1(
 
     Parameters:
 
-        conn (WBEMConnection with 'server_definition' attribute)
+        conn (WBEMConnection with 'es_server' attribute)
 
         profile_id (string): Profile org and name as 'org:name'
 
@@ -429,7 +429,7 @@ def assert_association_a2(
 
     Parameters:
 
-        conn (WBEMConnection with 'server_definition' attribute)
+        conn (WBEMConnection with 'es_server' attribute)
 
         profile_id (string): Profile org and name as 'org:name'
 
@@ -504,7 +504,7 @@ def assert_association_a3(
 
     Parameters:
 
-        conn (WBEMConnection with 'server_definition' attribute)
+        conn (WBEMConnection with 'es_server' attribute)
 
         profile_id (string): Profile org and name as 'org:name'
 
@@ -581,7 +581,7 @@ def assert_association_a4(
 
     Parameters:
 
-        conn (WBEMConnection with 'server_definition' attribute)
+        conn (WBEMConnection with 'es_server' attribute)
 
         profile_id (string): Profile org and name as 'org:name'
 
@@ -663,7 +663,7 @@ def assert_association_a5(
 
     Parameters:
 
-        conn (WBEMConnection with 'server_definition' attribute)
+        conn (WBEMConnection with 'es_server' attribute)
 
         profile_id (string): Profile org and name as 'org:name'
 
@@ -736,7 +736,7 @@ def assert_association_a6(
 
     Parameters:
 
-        conn (WBEMConnection with 'server_definition' attribute)
+        conn (WBEMConnection with 'es_server' attribute)
 
         profile_id (string): Profile org and name as 'org:name'
 
@@ -814,7 +814,7 @@ def _assert_association_consistency(
         raise AssertionError(
             _format("Server {0} at {1}: Number of far end instances {2} ({3}) "
                     "does not match number of far end paths {4} ({5})",
-                    conn.server_definition.nickname, conn.url,
+                    conn.es_server.nickname, conn.url,
                     len(far_insts), far_insts_msg,
                     len(far_paths), far_paths_msg))
 
@@ -823,7 +823,7 @@ def _assert_association_consistency(
             _format("Server {0} at {1}: Number of association instances {2} "
                     "({3}) does not match number of association paths "
                     "{4} ({5})",
-                    conn.server_definition.nickname, conn.url,
+                    conn.es_server.nickname, conn.url,
                     len(assoc_insts), assoc_insts_msg,
                     len(assoc_paths), assoc_paths_msg))
 
@@ -831,7 +831,7 @@ def _assert_association_consistency(
         raise AssertionError(
             _format("Server {0} at {1}: Number of far end instances {2} ({3}) "
                     "does not match number of association instances {4} ({5})",
-                    conn.server_definition.nickname, conn.url,
+                    conn.es_server.nickname, conn.url,
                     len(far_insts), far_insts_msg,
                     len(assoc_insts), assoc_insts_msg))
 
@@ -934,7 +934,7 @@ def assert_profile_tree(conn, profile_inst, profile_ancestry,
 
     Parameters:
 
-        conn (WBEMConnection with 'server_definition' attribute)
+        conn (WBEMConnection with 'es_server' attribute)
 
         profile_inst (CIMInstance): Profile that is tested.
 
@@ -988,7 +988,7 @@ def assert_profile_tree(conn, profile_inst, profile_ancestry,
                     "specification {2} {3!r} has a circular reference: "
                     "Profile at {4} references profile at {5} which is "
                     "already in its own reference ancestry {6}".
-                    format(conn.server_definition.nickname, conn.url,
+                    format(conn.es_server.nickname, conn.url,
                            tls_org, tls_name,
                            profile_uri, sub_profile_uri,
                            profile_ancestry.keys()))

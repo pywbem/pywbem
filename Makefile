@@ -311,7 +311,7 @@ ifdef TESTCASES
 else
   pytest_opts := $(TESTOPTS)
 endif
-pytest_end2end_opts := -v --tb=short $(pytest_opts)
+pytest_end2end_opts := -v --tb=short $(pytest_opts) --es-file $(test_dir)/end2endtest/es_server.yml
 
 ifeq ($(python_mn_version),3.4)
   pytest_cov_opts :=
@@ -394,7 +394,7 @@ help:
 	@echo "  installc   - Install the cythonized wheel distribution archive"
 	@echo "  testc      - Run unit and function tests against cythonized wheel distribution archive"
 	@echo "  todo       - Check for TODOs in Python and docs sources"
-	@echo "  end2endtest - Run end2end tests (in tests/end2endtest)"
+	@echo "  end2endtest - Run end2end tests (in $(test_dir)/end2endtest)"
 	@echo "  develop_os - Install OS-level development prereqs"
 	@echo "  upload     - build + upload the distribution archive files to PyPI"
 	@echo "  clean      - Remove any temporary files"
@@ -408,11 +408,11 @@ help:
 	@echo "      annotated html files showing lines covered and missed, in the directory:"
 	@echo "      $(coverage_html_dir)"
 	@echo "      Optional, defaults to no such coverage report."
+	@echo "  DOCKER_CACHE_DIR - Path name of Docker cache directory used for end2end tests"
+	@echo "      Optional, for default see end2end tests."
 	@echo "  TESTCASES - When non-empty, 'test' target runs only the specified test cases. The"
 	@echo "      value is used for the -k option of pytest (see 'pytest --help')."
 	@echo "      Optional, defaults to running all tests."
-	@echo "  TESTSERVER - Optional: Nickname of test server or server group in WBEM server"
-	@echo "      definition file for end2end tests. Default: 'default'"
 	@echo "  TESTOPTS - Optional: Additional options for py.tests (see 'pytest --help')."
 	@echo "  TEST_SCHEMA_DOWNLOAD - When non-empty, enables test cases in test_wbemconnection_mock"
 	@echo "      to test downloading of DMTF schema from the DMTF web site."

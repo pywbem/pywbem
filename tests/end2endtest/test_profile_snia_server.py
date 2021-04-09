@@ -6,20 +6,20 @@ from __future__ import absolute_import, print_function
 
 import warnings
 
-from .utils.pytest_extensions import ProfileTest
+from .utils.pytest_extensions import ProfileTest, skip_if_unsupported_capability
 from .utils.assertions import assert_number_of_instances_equal, \
     assert_number_of_instances_minimum, assert_instance_of, \
     assert_instance_consistency, assert_mandatory_properties, \
     assert_property_one_of, assert_property_contains
 from .utils.utils import server_func_asserted, server_prop_asserted
 
-# Note: The wbem_connection fixture uses the server_definition fixture, and
+# Note: The wbem_connection fixture uses the es_server fixture, and
 # due to the way py.test searches for fixtures, it also need to be imported.
-# pylint: disable=unused-import
+# pylint: disable=unused-import,wrong-import-order
 from .utils.pytest_extensions import wbem_connection  # noqa: F401
-from .utils.pytest_extensions import server_definition  # noqa: F401
+from pytest_easy_server import es_server  # noqa: F401
 from .utils.pytest_extensions import assert_association_func  # noqa: F401
-# pylint: enable=unused-import
+# pylint: enable=unused-import,wrong-import-order
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ..utils import import_installed
@@ -43,6 +43,8 @@ class Test_SNIA_Server_Profile(ProfileTest):
         """
         Test WBEMServer.get_central_instances() for this profile.
         """
+        skip_if_unsupported_capability(wbem_connection, 'snia-server')
+
         self.init_profile(wbem_connection)
 
         central_inst_paths = server_func_asserted(
@@ -68,6 +70,8 @@ class Test_SNIA_Server_Profile(ProfileTest):
         """
         Test the CIM_ObjectManager central instance.
         """
+        skip_if_unsupported_capability(wbem_connection, 'snia-server')
+
         self.init_profile(wbem_connection)
         self.init_central_instances()
         central_inst_path = self.central_inst_paths[0]
@@ -97,6 +101,8 @@ class Test_SNIA_Server_Profile(ProfileTest):
         """
         Test the associated CIM_Namespace instances.
         """
+        skip_if_unsupported_capability(wbem_connection, 'snia-server')
+
         self.init_profile(wbem_connection)
         self.init_central_instances()
         central_inst_path = self.central_inst_paths[0]
@@ -143,7 +149,7 @@ class Test_SNIA_Server_Profile(ProfileTest):
                 _format("Server {0} at {1}: The namespaces ({2}) of the {3} "
                         "do not match the namespaces ({4}) determined by the "
                         "WBEMServer class",
-                        wbem_connection.server_definition.nickname,
+                        wbem_connection.es_server.nickname,
                         wbem_connection.url,
                         set(inst_names), far_insts_msg,
                         set(determined_names)))
@@ -154,6 +160,8 @@ class Test_SNIA_Server_Profile(ProfileTest):
         """
         Test the associated CIM_ObjectManagerCommunicationMechanism instances.
         """
+        skip_if_unsupported_capability(wbem_connection, 'snia-server')
+
         self.init_profile(wbem_connection)
         self.init_central_instances()
         central_inst_path = self.central_inst_paths[0]
@@ -230,6 +238,8 @@ class Test_SNIA_Server_Profile(ProfileTest):
         """
         Test the associated CIM_System instance.
         """
+        skip_if_unsupported_capability(wbem_connection, 'snia-server')
+
         self.init_profile(wbem_connection)
         self.init_central_instances()
         central_inst_path = self.central_inst_paths[0]

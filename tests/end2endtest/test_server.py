@@ -7,14 +7,15 @@ from __future__ import absolute_import, print_function
 import re
 
 from .utils.utils import server_func_asserted, server_prop_asserted
+from .utils.pytest_extensions import skip_if_unsupported_capability
 
-# Note: The wbem_connection fixture uses the server_definition fixture, and
+# Note: The wbem_connection fixture uses the es_server fixture, and
 # due to the way py.test searches for fixtures, it also need to be imported.
-# pylint: disable=unused-import
+# pylint: disable=unused-import,wrong-import-order
 from .utils.pytest_extensions import wbem_connection  # noqa: F401
-from .utils.pytest_extensions import server_definition  # noqa: F401
+from pytest_easy_server import es_server  # noqa: F401
 from .utils.pytest_extensions import default_namespace  # noqa: F401
-# pylint: enable=unused-import
+# pylint: enable=unused-import,wrong-import-order
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ..utils import import_installed
@@ -30,6 +31,8 @@ def test_namespace_consistency(
     Test that the Interop namespace and all namespaces and namespace paths can
     be determined, and verify consistency between them.
     """
+    skip_if_unsupported_capability(wbem_connection, 'interop')
+
     wbem_connection.default_namespace = default_namespace
     server = WBEMServer(wbem_connection)
     msg = "for server at URL {0!r}".format(wbem_connection.url)
@@ -57,6 +60,8 @@ def test_namespace_getinstance(
     """
     Test that GetInstance on the instance paths of all namespaces succeeds.
     """
+    skip_if_unsupported_capability(wbem_connection, 'interop')
+
     wbem_connection.default_namespace = default_namespace
     server = WBEMServer(wbem_connection)
     msg = "for server at URL {0!r}".format(wbem_connection.url)
@@ -80,6 +85,8 @@ def test_brand_version(
     """
     Test that the server brand and version can be determined.
     """
+    skip_if_unsupported_capability(wbem_connection, 'interop')
+
     wbem_connection.default_namespace = default_namespace
     server = WBEMServer(wbem_connection)
     msg = "for server at URL {0!r}".format(wbem_connection.url)
@@ -102,6 +109,8 @@ def test_cimom_inst(
     Test that the instance representing the server can be determined and that
     GetInstance on it succeeds.
     """
+    skip_if_unsupported_capability(wbem_connection, 'interop')
+
     wbem_connection.default_namespace = default_namespace
     server = WBEMServer(wbem_connection)
     msg = "for server at URL {0!r}".format(wbem_connection.url)
@@ -127,6 +136,8 @@ def test_profiles(
     Test that the registered profiles advertised by the server can be
     determined and that GetInstance on them succeeds.
     """
+    skip_if_unsupported_capability(wbem_connection, 'profiles')
+
     wbem_connection.default_namespace = default_namespace
     server = WBEMServer(wbem_connection)
     msg = "for server at URL {0!r}".format(wbem_connection.url)
@@ -156,6 +167,8 @@ def test_get_selected_profiles_no_filter(
     Test that the get_selected_profiles() method without filtering returns
     the same profiles as the profiles attribute.
     """
+    skip_if_unsupported_capability(wbem_connection, 'profiles')
+
     wbem_connection.default_namespace = default_namespace
     server = WBEMServer(wbem_connection)
     msg = "for server at URL {0!r}".format(wbem_connection.url)

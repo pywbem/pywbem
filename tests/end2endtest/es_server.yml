@@ -1,0 +1,121 @@
+# Easy-server server file for pywbem end2end tests
+#
+# This file has the following format:
+#
+# vault_file: VAULT_FILE           # Path name of easy-server vault file.
+#                                  # Mandatory.
+#
+# default: NICKNAME                # Nickname of default group or server.
+#                                  # Mandatory.
+#
+# server_groups:                   # WBEM server groups.
+#                                  # Optional, default: no groups defined.
+#
+#   NICKNAME42:                    # Nickname of WBEM server group.
+#
+#     description: TEXT            # Short description of the group.
+#                                  # Mandatory.
+#
+#     members:                     # List of group members.
+#                                  # Mandatory. May be empty.
+#
+#     - NICKNAME1                  # Nickname of server or server group member.
+#
+# servers:
+#
+#   NICKNAME1:                     # Nickname of the WBEM server.
+#
+#     description: TEXT            # Short description of the WBEM server.
+#                                  # Mandatory.
+#
+#     contact_name: TEXT           # Name of technical contact for the server.
+#                                  # Optional, default: null.
+#
+#     access_via: TEXT             # Short reminder on the network/firewall/
+#                                  # proxy/vpn used to access the server.
+#                                  # Optional, default: null.
+#
+#     user_defined:
+#
+#       docker_image: ORG/IMAGE:M.N.U
+#                                  # Docker image to pull for setting up the
+#                                  # WBEM server, or null to not pull any
+#                                  # Docker image.
+#                                  # Optional, default: null.
+#
+#       docker_port_mapping:       # Port mapping for Docker image.
+#                                  # Optional, default: straight mapping (i.e.
+#                                  # same port on host and in image).
+#                                  # Note that each server defines the single
+#                                  # port that is to be used for testing, so if
+#                                  # you want to use both the HTTP and HTTPS
+#                                  # ports, define a server for each.
+#
+#         image: PORT              # Port number provided by Docker image.
+#                                  # Mandatory.
+#
+#         host: PORT               # Port number used on host (local) system.
+#                                  # Mandatory.
+#
+#       url: URL                   # URL of the WBEM server; for details see url
+#                                  # parameter of pywbem.WBEMConnection().
+#                                  # Mandatory.
+#
+#       default_namespace: NAMESPACE
+#                                  # Default CIM namespace to use in the
+#                                  # created pywbem.WBEMConnection object.
+#                                  # Optional, default: null.
+#
+#       capabilities:              # List of capabilities implemented by the
+#                                  # server. The capability names are specific
+#                                  # to pywbem end2end testing and are checked
+#                                  # by the end2end testcases. If a testcase
+#                                  # requires a particular capability and the
+#                                  # server does not implement it, the testcase
+#                                  # is skipped.
+#         - interop                # Has an Interop namespace
+#         - namespaces             # Supports management of namespaces
+#         - profiles               # General support for mgmt profiles
+#         - snia-smis              # Support for SNIA SMI-S profile
+#         - snia-server            # Support for SNIA Server profile
+
+vault_file: es_vault.yml
+default: pegasus
+
+server_groups:
+
+  pegasus:
+    description: Local OpenPegasus container with all ports
+    members:
+      - pegasus_http
+      - pegasus_https
+
+servers:
+
+  pegasus_https:
+    description: Local OpenPegasus container with HTTPS port
+    user_defined:
+      docker_image: keyporttech/smi-server:0.1.2
+      docker_port_mapping:
+        image: 5989
+        host: 15989
+      url: https://localhost:15989
+      default_namespace: root/cimv2
+      capabilities:
+        - interop
+        - namespaces
+        - profiles
+
+  pegasus_http:
+    description: Local OpenPegasus container with HTTP port
+    user_defined:
+      docker_image: keyporttech/smi-server:0.1.2
+      docker_port_mapping:
+        image: 5988
+        host: 15988
+      url: http://localhost:15988
+      default_namespace: root/cimv2
+      capabilities:
+        - interop
+        - namespaces
+        - profiles
