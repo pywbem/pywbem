@@ -1,0 +1,50 @@
+# Easy-server vault file for pywbem end2end tests
+#
+# This file has the following format:
+#
+# secrets:
+#
+#   NICKNAME1:                   # Nickname of the WBEM server.
+#
+#     user: USER                 # User for logging on to the WBEM server, or
+#                                # null for not specifying a user.
+#                                # Optional, default: null.
+#
+#     password: PASSWORD         # Password of that user, or null for not
+#                                # specifying a password.
+#                                # Optional, default: null.
+#
+#     no_verification: BOOL      # Boolean controlling whether the returned
+#                                # server certificate is to be verified.
+#                                # Optional, default: true.
+#
+#     ca_certs: CA_CERTS         # Path name of CA certificate file or path
+#                                # name of directory containing CA certificate
+#                                # files to be used for verifying the returned
+#                                # server certificate, or null for using the
+#                                # pywbem default locations.
+#                                # Optional, default: null.
+#
+#     cert_file: CERT_FILE       # Path name of file containing X.509 client
+#                                # certificate to be presented to server, or
+#                                # null for not presenting a client certificate
+#                                # to the server.
+#                                # Optional, default: null.
+#
+#     key_file: KEY_FILE         # Path name of file containing X.509 private
+#                                # key of the client certificate, or null for
+#                                # not presenting a client certificate to the
+#                                # server.
+#                                # Optional, default: null.
+
+secrets:
+
+  pegasus_http:
+    user: null
+    password: null
+    no_verification: true
+
+  pegasus_https:
+    user: null
+    password: null
+    no_verification: true

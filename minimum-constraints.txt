@@ -127,6 +127,11 @@ requests-mock==1.6.0
 requests-toolbelt==0.8.0
 yagot==0.5.0
 
+# Easy-server packages
+easy-vault==0.7.0
+easy-server==0.7.0
+pytest-easy-server==0.7.0
+
 # Virtualenv
 virtualenv==14.0.0; python_version < '3.5'
 virtualenv==16.1.0; python_version >= '3.5' and python_version < '3.8'
@@ -261,7 +266,7 @@ html5lib==0.999999999
 idna==2.5
 imagesize==0.7.1
 Jinja2==2.8
-jsonschema==2.5.1
+jsonschema==2.6.0
 linecache2==1.0.0
 MarkupSafe==0.23
 mistune==0.8.1

@@ -272,6 +272,15 @@ Released: not yet
 * Added 'make perftest' to run performance tests. At this point, the performance
   tests measure the sending of indications to the pywbem.WBEMListener.
 
+* Test: Added support for end2end testing of WBEM servers based on server and
+  vault files of the 'easy-server' Python package. The server files can specify
+  WBEM servers and their expected supported functions. WBEM servers can be
+  somewhere in the network or can be containers on DockerHub which are
+  automatically pulled and started. At this point, the OpenPegasus container on
+  DockerHub is used and the end2end tests are run in the GitHub Actions test
+  workflow on Ubuntu (Docker is not available in GHithub Actions on Windows or
+  MacOS).
+
 **Cleanup:**
 
 * Test: Fixed all remaining ResourceWarnings during test. (issue #86)

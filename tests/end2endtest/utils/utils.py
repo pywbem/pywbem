@@ -207,7 +207,7 @@ def instance_of(conn, obj_list, classname):
                 raise AssertionError(
                     "Server {0} at {1}: Class {2!r} does not exist in "
                     "namespace {3!r}".
-                    format(conn.server_definition.nickname, conn.url,
+                    format(conn.es_server.nickname, conn.url,
                            classname, namespace))
             conn.raise_as_assertion_error(exc, 'EnumerateInstanceNames')
         except Error as exc:
@@ -234,16 +234,16 @@ class WBEMConnectionAsserted(WBEMConnection):
         """
         Parameters:
 
-          server_definition(ServerDefinition): Server to test against
+          es_server (easy_server.Server): Definition of server to test against
             (required keyword argument)
 
           All other positional and keyword arguments are passed to the
           superclass init.
         """
-        server_definition = kwargs['server_definition']
-        del kwargs['server_definition']
+        es_server = kwargs['es_server']
+        del kwargs['es_server']
         super(WBEMConnectionAsserted, self).__init__(*args, **kwargs)
-        self.server_definition = server_definition
+        self.es_server = es_server
 
     def _call_op(self, funcname, *args, **kwargs):
         """
@@ -280,7 +280,7 @@ class WBEMConnectionAsserted(WBEMConnection):
             "Server {0} at {1}: WBEMConnection.{2}() failed and raised "
             "{3} - {4}. "
             "Parameters: ({5})".
-            format(self.server_definition.nickname, self.url, funcname,
+            format(self.es_server.nickname, self.url, funcname,
                    exc.__class__.__name__, exc, parm_str))
 
     def EnumerateInstances(self, *args, **kwargs):
@@ -460,7 +460,7 @@ def server_func_asserted(server, funcname, *args, **kwargs):
             "Server {0} at {1}: Calling WBEMServer.{2}() failed and "
             "raised {3} - {4}. "
             "Parameters: ({5})".
-            format(server.conn.server_definition.nickname, server.conn.url,
+            format(server.conn.es_server.nickname, server.conn.url,
                    funcname, exc.__class__.__name__, exc, parm_str))
 
 
@@ -475,5 +475,5 @@ def server_prop_asserted(server, propname):
         raise AssertionError(
             "Server {0} at {1}: Getting WBEMServer.{2} failed and "
             "raised {3} - {4}.".
-            format(server.conn.server_definition.nickname, server.conn.url,
+            format(server.conn.es_server.nickname, server.conn.url,
                    propname, exc.__class__.__name__, exc))
