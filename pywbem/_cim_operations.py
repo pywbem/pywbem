@@ -2555,9 +2555,71 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                                  namespace)
         return (rtn_objects, end_of_sequence, rtn_ctxt)
 
+    def _get_returned_objects(self, result, ObjectName):
+        """
+        Support for Associators, References operations
+        Get returned objects and validate that the types correspond to the types
+        for Associators and References
+        """
+        objects = [] if result is None else [x[2] for x in result[0][2]]
+
+        if isinstance(ObjectName, CIMInstanceName):
+            # instance-level invocation
+            for instance in objects:
+                if not isinstance(instance, CIMInstance):
+                    raise CIMXMLParseError(
+                        _format("Expecting CIMInstance object in result "
+                                "list, got {0} object",
+                                instance.__class__.__name__),
+                        conn_id=self.conn_id)
+        else:
+            # class-level invocation
+            for classpath, klass in objects:
+                if not isinstance(classpath, CIMClassName) or \
+                        not isinstance(klass, CIMClass):
+                    raise CIMXMLParseError(
+                        _format("Expecting tuple (CIMClassName, CIMClass) "
+                                "in result list, got tuple ({0}, {1})",
+                                classpath.__class__.__name__,
+                                klass.__class__.__name__),
+                        conn_id=self.conn_id)
+        return objects
+
+    def _get_returned_objectnames(self, result, ObjectName):
+        """
+        Support for AssociatorNames, ReferenceNames operations
+
+        Get returned objects from results and validate that the are either
+        CIMInstanceName if the request was CIMInstanceName or
+        CIMClassName if the request was CIMClassName
+        """
+        objects = [] if result is None else [x[2] for x in result[0][2]]
+
+        if isinstance(ObjectName, CIMInstanceName):
+            # instance-level invocation
+            for instancepath in objects:
+                if not isinstance(instancepath, CIMInstanceName):
+                    raise CIMXMLParseError(
+                        _format("Expecting CIMInstanceName object in "
+                                "result list, got {0} object",
+                                instancepath.__class__.__name__),
+                        conn_id=self.conn_id)
+        else:
+            # class-level invocation
+            for classpath in objects:
+                if not isinstance(classpath, CIMClassName):
+                    raise CIMXMLParseError(
+                        _format("Expecting CIMClassName object in result "
+                                "list, got {0} object",
+                                classpath.__class__.__name__),
+                        conn_id=self.conn_id)
+        return objects
+
+    ###############################################################
     #
-    # Operations
+    # Request Operation methods
     #
+    ###############################################################
 
     def EnumerateInstances(self, ClassName, namespace=None, LocalOnly=None,
                            DeepInheritance=None, IncludeQualifiers=None,
@@ -3621,35 +3683,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 IncludeClassOrigin=IncludeClassOrigin,
                 PropertyList=PropertyList)
 
-            # instance-level invocation: list of CIMInstance
-            # class-level invocation: list of CIMClass
-            if result is None:
-                objects = []
-            else:
-                objects = [x[2] for x in result[0][2]]
-
-            if isinstance(ObjectName, CIMInstanceName):
-                # instance-level invocation
-                for instance in objects:
-                    if not isinstance(instance, CIMInstance):
-                        raise CIMXMLParseError(
-                            _format("Expecting CIMInstance object in result "
-                                    "list, got {0} object",
-                                    instance.__class__.__name__),
-                            conn_id=self.conn_id)
-                    # path and namespace are already set
-            else:
-                # class-level invocation
-                for classpath, klass in objects:
-                    if not isinstance(classpath, CIMClassName) or \
-                            not isinstance(klass, CIMClass):
-                        raise CIMXMLParseError(
-                            _format("Expecting tuple (CIMClassName, CIMClass) "
-                                    "in result list, got tuple ({0}, {1})",
-                                    classpath.__class__.__name__,
-                                    klass.__class__.__name__),
-                            conn_id=self.conn_id)
-                    # path and namespace are already set
+            objects = self._get_returned_objects(result, ObjectName)
+            # namespace already set
 
             return objects
 
@@ -3804,31 +3839,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 Role=Role,
                 ResultRole=ResultRole)
 
-            if result is None:
-                objects = []
-            else:
-                objects = [x[2] for x in result[0][2]]
-
-            if isinstance(ObjectName, CIMInstanceName):
-                # instance-level invocation
-                for instancepath in objects:
-                    if not isinstance(instancepath, CIMInstanceName):
-                        raise CIMXMLParseError(
-                            _format("Expecting CIMInstanceName object in "
-                                    "result list, got {0} object",
-                                    instancepath.__class__.__name__),
-                            conn_id=self.conn_id)
-                    # namespace is already set
-            else:
-                # class-level invocation
-                for classpath in objects:
-                    if not isinstance(classpath, CIMClassName):
-                        raise CIMXMLParseError(
-                            _format("Expecting CIMClassName object in result "
-                                    "list, got {0} object",
-                                    classpath.__class__.__name__),
-                            conn_id=self.conn_id)
-                    # namespace is already set
+            objects = self._get_returned_objectnames(result, ObjectName)
+            # namespace already set
 
             return objects
 
@@ -4022,33 +4034,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 IncludeClassOrigin=IncludeClassOrigin,
                 PropertyList=PropertyList)
 
-            if result is None:
-                objects = []
-            else:
-                objects = [x[2] for x in result[0][2]]
-
-            if isinstance(ObjectName, CIMInstanceName):
-                # instance-level invocation
-                for instance in objects:
-                    if not isinstance(instance, CIMInstance):
-                        raise CIMXMLParseError(
-                            _format("Expecting CIMInstance object in result "
-                                    "list, got {0} object",
-                                    instance.__class__.__name__),
-                            conn_id=self.conn_id)
-                    # path and namespace are already set
-            else:
-                # class-level invocation
-                for classpath, klass in objects:
-                    if not isinstance(classpath, CIMClassName) or \
-                            not isinstance(klass, CIMClass):
-                        raise CIMXMLParseError(
-                            _format("Expecting tuple (CIMClassName, CIMClass) "
-                                    "in result list, got tuple ({0}, {1})",
-                                    classpath.__class__.__name__,
-                                    klass.__class__.__name__),
-                            conn_id=self.conn_id)
-                    # path and namespace are already set
+            objects = self._get_returned_objects(result, ObjectName)
+            # path and namespace are already set
 
             return objects
 
@@ -4181,31 +4168,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 ResultClass=ResultClass,
                 Role=Role)
 
-            if result is None:
-                objects = []
-            else:
-                objects = [x[2] for x in result[0][2]]
-
-            if isinstance(ObjectName, CIMInstanceName):
-                # instance-level invocation
-                for instancepath in objects:
-                    if not isinstance(instancepath, CIMInstanceName):
-                        raise CIMXMLParseError(
-                            _format("Expecting CIMInstanceName object in "
-                                    "result list, got {0} object",
-                                    instancepath.__class__.__name__),
-                            conn_id=self.conn_id)
-                    # namespace is already set
-            else:
-                # class-level invocation
-                for classpath in objects:
-                    if not isinstance(classpath, CIMClassName):
-                        raise CIMXMLParseError(
-                            _format("Expecting CIMClassName object in result "
-                                    "list, got {0} object",
-                                    classpath.__class__.__name__),
-                            conn_id=self.conn_id)
-                    # namespace is already set
+            objects = self._get_returned_objectnames(result, ObjectName)
+            # namespace is already set
 
             return objects
 
