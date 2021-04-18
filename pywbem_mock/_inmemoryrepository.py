@@ -57,6 +57,8 @@ class InMemoryObjectStore(BaseObjectStore):
     """
     A store for CIM objects of a single type (CIM classes, CIM instances,
     or CIM qualifier declarations) that maintains its data in memory.
+
+    *New in pywbem 1.0 as experimental and finalized in 1.2.*
     """
     # Documentation for the methods and properties inherited from
     # ~pywbem_mock:`BaseObjectStore` is also inherited in the pywbem
@@ -157,6 +159,9 @@ class InMemoryRepository(BaseRepository):
     """
     A CIM repository that maintains the data in memory using the
     methods defined in its superclass (~pywbem_mock:`BaseObjectStore`).
+
+    *New in pywbem 1.0 as experimental and finalized in 1.2.*
+
     This implementation creates the repository as multi-level dictionary
     elements to define the namespaces and within each
     namespace the CIM classes, CIM instances, and CIM qualifiers in the

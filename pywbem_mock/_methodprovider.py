@@ -119,7 +119,9 @@ class MethodProvider(BaseProvider):
     """
     This class defines the provider class that handles the default InvokeMethod.
 
-    User  method providers are defined by creating a subclass of this class and
+    *New in pywbem 1.0 as experimental and finalized in 1.2.*
+
+    User method providers are defined by creating a subclass of this class and
     defining an InvokeMethod based on the method in this class.
     """
     #:  provider_type (:term:`string`):

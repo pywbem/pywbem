@@ -187,6 +187,8 @@ class DMTFCIMSchema(object):
     :class:`DMTFCIMSchema` represents a DMTF CIM Schema downloaded from the
     DMTF web site.
 
+    *New in pywbem 0.13 as experimental and finalized in 1.2.*
+
     This class manages the download of the DMTF schema zip file and extraction
     of MOF files of DMTF CIM schema releases into a directory that can be used
     by :meth:`~pywbem_mock.FakedWBEMConnection.compile_schema_classes` to

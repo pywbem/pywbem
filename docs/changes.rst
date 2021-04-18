@@ -135,6 +135,8 @@ Released: not yet
 
 **Enhancements:**
 
+* Finalized the pywbem mock support. (issue #2651)
+
 * Logging: Added a value 'off' for the log destination in the
   ``pywbem.configure_logging()`` function that disables logging.
   (part of issue #86)

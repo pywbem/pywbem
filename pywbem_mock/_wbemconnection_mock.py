@@ -120,7 +120,7 @@ class FakedWBEMConnection(WBEMConnection):
     with a WBEM server by utilizing a local in-memory CIM repository to
     generate responses in the same way the WBEM server would.
 
-    **Experimental:** *New in pywbem 0.12 as experimental.*
+    *New in pywbem 0.12 as experimental and finalized in 1.2.*
 
     Each :class:`~pywbem.FakedWBEMConnection` object has its own
     CIM repository which contains multiple CIM namespaces, and each namespace
