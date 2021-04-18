@@ -73,6 +73,8 @@ class BaseObjectStore(object):
     class provides the abstract methods for creating, accessing, and deleting,
     CIM objects of a single CIM object type in the repository.
 
+    *New in pywbem 1.0 as experimental and finalized in 1.2.*
+
     CIM objects in the object store are identified by a name which is part of
     the methods that access the CIM objects and must be unique within a single
     object store.
@@ -254,7 +256,11 @@ class BaseObjectStore(object):
 class BaseRepository(object):
     """
     An abstract base class defining the required  APIs to provide access to a
-    a CIM repository.  The API provides functions to:
+    a CIM repository.
+
+    *New in pywbem 1.0 as experimental and finalized in 1.2.*
+
+    The API provides functions to:
 
     1. Manage CIM namespaces in the data repository including creation, deletion
        and getting a list of the existing namespaces.

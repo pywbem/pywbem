@@ -3,7 +3,7 @@
 Mock WBEM server
 ================
 
-**Experimental:** *New in pywbem 0.12.0 as experimental.*
+*New in pywbem 0.12 as experimental and finalized in 1.2.*
 
 .. _`Overview`:
 

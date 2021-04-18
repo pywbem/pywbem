@@ -28,6 +28,8 @@ class ProviderDependentRegistry(object):
     """
     A registry for provider dependent files in context of a mock script.
 
+    *New in pywbem 1.1 as experimental and finalized in 1.2.*
+
     This registry allows registering additional dependent files in context of
     a mock script, and to look them up again.
 

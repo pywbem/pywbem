@@ -81,6 +81,8 @@ class InstanceWriteProvider(BaseProvider):
     defined providers that override the default provider implementation in this
     class.
 
+    *New in pywbem 1.0 as experimental and finalized in 1.2.*
+
     User providers are defined by creating a subclass of this class and
     defining a new provider method for one of the methods in this class with
     the same signature.
