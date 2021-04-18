@@ -373,7 +373,7 @@
             </CIM>
 
 - name: AssociatorNames_InstancesError2
-  description: AssociatorNames returns CIMClass and CIMXMLParserError.
+  description: AssociatorNames returns CIMClass, generates CIMXMLParserError.
   pywbem_request:
     url: http://acme.com:80
     creds:
@@ -446,7 +446,7 @@
       <NAMESPACE NAME="cimv2"/>
       </LOCALNAMESPACEPATH>
       </NAMESPACEPATH>
-      <CLASSNAME CLASSNAME="PyWBEM_PersonCollection">
+      <CLASSNAME NAME="PyWBEM_PersonCollection">
       </CLASSNAME>
       </INSTANCEPATH>
       </OBJECTPATH>
