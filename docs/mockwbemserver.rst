@@ -123,7 +123,7 @@ executing WBEM operations on the faked connection:
     my_class = conn.GetClass('CIM_Foo')
 
     # Get a specific instance of 'CIM_Foo' in the default namespace
-    inst = conn.GetInstance(CIMInstanceName('CIM_Foo', {'InstanceID': "I1"})
+    inst = conn.GetInstance(CIMInstanceName('CIM_Foo', {'InstanceID': "I1"}))
 
 The mock WBEM server supports:
 
@@ -189,7 +189,7 @@ The mock WBEM server does NOT support:
     | |  Client API request methods  | |           | registered  |  | |                       | Providers|
     | |  from WBEM Connection        | |           | user        |  | |   +------------+      |          +-----+
     | |                              | |           | providers   |  | |   |            |      +----------+     |
-    | |   *CreateClass, etc.         | |           |             +------->+ Method     |                       |
+    | |   ..CreateClass, etc.        | |           |             +------->+ Method     |                       |
    --->                              | |           |             |  | |   | Provider   |                       |
     | |                              | |           |             |  | |   | (Default)  |                       |
     | |                              | |           +-----------+-+  | |   +-----|------+                       |
@@ -497,20 +497,11 @@ FakedWBEMConnection class
 .. # Note: The pywbem_mock._wbemconnection_mock module docstring is a dummy.
 
 .. autoclass:: pywbem_mock.FakedWBEMConnection
-   :members:
-
-   .. rubric:: Methods
-
-   .. autoautosummary:: pywbem_mock.FakedWBEMConnection
-      :methods:
-      :nosignatures:
-
-   .. rubric:: Attributes
-
-   .. autoautosummary:: pywbem_mock.FakedWBEMConnection
-      :attributes:
-
-   .. rubric:: Details
+    :members:
+    :special-members:
+    :exclude-members: __init__,__weakref__
+    :autosummary:
+    :autosummary-inherited-members:
 
 
 .. _`Building a mocked CIM repository`:
@@ -843,20 +834,11 @@ DMTF CIM schema download support
 .. automodule:: pywbem_mock._dmtf_cim_schema
 
 .. autoclass:: pywbem_mock.DMTFCIMSchema
-   :members:
-
-   .. rubric:: Methods
-
-   .. autoautosummary:: pywbem_mock.DMTFCIMSchema
-      :methods:
-      :nosignatures:
-
-   .. rubric:: Attributes
-
-   .. autoautosummary:: pywbem_mock.DMTFCIMSchema
-      :attributes:
-
-   .. rubric:: Details
+    :members:
+    :special-members:
+    :exclude-members: __init__,__weakref__
+    :autosummary:
+    :autosummary-inherited-members:
 
 
 .. _`In-memory CIM repository classes`:
@@ -867,36 +849,18 @@ In-memory CIM repository classes
 .. automodule:: pywbem_mock._inmemoryrepository
 
 .. autoclass:: pywbem_mock.InMemoryRepository
-   :members:
-
-   .. rubric:: Methods
-
-   .. autoautosummary:: pywbem_mock.InMemoryRepository
-      :methods:
-      :nosignatures:
-
-   .. rubric:: Attributes
-
-   .. autoautosummary:: pywbem_mock.InMemoryRepository
-      :attributes:
-
-   .. rubric:: Details
+    :members:
+    :special-members:
+    :exclude-members: __init__,__weakref__
+    :autosummary:
+    :autosummary-inherited-members:
 
 .. autoclass:: pywbem_mock.InMemoryObjectStore
-   :members:
-
-   .. rubric:: Methods
-
-   .. autoautosummary:: pywbem_mock.InMemoryObjectStore
-      :methods:
-      :nosignatures:
-
-   .. rubric:: Attributes
-
-   .. autoautosummary:: pywbem_mock.InMemoryObjectStore
-      :attributes:
-
-   .. rubric:: Details
+    :members:
+    :special-members:
+    :exclude-members: __init__,__weakref__
+    :autosummary:
+    :autosummary-inherited-members:
 
 
 .. _`Mocking multiple CIM namespaces`:
@@ -1151,20 +1115,11 @@ User-defined instance write providers
 .. automodule:: pywbem_mock._instancewriteprovider
 
 .. autoclass:: pywbem_mock.InstanceWriteProvider
-   :members:
-
-   .. rubric:: Methods
-
-   .. autoautosummary:: pywbem_mock.InstanceWriteProvider
-      :methods:
-      :nosignatures:
-
-   .. rubric:: Attributes
-
-   .. autoautosummary:: pywbem_mock.InstanceWriteProvider
-      :attributes:
-
-   .. rubric:: Details
+    :members:
+    :special-members:
+    :exclude-members: __init__,__weakref__
+    :autosummary:
+    :autosummary-inherited-members:
 
 
 .. _`User-defined method providers`:
@@ -1175,20 +1130,11 @@ User-defined method providers
 .. automodule:: pywbem_mock._methodprovider
 
 .. autoclass:: pywbem_mock.MethodProvider
-   :members:
-
-   .. rubric:: Methods
-
-   .. autoautosummary:: pywbem_mock.MethodProvider
-      :methods:
-      :nosignatures:
-
-   .. rubric:: Attributes
-
-   .. autoautosummary:: pywbem_mock.MethodProvider
-      :attributes:
-
-   .. rubric:: Details
+    :members:
+    :special-members:
+    :exclude-members: __init__,__weakref__
+    :autosummary:
+    :autosummary-inherited-members:
 
 
 .. _`Registry for provider dependent files`:
@@ -1208,20 +1154,11 @@ mock cache is up to date w.r.t. additional dependent files a mock script has
 used.
 
 .. autoclass:: pywbem_mock.ProviderDependentRegistry
-   :members:
-
-   .. rubric:: Methods
-
-   .. autoautosummary:: pywbem_mock.ProviderDependentRegistry
-      :methods:
-      :nosignatures:
-
-   .. rubric:: Attributes
-
-   .. autoautosummary:: pywbem_mock.ProviderDependentRegistry
-      :attributes:
-
-   .. rubric:: Details
+    :members:
+    :special-members:
+    :exclude-members: __init__,__weakref__
+    :autosummary:
+    :autosummary-inherited-members:
 
 
 .. _`Configuration of mocked behavior`:
@@ -1231,63 +1168,3 @@ Configuration of mocked behavior
 
 .. automodule:: pywbem_mock.config
    :members:
-
-
-.. _`Mocker base classes`:
-
-Mocker base classes
--------------------
-
-Some bases classes are included in this documentation in order to provide the
-descriptions for inherited methods and properties in the previous class
-descriptions of the mock WBEM server.
-
-.. autoclass:: pywbem_mock.BaseRepository
-   :members:
-
-   .. rubric:: Methods
-
-   .. autoautosummary:: pywbem_mock.BaseRepository
-      :methods:
-      :nosignatures:
-
-   .. rubric:: Attributes
-
-   .. autoautosummary:: pywbem_mock.BaseRepository
-      :attributes:
-
-   .. rubric:: Details
-
-
-.. autoclass:: pywbem_mock.BaseObjectStore
-   :members:
-
-   .. rubric:: Methods
-
-   .. autoautosummary:: pywbem_mock.BaseObjectStore
-      :methods:
-      :nosignatures:
-
-   .. rubric:: Attributes
-
-   .. autoautosummary:: pywbem_mock.BaseObjectStore
-      :attributes:
-
-   .. rubric:: Details
-
-
-.. autoclass:: pywbem_mock.BaseProvider
-   :members:
-
-   .. rubric:: Methods
-
-   .. autoautosummary:: pywbem_mock.BaseProvider
-      :methods:
-      :nosignatures:
-
-   .. rubric:: Attributes
-
-   .. autoautosummary:: pywbem_mock.BaseProvider
-      :attributes:
-
-   .. rubric:: Details

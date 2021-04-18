@@ -142,15 +142,19 @@ class _CIMComparisonMixin(object):  # pylint: disable=too-few-public-methods
             format(op, type(self), type(other)))
 
     def __lt__(self, other):
+        ""  # Avoids docstring to be inherited
         self.__raise_ordering_not_supported(other, '<')
 
     def __gt__(self, other):
+        ""  # Avoids docstring to be inherited
         self.__raise_ordering_not_supported(other, '>')
 
     def __ge__(self, other):
+        ""  # Avoids docstring to be inherited
         self.__raise_ordering_not_supported(other, '>=')
 
     def __le__(self, other):
+        ""  # Avoids docstring to be inherited
         self.__raise_ordering_not_supported(other, '<=')
 
     def __hash__(self):
@@ -200,6 +204,7 @@ class SlottedPickleMixin(object):
     __slots__ = []
 
     def __getstate__(self):
+        ""  # Avoids docstring to be inherited
 
         dct = dict()
         for attr in self.__slots__:
@@ -214,6 +219,7 @@ class SlottedPickleMixin(object):
         return dct
 
     def __setstate__(self, dct):
+        ""  # Avoids docstring to be inherited
 
         try:
             class_type = CIMClass
@@ -288,6 +294,9 @@ class MinutesFromUTC(SlottedPickleMixin, tzinfo):
         self._offset = offset
 
     def __repr__(self):
+        """
+        Return a string representation suitable for debugging.
+        """
         return _format(
             "MinutesFromUTC("
             "offset={s._offset!A})",
@@ -375,6 +384,7 @@ class Char16(CIMType, six.text_type):
 
     # Changing the string content requires using __new__() instead of __init__()
     def __new__(cls, content=''):
+        ""  # Avoids docstring to be inherited
         return super(Char16, cls).__new__(cls, _ensure_unicode(content))
 
 
@@ -781,12 +791,27 @@ class CIMDateTime(_CIMComparisonMixin, CIMType):
             s=self)
 
     def __getstate__(self):
+        ""  # Avoids docstring to be inherited
         return str(self)
 
     def __setstate__(self, arg):
+        ""  # Avoids docstring to be inherited
         self.__init__(arg)
 
     def __eq__(self, other):
+        """
+        Equality test function for two :class:`~pywbem.CIMDateTime` objects.
+
+        The equality is based on their public attributes.
+
+        Note that a :class:`~pywbem.CIMDateTime` object represents either a
+        time interval or a point in time but never both. Therefore, an object
+        representing an interval is never equal to an object representing a
+        point in time.
+
+        Returns `False` if the `other` object is not a
+        :class:`~pywbem.CIMDateTime` object.
+        """
         if self is other:
             return True
         if not isinstance(other, CIMDateTime):
@@ -870,6 +895,7 @@ class CIMInt(CIMType, _Longint):
     maxvalue = None
 
     def __new__(cls, *args, **kwargs):
+        ""  # Avoids docstring to be inherited
 
         # Python 3.7 removed support for passing the value for int() as a
         # keyword argument named 'x'. It now needs to be passed as a positional

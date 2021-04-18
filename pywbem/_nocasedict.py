@@ -53,8 +53,11 @@ class NocaseDict(HashableMixin, KeyableByMixin('name'), _NocaseDict):
     """
     NocaseDict class using nocasedict.NocaseDict, adding the following
     functionality:
+
     * hashability via nocasedict.HashableMixin
+
     * keyability by attribute 'name' via nocasedict.KeyableByMixin('name')
+
     * the ability to allow or disallow (by default) unnamed keys via a public
       'allow_unnamed_keys' attribute
     """

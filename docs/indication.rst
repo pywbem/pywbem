@@ -23,19 +23,10 @@ WBEMListener
 .. automodule:: pywbem._listener
 
 .. autoclass:: pywbem.WBEMListener
-   :members:
-
-   .. rubric:: Methods
-
-   .. autoautosummary:: pywbem.WBEMListener
-      :methods:
-      :nosignatures:
-
-   .. rubric:: Attributes
-
-   .. autoautosummary:: pywbem.WBEMListener
-      :attributes:
-
-   .. rubric:: Details
+    :members:
+    :special-members:
+    :exclude-members: __init__,__weakref__
+    :autosummary:
+    :autosummary-inherited-members:
 
 .. autofunction:: pywbem.callback_interface

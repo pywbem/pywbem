@@ -21,17 +21,8 @@ WBEMSubscriptionManager
 .. automodule:: pywbem._subscription_manager
 
 .. autoclass:: pywbem.WBEMSubscriptionManager
-   :members:
-
-   .. rubric:: Methods
-
-   .. autoautosummary:: pywbem.WBEMSubscriptionManager
-      :methods:
-      :nosignatures:
-
-   .. rubric:: Attributes
-
-   .. autoautosummary:: pywbem.WBEMSubscriptionManager
-      :attributes:
-
-   .. rubric:: Details
+    :members:
+    :special-members:
+    :exclude-members: __init__,__weakref__
+    :autosummary:
+    :autosummary-inherited-members:

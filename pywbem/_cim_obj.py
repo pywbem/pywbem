@@ -1378,8 +1378,7 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
         """
         Equality test function for two :class:`~pywbem.CIMInstanceName` objects.
 
-        The equality is based on their public attributes, in descending
-        precedence:
+        The equality is based on their public attributes:
 
         * `host`
         * `namespace`
@@ -1389,7 +1388,7 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
         The equality test takes into account any case insensitivities described
         for these attributes.
 
-        Raises `TypeError', if the `other` object is not a
+        Raises :exc:`TypeError`, if the `other` object is not a
         :class:`~pywbem.CIMInstanceName` object.
         """
         if self is other:
@@ -1461,21 +1460,27 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
             s=self)
 
     def __contains__(self, key):
+        ""  # Avoids docstring to be inherited
         return key in self.keybindings
 
     def __getitem__(self, key):
+        ""  # Avoids docstring to be inherited
         return self.keybindings[key]
 
     def __setitem__(self, key, value):
+        ""  # Avoids docstring to be inherited
         self.keybindings[key] = value
 
     def __delitem__(self, key):
+        ""  # Avoids docstring to be inherited
         del self.keybindings[key]
 
     def __len__(self):
+        ""  # Avoids docstring to be inherited
         return len(self.keybindings)
 
     def __iter__(self):
+        ""  # Avoids docstring to be inherited
         return six.iterkeys(self.keybindings)
 
     def copy(self):
@@ -2635,8 +2640,7 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
         """
         Equality test function for two :class:`~pywbem.CIMInstance` objects.
 
-        The equality is based on some of their public attributes, in
-        descending precedence:
+        The equality is based on some of their public attributes:
 
         * `classname`
         * `path`
@@ -2646,7 +2650,7 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
         The equality test takes into account any case insensitivities described
         for these attributes.
 
-        Raises `TypeError', if the `other` object is not a
+        Raises :exc:`TypeError`, if the `other` object is not a
         :class:`~pywbem.CIMInstance` object.
         """
         if self is other:
@@ -3477,8 +3481,7 @@ class CIMClassName(_CIMComparisonMixin, SlottedPickleMixin):
         """
         Equality test function for two :class:`~pywbem.CIMClassName` objects.
 
-        The equality is based on their public attributes, in descending
-        precedence:
+        The equality is based on their public attributes:
 
         * `host`
         * `namespace`
@@ -3487,7 +3490,7 @@ class CIMClassName(_CIMComparisonMixin, SlottedPickleMixin):
         The equality test takes into account any case insensitivities described
         for these attributes.
 
-        Raises `TypeError', if the `other` object is not a
+        Raises :exc:`TypeError`, if the `other` object is not a
         :class:`~pywbem.CIMClassName` object.
         """
         if self is other:
@@ -4213,8 +4216,7 @@ class CIMClass(_CIMComparisonMixin, SlottedPickleMixin):
         """
         Equality test function for two :class:`~pywbem.CIMClass` objects.
 
-        The equality is based on their public attributes, in descending
-        precedence:
+        The equality is based on their public attributes:
 
         * `classname`
         * `superclass`
@@ -4226,7 +4228,7 @@ class CIMClass(_CIMComparisonMixin, SlottedPickleMixin):
         The equality test takes into account any case insensitivities described
         for these attributes.
 
-        Raises `TypeError', if the `other` object is not a
+        Raises :exc:`TypeError`, if the `other` object is not a
         :class:`~pywbem.CIMClass` object.
         """
         if self is other:
@@ -5243,8 +5245,7 @@ class CIMProperty(_CIMComparisonMixin, SlottedPickleMixin):
         """
         Equality test function for two :class:`~pywbem.CIMProperty` objects.
 
-        The equality is based on their public attributes, in descending
-        precedence:
+        The equality is based on their public attributes:
 
         * `name`
         * `value`
@@ -5260,7 +5261,7 @@ class CIMProperty(_CIMComparisonMixin, SlottedPickleMixin):
         The equality test takes into account any case insensitivities described
         for these attributes.
 
-        Raises `TypeError', if the `other` object is not a
+        Raises :exc:`TypeError`, if the `other` object is not a
         :class:`~pywbem.CIMProperty` object.
         """
         if self is other:
@@ -5621,8 +5622,7 @@ class CIMMethod(_CIMComparisonMixin, SlottedPickleMixin):
         """
         Equality test function for two :class:`~pywbem.CIMMethod` objects.
 
-        The equality is based on their public attributes, in descending
-        precedence:
+        The equality is based on their public attributes:
 
         * `name`
         * `qualifiers`
@@ -5634,7 +5634,7 @@ class CIMMethod(_CIMComparisonMixin, SlottedPickleMixin):
         The equality test takes into account any case insensitivities described
         for these attributes.
 
-        Raises `TypeError', if the `other` object is not a
+        Raises :exc:`TypeError`, if the `other` object is not a
         :class:`~pywbem.CIMMethod` object.
         """
         if self is other:
@@ -6211,8 +6211,7 @@ class CIMParameter(_CIMComparisonMixin, SlottedPickleMixin):
         """
         Equality test function for two :class:`~pywbem.CIMParameter` objects.
 
-        The equality is based on their public attributes, in descending
-        precedence:
+        The equality is based on their public attributes:
 
         * `name`
         * `type`
@@ -6226,7 +6225,7 @@ class CIMParameter(_CIMComparisonMixin, SlottedPickleMixin):
         The equality test takes into account any case insensitivities described
         for these attributes.
 
-        Raises `TypeError', if the `other` object is not a
+        Raises :exc:`TypeError`, if the `other` object is not a
         :class:`~pywbem.CIMParameter` object.
         """
 
@@ -6903,8 +6902,7 @@ class CIMQualifier(_CIMComparisonMixin, SlottedPickleMixin):
         """
         Equality test function for two :class:`~pywbem.CIMQualifier` objects.
 
-        The equality is based on their public attributes, in descending
-        precedence:
+        The equality is based on their public attributes:
 
         * `name`
         * `type`
@@ -6918,7 +6916,7 @@ class CIMQualifier(_CIMComparisonMixin, SlottedPickleMixin):
         The equality test takes into account any case insensitivities described
         for these attributes.
 
-        Raises `TypeError', if the `other` object is not a
+        Raises :exc:`TypeError`, if the `other` object is not a
         :class:`~pywbem.CIMQualifier` object.
         """
         if self is other:
@@ -7577,8 +7575,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
         Equality test function for two :class:`~pywbem.CIMQualifierDeclaration`
         objects.
 
-        The equality is based on their public attributes, in descending
-        precedence:
+        The equality is based on their public attributes:
 
         * `name`
         * `type`
@@ -7594,7 +7591,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
         The equality test takes into account any case insensitivities described
         for these attributes.
 
-        Raises `TypeError', if the `other` object is not a
+        Raises :exc:`TypeError`, if the `other` object is not a
         :class:`~pywbem.CIMQualifierDeclaration` object.
         """
         if self is other:
