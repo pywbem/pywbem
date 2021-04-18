@@ -575,7 +575,53 @@ OpenSSL on the client side cannot deal with the cipher used by the server
 side. This was fixed by upgrading OpenSSL on the client OS to version 1.1.1.
 
 
-.. _'Glossary`:
+.. _`Base classes`:
+
+Base classes
+------------
+
+Some bases classes are included in this documentation in order to provide the
+descriptions for inherited methods and properties that are referenced from the
+summary tables in other class descriptions.
+
+.. autoclass:: pywbem._exceptions._RequestExceptionMixin
+    :members:
+    :special-members:
+    :exclude-members: __init__,__weakref__
+    :autosummary:
+
+.. autoclass:: pywbem._exceptions._ResponseExceptionMixin
+    :members:
+    :special-members:
+    :exclude-members: __init__,__weakref__
+    :autosummary:
+
+.. autoclass:: pywbem._cim_types._CIMComparisonMixin
+    :members:
+    :special-members:
+    :exclude-members: __init__,__weakref__
+    :autosummary:
+
+.. autoclass:: pywbem_mock.BaseRepository
+    :members:
+    :special-members:
+    :exclude-members: __init__,__weakref__
+    :autosummary:
+
+.. autoclass:: pywbem_mock.BaseObjectStore
+    :members:
+    :special-members:
+    :exclude-members: __init__,__weakref__
+    :autosummary:
+
+.. autoclass:: pywbem_mock.BaseProvider
+    :members:
+    :special-members:
+    :exclude-members: __init__,__weakref__
+    :autosummary:
+
+
+.. _`Glossary`:
 
 Glossary
 --------

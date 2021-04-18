@@ -17,178 +17,88 @@ CIMInstanceName
 ^^^^^^^^^^^^^^^
 
 .. autoclass:: pywbem.CIMInstanceName
-   :members:
-   :exclude-members: __hash__
-
-   .. rubric:: Methods
-
-   .. autoautosummary:: pywbem.CIMInstanceName
-      :methods:
-      :nosignatures:
-
-   .. rubric:: Attributes
-
-   .. autoautosummary:: pywbem.CIMInstanceName
-      :attributes:
-
-   .. rubric:: Details
+    :members:
+    :special-members:
+    :exclude-members: __init__,__weakref__
+    :autosummary:
+    :autosummary-inherited-members:
 
 CIMInstance
 ^^^^^^^^^^^
 
 .. autoclass:: pywbem.CIMInstance
-   :members:
-   :exclude-members: __hash__
-
-   .. rubric:: Methods
-
-   .. autoautosummary:: pywbem.CIMInstance
-      :methods:
-      :nosignatures:
-
-   .. rubric:: Attributes
-
-   .. autoautosummary:: pywbem.CIMInstance
-      :attributes:
-
-   .. rubric:: Details
+    :members:
+    :special-members:
+    :exclude-members: __init__,__weakref__
+    :autosummary:
+    :autosummary-inherited-members:
 
 CIMClassName
 ^^^^^^^^^^^^
 
 .. autoclass:: pywbem.CIMClassName
-   :members:
-   :exclude-members: __hash__
-
-   .. rubric:: Methods
-
-   .. autoautosummary:: pywbem.CIMClassName
-      :methods:
-      :nosignatures:
-
-   .. rubric:: Attributes
-
-   .. autoautosummary:: pywbem.CIMClassName
-      :attributes:
-
-   .. rubric:: Details
+    :members:
+    :special-members:
+    :exclude-members: __init__,__weakref__
+    :autosummary:
+    :autosummary-inherited-members:
 
 CIMClass
 ^^^^^^^^
 
 .. autoclass:: pywbem.CIMClass
-   :members:
-   :exclude-members: __hash__
-
-   .. rubric:: Methods
-
-   .. autoautosummary:: pywbem.CIMClass
-      :methods:
-      :nosignatures:
-
-   .. rubric:: Attributes
-
-   .. autoautosummary:: pywbem.CIMClass
-      :attributes:
-
-   .. rubric:: Details
+    :members:
+    :special-members:
+    :exclude-members: __init__,__weakref__
+    :autosummary:
+    :autosummary-inherited-members:
 
 CIMProperty
 ^^^^^^^^^^^
 
 .. autoclass:: pywbem.CIMProperty
-   :members:
-   :exclude-members: __hash__
-
-   .. rubric:: Methods
-
-   .. autoautosummary:: pywbem.CIMProperty
-      :methods:
-      :nosignatures:
-
-   .. rubric:: Attributes
-
-   .. autoautosummary:: pywbem.CIMProperty
-      :attributes:
-
-   .. rubric:: Details
+    :members:
+    :special-members:
+    :exclude-members: __init__,__weakref__
+    :autosummary:
+    :autosummary-inherited-members:
 
 CIMMethod
 ^^^^^^^^^
 
 .. autoclass:: pywbem.CIMMethod
-   :members:
-   :exclude-members: __hash__
-
-   .. rubric:: Methods
-
-   .. autoautosummary:: pywbem.CIMMethod
-      :methods:
-      :nosignatures:
-
-   .. rubric:: Attributes
-
-   .. autoautosummary:: pywbem.CIMMethod
-      :attributes:
-
-   .. rubric:: Details
+    :members:
+    :special-members:
+    :exclude-members: __init__,__weakref__
+    :autosummary:
+    :autosummary-inherited-members:
 
 CIMParameter
 ^^^^^^^^^^^^
 
 .. autoclass:: pywbem.CIMParameter
-   :members:
-   :exclude-members: __hash__
-
-   .. rubric:: Methods
-
-   .. autoautosummary:: pywbem.CIMParameter
-      :methods:
-      :nosignatures:
-
-   .. rubric:: Attributes
-
-   .. autoautosummary:: pywbem.CIMParameter
-      :attributes:
-
-   .. rubric:: Details
+    :members:
+    :special-members:
+    :exclude-members: __init__,__weakref__
+    :autosummary:
+    :autosummary-inherited-members:
 
 CIMQualifier
 ^^^^^^^^^^^^
 
 .. autoclass:: pywbem.CIMQualifier
-   :members:
-   :exclude-members: __hash__
-
-   .. rubric:: Methods
-
-   .. autoautosummary:: pywbem.CIMQualifier
-      :methods:
-      :nosignatures:
-
-   .. rubric:: Attributes
-
-   .. autoautosummary:: pywbem.CIMQualifier
-      :attributes:
-
-   .. rubric:: Details
+    :members:
+    :special-members:
+    :exclude-members: __init__,__weakref__
+    :autosummary:
+    :autosummary-inherited-members:
 
 CIMQualifierDeclaration
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 .. autoclass:: pywbem.CIMQualifierDeclaration
-   :members:
-   :exclude-members: __hash__
-
-   .. rubric:: Methods
-
-   .. autoautosummary:: pywbem.CIMQualifierDeclaration
-      :methods:
-      :nosignatures:
-
-   .. rubric:: Attributes
-
-   .. autoautosummary:: pywbem.CIMQualifierDeclaration
-      :attributes:
-
-   .. rubric:: Details
+    :members:
+    :special-members:
+    :exclude-members: __init__,__weakref__
+    :autosummary:
+    :autosummary-inherited-members:

@@ -257,6 +257,10 @@ Released: not yet
   that can be modified (no subclasses, and no instances exist, and
   correct superclass) (see issue #2447)
 
+* Docs: Used 'autodocsumm' Sphinx extension for generating attribute and method
+  summary tables for classes in the documentation. Moved documentation of some
+  base classes into a new 'Base Classes' section in the appendix.
+
 **Cleanup:**
 
 * Test: Fixed all remaining ResourceWarnings during test. (issue #86)

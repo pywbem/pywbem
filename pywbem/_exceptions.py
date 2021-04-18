@@ -27,8 +27,7 @@ from ._cim_constants import _statuscode2name, _statuscode2string
 __all__ = ['Error', 'ConnectionError', 'AuthError', 'HTTPError', 'TimeoutError',
            'VersionError', 'ParseError', 'CIMVersionError', 'DTDVersionError',
            'ProtocolVersionError', 'CIMXMLParseError', 'XMLParseError',
-           'HeaderParseError', 'CIMError', 'ModelError',
-           '_RequestExceptionMixin', '_ResponseExceptionMixin']
+           'HeaderParseError', 'CIMError', 'ModelError']
 
 
 class _RequestExceptionMixin(object):
