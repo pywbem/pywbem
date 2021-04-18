@@ -413,20 +413,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     the :attr:`last_raw_request` and :attr:`last_raw_reply` attributes
     of the connection object.
 
-    WBEMConnection objects can record the operations performed by calling
-    :class:`~pywbem.WBEMConnection` methods that interact with a WBEM server
-    using *operation recorders*, at the level of method calls and returns, and
-    at the level of CIM-XML requests and responses.
-    The :class:`~pywbem.LogOperationRecorder` class records the operations in
-    the Python logging facility. This recorder is activated through the
-    `connection` parameter of :func:`~pywbem._logging.configure_logger`.
-    The :class:`~pywbem.TestClientRecorder` class records the operations in a
-    file in the YAML format suitable for the test_client.py unit test program.
-    The :meth:`~pywbem.WBEMConnection.add_operation_recorder` method is used
-    to add an operation recorder to a connection, and the
-    :attr:`~pywbem.WBEMConnection.operation_recorders` property is used to
-    retrieve the current operation recorders of a connection.
-
     The methods of this class may raise the following exceptions:
 
     * Exceptions indicating operational errors:
@@ -1017,19 +1003,19 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def operation_recorders(self):
         """
         Tuple of :class:`BaseOperationRecorder` subclass objects:
-          **Experimental:** The operation recorders of this connection.
+          **Internal:** The operation recorders of this connection.
 
-        *New in pywbem 0.12 as experimental.*
+        *New in pywbem 0.12 as experimental and made internal in 1.2.*
         """
         return tuple(self._operation_recorders)
 
     @property
     def operation_recorder_enabled(self):
         """
-        :class:`py:bool`: **Experimental:** Enablement status for all operation
+        :class:`py:bool`: **Internal:** Enablement status for all operation
         recorders of the connection.
 
-        *New in pywbem 0.11 as experimental*
+        *New in pywbem 0.11 as experimental and made internal in 1.2.*
 
         This is a writeable property; setting this property will change the
         operation recorder enablement status accordingly for all operation
@@ -1664,9 +1650,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def add_operation_recorder(self, operation_recorder):
         # pylint: disable=line-too-long
         """
-        **Experimental:** Add an operation recorder to this connection.
+        **Internal:** Add an operation recorder to this connection.
 
-        *New in pywbem 0.12 as experimental.*
+        *New in pywbem 0.12 as experimental and made internal in 1.2.*
 
         If the connection already has a recorder with the same class, the
         request to add the recorder is ignored.
@@ -1698,10 +1684,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     def operation_recorder_reset(self, pull_op=False):
         """
-        **Experimental:** Low-level method used by the operation-specific
+        **Internal:** Low-level method used by the operation-specific
         methods of this class.
 
-        *New in pywbem 0.9 as experimental.*
+        *New in pywbem 0.9 as experimental and made internal in 1.2.*
 
         It resets the operation processing state of all recorders of this
         connection, to be ready for processing a new operation call.
@@ -1711,10 +1697,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     def operation_recorder_stage_pywbem_args(self, method, **kwargs):
         """
-        **Experimental:** Low-level method used by the operation-specific
+        **Internal:** Low-level method used by the operation-specific
         methods of this class.
 
-        *New in pywbem 0.9 as experimental.*
+        *New in pywbem 0.9 as experimental and made internal in 1.2.*
 
         It forwards the operation method name and arguments to all recorders of
         this connection.
@@ -1724,10 +1710,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     def operation_recorder_stage_result(self, ret, exc):
         """
-        **Experimental:** Low-level method used by the operation-specific
+        **Internal:** Low-level method used by the operation-specific
         methods of this class.
 
-        *New in pywbem 0.9 as experimental.*
+        *New in pywbem 0.9 as experimental and made internal in 1.2.*
 
         It forwards the operation results including exceptions that were
         raised, to all recorders of this connection, and causes the forwarded
