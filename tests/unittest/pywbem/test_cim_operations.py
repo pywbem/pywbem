@@ -31,7 +31,7 @@ pywbem_mock = import_installed('pywbem_mock')
 from pywbem_mock import FakedWBEMConnection  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
-OK = False     # mark tests OK when they execute correctly
+OK = True     # mark tests OK when they execute correctly
 RUN = True    # Mark OK = False and current test case being created RUN
 FAIL = False  # Any test currently FAILING or not tested yet
 SKIP = False
@@ -734,12 +734,12 @@ TESTCASES_REQUEST_INVALID_PARAMS = [
         TypeError, None, OK
     ),
     (
-        "Test invalid invokemethod objectname None",
+        "Test invalid invokemethod inferred object integer None",
         dict(
             init_kwargs={},
             method='invokemethod',
             args=[None, "ObjectName"],
-            kwargs={},
+            kwargs={"param1": 1},
         ),
         TypeError, None, False  # Fails with connection failure.
     ),

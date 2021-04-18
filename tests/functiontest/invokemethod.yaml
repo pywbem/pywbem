@@ -308,8 +308,9 @@
       </MESSAGE>
       </CIM>
 
-- name: InvokeMethod_SFCB_UEP
-  description: Verify that UpdateExpiredPassword causes the corresponding Pragma header to be added
+- name: InvokeMethod5
+  description: Pass one boolean input parameter via **params as value to test infered value, no output parameters
+  # Note: We can pass only one parameter because the **kwargs mechanism does not preserve the order
   pywbem_request:
     url: http://acme.com:80
     creds:
@@ -320,13 +321,13 @@
     debug: true
     operation:
       pywbem_method: InvokeMethod
-      MethodName: UpdateExpiredPassword
+      MethodName: SendTestIndicationsCount
       ObjectName:
         pywbem_object: CIMClassName
-        classname: SFCB_Account
+        classname: Test_IndicationProviderClass
         host: null
-        namespace: root/interop
-      UserPassword: foo
+        namespace: test/TestProvider
+      indicationSendCount: true
   pywbem_response:
     result:
     - 0
@@ -336,24 +337,23 @@
     url: http://acme.com:80/cimom
     headers:
       CIMOperation: MethodCall
-      CIMMethod: UpdateExpiredPassword
-      CIMObject: root/interop:SFCB_Account
-      Pragma: UpdateExpiredPassword
+      CIMMethod: SendTestIndicationsCount
+      CIMObject: test/TestProvider:Test_IndicationProviderClass
     data: >
       <?xml version="1.0" encoding="utf-8" ?>
       <CIM CIMVERSION="2.0" DTDVERSION="2.0">
       <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
       <SIMPLEREQ>
-      <METHODCALL NAME="UpdateExpiredPassword">
+      <METHODCALL NAME="SendTestIndicationsCount">
       <LOCALCLASSPATH>
       <LOCALNAMESPACEPATH>
-      <NAMESPACE NAME="root"/>
-      <NAMESPACE NAME="interop"/>
+      <NAMESPACE NAME="test"/>
+      <NAMESPACE NAME="TestProvider"/>
       </LOCALNAMESPACEPATH>
-      <CLASSNAME NAME="SFCB_Account"/>
+      <CLASSNAME NAME="Test_IndicationProviderClass"/>
       </LOCALCLASSPATH>
-      <PARAMVALUE NAME="UserPassword" PARAMTYPE="string">
-      <VALUE>foo</VALUE>
+      <PARAMVALUE NAME="indicationSendCount" PARAMTYPE="boolean">
+      <VALUE>TRUE</VALUE>
       </PARAMVALUE>
       </METHODCALL>
       </SIMPLEREQ>
@@ -368,7 +368,7 @@
       <CIM CIMVERSION="2.0" DTDVERSION="2.0">
       <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
       <SIMPLERSP>
-      <METHODRESPONSE NAME="UpdateExpiredPassword">
+      <METHODRESPONSE NAME="SendTestIndicationsCount">
       <RETURNVALUE PARAMTYPE="sint32">
       <VALUE>0</VALUE>
       </RETURNVALUE>
@@ -377,8 +377,8 @@
       </MESSAGE>
       </CIM>
 
-- name: InvokeMethod5
-  description: InvokeMethod, return one parameter inferred type string
+- name: InvokeMethod6
+  description: Pass one boolean list input parameter via **params as list of value(boolean), no output parameters
   # Note: We can pass only one parameter because the **kwargs mechanism does not preserve the order
   pywbem_request:
     url: http://acme.com:80
@@ -390,40 +390,49 @@
     debug: true
     operation:
       pywbem_method: InvokeMethod
-      MethodName: InferredTypesTest
+      MethodName: SendTestIndicationsCount
       ObjectName:
         pywbem_object: CIMClassName
-        classname: Test_InferredTypes
+        classname: Test_IndicationProviderClass
         host: null
         namespace: test/TestProvider
+      indicationSendCount:
+        - true
+        - false
   pywbem_response:
     result:
     - 0
-    - {'InferStringParam': 'Blah'}
+    - {}
   http_request:
     verb: POST
     url: http://acme.com:80/cimom
     headers:
       CIMOperation: MethodCall
-      CIMMethod: InferredTypesTest
-      CIMObject: test/TestProvider:Test_InferredTypes
+      CIMMethod: SendTestIndicationsCount
+      CIMObject: test/TestProvider:Test_IndicationProviderClass
     data: >
+      <?xml version="1.0" encoding="utf-8" ?>
       <CIM CIMVERSION="2.0" DTDVERSION="2.0">
-        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
-          <SIMPLEREQ>
-            <METHODCALL NAME="InferredTypesTest">
-              <LOCALCLASSPATH>
-                <LOCALNAMESPACEPATH>
-                  <NAMESPACE NAME="test"></NAMESPACE>
-                  <NAMESPACE NAME="TestProvider"></NAMESPACE>
-                </LOCALNAMESPACEPATH>
-                <CLASSNAME NAME="Test_InferredTypes"></CLASSNAME>
-              </LOCALCLASSPATH>
-            </METHODCALL>
-          </SIMPLEREQ>
-        </MESSAGE>
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <METHODCALL NAME="SendTestIndicationsCount">
+      <LOCALCLASSPATH>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="test"/>
+      <NAMESPACE NAME="TestProvider"/>
+      </LOCALNAMESPACEPATH>
+      <CLASSNAME NAME="Test_IndicationProviderClass"/>
+      </LOCALCLASSPATH>
+      <PARAMVALUE NAME="indicationSendCount" PARAMTYPE="boolean">
+      <VALUE.ARRAY>
+      <VALUE>TRUE</VALUE>
+      <VALUE>FALSE</VALUE>
+      </VALUE.ARRAY>
+      </PARAMVALUE>
+      </METHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
       </CIM>
-
   http_response:
     status: 200
     headers:
@@ -433,20 +442,17 @@
       <CIM CIMVERSION="2.0" DTDVERSION="2.0">
       <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
       <SIMPLERSP>
-      <METHODRESPONSE NAME="InferredTypesTest">
+      <METHODRESPONSE NAME="SendTestIndicationsCount">
       <RETURNVALUE PARAMTYPE="sint32">
       <VALUE>0</VALUE>
       </RETURNVALUE>
-      <PARAMVALUE NAME="InferStringParam">
-      <VALUE>Blah</VALUE>
-      </PARAMVALUE>
       </METHODRESPONSE>
       </SIMPLERSP>
       </MESSAGE>
       </CIM>
 
-- name: InvokeMethod6
-  description: InvokeMethod, return one parameter inferred type boolean
+- name: InvokeMethod7
+  description: InvokeMethod, return one parameter type boolean
   ignore_test: true
   # Ignoring this test because infer type with boolean does not work.
   # Note: We can pass only one parameter because the **kwargs mechanism does not preserve the order
@@ -514,9 +520,8 @@
       </MESSAGE>
       </CIM>
 
-
-- name: InvokeMethod7
-  description: InvokeMethod, return one parameter inferred type list of string
+- name: InvokeMethod8
+  description: InvokeMethod, return one parameter returned type list of string
   # Note: We can pass only one parameter because the **kwargs mechanism does not preserve the order
   pywbem_request:
     url: http://acme.com:80
@@ -585,8 +590,8 @@
       </MESSAGE>
       </CIM>
 
-- name: InvokeMethod8
-  description: InvokeMethod, return one parameter inferred type CIMClass
+- name: InvokeMethod9
+  description: InvokeMethod, return one parameter returned type CIMClass
   ignore_test: true
   # Ignoring this test because I do not know how to define CIMClass in a
   # list in YAML
@@ -650,6 +655,155 @@
       <PARAMVALUE NAME="ClassParam">
         <CLASS NAME="CIM_BLAH"></CLASS>
       </PARAMVALUE>
+      </METHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>
+
+- name: InvokeMethod10
+  description: Pass two input parameters but no namespace on request object
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: InvokeMethod
+      MethodName: SendTestIndicationsCount
+      ObjectName:
+        pywbem_object: CIMClassName
+        classname: Test_IndicationProviderClass
+        host: null
+        namespace: null
+      Params:
+        - - indicationSendCount
+          - pywbem_object: Uint32
+            x: 0
+        - - indicationDropCount
+          - pywbem_object: Uint32
+            x: 42
+        - - optionalP1
+          - null
+  pywbem_response:
+    result:
+    - 0
+    - {}
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: SendTestIndicationsCount
+      CIMObject: root/cimv2:Test_IndicationProviderClass
+    data: >
+      <?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <METHODCALL NAME="SendTestIndicationsCount">
+      <LOCALCLASSPATH>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <CLASSNAME NAME="Test_IndicationProviderClass"/>
+      </LOCALCLASSPATH>
+      <PARAMVALUE NAME="indicationSendCount" PARAMTYPE="uint32">
+      <VALUE>0</VALUE>
+      </PARAMVALUE>
+      <PARAMVALUE NAME="indicationDropCount" PARAMTYPE="uint32">
+      <VALUE>42</VALUE>
+      </PARAMVALUE>
+      <PARAMVALUE NAME="optionalP1"/>
+      </METHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>
+  http_response:
+    status: 200
+    headers:
+      CIMOperation: MethodResponse
+    data: >
+      <?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <METHODRESPONSE NAME="SendTestIndicationsCount">
+      <RETURNVALUE PARAMTYPE="sint32">
+      <VALUE>0</VALUE>
+      </RETURNVALUE>
+      </METHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>
+
+- name: InvokeMethod_SFCB_UEP
+  description: Verify that UpdateExpiredPassword causes the corresponding Pragma header to be added
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: InvokeMethod
+      MethodName: UpdateExpiredPassword
+      ObjectName:
+        pywbem_object: CIMClassName
+        classname: SFCB_Account
+        host: null
+        namespace: root/interop
+      UserPassword: foo
+  pywbem_response:
+    result:
+    - 0
+    - {}
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: UpdateExpiredPassword
+      CIMObject: root/interop:SFCB_Account
+      Pragma: UpdateExpiredPassword
+    data: >
+      <?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <METHODCALL NAME="UpdateExpiredPassword">
+      <LOCALCLASSPATH>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="interop"/>
+      </LOCALNAMESPACEPATH>
+      <CLASSNAME NAME="SFCB_Account"/>
+      </LOCALCLASSPATH>
+      <PARAMVALUE NAME="UserPassword" PARAMTYPE="string">
+      <VALUE>foo</VALUE>
+      </PARAMVALUE>
+      </METHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>
+  http_response:
+    status: 200
+    headers:
+      CIMOperation: MethodResponse
+    data: >
+      <?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <METHODRESPONSE NAME="UpdateExpiredPassword">
+      <RETURNVALUE PARAMTYPE="sint32">
+      <VALUE>0</VALUE>
+      </RETURNVALUE>
       </METHODRESPONSE>
       </SIMPLERSP>
       </MESSAGE>
@@ -1131,5 +1285,162 @@
       </SIMPLERSP>
       </MESSAGE>
       </CIM>
+
+- name: InvokeMethod11
+  # Test fails because the list defined for classnameList parameter creates object has type <class 'collections.OrderedDict'>
+  # while _methodcall isinstance only handles list type
+  ignore_test: true
+  description: Pass list of CIMClassName parameter, no output parameters
+  # Note: We can pass only one parameter because the **kwargs mechanism does not preserve the order
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: InvokeMethod
+      MethodName: SendTestIndicationsCount
+      ObjectName:
+        pywbem_object: CIMClassName
+        classname: Test_IndicationProviderClass
+        host: null
+        namespace: test/TestProvider
+      classnameList:
+        - ObjectName:
+              pywbem_object: CIMClassName
+              classname: Test_classnameinparam1
+              host: null
+              namespace: test/TestProvider
+        - ObjectName:
+              pywbem_object: CIMClassName
+              classname: Test_classnameinparam2
+              host: null
+              namespace: test/TestProvider
+  pywbem_response:
+    result:
+    - 0
+    - {}
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: SendTestIndicationsCount
+      CIMObject: test/TestProvider:Test_IndicationProviderClass
+    data: >
+      <?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <METHODCALL NAME="SendTestIndicationsCount">
+      <LOCALCLASSPATH>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="test"/>
+      <NAMESPACE NAME="TestProvider"/>
+      </LOCALNAMESPACEPATH>
+      <CLASSNAME NAME="Test_IndicationProviderClass"/>
+      </LOCALCLASSPATH>
+      <PARAMVALUE NAME="indicationSendCount" PARAMTYPE="boolean">
+      <VALUE.ARRAY>
+      <VALUE>TRUE</VALUE>
+      <VALUE>FALSE</VALUE>
+      </VALUE.ARRAY>
+      </PARAMVALUE>
+      </METHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>
+  http_response:
+    status: 200
+    headers:
+      CIMOperation: MethodResponse
+    data: >
+      <?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <METHODRESPONSE NAME="SendTestIndicationsCount">
+      <RETURNVALUE PARAMTYPE="sint32">
+      <VALUE>0</VALUE>
+      </RETURNVALUE>
+      </METHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>
+
+- name: InvokeMethod12
+  description: Pass input parameter as CIMDateTime, no output parameters
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: InvokeMethod
+      MethodName: SendTestIndicationsCount
+      ObjectName:
+        pywbem_object: CIMClassName
+        classname: Test_IndicationProviderClass
+        host: null
+        namespace: test/TestProvider
+      Params:
+        - - datetimeparam
+          - pywbem_object: CIMDateTime
+            dtarg: "00001234567890.123456:000"
+  pywbem_response:
+    result:
+    - 0
+    - {}
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: SendTestIndicationsCount
+      CIMObject: test/TestProvider:Test_IndicationProviderClass
+    data: >
+      <?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <METHODCALL NAME="SendTestIndicationsCount">
+      <LOCALCLASSPATH>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="test"/>
+      <NAMESPACE NAME="TestProvider"/>
+      </LOCALNAMESPACEPATH>
+      <CLASSNAME NAME="Test_IndicationProviderClass"/>
+      </LOCALCLASSPATH>
+      <PARAMVALUE NAME="datetimeparam" PARAMTYPE="datetime">
+            <VALUE>00001236091930.123456:000</VALUE>
+      </PARAMVALUE>
+      </METHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>
+  http_response:
+    status: 200
+    headers:
+      CIMOperation: MethodResponse
+    data: >
+      <?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <METHODRESPONSE NAME="SendTestIndicationsCount">
+      <RETURNVALUE PARAMTYPE="sint32">
+      <VALUE>0</VALUE>
+      </RETURNVALUE>
+      </METHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>
+
 
 # TODO 01/18 AM: Add testcases for namespaces with leading/trailing slashes

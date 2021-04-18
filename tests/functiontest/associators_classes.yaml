@@ -233,8 +233,8 @@
       </MESSAGE>
       </CIMX>'
 
-- name: Associators_Classes_Error2
-  description: Associators fails, CIMXMLParseError, entity CIMXXXX
+- name: Associators_ClassesError2
+  description: Associators fails, CIMXMLParseError, Returns instances on class request
   pywbem_request:
     url: http://acme.com:80
     creds:
@@ -286,7 +286,7 @@
     headers:
       cimoperation: MethodResponse
     data: '<?xml version="1.0" encoding="utf-8" ?>
-      <CIMXXXX CIMVERSION="2.0" DTDVERSION="2.0">
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
       <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
       <SIMPLERSP>
       <IMETHODRESPONSE NAME="Associators">
@@ -302,22 +302,14 @@
       </NAMESPACEPATH>
       <CLASSNAME NAME="CIM_Collection"/>
       </CLASSPATH>
-      <CLASS NAME="CIM_Collection"  SUPERCLASS="CIM_ManagedElement" >
-      <PROPERTY NAME="InstanceID"  PROPAGATED="true" TYPE="string">
-      </PROPERTY>
-      <PROPERTY NAME="Caption"  PROPAGATED="true" TYPE="string">
-      </PROPERTY>
-      <PROPERTY NAME="Description"  PROPAGATED="true" TYPE="string">
-      </PROPERTY>
-      <PROPERTY NAME="ElementName"  PROPAGATED="true" TYPE="string">
-      </PROPERTY>
-      </CLASS>
+      <INSTANCE CLASSNAME="CIM_Collection" >
+      </INSTANCE>
       </VALUE.OBJECTWITHPATH>
       </IRETURNVALUE>
       </IMETHODRESPONSE>
       </SIMPLERSP>
       </MESSAGE>
-      </CIMXXXX>'
+      </CIM>'
 
 - name: Associators_ClassesNS1
   description: Associators on class, providing class name and default namespace with leading/trailing slashes

@@ -818,7 +818,7 @@
             </CIM>
 
 - name: AssociatorNames_ClassesF2
-  description: Associator Names Fails CIMXMLParseError
+  description: Associator Names Fails CIMXMLParseError (Bad XML entity MESSAGEXXX)
   pywbem_request:
     url: http://acme.com:80
     creds:
@@ -898,6 +898,93 @@
       </SIMPLERSP>
       </MESSAGEXXX>
       </CIM>'
+
+- name: AssociatorNames_ClassesF3
+  description: Associator Names fails, Returns instance names
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: AssociatorNames
+      ResultClass: CIM_Collection
+      Role: member
+      AssocClass: PyWBEM_MemberOfPersonCollection
+      ObjectName: PyWBEM_Person
+      ResultRole: Collection
+  pywbem_response:
+    exception: CIMXMLParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMOperation: MethodCall
+      CIMMethod: AssociatorNames
+      CIMObject: root/cimv2
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="AssociatorNames">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="ResultClass">
+      <CLASSNAME NAME="CIM_Collection"/>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="Role">
+      <VALUE>member</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="ResultRole">
+      <VALUE>Collection</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="ObjectName">
+      <CLASSNAME NAME="PyWBEM_Person"/>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="AssocClass">
+      <CLASSNAME NAME="PyWBEM_MemberOfPersonCollection"/>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      cimoperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="AssociatorNames">
+      <IRETURNVALUE>
+      <OBJECTPATH>
+      <CLASSPATH>
+      <NAMESPACEPATH>
+      <HOST>sheldon</HOST>
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      </NAMESPACEPATH>
+      <INSTANCENAME CLASSNAME="PyWBEM_Person">
+      <KEYBINDING NAME="Name">
+      <KEYVALUE VALUETYPE="string" TYPE="string">Alice</KEYVALUE>
+      </KEYBINDING>
+      </INSTANCENAME>
+      </CLASSPATH>
+      </OBJECTPATH>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+
 
 - name: AssociatorNames_ClassesNS1
   description: AssociatorNames on class, providing class name and default namespace with leading/trailing slashes

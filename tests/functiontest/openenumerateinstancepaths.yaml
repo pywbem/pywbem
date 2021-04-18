@@ -595,7 +595,7 @@
               </MESSAGE>
             </CIM>
 
--   name: OpenEnumerateInstancePathsF5
+-   name: OpenEnumerateInstancePathsF4
     description: OpenEnumerateInstancePaths, server fails with CIM_ERR_INVALID_CLASS
     pywbem_request:
         url: http://acme.com:80
@@ -650,7 +650,7 @@
               </MESSAGE>
             </CIM>
 
--   name: OpenEnumerateInstancePathsF6
+-   name: OpenEnumerateInstancePathsF5
     description: OpenEnumerateInstancePaths, server fails with CIM_ERR_FAILED
     pywbem_request:
         url: http://acme.com:80
@@ -705,7 +705,7 @@
               </MESSAGE>
             </CIM>
 
--   name: OpenEnumerateInstancePaths1
+-   name: OpenEnumerateInstancePathsF6
     description: OpenEnumerateInstancePaths fails, CIMXMLParseError from bad XML CIMX
     pywbem_request:
         url: http://acme.com:80

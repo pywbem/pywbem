@@ -1983,7 +1983,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """
 
         self._verify_open()
-
         if isinstance(objectname, (CIMInstanceName, CIMClassName)):
             localobject = objectname.copy()
             if localobject.namespace is None:
