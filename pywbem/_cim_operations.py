@@ -2589,7 +2589,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """
         Support for AssociatorNames, ReferenceNames operations
 
-        Get returned objects from results and validate that the are either
+        Get returned objects from results and validate that they are either
         CIMInstanceName if the request was CIMInstanceName or
         CIMClassName if the request was CIMClassName
         """

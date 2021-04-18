@@ -31,7 +31,7 @@ pywbem_mock = import_installed('pywbem_mock')
 from pywbem_mock import FakedWBEMConnection  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
-OK = True     # mark tests OK when they execute correctly
+OK = False     # mark tests OK when they execute correctly
 RUN = True    # Mark OK = False and current test case being created RUN
 FAIL = False  # Any test currently FAILING or not tested yet
 SKIP = False
@@ -791,7 +791,7 @@ TESTCASES_REQUEST_INVALID_PARAMS = [
         dict(
             init_kwargs={},
             method='openenumerateinstances',
-            args=[CIMInstance("CIMBlah")],
+            args=[CIMClass("CIMBlah")],
             kwargs={"OperationTimeout": "shouldbeinteger"},
         ),
         TypeError, None, OK
@@ -802,7 +802,7 @@ TESTCASES_REQUEST_INVALID_PARAMS = [
         dict(
             init_kwargs={},
             method='openenumerateinstances',
-            args=[CIMInstance("CIMBlah")],
+            args=[CIMClass("CIMBlah")],
             kwargs={"OperationTimeout": -30},
         ),
         TypeError, None, OK
@@ -813,7 +813,7 @@ TESTCASES_REQUEST_INVALID_PARAMS = [
         dict(
             init_kwargs={},
             method='openenumerateinstancepaths',
-            args=[CIMInstance("CIMBlah")],
+            args=[CIMClass("CIMBlah")],
             kwargs={"OperationTimeout": "shouldbeinteger"},
         ),
         TypeError, None, OK
@@ -824,7 +824,7 @@ TESTCASES_REQUEST_INVALID_PARAMS = [
         dict(
             init_kwargs={},
             method='openenumerateinstancepaths',
-            args=[CIMInstance("CIMBlah")],
+            args=[CIMClass("CIMBlah")],
             kwargs={"OperationTimeout": -30},
         ),
         TypeError, None, OK
