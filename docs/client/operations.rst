@@ -9,6 +9,13 @@ WBEM operations
 WBEMConnection
 ^^^^^^^^^^^^^^
 
+.. # TODO: Exclude these methods and attributes from the documentation
+.. # Methods:
+.. #   add_operation_recorder, operation_recorder_reset,
+.. #   operation_recorder_stage_pywbem_args,operation_recorder_stage_result
+.. # Attributes:
+.. #   operation_recorders,operation_recorder_enabled
+
 .. autoclass:: pywbem.WBEMConnection
    :members:
 

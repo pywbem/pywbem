@@ -39,6 +39,17 @@ Released: not yet
   to be missing. This is an incompatible change for users that catch this
   exception. (related to issue #2580).
 
+* The operation recorder support added in pywbem 0.9 as an experimental feature
+  was changed to become internal.
+  As part of this, the "WBEM operation recording" section has been removed
+  from the documentation, the operation recorder specific classes are
+  no longer documented, and the operation recorder specific attributes and
+  methods of the 'WBEMConnection' class have been declared to be internal
+  and have been removed from the documentation.
+  The logging support which uses the operation recorder remains publicly
+  available. If you are using the operation recorder, please create an issue in
+  the issue tracker describing how you use it.
+
 **Deprecations:**
 
 **Bug fixes:**
