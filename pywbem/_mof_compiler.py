@@ -76,6 +76,7 @@ from __future__ import print_function, absolute_import
 
 import sys
 import os
+import io
 import re
 import tempfile
 
@@ -115,6 +116,7 @@ __all__ = ['MOFCompileError', 'MOFParseError', 'MOFDependencyError',
 _optimize = 1
 _tabmodule = '_mofparsetab'
 _lextab = '_moflextab'
+_module = sys.modules.get('pywbem._mof_compiler', None)
 
 # Directory for _tabmodule and _lextab
 _tabdir = os.path.dirname(os.path.abspath(__file__))
@@ -544,6 +546,15 @@ class MOFRepositoryError(MOFCompileError):
         ret_str = super(MOFRepositoryError, self).get_err_msg()
         ret_str += "\n{0}".format(self.cim_error)
         return ret_str
+
+
+class MOFCompilerSetupError(Exception):
+    """
+    Exception indicating that the MOF compiler cannot be set up.
+
+    Derived from :exc:`Exception`.
+    """
+    pass
 
 
 def p_error(p):
@@ -3100,6 +3111,9 @@ def _yacc(verbose=False, out_dir=None):
     Returns:
 
       yacc.Parser: YACC parser object for the MOF compiler.
+
+    Raises:
+      MOFCompilerSetupError: Error creating the YACC parser.
     """
 
     # The write_tables argument controls whether the YACC parser writes
@@ -3112,14 +3126,23 @@ def _yacc(verbose=False, out_dir=None):
     # we enable debug but set the debuglog to the NullLogger.
     # To enable debug logging, set debuglog to some other logger
     # (ex. PlyLogger(sys.stdout) to generate log output.
-    return yacc.yacc(optimize=_optimize,
-                     tabmodule=_tabmodule,
-                     outputdir=out_dir,
-                     write_tables=write_tables,
-                     debug=verbose,
-                     debuglog=yacc.NullLogger(),
-                     errorlog=yacc.PlyLogger(sys.stdout) if verbose
-                     else yacc.NullLogger())
+    # The 'module' argument needed to be passed to support Cython. Without it,
+    # the default way of determining it skipps the cythonized call levels,
+    # resulting in an incorrect module and subsequently to an error
+    # message "ERROR: No token list is defined" and
+    # an exception YaccError("Unable to build parser").
+
+    log_stream = io.BytesIO() if six.PY2 else io.StringIO()
+    try:
+        parser = yacc.yacc(
+            optimize=_optimize, tabmodule=_tabmodule, module=_module,
+            outputdir=out_dir, write_tables=write_tables, debug=verbose,
+            debuglog=yacc.NullLogger(), errorlog=yacc.PlyLogger(log_stream))
+    except yacc.YaccError as exc:
+        raise MOFCompilerSetupError("{}: {}".format(exc, log_stream.getvalue()))
+    if verbose:
+        print(log_stream.getvalue())
+    return parser
 
 
 def _lex(verbose=False, out_dir=None):
@@ -3137,6 +3160,9 @@ def _lex(verbose=False, out_dir=None):
     Returns:
 
       lex.Lexer: LEX analyzer object for the MOF compiler.
+
+    Raises:
+      MOFCompilerSetupError: Error creating the LEX scanner.
     """
 
     # Unfortunately, lex() does not support a write_tables argument. It
@@ -3148,10 +3174,16 @@ def _lex(verbose=False, out_dir=None):
 
     # To debug lex you may set debug=True and enable the debuglog statement.
     # or other logger definition.
-    return lex.lex(optimize=_optimize,
-                   lextab=_lextab,
-                   outputdir=out_dir,
-                   debug=False,
-                   # debuglog = lex.PlyLogger(sys.stdout),
-                   errorlog=yacc.PlyLogger(sys.stdout) if verbose
-                   else yacc.NullLogger())
+
+    log_stream = io.BytesIO() if six.PY2 else io.StringIO()
+    try:
+        lexer = lex.lex(
+            optimize=_optimize, lextab=_lextab, module=_module,
+            outputdir=out_dir, debug=False,
+            # debuglog=lex.PlyLogger(sys.stdout),
+            errorlog=yacc.PlyLogger(log_stream))
+    except SyntaxError as exc:
+        raise MOFCompilerSetupError("{}: {}".format(exc, log_stream.getvalue()))
+    if verbose:
+        print(log_stream.getvalue())
+    return lexer
