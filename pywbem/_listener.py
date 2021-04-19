@@ -985,7 +985,6 @@ class WBEMListener(object):
 
         # Stopping the server will cause its `serve_forever()` method
         # to return, which will cause the server thread to terminate.
-        # TODO: Describe how the processing threads terminate.
 
         if self._http_server:
             self.logger.info("Stopping threaded HTTP server")

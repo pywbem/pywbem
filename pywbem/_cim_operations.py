@@ -1614,8 +1614,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     # for recording the WBEM connection information.
                     connection.add_operation_recorder(recorder)
 
-                # TODO execute stage of wbem connection if not already executed.
-                # How do we know it is already executed???
+                # ISSUE #2667 execute stage of wbem connection if not already
+                # executed. How do we know it is already executed since there
+                # multiple paths through the _activate_logger method
 
     def _verify_open(self):
         """
@@ -6436,7 +6437,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     qrc = pull_result.query_result_class if \
                         ReturnQueryResultClass else None
 
-                    # FUTURE TODO: Change to yield each Open/Pull instead of
+                    # ISSUE #2668: Change to yield each Open/Pull instead of
                     # first calculating the total result and then yielding it.
                     # NOTE that this is only a performance issue. All instances
                     # are delivered but not until the operation is complete

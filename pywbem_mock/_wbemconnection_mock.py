@@ -940,7 +940,7 @@ class FakedWBEMConnection(WBEMConnection):
         'Methods').
         """
 
-        # Issue #2062: TODO/ks FUTURE Consider sorting to preserve order of
+        # Issue #2062: Consider sorting to preserve order of
         # compile/add. Make this part of refactor to separate repository and
         # datastore because it may be data store dependent
         _uprint(dest,
