@@ -574,15 +574,6 @@ class LogOperationRecorder(BaseOperationRecorder):
         if self.enabled and self.api_detail_level is not None and \
                 self.apilogger.isEnabledFor(logging.DEBUG):
 
-            # TODO: future bypassed code to only ouput name and method if the
-            # detail is summary.  We are not doing this because this is
-            # effectively the same information in the response so the only
-            # additional infomation is the time stamp.
-
-            # if self.api_detail_level == summary:
-            #    self.apilogger.debug('Request:%s %s', self._conn_id, method)
-            #    return
-
             # Order kwargs.  Note that this is done automatically starting
             # with python 3.6
             kwstr = ', '.join([('{0}={1!r}'.format(key, kwargs[key]))

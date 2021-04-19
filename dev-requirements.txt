@@ -141,8 +141,7 @@ pyrsistent>=0.14.0; python_version >= '3.5'
 pywin32>=222,!=226; sys_platform == 'win32' and python_version == '2.7'
 pywin32>=222,!=226; sys_platform == 'win32' and python_version >= '3.5' and python_version <= '3.6'
 pywin32>=223,!=226; sys_platform == 'win32' and python_version == '3.7'
-# TODO: Re-enable once pywin32 fixes its Python version advertising on Pypi
-#       (see issue #1975).
+# ISSUE #1975: Re-enable once pywin32 fixes its Python version advertising on Pypi
 # pywin32>=225,!=226; sys_platform == 'win32' and python_version >= '3.8'
 
 # The tornado package is used by ipykernel which is used by jupyter.

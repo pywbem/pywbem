@@ -210,7 +210,11 @@ def is_inherited_from(member_name, derived_class, base_class):
     derived_member = getattr(derived_class, member_name)
     base_member = getattr(base_class, member_name)
 
-    if isinstance(derived_member, types.MethodType) and \
+    if derived_member.__class__.__name__ == 'cython_function_or_method' and \
+            base_member.__class__.__name__ == 'cython_function_or_method':
+        derived_code = derived_member.func_code
+        base_code = base_member.func_code
+    elif isinstance(derived_member, types.MethodType) and \
             isinstance(base_member, types.MethodType):
         # instance method
         derived_code = derived_member.__func__.__code__
