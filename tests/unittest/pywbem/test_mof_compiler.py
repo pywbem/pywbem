@@ -764,6 +764,44 @@ class TestParseError(MOFTest):
         except MOFParseError as pe:
             self.assertEqual(pe.msg, 'Unexpected end of MOF')
 
+    def test_invalid_scope(self):
+        """
+        Test for qualifier declaration scope with invalid keyword
+        """
+        mof_str = """
+        Qualifier Association : boolean = false,
+            Scope(badscopekeyword),
+            Flavor(DisableOverride, ToSubclass);
+        """
+
+        skip_if_moftab_regenerated()
+
+        try:
+            self.mofcomp.compile_string(mof_str, NAME_SPACE)
+            self.fail("Exception expected.")
+        except MOFParseError:
+            pass
+
+    def test_invalid_scope2(self):
+        """
+        Test for qualifier declaration scope with invalid keyword "qualifier".
+        Tests specifically for keyword qualifier as keyword because this
+        was fixed in issue #2491.
+        """
+        mof_str = """
+        Qualifier Association : boolean = false,
+            Scope(qualiifier),
+            Flavor(DisableOverride, ToSubclass);
+        """
+
+        skip_if_moftab_regenerated()
+
+        try:
+            self.mofcomp.compile_string(mof_str, NAME_SPACE)
+            self.fail("Exception expected.")
+        except MOFParseError:
+            pass
+
     def test_missing_alias(self):
         """
         Test for alias not defined

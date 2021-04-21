@@ -21,7 +21,7 @@ operations.
 The CIM/WBEM architecture
 -------------------------
 
-TODO: Write this section
+TODO: Write this section on  CIM/WBEM architecture
 
 .. _`The CIM model and CIM objects`:
 
@@ -29,7 +29,7 @@ TODO: Write this section
 The CIM model and CIM objects
 -----------------------------
 
-TODO: Write this section
+TODO: Write this section on the model and CIM objects
 
 
 .. _`WBEM operations: Communicating with the WBEM Server`:
@@ -37,21 +37,21 @@ TODO: Write this section
 WBEM Operations: Communicating with the WBEM Server
 ---------------------------------------------------
 
-TODO: Write this section
+TODO: Write this section  on WBEM Operations
 
 .. _`WBEM operations overview`:
 
 WBEM operations overview
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-TODO Write this section
+TODO Write this section on WBEM operations overview
 
 .. _`Traditional operations`:
 
 Traditional operations
 ^^^^^^^^^^^^^^^^^^^^^^
 
-TODO - Write this section
+TODO - Write this section on traditional operations
 
 .. _`Pull operations`:
 
@@ -489,7 +489,7 @@ already complete, this call will also be ignored.
 WBEM indications and subscriptions
 ----------------------------------
 
-TODO: Section on indications and subscriptions
+TODO: write this Section on indications and subscriptions
 
 .. _`WBEM Management Profiles`:
 
@@ -498,5 +498,3 @@ WBEM Management Profiles
 
 TODO: Create this section describing profiles, why there exist and
 very generally how to use them
-
-

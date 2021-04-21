@@ -4448,8 +4448,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 # VALUE.OBJECTWITHPATH), i.e. classes or instances with or
                 # without path which may or may not contain a namespace.
 
-                # TODO: Fix current impl. that assumes instance with path.
-                instance.path.namespace = namespace
+                # Insure that there is a path element with at least classname
+                # and namespace
+                if instance.path is None:
+                    instance.path = CIMInstanceName(instance.classname,
+                                                    namespace=namespace)
+                else:
+                    instance.path.namespace = namespace
 
             return instances
 
@@ -6482,8 +6487,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     qrc = pull_result.query_result_class if \
                         ReturnQueryResultClass else None
 
-                    # TODO: Change to yield each Open/Pull instead of first
-                    #       calculating the total result and then yielding it.
+                    # FUTURE TODO: Change to yield each Open/Pull instead of
+                    # first calculating the total result and then yielding it.
+                    # NOTE that this is only a performance issue. All instances
+                    # are delivered but not until the operation is complete
+                    # rather than as each pull is completed.
+                    # The change would require modifying the return class.
+
                     if not pull_result.eos:
                         while not pull_result.eos:
                             pull_result = self.PullInstances(

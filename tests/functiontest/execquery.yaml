@@ -1,5 +1,5 @@
 - name: ExecQuery1
-  description: ExecQuery request returns data. Successful
+  description: ExecQuery request returns data . Successful
   pywbem_request:
     url: http://acme.com:80
     creds:
@@ -316,6 +316,250 @@
       <SIMPLERSP>
       <IMETHODRESPONSE NAME="ExecQuery">
       <IRETURNVALUE>
+      </IRETURNVALUE>
+      </IMETHODRESPONSE>
+      </SIMPLERSP>
+      </MESSAGE>
+      </CIM>'
+
+- name: ExecQuery3
+  description: ExecQuery request returns data just VALUE.OBJECT . Successful
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: ExecQuery
+      QueryLanguage: WQL
+      Query: Select * from CIM_ComputerSystem
+      namespace: null
+  pywbem_response:
+    result:
+    - pywbem_object: CIMInstance
+      classname: PG_ComputerSystem
+      properties:
+        name:
+          pywbem_object: CIMProperty
+          name: Name
+          value: sheldon
+          type: string
+          reference_class: null
+          embedded_object: null
+          is_array: false
+          array_size: null
+          class_origin: null
+          propagated: false
+          qualifiers: {}
+        powermanagementcapabilities:
+          pywbem_object: CIMProperty
+          name: PowerManagementCapabilities
+          value:
+          - 1
+          type: uint16
+          reference_class: null
+          embedded_object: null
+          is_array: true
+          array_size: null
+          class_origin: null
+          propagated: false
+          qualifiers: {}
+        powerstate:
+          pywbem_object: CIMProperty
+          name: PowerState
+          value: 1
+          type: uint16
+          reference_class: null
+          embedded_object: null
+          is_array: false
+          array_size: null
+          class_origin: null
+          propagated: false
+          qualifiers: {}
+        operationalstatus:
+          pywbem_object: CIMProperty
+          name: OperationalStatus
+          value:
+          - 2
+          type: uint16
+          reference_class: null
+          embedded_object: null
+          is_array: true
+          array_size: null
+          class_origin: null
+          propagated: false
+          qualifiers: {}
+        powermanagementsupported:
+          pywbem_object: CIMProperty
+          name: PowerManagementSupported
+          value: false
+          type: boolean
+          reference_class: null
+          embedded_object: null
+          is_array: false
+          array_size: null
+          class_origin: null
+          propagated: false
+          qualifiers: {}
+        elementname:
+          pywbem_object: CIMProperty
+          name: ElementName
+          value: Computer System
+          type: string
+          reference_class: null
+          embedded_object: null
+          is_array: false
+          array_size: null
+          class_origin: null
+          propagated: false
+          qualifiers: {}
+        description:
+          pywbem_object: CIMProperty
+          name: Description
+          value: 'Linux version 3.13.0-106-generic (buildd@lcy01-30) (gcc version
+            4.8.4 (Ubuntu 4.8.4-2ubuntu1~14.04.3) ) #153-Ubuntu SMP Tue Dec 6 15:44:32
+            UTC 2016'
+          type: string
+          reference_class: null
+          embedded_object: null
+          is_array: false
+          array_size: null
+          class_origin: null
+          propagated: false
+          qualifiers: {}
+        nameformat:
+          pywbem_object: CIMProperty
+          name: NameFormat
+          value: Other
+          type: string
+          reference_class: null
+          embedded_object: null
+          is_array: false
+          array_size: null
+          class_origin: null
+          propagated: false
+          qualifiers: {}
+        status:
+          pywbem_object: CIMProperty
+          name: Status
+          value: OK
+          type: string
+          reference_class: null
+          embedded_object: null
+          is_array: false
+          array_size: null
+          class_origin: null
+          propagated: false
+          qualifiers: {}
+        caption:
+          pywbem_object: CIMProperty
+          name: Caption
+          value: Computer System
+          type: string
+          reference_class: null
+          embedded_object: null
+          is_array: false
+          array_size: null
+          class_origin: null
+          propagated: false
+          qualifiers: {}
+        creationclassname:
+          pywbem_object: CIMProperty
+          name: CreationClassName
+          value: PG_ComputerSystem
+          type: string
+          reference_class: null
+          embedded_object: null
+          is_array: false
+          array_size: null
+          class_origin: null
+          propagated: false
+          qualifiers: {}
+      path:
+        pywbem_object: CIMInstanceName
+        classname: PG_ComputerSystem
+        namespace: root/cimv2
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMObject: root/cimv2
+      CIMMethod: ExecQuery
+      CIMOperation: MethodCall
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLEREQ>
+      <IMETHODCALL NAME="ExecQuery">
+      <LOCALNAMESPACEPATH>
+      <NAMESPACE NAME="root"/>
+      <NAMESPACE NAME="cimv2"/>
+      </LOCALNAMESPACEPATH>
+      <IPARAMVALUE NAME="QueryLanguage">
+      <VALUE>WQL</VALUE>
+      </IPARAMVALUE>
+      <IPARAMVALUE NAME="Query">
+      <VALUE>Select * from CIM_ComputerSystem</VALUE>
+      </IPARAMVALUE>
+      </IMETHODCALL>
+      </SIMPLEREQ>
+      </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      CIMOperation: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+      <SIMPLERSP>
+      <IMETHODRESPONSE NAME="ExecQuery">
+      <IRETURNVALUE>
+      <VALUE.OBJECT>
+      <INSTANCE CLASSNAME="PG_ComputerSystem" >
+      <PROPERTY NAME="Caption"  TYPE="string">
+      <VALUE>Computer System</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="Description"  TYPE="string">
+      <VALUE>Linux version 3.13.0-106-generic (buildd@lcy01-30) (gcc version 4.8.4
+      (Ubuntu 4.8.4-2ubuntu1~14.04.3) ) #153-Ubuntu SMP Tue Dec 6 15:44:32 UTC 2016</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="Status"  TYPE="string">
+      <VALUE>OK</VALUE>
+      </PROPERTY>
+      <PROPERTY.ARRAY NAME="OperationalStatus"  TYPE="uint16">
+      <VALUE.ARRAY>
+      <VALUE>2</VALUE>
+      </VALUE.ARRAY>
+      </PROPERTY.ARRAY>
+      <PROPERTY NAME="ElementName"  TYPE="string">
+      <VALUE>Computer System</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="CreationClassName"  TYPE="string">
+      <VALUE>PG_ComputerSystem</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="Name"  TYPE="string">
+      <VALUE>sheldon</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="NameFormat"  TYPE="string">
+      <VALUE>Other</VALUE>
+      </PROPERTY>
+      <PROPERTY.ARRAY NAME="PowerManagementCapabilities"  TYPE="uint16">
+      <VALUE.ARRAY>
+      <VALUE>1</VALUE>
+      </VALUE.ARRAY>
+      </PROPERTY.ARRAY>
+      <PROPERTY NAME="PowerManagementSupported"  TYPE="boolean">
+      <VALUE>FALSE</VALUE>
+      </PROPERTY>
+      <PROPERTY NAME="PowerState"  TYPE="uint16">
+      <VALUE>1</VALUE>
+      </PROPERTY>
+      </INSTANCE>
+      </VALUE.OBJECT>
       </IRETURNVALUE>
       </IMETHODRESPONSE>
       </SIMPLERSP>
