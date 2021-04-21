@@ -36,10 +36,7 @@ from pywbem import CIMError, CIMInstance, CIM_ERR_NOT_SUPPORTED, \
 from pywbem._nocasedict import NocaseDict
 from pywbem._utils import _format
 
-# TODO: import from pywbem_mock because it fails probably because
-#       of a circular import
 from ._instancewriteprovider import InstanceWriteProvider
-
 from .config import OBJECTMANAGERNAME, SYSTEMNAME, SYSTEMCREATIONCLASSNAME, \
     OBJECTMANAGERCREATIONCLASSNAME
 

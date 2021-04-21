@@ -1889,10 +1889,11 @@ class MainProvider(ResolverMixin, BaseProvider):
         instname.namespace = namespace
         role = role.lower() if role else None
 
-        # Future TODO/ks: Search very wide here.  Not isolating to associations
-        # and not limiting to expected result_classes. Consider making list from
-        # get_reference_classnames if classes exist, otherwise set list to
-        # instance_store to search all instances
+        # ISSUE 2662  Search very wide here.  Not isolating to
+        # associations and not limiting to expected result_classes. Consider
+        # making list from get_reference_classnames if classes exist, otherwise
+        # set list to instance_store to search all instances. This is just
+        # a performance issue.
 
         rtn_instpaths = set()
         for inst in instance_store.iter_values():
@@ -3334,7 +3335,7 @@ class MainProvider(ResolverMixin, BaseProvider):
         self._validate_open_params(FilterQueryLanguage, FilterQuery,
                                    OperationTimeout)
 
-        # Issue #2064 TODO/ks implement execquery
+        # Issue #2064 implement execquery
         # pylint: disable=assignment-from-no-return
         instances = self.ExecQuery(namespace, FilterQueryLanguage, FilterQuery)
 

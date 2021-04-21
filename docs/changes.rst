@@ -142,7 +142,7 @@ Released: not yet
   decorator 5.0.0 does not support python < 3.5 (see issue #2647)
 
 * Fix pywem_mock issue with Delete class not calling providers to handle
-  the DeleteInstance (see issu #2643)
+  the DeleteInstance (see issue #2643)
 
 **Enhancements:**
 
@@ -280,6 +280,10 @@ Released: not yet
 
 * Added tests for pywbem_mock ModifyClass request operation to test the
   validation exceptions and correctness of modified class. (see issue #2210)
+
+* Cleaned up TODOs noted in pywbem and pywbem_mock to fix any that were actually
+  bugs, etc. and either create issues or mark the others as FUTURE with more
+  explanation.  (See issue #2491)
 
 **Known issues:**
 

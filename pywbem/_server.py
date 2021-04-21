@@ -140,7 +140,12 @@ class WBEMServer(object):
         'interop',
         'root/interop',
         'root/PG_Interop',
-        # TODO: Clarify which OpenPegasus versions need root/PGInterOp?
+        # OpenPegasus before version 2.12.0 defined only PG_Interop as the
+        # interop namespace. Using other namespaces was a manual
+        # modification of at least the pegasus/mak/configschema.mak file.
+        # Starting in version 2.12.0 a configuration variable was defined
+        # so that OpenPegasus could be build with any of the specified names
+        # for interop namespace (PEGASUS_INTEROP_NAMESPACE)
     ]
 
     #: A class variable with the possible names of CIM classes for

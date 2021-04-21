@@ -1677,8 +1677,10 @@ def p_qualifierType_2(p):
 
 
 def p_scope(p):
-    """scope : ',' SCOPE '(' metaElementList ')'"""
+    """scope : ',' SCOPE '(' scopeElementList ')'"""
     slist = p[4]
+    # Create dictionary of all scope keywords where value is True if
+    # the keyword is in slist, otherwise False.
     scopes = OrderedDict()
     for i in ('CLASS',
               'ASSOCIATION',
@@ -1689,13 +1691,12 @@ def p_scope(p):
               'PARAMETER',
               'ANY'):
         scopes[i] = i in slist
-        # TODO: Check for invalid scopes
     p[0] = scopes
 
 
-def p_metaElementList(p):
-    """metaElementList : metaElement
-                       | metaElementList ',' metaElement
+def p_scopeElementList(p):
+    """scopeElementList : scopeElement
+                       | scopeElementList ',' scopeElement
                        """
     if len(p) == 2:
         p[0] = [p[1]]
@@ -1703,12 +1704,10 @@ def p_metaElementList(p):
         p[0] = p[1] + [p[3]]
 
 
-def p_metaElement(p):
-    """metaElement : SCHEMA
-                   | CLASS
+def p_scopeElement(p):
+    """scopeElement : CLASS
                    | ASSOCIATION
                    | INDICATION
-                   | QUALIFIER
                    | PROPERTY
                    | REFERENCE
                    | METHOD
