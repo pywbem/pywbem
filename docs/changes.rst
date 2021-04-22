@@ -261,6 +261,10 @@ Released: not yet
   summary tables for classes in the documentation. Moved documentation of some
   base classes into a new 'Base Classes' section in the appendix.
 
+* Added a `conn_close()` method to the `pywbem.MOFCompiler` class that closes
+  the underlying connection. Used that function in the 'mof_compiler' script
+  to remove a ResourceWarning about unclosed sockets. (issue #2610)
+
 **Cleanup:**
 
 * Test: Fixed all remaining ResourceWarnings during test. (issue #86)

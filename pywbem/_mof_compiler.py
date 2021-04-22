@@ -2771,6 +2771,7 @@ class MOFCompiler(object):
                 _format("search_paths parameter must be list or tuple, but "
                         "is: {0}", type(search_paths)))
 
+        self.conn = conn  # Only used for closing it.
         self._log_func = log_func
 
         self.parser = _yacc(verbose)
@@ -2800,6 +2801,13 @@ class MOFCompiler(object):
         # Target for output of embedded instances and embedded classes when
         # not None.
         self.parser.embedded_objects = None
+
+    def conn_close(self):
+        """
+        Close the underlying connection, if it is a WBEMConnection.
+        """
+        if isinstance(self.conn, WBEMConnection):
+            self.conn.close()
 
     def _log(self, msg):
         """
