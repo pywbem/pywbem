@@ -103,8 +103,10 @@ class MOFTest(unittest.TestCase):
         """Close the log file and any partial schema file."""
 
         self.logfile.close()
-
         self.logfile2.close()
+
+        self.mofcomp.conn_close()
+        self.mofcomp2.conn_close()
 
         if self.partial_schema_file:
             if os.path.exists(self.partial_schema_file):

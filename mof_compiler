@@ -315,26 +315,30 @@ Example:
     # drive the removal
     verbose = args.verbose and not args.remove
 
-    mofcomp = MOFCompiler(handle=conn, search_paths=include_dirs,
-                          verbose=verbose)
-
     try:
-        for fname in args.mof_files:
-            if fname[0] != '/':
-                fname = os.path.curdir + '/' + fname
-            mofcomp.compile_file(fname, args.namespace)
-    except (Error, IOError) as exc:
-        print('%s: %s: %s' % (prog, exc.__class__.__name__, exc))
-        return 1
+        mofcomp = MOFCompiler(handle=conn, search_paths=include_dirs,
+                              verbose=verbose)
 
-    if args.remove and not args.dry_run:
         try:
-            conn.rollback(verbose=args.verbose)
-        except Error as exc:
+            for fname in args.mof_files:
+                if fname[0] != '/':
+                    fname = os.path.curdir + '/' + fname
+                mofcomp.compile_file(fname, args.namespace)
+        except (Error, IOError) as exc:
             print('%s: %s: %s' % (prog, exc.__class__.__name__, exc))
             return 1
 
-    return 0
+        if args.remove and not args.dry_run:
+            try:
+                conn.rollback(verbose=args.verbose)
+            except Error as exc:
+                print('%s: %s: %s' % (prog, exc.__class__.__name__, exc))
+                return 1
+
+        return 0
+
+    finally:
+        mofcomp.conn_close()
 
 
 if __name__ == '__main__':
