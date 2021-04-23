@@ -144,6 +144,10 @@ Released: not yet
 * Fix pywem_mock issue with Delete class not calling providers to handle
   the DeleteInstance (see issue #2643)
 
+* Test: Workaround for BadStatusLine issue in test_WBEMListener_send_indications
+  test function. This is not a fix for the root cause of the issue. For details,
+  see pywbem issue #2659.
+
 **Enhancements:**
 
 * Finalized the pywbem mock support. (issue #2651)
