@@ -10,9 +10,15 @@ import sys
 import errno
 import re
 import logging
+try:
+    from http.client import BadStatusLine
+except ImportError:
+    # Python 2
+    from httplib import BadStatusLine
 from time import time, sleep
 import datetime
 from random import randint
+import urllib3
 import requests
 import pytest
 
@@ -83,6 +89,45 @@ class ElapsedTimer(object):
             point representation of time in seconds
         """
         return self.elapsed_ms() / 1000
+
+
+def post(url, headers, data, timeout=4):
+    """
+    Post to a URL using the 'requests' package, and retry once in case of the
+    BadStatusLine exception.
+
+    Retrying in case of the BadStatusLine exception works around Python issue
+    https://bugs.python.org/issue43912 (originally pywbem issue #2659). Once
+    that issue is solved, the retry is no longer needed.
+
+    Raises:
+      requests.exceptions.RequestException - all errors besides a single
+        occurrence of the BadStatusLine exception.
+    """
+    # TODO: Check resolution of Python issue 43912 and remove workaround here
+    debug = True
+    try:
+        response = requests.post(
+            url, headers=headers, data=data, timeout=timeout)
+    except requests.exceptions.ConnectionError as exc:
+        org_exc = exc.args[0]  # pylint: disable=no-member
+        if debug:
+            print("Debug: ConnectionError: args[0]={!r}".format(org_exc))
+        if isinstance(org_exc, urllib3.exceptions.ProtocolError):
+            org_org_exc = org_exc.args[1]  # pylint: disable=no-member
+            if debug:
+                print("Debug: ProtocolError: args[1]={!r}".format(org_org_exc))
+            if isinstance(org_org_exc, BadStatusLine):
+                # We do just one retry.
+                if debug:
+                    print("Debug: BadStatusLine: Retrying")
+                response = requests.post(
+                    url, headers=headers, data=data, timeout=timeout)
+            else:
+                raise
+        else:
+            raise
+    return response
 
 
 TESTCASES_WBEMLISTENER_INIT = [
@@ -710,8 +755,7 @@ def test_WBEMListener_send_indications(send_count):
             LOGGER.debug("Testcase sending indication #%s", i)
 
             try:
-                response = requests.post(url, headers=headers, data=payload,
-                                         timeout=4)
+                response = post(url, headers=headers, data=payload)
             except requests.exceptions.RequestException as exc:
                 msg = ("Testcase sending indication #{} raised {}: {}".
                        format(i, exc.__class__.__name__, exc))
@@ -921,7 +965,7 @@ def test_WBEMListener_incorrect_headers(desc, headers, exp_status, exp_headers):
     try:
 
         # The code to be tested is running in listener thread
-        response = requests.post(url, headers=headers, timeout=4)
+        response = post(url, headers=headers, data=None)
 
         assert response.status_code == exp_status
         for header_name in exp_headers:
@@ -1081,7 +1125,7 @@ def test_WBEMListener_incorrect_payload1(
     try:
 
         # The code to be tested is running in listener thread
-        response = requests.post(url, headers=headers, data=payload, timeout=4)
+        response = post(url, headers=headers, data=payload)
 
         assert response.status_code == exp_status
         for header_name in exp_headers:
@@ -1246,7 +1290,7 @@ def test_WBEMListener_incorrect_payload2(
     try:
 
         # The code to be tested is running in listener thread
-        response = requests.post(url, headers=headers, data=payload, timeout=4)
+        response = post(url, headers=headers, data=payload)
 
         assert response.status_code == exp_status
         for header_name in exp_headers:
