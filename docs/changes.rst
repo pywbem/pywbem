@@ -292,6 +292,9 @@ Released: not yet
   bugs, etc. and either create issues or mark the others as FUTURE with more
   explanation.  (See issue #2491)
 
+* Enforced that the pywbem source code does not contain any TODOs (pylint fixme).
+  Note that the pywbem test code may still contain TODOs.
+
 **Known issues:**
 
 * On Python 3.4, the urllib3 package is pinned to <1.25.8 because 1.25.9 removed
