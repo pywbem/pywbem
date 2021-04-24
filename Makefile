@@ -230,7 +230,8 @@ doc_dependent_files := \
 pylint_rc_file := pylintrc
 
 # PyLint additional options
-pylint_opts := --disable=fixme
+pylint_todo_opts := --disable=fixme
+pylint_no_todo_opts := --enable=fixme
 
 # Flake8 config file
 flake8_rc_file := .flake8
@@ -239,12 +240,14 @@ flake8_rc_file := .flake8
 py_src_files := \
     setup.py \
     $(filter-out $(moftab_files), $(wildcard $(package_name)/*.py)) \
+    $(wildcard $(mock_package_name)/*.py) \
+		mof_compiler \
+
+py_test_files := \
     $(wildcard $(test_dir)/*.py) \
     $(wildcard $(test_dir)/*/*.py) \
     $(wildcard $(test_dir)/*/*/*.py) \
     $(wildcard $(test_dir)/*/*/*/*.py) \
-    mof_compiler \
-    $(wildcard $(mock_package_name)/*.py) \
 
 # Issues reported by safety command that are ignored.
 # Package upgrade strategy due to reported safety issues:
@@ -762,7 +765,7 @@ $(moftab_files): install_$(pymn).done $(moftab_dependent_files) build_moftab.py
 # * 16 if convention messages issued
 # * 32 on usage error
 # Status 1 to 16 will be bit-ORed.
-pylint_$(pymn).done: develop_$(pymn).done Makefile $(pylint_rc_file) $(py_src_files)
+pylint_$(pymn).done: develop_$(pymn).done Makefile $(pylint_rc_file) $(py_src_files) $(py_test_files)
 ifeq ($(python_m_version),2)
 	@echo "Makefile: Warning: Skipping Pylint on Python $(python_version)" >&2
 else
@@ -775,21 +778,22 @@ else
 	@echo "Makefile: Running Pylint"
 	-$(call RM_FUNC,$@)
 	pylint --version
-	pylint $(pylint_opts) --rcfile=$(pylint_rc_file) $(py_src_files)
+	pylint $(pylint_no_todo_opts) --rcfile=$(pylint_rc_file) $(py_src_files)
+	pylint $(pylint_todo_opts) --rcfile=$(pylint_rc_file) $(py_test_files)
 	echo "done" >$@
 	@echo "Makefile: Done running Pylint"
 endif
 endif
 endif
 
-flake8_$(pymn).done: develop_$(pymn).done Makefile $(flake8_rc_file) $(py_src_files)
+flake8_$(pymn).done: develop_$(pymn).done Makefile $(flake8_rc_file) $(py_src_files) $(py_test_files)
 ifeq ($(python_mn_version),2.6)
 	@echo "Makefile: Warning: Skipping Flake8 on Python $(python_version)" >&2
 else
 	@echo "Makefile: Running Flake8"
 	-$(call RM_FUNC,$@)
 	flake8 --version
-	flake8 --statistics --config=$(flake8_rc_file) --filename='*' $(py_src_files)
+	flake8 --statistics --config=$(flake8_rc_file) --filename='*' $(py_src_files) $(py_test_files)
 	echo "done" >$@
 	@echo "Makefile: Done running Flake8"
 endif
@@ -807,7 +811,7 @@ else
   test_deps = develop_$(pymn).done $(moftab_files)
 endif
 
-todo_$(pymn).done: develop_$(pymn).done Makefile $(pylint_rc_file) $(py_src_files)
+todo_$(pymn).done: develop_$(pymn).done Makefile $(pylint_rc_file) $(py_src_files) $(py_test_files)
 ifeq ($(python_m_version),2)
 	@echo "Makefile: Warning: Skipping checking for TODOs on Python $(python_version)" >&2
 else
@@ -816,7 +820,7 @@ ifeq ($(python_mn_version),3.4)
 else
 	@echo "Makefile: Checking for TODOs"
 	-$(call RM_FUNC,$@)
-	pylint --exit-zero --reports=n --jobs=1 --disable=all --enable=fixme $(py_src_files)
+	pylint --exit-zero --reports=n --jobs=1 --disable=all --enable=fixme $(py_src_files) $(py_test_files)
 	-grep TODO $(doc_conf_dir) -r --include="*.rst"
 	echo "done" >$@
 	@echo "Makefile: Done checking for TODOs"
