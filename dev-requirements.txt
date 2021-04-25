@@ -60,14 +60,8 @@ autodocsumm>=0.1.13; python_version >= '3.5'
 # Pylint 1.x / astroid 1.x supports py27 and py34/35/36
 # Pylint 2.0 / astroid 2.0 removed py27, added py37
 # Pylint 2.4 / astroid 2.3 removed py34
-# TODO: Temporary pinning to pylint<2.7.0 / astroid<2.5.0 due to performance issues
-# Workaround: lazy-object-proxy fails installing on macos/py35/minimum, because it uses
-#   setuptools-scm for its setup and (up to 1.5.2) does not correctly pin setuptools-scm.
-#   Not clear why this does not happen on ubuntu/windows with py35 or on py34.
-#   See issue https://github.com/ionelmc/python-lazy-object-proxy/issues/51.
-#   Working around this by not installing pylint/astroid on py35.
-#   TODO: If lazy-object-proxy releases a correctly pinned 1.4.x version, this workaround
-#         can be removed again.
+# Issue #2673: Pinning Pylint to <2.7.0 is a circumvention for Pylint issue
+#   https://github.com/PyCQA/pylint/issues/4120 that appears in Pylint 2.7.0.
 pylint>=1.6.4,<2.0.0; python_version == '2.7'
 pylint>=2.2.2,<2.4; python_version == '3.4'
 pylint>=2.5.2,<2.7.0; python_version >= '3.6'
@@ -78,7 +72,14 @@ astroid>=2.4.0,<2.5.0; python_version >= '3.6'
 typed-ast>=1.3.2,<1.4.0; python_version == '3.4' and implementation_name=='cpython'
 typed-ast>=1.4.0,<1.5.0; python_version >= '3.6' and python_version < '3.8' and implementation_name=='cpython'
 # Workaround: lazy-object-proxy is used by astroid, and lazy-object-proxy 1.5.0
-# dropped support for py34 but declared it as supported
+#   dropped support for py34 but declared it as supported
+# Issue #2674: lazy-object-proxy fails installing on macos/py35/minimum, because it uses
+#   setuptools-scm for its setup and (up to 1.5.2) does not correctly pin setuptools-scm.
+#   Not clear why this does not happen on ubuntu/windows with py35 or on py34.
+#   See issue https://github.com/ionelmc/python-lazy-object-proxy/issues/51.
+#   This issue is circumvented by not installing pylint/astroid on py35.
+#   If and when lazy-object-proxy releases a correctly pinned 1.4.x version,
+#   this circumvention can be removed again.
 lazy-object-proxy>=1.4.3; python_version == '2.7'
 lazy-object-proxy>=1.4.3,<1.5.0; python_version == '3.4'
 lazy-object-proxy>=1.4.3; python_version >= '3.6'
@@ -133,28 +134,31 @@ pyrsistent>=0.14.0,<0.15.0; python_version == '3.4' and sys_platform != 'win32'
 pyrsistent>=0.14.0; python_version >= '3.5'
 
 # Pywin32 is used (at least?) by jupyter.
-# Pywin32 version 226 needs to be excluded, see issue #1946.
-# Pywin32 version 222 is inconsistent in its 32-bit/64-bit support on py37
-# Pywin32 version 225+ provides wheel files for py38, but does not advertise
-# py38 on Pypi. That causes pywin32==225 to fail but pywin32>=225 to work.
 # There is no version of pywin32 for py34.
+# Pywin32 version 222 is inconsistent in its 32-bit/64-bit support on py37
+# Pywin32 version 226 needs to be excluded, see issues #1946 and #1975.
+# Issue #2675: Pywin32 version 225+ provides wheel files for py38, but does not
+#   advertise py38 on Pypi. That causes pywin32==225 to fail but pywin32>=225
+#   to work.
+#   Reported to pywin32 as https://github.com/mhammond/pywin32/issues/1448.
+#   Addressed by increasing the minimum version of pywin32 to >=227 on Python >=3.8.
 pywin32>=222,!=226; sys_platform == 'win32' and python_version == '2.7'
 pywin32>=222,!=226; sys_platform == 'win32' and python_version >= '3.5' and python_version <= '3.6'
 pywin32>=223,!=226; sys_platform == 'win32' and python_version == '3.7'
-# ISSUE #1975: Re-enable once pywin32 fixes its Python version advertising on Pypi
-# pywin32>=225,!=226; sys_platform == 'win32' and python_version >= '3.8'
+pywin32>=227; sys_platform == 'win32' and python_version >= '3.8'
 
 # The tornado package is used by ipykernel which is used by jupyter.
-# Tornado 5.0.0 and 5.0.1 rejects installation if the Python ssl module
-# does not have certain symbols required by Tornado. This issue exists for
-# example with Python 2.7.6 on Ubuntu 14.04, but not with Python 2.7.5 on
-# RHEL 7.4. This can be checked with:
-#   python -c "import ssl; ssl.SSLContext; ssl.create_default_context; ssl.match_hostname"
-# Other projects have the same issue:
-#   https://github.com/floydhub/dl-docker/issues/84
-# The following is a circumvention of this issue that nails the tornado
-# version to below 5.0 on Python 2.
-# TODO: Follow up on resolution of this issue.
+# Workaround: Tornado 5.0.0 and 5.0.1 rejects installation if the Python ssl module
+#   does not have certain symbols required by Tornado. This issue exists for
+#   example with Python 2.7.6 on Ubuntu 14.04, but not with Python 2.7.5 on
+#   RHEL 7.4. This can be checked with:
+#     python -c "import ssl; ssl.SSLContext; ssl.create_default_context; ssl.match_hostname"
+#   Other projects have the same issue:
+#     https://github.com/floydhub/dl-docker/issues/84
+#   There is no Tornado issue open for this and we do not expect it to be fixed
+#   since it only appears on Python 2.
+#   This issue has been circumvented by pinning the Tornado version to <5.0 on
+#   Python 2.
 tornado<5.0; python_version <= '2.7'
 
 # Table output formatter used by the manual performance tests to display

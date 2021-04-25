@@ -223,18 +223,10 @@ notebook==4.3.1; python_version != '3.4' or sys_platform != 'win32'
 pyrsistent==0.14.0; python_version != '3.4' or sys_platform != 'win32'
 
 # Pywin32 is used (at least?) by jupyter.
-# Pywin32 version 226 needs to be excluded, see issue #1946.
-# Pywin32 version 222 is inconsistent in its 32-bit/64-bit support on py37
-# Pywin32 version 225+ provides wheel files for py38, but does not advertise
-# py38 on Pypi. That causes pip to fail with any use of it in the constraints
-# file.
-# There is no version of pywin32 for py34.
 pywin32==222; sys_platform == 'win32' and python_version == '2.7'
 pywin32==222; sys_platform == 'win32' and python_version >= '3.5' and python_version <= '3.6'
 pywin32==223; sys_platform == 'win32' and python_version == '3.7'
-# TODO: Re-enable once pywin32 fixes its Python version advertising on Pypi
-#       (see issue #1975).
-# pywin32==225; sys_platform == 'win32' and python_version >= '3.8'
+pywin32==227; sys_platform == 'win32' and python_version >= '3.8'
 
 # Table output formatter used by the manual performance tests to display
 # timing results
