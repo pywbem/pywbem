@@ -48,6 +48,11 @@ optimize-ast=no
 
 [MESSAGES CONTROL]
 
+# List of all checkers (as of pylint 2.8.0):
+# async, basic, classes, design, exceptions, format, imports, logging,
+# metrics, miscellaneous, newstyle, python3, refactoring, similarities,
+# spelling, stdlib, string, typecheck, variables
+
 # Only show warnings with the listed confidence levels. Leave empty to show
 # all. Valid levels: HIGH, INFERENCE, INFERENCE_FAILURE, UNDEFINED
 confidence=
@@ -76,8 +81,9 @@ disable=I0011, bad-option-value,
         signature-differs, raise-missing-from, super-with-arguments,
         R0801
 
-# TODO: Remove R0801 from disabled list again once pylint issue
-#       https://github.com/PyCQA/pylint/issues/4118 is addressed.
+# Issue #2672: Disabling R0801 is a circumvention for Pylint issue
+#   https://github.com/PyCQA/pylint/issues/4118 that appears in Pylint 2.7.0.
+#   Enable it again once the Pylint issue has been addressed.
 
 # Note: "useless-object-inheritance" is python 3 only. In Python 2,
 #        "new-style" objects must inherit from object, or else
@@ -173,7 +179,6 @@ callbacks=cb_,_cb
 bad-functions=map,filter,apply,input
 
 # Good variable names which should always be accepted, separated by a comma
-# TODO KS: Move i,... to local var and inline var; move _ to arg and local var and inline var.
 good-names=_,f,i,j,k,m,n,__all__,__name__,__version__
 
 # Bad variable names which should always be refused, separated by a comma
@@ -193,7 +198,6 @@ include-naming-hint=no
 # double trailing underscores are allowed.
 # Names matching this expression are compatible with PEP-8.
 function-rgx=_{0,2}([a-z][a-z0-9_]{0,48}[a-z0-9]|[a-z][a-zA-Z0-9_]{1,49})(__){0,1}$
-# TODO AM: Verify whether two leading underscores are allowed / supported with name mangling.
 
 # Naming hint for function names
 function-name-hint=_{0,2}([a-z][a-z0-9_]{0,48}[a-z0-9]|[a-z][a-zA-Z0-9_]{1,49})(__){0,1}$
@@ -453,7 +457,6 @@ max-returns=6
 max-branches=15
 
 # Maximum number of statements in function / method body
-# TODO AM: What counts as a statement?
 max-statements=50
 
 # Maximum number of parents for a class (see R0901).
@@ -461,11 +464,9 @@ max-statements=50
 max-parents=14
 
 # Maximum number of attributes for a class (see R0902).
-# TODO AM: Are these just variables, without methods? class & instance? including private? including inherited?
 max-attributes=15
 
 # Minimum number of public methods for a class (see R0903).
-# TODO AM: including inherited?
 min-public-methods=2
 
 # Maximum number of public methods for a class (see R0904).

@@ -482,8 +482,6 @@ autodoc_default_options = {}
 #
 # Note: This mapping does not control how links to datatypes of function
 #       parameters are generated.
-# TODO: Find out how the targeted Python version for auto-generated links
-#       to datatypes of function parameters can be controlled.
 #
 intersphinx_mapping = {
   'py': ('https://docs.python.org/2/', None), # agnostic to Python version
