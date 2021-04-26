@@ -152,6 +152,10 @@ Released: not yet
   It failed because it does not declare its supported Python versions.
   (see issue #2680)
 
+* Fixed that the test workflow ignored errors that occurred during 'make install'
+  and 'make develop', by splitting the multiple commands in these steps into
+  separate steps.
+
 **Enhancements:**
 
 * Finalized the pywbem mock support. (issue #2651)
