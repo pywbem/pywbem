@@ -129,7 +129,7 @@ jobs:
     - name: Select whether to run steps for cythonized archive
       id: run_cythonized
       # TODO: Remove 'andy/cythonize' branch once tests succeed
-      if: "! startsWith(matrix.os, 'windows-') && (github.event_name == 'schedule' || startsWith(github.head_ref, 'release_') || github.head_ref == 'andy/cythonize')"
+      if: "! startsWith(matrix.os, 'windows-') && (github.event_name == 'schedule' || startsWith(github.head_ref, 'release_'))"
       run: |
         echo "Running steps for cythonized archive"
     - name: Checkout repo
@@ -213,6 +213,7 @@ jobs:
       run: |
         make resourcetest
     - name: Run perftest
+      if: "github.event_name == 'schedule' || startsWith(github.head_ref, 'release_')"
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
       run: |
