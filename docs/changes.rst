@@ -14,12 +14,12 @@ Change log
       :revisions: 1
 
 
-pywbem 1.2.0.dev1
------------------
+pywbem 1.2.0
+------------
 
-This version contains all fixes up to pywbem 1.1.x.
+This version contains all fixes up to pywbem 1.1.3.
 
-Released: not yet
+Released: 2021-04-26
 
 **Incompatible changes:**
 
@@ -49,8 +49,6 @@ Released: not yet
   The logging support which uses the operation recorder remains publicly
   available. If you are using the operation recorder, please create an issue in
   the issue tracker describing how you use it.
-
-**Deprecations:**
 
 **Bug fixes:**
 
@@ -321,10 +319,6 @@ Released: not yet
   Python 3.4 support. As a consequence,
   `safety issue <https://github.com/pyupio/safety-db/blob/master/data/insecure_full.json>`_
   38834 cannot be addressed on Python 3.4.
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 1.1.0

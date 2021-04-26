@@ -4,10 +4,10 @@
 .. # we have to specify the package version directly in the links.
 
 .. # begin of customization for the current version
-.. |pywbem-version-mn| replace:: 1.1
-.. _Readme file on GitHub: https://github.com/pywbem/pywbem/blob/stable_1.1/README.rst
-.. _Documentation on RTD: https://pywbem.readthedocs.io/en/stable_1.1/
-.. _Change log on RTD: https://pywbem.readthedocs.io/en/stable_1.1/changes.html
+.. |pywbem-version-mn| replace:: 1.2
+.. _Readme file on GitHub: https://github.com/pywbem/pywbem/blob/stable_1.2/README.rst
+.. _Documentation on RTD: https://pywbem.readthedocs.io/en/stable_1.2/
+.. _Change log on RTD: https://pywbem.readthedocs.io/en/stable_1.2/changes.html
 .. # end of customization for the current version
 
 Pywbem is a WBEM client and WBEM indication listener and provides related
