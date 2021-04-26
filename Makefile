@@ -276,6 +276,9 @@ py_test_files := \
 # - 39621: Pylint cannot be upgraded on py27+py34
 # - 39525: Jinja2 cannot be upgraded on py34
 # - 40072: lxml HTML cleaner in lxml 4.6.3 no longer includes the HTML5 'formaction'
+# - 38932: cryptography cannot be upgraded to 3.2 on py34
+# - 39252: cryptography cannot be upgraded to 3.3 on py34+py35
+# - 39606: cryptography cannot be upgraded to 3.3.2 on py34+py35
 
 safety_ignore_opts := \
     -i 38100 \
@@ -294,6 +297,9 @@ safety_ignore_opts := \
 		-i 39621 \
 		-i 39525 \
 		-i 40072 \
+		-i 38932 \
+		-i 39252 \
+		-i 39606 \
 
 # Python source files for test (unit test and function test)
 test_src_files := \
