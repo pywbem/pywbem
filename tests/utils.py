@@ -7,8 +7,15 @@ from __future__ import absolute_import, print_function
 import sys
 import os
 import types
+try:
+    from http.client import BadStatusLine
+except ImportError:
+    # Python 2
+    from httplib import BadStatusLine
+import urllib3
 import six
 import pytest
+import requests
 from ply import yacc, lex
 from packaging.version import parse as parse_version
 
@@ -239,3 +246,42 @@ def is_inherited_from(member_name, derived_class, base_class):
 
     return derived_code.co_filename == base_code.co_filename and \
         derived_code.co_firstlineno == base_code.co_firstlineno
+
+
+def post_bsl(url, headers, data, timeout=4):
+    """
+    Post to a URL using the 'requests' package, and retry once in case of the
+    BadStatusLine exception.
+
+    Retrying in case of the BadStatusLine exception works around Python issue
+    https://bugs.python.org/issue43912 (originally pywbem issue #2659). Once
+    that issue is solved, the retry is no longer needed.
+
+    Raises:
+      requests.exceptions.RequestException - all errors besides a single
+        occurrence of the BadStatusLine exception.
+    """
+    # TODO: Check resolution of Python issue 43912 and remove workaround here
+    debug = True
+    try:
+        response = requests.post(
+            url, headers=headers, data=data, timeout=timeout)
+    except requests.exceptions.ConnectionError as exc:
+        org_exc = exc.args[0]  # pylint: disable=no-member
+        if debug:
+            print("Debug: ConnectionError: args[0]={!r}".format(org_exc))
+        if isinstance(org_exc, urllib3.exceptions.ProtocolError):
+            org_org_exc = org_exc.args[1]  # pylint: disable=no-member
+            if debug:
+                print("Debug: ProtocolError: args[1]={!r}".format(org_org_exc))
+            if isinstance(org_org_exc, BadStatusLine):
+                # We do just one retry.
+                if debug:
+                    print("Debug: BadStatusLine: Retrying")
+                response = requests.post(
+                    url, headers=headers, data=data, timeout=timeout)
+            else:
+                raise
+        else:
+            raise
+    return response
