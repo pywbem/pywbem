@@ -13,7 +13,7 @@ import requests
 import pytest
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
-from ..utils import import_installed
+from ..utils import import_installed, post_bsl
 from ..elapsed_timer import ElapsedTimer
 pywbem = import_installed('pywbem')
 from pywbem import WBEMListener  # noqa: E402
@@ -132,8 +132,7 @@ def send_indications(host, http_port, send_count):
         payload = create_indication_data(msg_id, i, cim_protocol_version)
 
         try:
-            response = requests.post(url, headers=headers, data=payload,
-                                     timeout=4)
+            response = post_bsl(url, headers=headers, data=payload)
         except requests.exceptions.RequestException as exc:
             msg = ("Testcase sending indication #{} raised {}: {}".
                    format(i, exc.__class__.__name__, exc))
