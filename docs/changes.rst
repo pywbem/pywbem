@@ -14,16 +14,22 @@ Change log
       :revisions: 1
 
 
-Version 1.1.4.dev1
-^^^^^^^^^^^^^^^^^^
+Version 1.1.4
+^^^^^^^^^^^^^
 
-Released: not yet
+Released: 2021-04-26
 
 **Incompatible changes:**
 
 **Deprecations:**
 
 **Bug fixes:**
+
+* Mitigated the coveralls HTTP status 422 by pinning coveralls-python to
+  <3.0.0.
+
+* Docs: Fixed incorrect attribute name 'provider_classnames' in method provider
+  example. (issue #2564)
 
 **Enhancements:**
 
@@ -68,12 +74,6 @@ Released: 2021-01-01
 
 * Fixed issue on GitHub Actions with macos by no longer running "brew update"
   in pywbem_os_setup.sh. (issue #2544)
-
-* Docs: Fixed incorrect attribute name 'provider_classnames' in method provider
-  example. (issue #2564)
-
-* Mitigated the coveralls HTTP status 422 by pinning coveralls-python to
-  <3.0.0.
 
 **Enhancements:**
 
