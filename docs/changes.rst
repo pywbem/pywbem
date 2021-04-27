@@ -148,6 +148,10 @@ Released: not yet
   test function. This is not a fix for the root cause of the issue. For details,
   see pywbem issue #2659.
 
+* Fixed installation of 'pywinpty' package on Python 2.7 by pinning it to <1.0.
+  It failed because it does not declare its supported Python versions.
+  (see issue #2680)
+
 **Enhancements:**
 
 * Finalized the pywbem mock support. (issue #2651)
