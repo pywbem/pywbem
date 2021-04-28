@@ -481,7 +481,6 @@ pip_upgrade_$(pymn).done: Makefile
 install_basic_$(pymn).done: Makefile pip_upgrade_$(pymn).done
 	@echo "Makefile: Installing/upgrading basic Python packages with PACKAGE_LEVEL=$(PACKAGE_LEVEL)"
 	-$(call RM_FUNC,$@)
-	$(PYTHON_CMD) remove_duplicate_setuptools.py
 	$(PIP_INSTALL_CMD) $(pip_level_opts) setuptools wheel
 	echo "done" >$@
 	@echo "Makefile: Done installing/upgrading basic Python packages"
