@@ -14,6 +14,30 @@ Change log
       :revisions: 1
 
 
+Version 1.3.0.dev1
+^^^^^^^^^^^^^^^^^^
+
+This version contains all fixes up to version 1.2.x.
+
+Released: not yet
+
+**Incompatible changes:**
+
+**Deprecations:**
+
+**Bug fixes:**
+
+**Enhancements:**
+
+**Cleanup:**
+
+**Known issues:**
+
+* See `list of open issues`_.
+
+.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
+
+
 pywbem 1.2.0
 ------------
 
