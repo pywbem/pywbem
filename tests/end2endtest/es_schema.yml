@@ -1,0 +1,109 @@
+# Easy-server schema file for pywbem end2end tests
+#
+# This file is used to validate the user-defined sections in the easy-server
+# server file and vault file.
+#
+# Keep this JSON schema in sync with the code in the wbem_connection() fixture
+# that uses the items from these files.
+
+user_defined_schema:
+  $schema: http://json-schema.org/draft-07/schema#
+  type: object
+  additionalProperties: false
+  required: [url]
+  properties:
+    docker_image:
+      type: string
+      description: |
+        Docker image to pull for setting up the WBEM server, or null to not
+        pull any Docker image.
+        Format: ORG/IMAGE:M.N.U
+        Optional, default: null.
+    docker_port_mapping:
+      type: object
+      description: |
+        Port mapping for Docker image.
+        Optional, default: straight mapping (i.e. same port on host and in image).
+        Note that each server defines the single port that is to be used for
+        testing, so if you want to use both the HTTP and HTTPS ports, define
+        a server for each.
+      additionalProperties: false
+      required: [image, host]
+      properties:
+        image:
+          type: integer
+          description: |
+            Port number provided by Docker image.
+            Mandatory.
+        host:
+          type: integer
+          description: |
+            Port number used on host (local) system.
+            Mandatory.
+    url:
+      type: string
+      description: |
+        URL of the WBEM server; for details see url parameter of
+        pywbem.WBEMConnection().
+        Mandatory.
+    default_namespace:
+      type: string
+      description: |
+        Default CIM namespace to use in the created pywbem.WBEMConnection object.
+        Optional, default: null.
+    capabilities:
+      type: array
+      description: |
+        List of capabilities implemented by the server.
+        Optional, default: no capabilities.
+        The capability names are specific to pywbem end2end testing and are
+        checked by the end2end testcases. If a testcase requires a particular
+        capability and the server does not implement it, the testcase is skipped.
+      items:
+        type: string
+        enum:
+          - interop                # Has an Interop namespace
+          - namespaces             # Supports management of namespaces
+          - profiles               # General support for mgmt profiles
+          - snia-smis              # Support for SNIA SMI-S profile
+          - snia-server            # Support for SNIA Server profile
+
+vault_server_schema:
+  $schema: http://json-schema.org/draft-07/schema#
+  type: object
+  additionalProperties: false
+  properties:
+    user:
+      type: [string, "null"]
+      description: |
+        User for logging on to the WBEM server, or null for not specifying a user.
+        Optional, default: null.
+    password:
+      type: [string, "null"]
+      description: |
+        Password of that user, or null for not specifying a password.
+        Optional, default: null.
+    no_verification:
+      type: boolean
+      description: |
+        Boolean controlling whether the returned server certificate is to be verified.
+        Optional, default: true.
+    ca_certs:
+      type: [string, "null"]
+      description: |
+        Path name of CA certificate file or path name of directory containing CA
+        certificate files to be used for verifying the returned server certificate,
+        or null for using the pywbem default locations.
+        Optional, default: null.
+    cert_file:
+      type: [string, "null"]
+      description: |
+        Path name of file containing X.509 client certificate to be presented
+        to server, or null for not presenting a client certificate to the server.
+        Optional, default: null.
+    key_file:
+      type: [string, "null"]
+      description: |
+        Path name of file containing X.509 private key of the client certificate,
+        or null for not presenting a client certificate to the server.
+        Optional, default: null.

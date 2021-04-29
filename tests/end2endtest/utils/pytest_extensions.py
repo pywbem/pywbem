@@ -255,10 +255,13 @@ def wbem_connection(request, es_server):
 
     nickname = es_server.nickname
 
+    # Keep the usage of the items in the es_server object in sync with the
+    # schemas defining them in the es_schema.yml file.
+
     url = es_server.user_defined['url']
     default_namespace = es_server.user_defined.get('default_namespace', None)
-    user = es_server.secrets['user']
-    password = es_server.secrets['password']
+    user = es_server.secrets.get('user', None)
+    password = es_server.secrets.get('password', None)
     no_verification = es_server.secrets.get('no_verification', None)
     ca_certs = es_server.secrets.get('ca_certs', None)
     cert_file = es_server.secrets.get('cert_file', None)

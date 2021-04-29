@@ -61,6 +61,10 @@ Released: not yet
   - If the private key file is protected with a password, the password prompt
     now states the path name of the private key file in the prompt message.
 
+* Test: Added support for validating the structure of user-defined properties in
+  the easy-server server and vault files. As part of that, increased the minimum
+  version of the 'pytest-easy-server' package to 0.8.0. (issue #2660)
+
 **Cleanup:**
 
 **Known issues:**

@@ -45,6 +45,4 @@ secrets:
     no_verification: true
 
   pegasus_https:
-    user: null
-    password: null
     no_verification: true

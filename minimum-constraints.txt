@@ -137,8 +137,8 @@ yagot==0.5.0
 
 # Easy-server packages
 easy-vault==0.7.0
-easy-server==0.7.0
-pytest-easy-server==0.7.0
+easy-server==0.8.0
+pytest-easy-server==0.8.0
 
 # Virtualenv
 virtualenv==14.0.0; python_version < '3.5'
