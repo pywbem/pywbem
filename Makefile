@@ -319,7 +319,7 @@ ifdef TESTCASES
 else
   pytest_opts := $(TESTOPTS)
 endif
-pytest_end2end_opts := -v --tb=short $(pytest_opts) --es-file $(test_dir)/end2endtest/es_server.yml
+pytest_end2end_opts := -v --tb=short $(pytest_opts) --es-file $(test_dir)/end2endtest/es_server.yml --es-schema-file $(test_dir)/end2endtest/es_schema.yml
 
 ifeq ($(python_mn_version),3.4)
   pytest_cov_opts :=
