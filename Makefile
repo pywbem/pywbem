@@ -279,6 +279,7 @@ py_test_files := \
 # - 38932: cryptography cannot be upgraded to 3.2 on py34
 # - 39252: cryptography cannot be upgraded to 3.3 on py34+py35
 # - 39606: cryptography cannot be upgraded to 3.3.2 on py34+py35
+# - 40291: pip cannot be upgraded to 21.1 py<3.6
 
 safety_ignore_opts := \
     -i 38100 \
@@ -300,6 +301,7 @@ safety_ignore_opts := \
 		-i 38932 \
 		-i 39252 \
 		-i 39606 \
+		-i 40291 \
 
 # Python source files for test (unit test and function test)
 test_src_files := \
