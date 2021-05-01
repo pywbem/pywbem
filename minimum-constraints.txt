@@ -74,9 +74,9 @@
 # for a particular Python version:
 # The cryptography package requires pip>=21.0 on Windows on GitHub Actions.
 pip==9.0.1; python_version <= '3.5'
-pip==21.0; python_version == '3.6'
-pip==21.0; python_version == '3.7'
-pip==21.0; python_version >= '3.8'
+pip==21.1; python_version == '3.6'
+pip==21.1; python_version == '3.7'
+pip==21.1; python_version >= '3.8'
 setuptools==39.0.1; python_version <= '3.6'
 setuptools==40.6.0; python_version == '3.7'
 setuptools==41.5.0; python_version >= '3.8'
