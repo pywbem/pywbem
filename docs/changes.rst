@@ -27,6 +27,10 @@ Released: not yet
 
 **Bug fixes:**
 
+* Fixes bug in compiler where log of ModifyClass request failure was not
+  surrounded by verbose test (if p.parse.verbose:). See pywbemcli issue
+  #395,
+
 **Enhancements:**
 
 **Cleanup:**
