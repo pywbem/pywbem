@@ -23,6 +23,12 @@ Released: not yet
 
 **Incompatible changes:**
 
+* The `WBEMListener.start()` method may raise new exceptions
+  `pywbem.ListenerPortError`, `pywbem.ListenerPromptError` and
+  `pywbem.ListenerCertificateError`. The `OSError` and `IOError` exceptions
+  raised in earlier versions may still be raised for other, less common cases.
+  For details, see the corresponding item in the Enhancements section, below.
+
 **Deprecations:**
 
 **Bug fixes:**
@@ -34,6 +40,26 @@ Released: not yet
 * Docs: Fixed an error with the autodocsumm and Sphinx 4.0.0. (issue #2697)
 
 **Enhancements:**
+
+* Improved the running of indication listeners via `WBEMListener.start()`:
+
+  - The method will now raise a new exception `pywbem.ListenerPortError` when
+    the port is in use, instead of the previous `socket.error` on Python 2 and
+    `OSError` on Python 3 that had confusing or unspecific error messages.
+
+  - The method will now raise a new exception `pywbem.ListenerCertificateError`
+    when using HTTPS and there is an issue with the server certificate file,
+    private key file, or invalid password for the private key file, instead of
+    the previous `ssl.SSLError` or `OSError` that had confusing or unspecific
+    error messages.
+
+  - The method will now raise a new exception `pywbem.ListenerPromptError`
+    when using HTTPS and the prompt for the password of the private key file
+    was interrupted or ended, instead of the previous `IOError` or `OSError`
+    that had unspecific error messages.
+
+  - If the private key file is protected with a password, the password prompt
+    now states the path name of the private key file in the prompt message.
 
 **Cleanup:**
 

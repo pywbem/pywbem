@@ -27,7 +27,9 @@ from ._cim_constants import _statuscode2name, _statuscode2string
 __all__ = ['Error', 'ConnectionError', 'AuthError', 'HTTPError', 'TimeoutError',
            'VersionError', 'ParseError', 'CIMVersionError', 'DTDVersionError',
            'ProtocolVersionError', 'CIMXMLParseError', 'XMLParseError',
-           'HeaderParseError', 'CIMError', 'ModelError']
+           'HeaderParseError', 'CIMError', 'ModelError',
+           'ListenerError', 'ListenerCertificateError',
+           'ListenerPortError', 'ListenerPromptError']
 
 
 class _RequestExceptionMixin(object):
@@ -132,7 +134,7 @@ class _ResponseExceptionMixin(object):
 
 class Error(Exception):
     """
-    Abstract base class for pywbem specific exceptions.
+    Abstract base class for pywbem client specific exceptions.
     """
 
     def __init__(self, *args, **kwargs):
@@ -184,6 +186,7 @@ class ConnectionError(Error):
     """
     This exception indicates a problem with the connection to the WBEM
     server. A retry may or may not succeed.
+
     Derived from :exc:`~pywbem.Error`.
     """
 
@@ -210,6 +213,7 @@ class AuthError(Error):
     """
     This exception indicates an authentication error with the WBEM server,
     either during TLS/SSL handshake, or during HTTP-level authentication.
+
     Derived from :exc:`~pywbem.Error`.
     """
 
@@ -235,7 +239,9 @@ class AuthError(Error):
 class HTTPError(_RequestExceptionMixin, _ResponseExceptionMixin, Error):
     """
     This exception indicates that the WBEM server returned an HTTP response
-    with a bad HTTP status code. Derived from :exc:`~pywbem.Error`.
+    with a bad HTTP status code.
+
+    Derived from :exc:`~pywbem.Error`.
 
     The `args` instance variable is a `tuple (status, reason, cimerror,
     cimdetails)`.
@@ -350,7 +356,9 @@ class TimeoutError(Error):
     # pylint: disable=redefined-builtin
     """
     This exception indicates that the client timed out waiting for the WBEM
-    server. Derived from :exc:`~pywbem.Error`.
+    server.
+
+    Derived from :exc:`~pywbem.Error`.
     """
 
     def __init__(self, message, conn_id=None):
@@ -542,7 +550,9 @@ class ProtocolVersionError(VersionError):
 class CIMError(_RequestExceptionMixin, Error):
     """
     This exception indicates that the WBEM server returned an error response
-    with a CIM status code. Derived from :exc:`~pywbem.Error`.
+    with a CIM status code.
+
+    Derived from :exc:`~pywbem.Error`.
 
     Accessing the CIM status code of a :class:`CIMError` object:
 
@@ -674,12 +684,12 @@ class ModelError(Error):
     This exception indicates an error with the model implemented by the WBEM
     server, that was detected by the pywbem client.
 
+    Derived from :exc:`~pywbem.Error`.
+
     Examples are mismatches in data types of CIM elements (properties, methods,
     parameters) between classes and instances, CIM elements that appear in
     instances without being declared in classes, or violations of requirements
     defined in advertised management profiles.
-
-    Derived from :exc:`~pywbem.Error`.
     """
 
     def __init__(self, message, conn_id=None):
@@ -699,3 +709,66 @@ class ModelError(Error):
         assert message is None or isinstance(message, six.string_types), \
             str(type(message))
         super(ModelError, self).__init__(message, conn_id=conn_id)
+
+
+class ListenerError(Exception):
+    """
+    Abstract base class for exceptions raised by the pywbem listener (i.e.
+    class :class:`~pywbem.WBEMListener`).
+
+    *New in pywbem 1.3.*
+
+    Derived from :exc:`Exception`.
+    """
+
+    def __init__(self, message):
+        """
+        Parameters:
+
+          message (:term:`string`): Error message (will be put into `args[0]`).
+
+        :ivar args: A tuple (message, ) set from the corresponding init
+            argument.
+        """
+        assert message is None or isinstance(message, six.string_types), \
+            str(type(message))
+        super(ListenerError, self).__init__(message)
+
+
+class ListenerCertificateError(ListenerError):
+    """
+    This exception indicates an error with the certificate file or its
+    private key file when using HTTPS.
+
+    *New in pywbem 1.3.*
+
+    Derived from :exc:`~pywbem.ListenerError`.
+
+    This includes bad format of the files, file not found, permission errors
+    when accessing the files, or an invalid password for the private key file.
+    """
+    pass
+
+
+class ListenerPortError(ListenerError):
+    """
+    This exception indicates that the port for the pywbem listener is already
+    in use.
+
+    *New in pywbem 1.3.*
+
+    Derived from :exc:`~pywbem.ListenerError`.
+    """
+    pass
+
+
+class ListenerPromptError(ListenerError):
+    """
+    This exception indicates that the prompt for the password of the private
+    key file of the pywbem listener was interrupted or ended.
+
+    *New in pywbem 1.3.*
+
+    Derived from :exc:`~pywbem.ListenerError`.
+    """
+    pass

@@ -30,3 +30,29 @@ WBEMListener
     :autosummary-inherited-members:
 
 .. autofunction:: pywbem.callback_interface
+
+
+.. _`Listener exceptions`:
+
+Listener exceptions
+^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: pywbem.ListenerCertificateError
+    :members:
+    :autosummary:
+    :autosummary-inherited-members:
+
+.. autoclass:: pywbem.ListenerPortError
+    :members:
+    :autosummary:
+    :autosummary-inherited-members:
+
+.. autoclass:: pywbem.ListenerPromptError
+    :members:
+    :autosummary:
+    :autosummary-inherited-members:
+
+.. autoclass:: pywbem.ListenerError
+    :members:
+    :autosummary:
+    :autosummary-inherited-members:
