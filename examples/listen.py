@@ -60,7 +60,7 @@ def status(reset=None):
     global RECEIVED_INDICATION_DICT
     for host, count in six.iteritems(RECEIVED_INDICATION_DICT):
         print('Host %s Received %s indications' % (host, count))
-        
+
     if reset:
         for host in RECEIVED_INDICATION_DICT:
             RECEIVED_INDICATION_DICT[host] = 0
@@ -96,8 +96,11 @@ def _main():
                                    keyfile=keyfile)
 
     listener.add_callback(_process_indication)
-    listener.start()
-
+    try:
+        listener.start()
+    except pywbem.ListenerError as exc:
+        print("Error: {}".format(exc))
+        return 1
 
     banner = """
 WBEM listener started on host %s (HTTP port: %s, HTTPS port: %s).

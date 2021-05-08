@@ -127,11 +127,19 @@ WBEMListener class
 """
 
 import sys
+import os
 import errno
+from contextlib import contextmanager
 import re
 import logging
 import ssl
 import threading
+import atexit
+import getpass
+try:
+    import termios
+except ImportError:
+    termios = None
 import six
 from six.moves import BaseHTTPServer
 from six.moves import socketserver
@@ -148,7 +156,8 @@ from ._cim_constants import CIM_ERR_NOT_SUPPORTED, CIM_ERR_INVALID_PARAMETER, \
 from ._tupleparse import TupleParser
 from ._tupletree import xml_to_tupletree_sax
 from ._exceptions import CIMXMLParseError, XMLParseError, CIMVersionError, \
-    DTDVersionError, ProtocolVersionError
+    DTDVersionError, ProtocolVersionError, ListenerCertificateError, \
+    ListenerPortError, ListenerPromptError
 from ._utils import _format
 
 # CIM-XML protocol related versions implemented by the WBEM listener.
@@ -178,6 +187,99 @@ TOKEN_CHARSET_FINDALL_PATTERN = re.compile(
     r'(?:, *)?')
 
 __all__ = ['WBEMListener', 'callback_interface']
+
+
+@contextmanager
+def saved_term_attrs():
+    """
+    Context manager that saves and restores the attributes of the terminal that
+    is used by getpass().
+
+    getpass() on Linux and macOS modifies the terminal attributes to disable
+    the echoing of the typed password, and restores the terminal attributes
+    before it returns. However, when the process calling getpass() gets
+    terminated with a SIGTERM signal while it waits for getpass() to return,
+    then getpass() itself will not restore the terminal settings.
+
+    This context manager improves that behavior by restoring the settings in
+    its exit part, and by additionally registering an Python atexit handler
+    that restores the settings. There is a check so that the settings are
+    restored only once. This performs the restore in some more cases compared
+    to the standard getpass() behavior, particularly when the process calling
+    getpass() is terminated with a SIGTERM signal.
+    For details on cases where the finally block and thus also the exit part
+    of a context manager do *not* get control, see
+    https://stackoverflow.com/a/49262664/1424462.
+
+    The logic to obtain the file descriptor of the terminal must be kept
+    consistent with how it is done in getpass(), see
+    https://github.com/python/cpython/blob/main/Lib/getpass.py#L46
+    """
+    if termios:
+        try:
+            # On Windows, os.O_NOCTTY does not exist.
+            # pylint: disable=no-member
+            term_fd = os.open('/dev/tty', os.O_RDWR | os.O_NOCTTY)
+        except (OSError, AttributeError):
+            try:
+                term_fd = sys.stdin.fileno()
+            except (AttributeError, ValueError):
+                term_fd = None
+    else:
+        term_fd = None
+
+    if term_fd is not None:
+        count_dict = dict(count=0)  # Must be mutable
+        saved_attrs = termios.tcgetattr(term_fd)
+        atexit.register(restore_term_attrs, term_fd, saved_attrs, count_dict)
+
+    yield
+
+    if term_fd is not None:
+        restore_term_attrs(term_fd, saved_attrs, count_dict)
+
+
+def restore_term_attrs(term_fd, saved_attrs, count_dict):
+    """
+    Restore the attributes of the terminal that is used by getpass().
+
+    count_dict is used to ensure the restoration is performed only once. This
+    is necessary because the function is called once directly after the
+    password prompt, and once at exit.
+    """
+    if count_dict['count'] == 0:
+        termios.tcsetattr(term_fd, termios.TCSAFLUSH, saved_attrs)
+        count_dict['count'] += 1
+
+
+def keyfile_password_prompt(keyfile):
+    """
+    Prompt for the password of a private key file.
+
+    This method is only called if the key file has a password set.
+
+    Parameters:
+      keyfile (string): Path name of private key file.
+
+    Returns:
+      string: The password
+
+    Raises:
+      ListenerPromptError: Password prompt was interrupted or ended
+    """
+    prompt = "Enter password for key file {}: ".format(keyfile)
+    with saved_term_attrs():
+        try:
+            pw = getpass.getpass(prompt=prompt)
+        except KeyboardInterrupt:
+            new_exc = ListenerPromptError("Password prompt was interrupted")
+            new_exc.__cause__ = None
+            raise new_exc  # ListenerPromptError
+        except EOFError:
+            new_exc = ListenerPromptError("Password prompt was ended")
+            new_exc.__cause__ = None
+            raise new_exc  # ListenerPromptError
+    return pw
 
 
 class ThreadedHTTPServer(socketserver.ThreadingMixIn,
@@ -871,12 +973,22 @@ class WBEMListener(object):
         Python process terminates), or when :class:`~pywbem.WBEMListener`
         is used as a context manager when leaving its scope.
 
+        In case of HTTPS, the private key file and certificate file are used.
+        If the private key file is protected with a password, the password
+        will be prompted for using :func:`py3:getpass.getpass`. If the password
+        is invalid, or if the private key file or certificate file are invalid,
+        :exc:`pywbem.ListenerCertificateError` is raised.
+
         Raises:
 
-          :exc:`~py:exceptions.OSError`:
-            with :attr:`~OSError.errno` =
-            :data:`py:errno.EADDRINUSE` when the WBEM listener port is already
+          :exc:`pywbem.ListenerCertificateError`: Error with the certificate
+            file or its private key file when using HTTPS.
+          :exc:`pywbem.ListenerPortError`: WBEM listener port is already
             in use.
+          :exc:`pywbem.ListenerPromptError`: Error when prompting for the
+            password of the private key file when using HTTPS.
+          :exc:`~py:exceptions.OSError`: Other error
+          :exc:`~py:exceptions.IOError`: Other error (Python 2.7 only)
         """
 
         if self._http_port:
@@ -886,16 +998,16 @@ class WBEMListener(object):
                 try:
                     server = ThreadedHTTPServer((self._host, self._http_port),
                                                 ListenerRequestHandler)
-                except Exception as exc:
-                    # Linux+py2: socket.error; Linux+py3: OSError;
-                    # Windows does not raise any exception.
+                except (IOError, OSError) as exc:
+                    # Linux/macOS on py2: socket.error (derived from IOError);
+                    # Linux/macOS on py3: OSError;
+                    # Windows does not raise any exception if port is used
                     if getattr(exc, 'errno', None) == errno.EADDRINUSE:
-                        # Reraise with improved error message
-                        msg = _format("WBEM listener port {0} already in use",
-                                      self._http_port)
-                        exc_type = OSError
-                        six.reraise(exc_type, exc_type(errno.EADDRINUSE, msg),
-                                    sys.exc_info()[2])
+                        new_exc = ListenerPortError(
+                            "WBEM listener port {0} is already in use".
+                            format(self._http_port))
+                        new_exc.__cause__ = None
+                        raise new_exc  # ListenerPortError
                     raise
 
                 # pylint: disable=attribute-defined-outside-init
@@ -923,16 +1035,16 @@ class WBEMListener(object):
                 try:
                     server = ThreadedHTTPServer((self._host, self._https_port),
                                                 ListenerRequestHandler)
-                except Exception as exc:
-                    # Linux+py2: socket.error; Linux+py3: OSError;
-                    # Windows does not raise any exception.
+                except (IOError, OSError) as exc:
+                    # Linux/macOS on py2: socket.error (derived from IOError);
+                    # Linux/macOS on py3: OSError;
+                    # Windows does not raise any exception if port is used
                     if getattr(exc, 'errno', None) == errno.EADDRINUSE:
-                        # Reraise with improved error message
-                        msg = _format("WBEM listener port {0} already in use",
-                                      self._http_port)
-                        exc_type = OSError
-                        six.reraise(exc_type, exc_type(errno.EADDRINUSE, msg),
-                                    sys.exc_info()[2])
+                        new_exc = ListenerPortError(
+                            "WBEM listener port {0} is already in use".
+                            format(self._https_port))
+                        new_exc.__cause__ = None
+                        raise new_exc  # ListenerPortError
                     raise
 
                 # pylint: disable=attribute-defined-outside-init
@@ -949,9 +1061,40 @@ class WBEMListener(object):
                     ctx = ssl.SSLContext(ssl_protocol)
                     ctx.options |= ssl.OP_NO_SSLv2
                     ctx.options |= ssl.OP_NO_SSLv3
-                    ctx.load_cert_chain(
-                        certfile=self._certfile,
-                        keyfile=self._keyfile)
+
+                    def password_prompt():
+                        return keyfile_password_prompt(self._keyfile)
+
+                    try:
+                        ctx.load_cert_chain(
+                            certfile=self._certfile,
+                            keyfile=self._keyfile,
+                            password=password_prompt)
+                    except ssl.SSLError as exc:
+                        # On Python 3, exc.errno is EBADF, but on Python 2 it
+                        # is a number 336265225 that seems to occur for other
+                        # people too but is not understood. Therefore, we do
+                        # not check for errno here.
+                        if exc.library == 'SSL' and 'PEM lib' in str(exc):
+                            new_exc = ListenerCertificateError(
+                                "Invalid password for key file, bad key file, "
+                                "or bad certificate file. Original error: {}".
+                                format(exc))
+                            new_exc.__cause__ = None
+                            raise new_exc  # ListenerCertificateError
+                        new_exc = ListenerCertificateError(
+                            "SSL error when loading the certificate chain: "
+                            "errno={}, library={}: {}".
+                            format(exc.errno, exc.library, exc))
+                        new_exc.__cause__ = None
+                        raise new_exc  # ListenerCertificateError
+                    except (IOError, OSError) as exc:
+                        new_exc = ListenerCertificateError(
+                            "Issue opening {}: {}".
+                            format(_cert_key_file(self._certfile,
+                                                  self._keyfile), exc))
+                        new_exc.__cause__ = None
+                        raise new_exc  # ListenerCertificateError
                     server.socket = ctx.wrap_socket(
                         server.socket,
                         server_side=True)
@@ -1081,3 +1224,10 @@ def callback_interface(indication, host):
           callback function is called.
     """
     raise NotImplementedError
+
+
+def _cert_key_file(certfile, keyfile):
+    "Return a string for use in messages for the certificate or key files"
+    if certfile == keyfile or keyfile is None:
+        return "certificate/key file {}".format(certfile)
+    return "certificate file {} or key file {}".format(certfile, keyfile)

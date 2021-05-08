@@ -7,7 +7,6 @@ Test _listener.py module.
 from __future__ import absolute_import
 
 import sys
-import errno
 import re
 import logging
 from time import time, sleep
@@ -20,7 +19,7 @@ from ...utils import import_installed, post_bsl
 from ...elapsed_timer import ElapsedTimer
 from ..utils.pytest_extensions import simplified_test_function
 pywbem = import_installed('pywbem')
-from pywbem import WBEMListener  # noqa: E402
+from pywbem import WBEMListener, ListenerPortError  # noqa: E402
 from pywbem._utils import _format  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
@@ -457,7 +456,7 @@ def test_WBEMListener_port_in_use():
     # as far as port reuse is concerned.
     http_port = '59999'
 
-    exp_exc_type = OSError
+    exp_exc_type = ListenerPortError
 
     listener1 = WBEMListener(host, http_port)
     listener1.start()
@@ -473,7 +472,6 @@ def test_WBEMListener_port_in_use():
     except Exception as exc:  # pylint: disable=broad-except
         # e.g. on Linux
         assert isinstance(exc, exp_exc_type)
-        assert getattr(exc, 'errno', None) == errno.EADDRINUSE
         assert listener2.http_started is False
     else:
         # e.g. on Windows

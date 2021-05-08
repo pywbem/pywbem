@@ -15,7 +15,9 @@ from ...utils import import_installed
 pywbem = import_installed('pywbem')
 from pywbem import Error, ConnectionError, AuthError, HTTPError, TimeoutError, \
     ParseError, CIMXMLParseError, XMLParseError, HeaderParseError, \
-    VersionError, CIMError, ModelError, CIMInstance  # noqa: E402
+    VersionError, CIMError, ModelError, ListenerError, \
+    ListenerCertificateError, ListenerPortError, ListenerPromptError, \
+    CIMInstance  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 # pylint: enable=redefined-builtin
 
@@ -71,19 +73,19 @@ def _assert_connection(exc, conn_id_kwarg, exp_conn_str):
     # along with a tuple of names of keyword arguments the class supports.
     (
         Error,
-        ('conn_id'),
+        ('conn_id',),
     ),
     (
         ConnectionError,
-        ('conn_id'),
+        ('conn_id',),
     ),
     (
         AuthError,
-        ('conn_id'),
+        ('conn_id',),
     ),
     (
         TimeoutError,
-        ('conn_id'),
+        ('conn_id',),
     ),
     (
         ParseError,
@@ -103,11 +105,27 @@ def _assert_connection(exc, conn_id_kwarg, exp_conn_str):
     ),
     (
         VersionError,
-        ('conn_id'),
+        ('conn_id',),
     ),
     (
         ModelError,
-        ('conn_id'),
+        ('conn_id',),
+    ),
+    (
+        ListenerError,
+        tuple(),
+    ),
+    (
+        ListenerCertificateError,
+        tuple(),
+    ),
+    (
+        ListenerPortError,
+        tuple(),
+    ),
+    (
+        ListenerPromptError,
+        tuple(),
     ),
 ], scope='module')
 def message_exception_info(request):
@@ -227,7 +245,8 @@ def test_message_init(
     if 'response_data' in kwargs_names:
         assert exc.response_data == exp_response_data
 
-    _assert_connection(exc, conn_id_kwarg, exp_conn_str)
+    if 'conn_id' in kwargs_names:
+        _assert_connection(exc, conn_id_kwarg, exp_conn_str)
     _assert_subscription(exc)
 
 
