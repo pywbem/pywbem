@@ -31,6 +31,8 @@ Released: not yet
   surrounded by verbose test (if p.parse.verbose:). See pywbemcli issue
   #395,
 
+* Docs: Fixed an error with the autodocsumm and Sphinx 4.0.0. (issue #2697)
+
 **Enhancements:**
 
 **Cleanup:**
