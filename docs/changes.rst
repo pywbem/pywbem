@@ -37,6 +37,21 @@ Released: not yet
   surrounded by verbose test (if p.parse.verbose:). See pywbemcli issue
   #395,
 
+* Fixes several issues in WBEMSubscriptionManager:
+  - add_filter() and add_destinations() methods  can no longer modify
+    existing instances on the WBEM server. They can only create new instances.
+  - Modified the algorithm to determine owned filters and
+    instances so they are are correctly recovered from the WBEM server when the
+    WBEMSubscriptionManager is restarted (before this they could be returned
+    as not-owned object).
+  - Change to use WBEM server systemname as the value of the SystemName
+    property.
+  - Removed code that built instance path for new filter and destination
+    instances since that was used only to try to determine if instance existed
+    to make the create/modify decision.
+  - Added the client host as a component of the Name property for owned
+    filters and destinations. (issue #2701).
+
 * Docs: Fixed an error with the autodocsumm and Sphinx 4.0.0. (issue #2697)
 
 * Jupyter Notebook: Ignored safety issues 40380..40386 in order to continue

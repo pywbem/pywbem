@@ -25,7 +25,6 @@ from __future__ import absolute_import, print_function
 
 import os
 import re
-from socket import getfqdn
 import pytest
 
 from ...utils import skip_if_moftab_regenerated
@@ -55,7 +54,9 @@ VERBOSE = False
 
 # The following dictionary is the mock WBEM server configuration for the
 # WBEMServerMock class.  It defines a mock WBEM server that is build with
-# defined class schemas, classnames, etc.
+# defined class schemas, classnames, etc.  It uses the same dictionary pattern
+# as the default dictionary in the ../utils directory.
+
 SUBSCRIPTION_WBEM_SERVER_MOCK_DICT = {
     'dmtf_schema': {'version': DMTF_TEST_SCHEMA_VER,
                     'dir': TESTSUITE_SCHEMA_DIR},
@@ -100,12 +101,15 @@ SUBSCRIPTION_WBEM_SERVER_MOCK_DICT = {
     # List of CIMInstances. Each entry is a CIM instance with classname,
     # and properties. All properties required to build the path must be
     # defined. No other properties are required for this test.
-    # TODO: We may expand this for more scoping tests.
     'central-instances': [],
     'scoping-instances': []
 }
 
 
+# NOTE: Please add new test functionality to the function
+#       test_subscriptionmanager(...)) below. We will leave these functions
+#       because they do provide a broad set of test functionality in just a few
+#       tests (each tests creates the mock environment)
 class BaseMethodsForTests(object):
     """
     Base Class for tests contains all common methods and class level
@@ -120,6 +124,7 @@ class BaseMethodsForTests(object):
         """
         skip_if_moftab_regenerated()
 
+        # TODO: modify this to use the same code as in test_subscriptionmanager
         server = WbemServerMock(interop_ns='interop')
         # pylint: disable=attribute-defined-outside-init
         self.conn = server.wbem_server.conn
@@ -140,7 +145,6 @@ class BaseMethodsForTests(object):
                             include_missing_properties=True,
                             include_path=True):
         # TODO AM 8/18 The inst_from_classname() method is not used.
-        # NOTE: This method was never added to pywbem apparently
         """
         Build instance from class using class_name property to get class
         from a repository.
@@ -181,9 +185,8 @@ class BaseMethodsForTests(object):
         Using Server class, get count of Filters, Subscriptions, Destinations
         from server as confirmation outside of SubscriptionManagerCode.
         """
-        this_host = getfqdn()
-
         server = WBEMServer(self.conn)
+        system_name = server.cimom_inst['SystemName']
 
         dest_name_pattern = re.compile(r'^pywbemdestination:')
         dest_insts = server.conn.EnumerateInstances(
@@ -191,7 +194,7 @@ class BaseMethodsForTests(object):
         valid_dests = []
         for inst in dest_insts:
             if re.match(dest_name_pattern, inst.path.keybindings['Name']) \
-                    and inst.path.keybindings['SystemName'] == this_host:
+                    and inst.path.keybindings['SystemName'] == system_name:
                 valid_dests.append(inst)
 
         filter_instances = server.conn.EnumerateInstances(
@@ -200,7 +203,7 @@ class BaseMethodsForTests(object):
         filter_name_pattern = re.compile(r'^pywbemfilter')
         for inst in filter_instances:
             if re.match(filter_name_pattern, inst.path.keybindings['Name']) \
-                    and inst.path.keybindings['SystemName'] == this_host:
+                    and inst.path.keybindings['SystemName'] == system_name:
                 valid_filters.append(inst)
 
         filter_paths = [inst.path for inst in valid_filters]
@@ -339,27 +342,67 @@ class TestSubMgrClass(BaseMethodsForTests):
         with WBEMSubscriptionManager(subscription_manager_id=sm) as sub_mgr:
 
             server_id = sub_mgr.add_server(server)
-            sub_mgr.add_listener_destinations(server_id, listener_url,
-                                              owned=True)
+
+            # Create an owned listener, filter, and subscription
+
+            dests = sub_mgr.add_listener_destinations(server_id,
+                                                      listener_url,
+                                                      owned=True)
+            assert len(dests) == 1
+            dest_path = dests[0].path
+            # Note: this method returns path.
             filter_path = self.add_filter(sub_mgr, server_id, 'NotUsed',
                                           owned=True)
+            # Should create a single subscription since there is just one
+            # destination
             subscriptions = sub_mgr.add_subscriptions(server_id,
                                                       filter_path,
                                                       owned=True)
+
+            assert len(subscriptions) == 1
             subscription_paths = [inst.path for inst in subscriptions]
 
             self.confirm_created(sub_mgr, server_id, filter_path,
                                  subscription_paths, owned=True)
 
-            # confirm destination instance paths match
-            assert sub_mgr.get_all_destinations(server_id)
-            # TODO Finish this test completely when we add other
-            #  changes for filter ids
+            # Confirm destination instance paths match
+            assert len(sub_mgr.get_all_destinations(server_id)) == 1
+
+            # Test that these are considered owned objects
+            # Added to test fix for issue #701,
+            # Test occurs in confirm_created() but dupped here to cinfirm
+            owned_subscriptions = sub_mgr.get_owned_subscriptions(server_id)
+            owned_filters = sub_mgr.get_owned_filters(server_id)
+            owned_destinations = sub_mgr.get_owned_destinations(server_id)
+            assert dest_path in [inst.path for inst in owned_destinations]
+            assert filter_path in [inst.path for inst in owned_filters]
+            assert subscription_paths[0] in [inst.path
+                                             for inst in owned_subscriptions]
+
+            # Issue #701
+            # Test that the same owned subscription is not created a second
+            # time because the path is the same as the first.
+            subscriptions2 = sub_mgr.add_subscriptions(server_id,
+                                                       filter_path,
+                                                       owned=True)
+            assert len(subscriptions2) == 1
+            assert subscriptions == subscriptions2
+            assert len(sub_mgr.get_owned_destinations(server_id)) == 1
+
+            # Confirm trying to create same filter a second time does
+            # create a filter since each filter has unique guid
+            filter_path2 = self.add_filter(sub_mgr, server_id, 'NotUsed',
+                                           owned=True)
+            assert len(sub_mgr.get_owned_filters(server_id)) == 2
+
+            assert filter_path2 != filter_path
 
             sub_mgr.remove_subscriptions(server_id, subscription_paths)
             sub_mgr.remove_filter(server_id, filter_path)
+            sub_mgr.remove_filter(server_id, filter_path2)
 
-            self.confirm_removed(sub_mgr, server_id, filter_path,
+            self.confirm_removed(sub_mgr, server_id,
+                                 [filter_path, filter_path2],
                                  subscription_paths)
 
             assert self.get_object_count(sub_mgr, server_id) == 0
@@ -380,7 +423,6 @@ class TestSubMgrClass(BaseMethodsForTests):
         server = WBEMServer(self.conn)
 
         listener_url = '%s:%s' % (self.conn.url, 50000)
-
         # Create a single not_owned subscription
         with WBEMSubscriptionManager(subscription_manager_id=sm) as sub_mgr:
             server_id = sub_mgr.add_server(server)
@@ -425,17 +467,82 @@ class TestSubMgrClass(BaseMethodsForTests):
                 sub_mgr.remove_filter(server_id, filter_.path)
             assert self.get_object_count(sub_mgr, server_id) == 0
 
+    def test_recovery_of_owned_subscriptions(self):
+        """
+        Test the ability to recover owned subscriptions from the server. Tests
+        ability of SubscriptionManager to recover owned subscriptions, etc.
+        from server when started by creating a second subscription mgr.
+        """
 
-def setup_mock_server(url=None):
-    """
-    Setup a pywbem mock environment suitable for running subscription tests.
-    This is the same definition as the setup in the unittests above.
-    """
-    skip_if_moftab_regenerated()
-    server = WbemServerMock(interop_ns='interop', url=url,
-                            server_mock_data=SUBSCRIPTION_WBEM_SERVER_MOCK_DICT)
-    conn = server.wbem_server.conn
-    return conn
+        sm = "test_subscription_object_recovery"
+        server = WBEMServer(self.conn)
+
+        listener_url = '%s:%s' % (self.conn.url, 50000)
+
+        submgr1 = WBEMSubscriptionManager(subscription_manager_id=sm)
+        server_id1 = submgr1.add_server(server)
+
+        # Create an owned listener, filter, and subscription
+
+        dests = submgr1.add_listener_destinations(server_id1,
+                                                  listener_url,
+                                                  owned=True)
+        assert len(dests) == 1
+        dest_path = dests[0].path
+        filter_path = self.add_filter(submgr1, server_id1, 'NotUsed',
+                                      owned=True)
+        subscriptions = submgr1.add_subscriptions(server_id1, filter_path,
+                                                  owned=True)
+
+        assert len(subscriptions) == 1
+        subscription_paths = [inst.path for inst in subscriptions]
+
+        self.confirm_created(submgr1, server_id1, filter_path,
+                             subscription_paths, owned=True)
+
+        # Confirm destination instance paths match
+        assert len(submgr1.get_all_destinations(server_id1)) == 1
+
+        # Test that these are considered owned objects
+        # Added to test fix for issue #701,
+        # Test already occurs in confirm_created()
+        owned_subscriptions = submgr1.get_owned_subscriptions(server_id1)
+        owned_filters = submgr1.get_owned_filters(server_id1)
+        owned_destinations = submgr1.get_owned_destinations(server_id1)
+        assert dest_path in [inst.path for inst in owned_destinations]
+        assert filter_path in [inst.path for inst in owned_filters]
+        assert subscription_paths[0] in [inst.path
+                                         for inst in owned_subscriptions]
+
+        # Create a second subscription manager to recover owned objects
+        submgr2 = WBEMSubscriptionManager(subscription_manager_id=sm)
+        server_id2 = submgr2.add_server(server)
+        assert len(submgr2.get_owned_subscriptions(server_id2)) == 1
+        assert len(submgr2.get_owned_destinations(server_id2)) == 1
+        assert len(submgr2.get_owned_filters(server_id2)) == 1
+
+        assert submgr2.get_owned_filters(server_id2) == \
+            submgr1.get_owned_filters(server_id1)
+
+        assert submgr2.get_owned_destinations(server_id2) == \
+            submgr1.get_owned_destinations(server_id1)
+
+        assert submgr2.get_owned_subscriptions(server_id2) == \
+            submgr1.get_owned_subscriptions(server_id1)
+
+        # Remove all the subscription objects from submgr1
+        submgr1.remove_subscriptions(server_id1, subscription_paths)
+        submgr1.remove_filter(server_id1, filter_path)
+
+        self.confirm_removed(submgr1, server_id1, filter_path,
+                             subscription_paths)
+
+        assert self.get_object_count(submgr1, server_id1) == 0
+
+        submgr1.remove_server(server_id1)
+
+        # confirm no filters, destinations, subscriptions in server
+        assert self.get_objects_from_server() == 0
 
 
 OK = True
@@ -466,7 +573,10 @@ TESTCASES_SUBMGR = [
     #     dictionary is a dictionary that defines either the attributes of
     #     the subscription or to make it simpler to define tests, an integer
     #     for the position in the appropriate list for the required
-    #     filter or destination
+    #     filter or destination.
+    #   * remove_server_attrs: Single server_id identifying server to remove.
+    #     This function is executed after all other methods and their tests so
+    #     the other tests reflect what was added.
     #   * exp_result: Expected dictionary items, for validation. This includes:
     #       * server_id - The expected server_id
     #       * listener_count - Count of expected destinations
@@ -486,6 +596,7 @@ TESTCASES_SUBMGR = [
             filter_attrs=None,
             dest_attrs=None,
             subscription_attrs=None,
+            remove_server_attrs=None,
             exp_result=dict()
         ),
         None, None, OK
@@ -498,6 +609,7 @@ TESTCASES_SUBMGR = [
             filter_attrs=None,
             dest_attrs=None,
             subscription_attrs=None,
+            remove_server_attrs=None,
             exp_result=dict()
         ),
         ValueError, None, OK
@@ -510,6 +622,7 @@ TESTCASES_SUBMGR = [
             filter_attrs=None,
             dest_attrs=None,
             subscription_attrs=None,
+            remove_server_attrs=None,
             exp_result=dict()
         ),
         TypeError, None, OK
@@ -522,6 +635,7 @@ TESTCASES_SUBMGR = [
             filter_attrs=None,
             dest_attrs=None,
             subscription_attrs=None,
+            remove_server_attrs=None,
             exp_result=dict()
         ),
         ValueError, None, OK
@@ -534,6 +648,7 @@ TESTCASES_SUBMGR = [
             filter_attrs=None,
             dest_attrs=None,
             subscription_attrs=None,
+            remove_server_attrs=None,
             exp_result=dict(server_id="http://FakedUrl:5988")
         ),
         None, None, OK
@@ -547,6 +662,7 @@ TESTCASES_SUBMGR = [
             filter_attrs=None,
             dest_attrs=None,
             subscription_attrs=None,
+            remove_server_attrs=None,
             exp_result=dict(server_id=["http://FakedUrl:5988",
                                        "http://fake2:5988"])
         ),
@@ -565,12 +681,31 @@ TESTCASES_SUBMGR = [
                               filter_id=None, name=None),
             dest_attrs=None,
             subscription_attrs=None,
+            remove_server_attrs=None,
             exp_result=dict(server_id="http://FakedUrl:5988")
         ),
         ValueError, None, OK
     ),
     (
-        "Add_filter with both name and filter_id fails",
+        "Add_filter with unknown server_id ",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            filter_attrs=dict(server_id="UnknownServerId",
+                              source_namespace='root/interop',
+                              query="SELECT * from blah",
+                              query_language='WQL',
+                              owned=True,
+                              filter_id=None, name=None),
+            dest_attrs=None,
+            subscription_attrs=None,
+            remove_server_attrs=None,
+            exp_result=dict(server_id="http://FakedUrl:5988")
+        ),
+        ValueError, None, OK
+    ),
+    (
+        "Add_server with both name and filter_id fails",
         dict(
             submgr_id="ValidID",
             connection_attrs=dict(url=None),
@@ -582,6 +717,25 @@ TESTCASES_SUBMGR = [
                               filter_id="Fred", name="fred"),
             dest_attrs=None,
             subscription_attrs=None,
+            remove_server_attrs=None,
+            exp_result=dict(server_id="http://FakedUrl:5988")
+        ),
+        ValueError, None, OK
+    ),
+    (
+        "Add_server twice with same serverID",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=[dict(url=None), dict(url=None)],
+            filter_attrs=dict(server_id="http://FakedUrl:5988",
+                              source_namespace='root/interop',
+                              query="SELECT * from blah",
+                              query_language='WQL',
+                              owned=True,
+                              filter_id="Fred", name="fred"),
+            dest_attrs=None,
+            subscription_attrs=None,
+            remove_server_attrs=None,
             exp_result=dict(server_id="http://FakedUrl:5988")
         ),
         ValueError, None, OK
@@ -599,6 +753,7 @@ TESTCASES_SUBMGR = [
                               filter_id="Fred:", name=None),
             dest_attrs=None,
             subscription_attrs=None,
+            remove_server_attrs=None,
             exp_result=dict(server_id="http://FakedUrl:5988", )
         ),
         ValueError, None, OK
@@ -616,6 +771,7 @@ TESTCASES_SUBMGR = [
                               filter_id=9, name=None),
             dest_attrs=None,
             subscription_attrs=None,
+            remove_server_attrs=None,
             exp_result=dict(server_id="http://FakedUrl:5988")
         ),
         TypeError, None, OK
@@ -633,10 +789,30 @@ TESTCASES_SUBMGR = [
                               filter_id="Filter1", name=None),
             dest_attrs=None,
             subscription_attrs=None,
+            remove_server_attrs=None,
             exp_result=dict(server_id="http://FakedUrl:5988",
                             filter_count=1)
         ),
         None, None, OK
+    ),
+    (
+        "Add_filter with valid filter and remove server_id",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            filter_attrs=dict(server_id="http://FakedUrl:5988",
+                              source_namespace='root/interop',
+                              query="SELECT * from blah",
+                              query_language='WQL',
+                              owned=True,
+                              filter_id="Filter1", name=None),
+            dest_attrs=None,
+            subscription_attrs=None,
+            remove_server_attrs="http://FakedUrl:5988",
+            exp_result=dict(server_id="http://FakedUrl:5988",
+                            filter_count=1)
+        ),
+        None, None, RUN
     ),
     (
         "Add_filter with  2 valid filters",
@@ -657,6 +833,7 @@ TESTCASES_SUBMGR = [
                                filter_id="Filter2", name=None), ],
             dest_attrs=None,
             subscription_attrs=None,
+            remove_server_attrs=None,
             exp_result=dict(server_id="http://FakedUrl:5988",
                             filter_count=2)
         ),
@@ -672,6 +849,7 @@ TESTCASES_SUBMGR = [
                             listener_urls="httpx",
                             owned=True),
             subscription_attrs=None,
+            remove_server_attrs=None,
             exp_result=dict(server_id="http://FakedUrl:5988")
         ),
         ValueError, None, OK
@@ -687,6 +865,7 @@ TESTCASES_SUBMGR = [
 
                             owned=True),
             subscription_attrs=None,
+            remove_server_attrs=None,
             exp_result=dict(server_id="http://FakedUrl:5988",
                             listener_count=1)
         ),
@@ -703,6 +882,7 @@ TESTCASES_SUBMGR = [
                                            "https://localhost:5001"],
                             owned=True),
             subscription_attrs=None,
+            remove_server_attrs=None,
             exp_result=dict(server_id="http://FakedUrl:5988",
                             listener_count=2)
         ),
@@ -726,12 +906,13 @@ TESTCASES_SUBMGR = [
                                     filter_path=0,
                                     destination_paths=0,
                                     owned=True),
+            remove_server_attrs=None,
             exp_result=dict(server_id="http://FakedUrl:5988",
                             listener_count=1,
                             filter_count=1,
                             subscription_count=1)
         ),
-        None, None, RUN
+        None, None, OK
     ),
 
     # Tests that need to be added
@@ -740,8 +921,10 @@ TESTCASES_SUBMGR = [
     # add not_owned filters and destinations
     # NOTE: The following tests will be added after merge with issue #2701
     # Remove multiple owned subscriptions, filters, dests
-    # NOTE: Because of issue# 2704, we cannot test a number of capabilities
+    # NOTE: add tests that depend on providers see issue# 2704
     # NOTE: Eventually this should replace most of the unit tests.
+    # Tests for expected instances/paths after creation of objects
+    # tests for remove instances, paths, providers
 ]
 
 
@@ -751,7 +934,7 @@ TESTCASES_SUBMGR = [
 @simplified_test_function
 def test_subscriptionmanager(testcase, submgr_id, connection_attrs,
                              filter_attrs, dest_attrs, subscription_attrs,
-                             exp_result):
+                             remove_server_attrs, exp_result):
     """
     Tests object init and add-server
     """
@@ -837,3 +1020,15 @@ def test_subscriptionmanager(testcase, submgr_id, connection_attrs,
     if 'subscription_count' in exp_result:
         assert len(submgr.get_all_subscriptions(server_id)) == \
             exp_result['subscription_count']
+
+    # The removal methods are executed after all others methods defined for
+    # the test and after tests on the results of other method execution
+    if remove_server_attrs:
+        submgr.remove_server(remove_server_attrs)
+
+        # The server_id should be missing and we get ValueError
+        try:
+            submgr.get_all_subscriptions(remove_server_attrs)
+            assert False
+        except ValueError:
+            pass
