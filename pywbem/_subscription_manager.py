@@ -74,18 +74,25 @@ with one exception:
 The :class:`~pywbem.WBEMSubscriptionManager` object remembers owned
 subscriptions, filters, and listener destinations. If for some reason that
 object gets deleted before all servers could be removed (e.g. because the
-Python program aborts), the corresponding CIM instances in the WBEM server
-still exist, but the knowledge is lost that these instances were owned by that
-subscription manager. Therefore, the subscription manager discovers owned
-subscriptions, filters, and listener destinations when a server is added.
-For filters, this discovery is based upon the Name property. Therefore, if
-the Name property is set by the user (e.g. because a management profile
-requires a particular name), the filter must be permanent and cannot be owned.
+Python program aborts or the client is terminated), the corresponding CIM
+instances in the WBEM server still exist, but the knowledge is lost that these
+instances were owned by that subscription manager. Therefore, the subscription
+manager discovers owned subscriptions, filters, and listener destinations when
+a server is added. For this discovery, is based upon the Name property.
+Therefore, if the Name property is set by the user (e.g. because a management
+profile requires a particular name), the filter must be permanent and cannot be
+owned.
+
+Since :class:`~pywbem.WBEMSubscriptionManager` does not directly modify
+existing instances of filter or destinations or subscriptions, the user must do
+this directly through the `ModifyInstance` WBEM request method and then update
+the local owned instances list by executing get_all_filters(),
+get_all_destinations(), or get_all_subscriptions().
 
 Examples
 --------
 
-The following example code demonstrates the use of a subscription manager
+The following example code demonstrates the use of a subscri tion manager
 to subscribe for a CIM alert indication on a WBEM server. The WBEM listener
 is assumed to exist somewhere and is identified by its URL::
 
@@ -187,7 +194,8 @@ class WBEMSubscriptionManager(object):
             contain the character ':' because that is the separator between
             components within the value of the `Name` property.
 
-            The subscription manager ID must be unique on the current host.
+            The subscription manager ID must be unique on the current client
+            host.
 
             For example, the form of the `Name` property of a filter instance
             is (for details, see
@@ -207,6 +215,7 @@ class WBEMSubscriptionManager(object):
         self._owned_subscriptions = {}  # CIMInstance of owned subscriptions
         self._owned_filters = {}  # CIMInstance of owned filters
         self._owned_destinations = {}  # CIMInstance owned destinations
+        self._systemnames = {}  # Dict that will contain SystemNames
 
         if subscription_manager_id is None:
             raise ValueError("Subscription manager ID must not be None")
@@ -228,7 +237,7 @@ class WBEMSubscriptionManager(object):
         return _format(
             "WBEMSubscriptionManager("
             "_subscription_manager_id={s._subscription_manager_id!A}, "
-            "_servers={s._servers}, "
+            "_servers={s._servers}, _systemnames={s._systemnames!A}"
             "...)",
             s=self)
 
@@ -244,6 +253,7 @@ class WBEMSubscriptionManager(object):
             "_owned_subscriptions={s._owned_subscriptions!A}, "
             "_owned_filters={s._owned_filters!A}, "
             "_owned_destinations={s._owned_destinations!A})",
+            "_systemnames={s._systemnames!A}",
             s=self)
 
     def __enter__(self):
@@ -344,29 +354,35 @@ class WBEMSubscriptionManager(object):
         self._owned_filters[server_id] = []
         self._owned_destinations[server_id] = []
 
-        # Recover any owned destination, filter, and subscription instances
-        # that exist on this server
+        # Get the SystemName from the WBEMServer CIM_ObjectManager for this
+        # server.
+        self._systemnames[server_id] = server.cimom_inst['SystemName']
 
-        this_host = getfqdn()
+        # Issue #2709 Expand to account for WBEMServer profile
 
+        # Get the hostname of the client system to be part of destination Name
+        this_client = getfqdn()
+
+        # Recover owned destination, filter, and subscription instances
+        # that exist on the WBEMServer
         dest_name_pattern = re.compile(
             _format(r'^pywbemdestination:owned:{0}:{1}:[^:]*$',
-                    this_host, self._subscription_manager_id))
+                    this_client, self._subscription_manager_id))
         dest_insts = server.conn.EnumerateInstances(
             DESTINATION_CLASSNAME, namespace=server.interop_ns)
+
         for inst in dest_insts:
-            if re.match(dest_name_pattern, inst.path.keybindings['Name']) \
-                    and inst.path.keybindings['SystemName'] == this_host:
+            if re.match(dest_name_pattern, inst.path.keybindings['Name']):
                 self._owned_destinations[server_id].append(inst)
 
         filter_name_pattern = re.compile(
             _format(r'^pywbemfilter:owned:{0}:{1}:[^:]*:[^:]*$',
-                    this_host, self._subscription_manager_id))
+                    this_client, self._subscription_manager_id))
         filter_insts = server.conn.EnumerateInstances(
             FILTER_CLASSNAME, namespace=server.interop_ns)
+
         for inst in filter_insts:
-            if re.match(filter_name_pattern, inst.path.keybindings['Name']) \
-                    and inst.path.keybindings['SystemName'] == this_host:
+            if re.match(filter_name_pattern, inst.path.keybindings['Name']):
                 self._owned_filters[server_id].append(inst)
 
         sub_insts = server.conn.EnumerateInstances(
@@ -375,6 +391,8 @@ class WBEMSubscriptionManager(object):
                               self._owned_filters[server_id]]
         owned_destination_paths = [inst.path for inst in
                                    self._owned_destinations[server_id]]
+
+        # Subscription is owned if either filter or destination is owned.
         for inst in sub_insts:
             if inst.path.keybindings['Filter'] in \
                     owned_filter_paths \
@@ -401,7 +419,6 @@ class WBEMSubscriptionManager(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
-
         # Validate server_id
         server = self._get_server(server_id)
 
@@ -463,21 +480,22 @@ class WBEMSubscriptionManager(object):
 
         The form of the `Name` property of the created destination instance is:
 
-          ``"pywbemdestination:" {ownership} ":" {subscription_manager_id} ":"
-          {guid}``
+          ``"pywbemdestination:" {ownership} ":" {client_host_name} ":"
+          {subscription_manager_id} ":" {guid}``
 
         where ``{ownership}`` is ``"owned"`` or ``"permanent"`` dependent on
-        the `owned` argument; ``{subscription_manager_id}`` is the
-        subscription manager ID; and ``{guid}`` is a globally unique
-        identifier.
+        the `owned` argument; ``{client_host_name}`` is the fqdn of the client
+        host; ``{subscription_manager_id}`` is the subscription manager ID;
+        and ``{guid}`` is a globally unique identifier.
 
         Owned listener destinations are added or updated conditionally: If the
         listener destination instance to be added is already registered with
-        this subscription manager and has the same property values, it is not
-        created or modified. If it has the same path but different property
-        values, it is modified to get the desired property values. If an
-        instance with this path does not exist yet (the normal case), it is
-        created.
+        this subscription manager, is an owned destination and has the same
+        `Destination property`, a new listener_destination instance is not
+        created. If an instance with this path does not exist yet (the normal
+        case), it is created.
+
+        This method does not modify an existing destination instance.
 
         Permanent listener destinations are created unconditionally, and it is
         up to the user to ensure that such an instance does not exist yet.
@@ -698,25 +716,26 @@ class WBEMSubscriptionManager(object):
 
           In this case, the value of the `Name` property will be:
 
-          ``"pywbemfilter:" {ownership} ":" {subscription_manager_id} ":"
-          {filter_id} ":" {guid}``
+          ``"pywbemfilter:" {ownership} ":" {client_host_name} ":"
+          {subscription_manager_id} ":" {filter_id} ":" {guid}``
 
           where
           ``{ownership}`` is ``"owned"`` or ``"permanent"`` dependent on
           whether the filter is owned or permmanent;
+          ``{client_host_name}`` is the fqdn of the client hos;
           ``{subscription_manager_id}`` is the subscription manager ID;
           ``{filter_id}`` is the filter ID; and
           ``{guid}`` is a globally unique identifier.
 
-          This can be used for both owned and permanent filters.
+        Only owned  filters can use the filter_id to create the
+        `Name` property.
 
         Owned indication filters are added or updated conditionally: If the
         indication filter instance to be added is already registered with
-        this subscription manager and has the same property values, it is not
-        created or modified. If it has the same path but different property
-        values, it is modified to get the desired property values. If an
-        instance with this path does not exist yet (the normal case), it is
+        this subscription manager , it is not
         created.
+
+        This method does not modify existing CIM_IndicationFilter instances.
 
         Permanent indication filters are created unconditionally, and it is
         up to the user to ensure that such an instance does not exist yet.
@@ -793,6 +812,10 @@ class WBEMSubscriptionManager(object):
             if ':' in filter_id:
                 raise ValueError(
                     _format("Filter ID contains ':': {0!A}", filter_id))
+
+        if name is not None and owned:
+            raise ValueError("The name parameter cannot be used to add "
+                             "owned filters.")
 
         filter_inst = self._create_filter(server_id, source_namespace, query,
                                           query_language, owned, filter_id,
@@ -1131,6 +1154,10 @@ class WBEMSubscriptionManager(object):
         In order to catch any changes the server applies, the instance is
         retrieved again using the instance path returned by instance creation.
 
+        If an instance is found in the server with the same value of the
+        `Destination` property, no new instance is created and the existing
+        is returned.
+
         Parameters:
 
           server_id (:term:`string`):
@@ -1162,41 +1189,34 @@ class WBEMSubscriptionManager(object):
         # Validate server_id
         server = self._get_server(server_id)
 
+        this_client = getfqdn()
+
         # Validate the URL by reconstructing it. Do not allow defaults
         _, _, listener_url = parse_url(dest_url, allow_defaults=False)
 
-        this_host = getfqdn()
         ownership = "owned" if owned else "permanent"
 
-        dest_path = CIMInstanceName(DESTINATION_CLASSNAME,
-                                    namespace=server.interop_ns)
-
         dest_inst = CIMInstance(DESTINATION_CLASSNAME)
-        dest_inst.path = dest_path
         dest_inst['CreationClassName'] = DESTINATION_CLASSNAME
         dest_inst['SystemCreationClassName'] = SYSTEM_CREATION_CLASSNAME
-        dest_inst['SystemName'] = this_host
+        dest_inst['SystemName'] = self._systemnames[server_id]
+
         dest_inst['Name'] = _format(
-            'pywbemdestination:{0}:{1}:{2}',
-            ownership, self._subscription_manager_id, uuid.uuid4())
+            'pywbemdestination:{0}:{1}:{2}:{3}',
+            ownership, this_client, self._subscription_manager_id, uuid.uuid4())
         dest_inst['Destination'] = listener_url
 
         if owned:
-            for i, inst in enumerate(self._owned_destinations[server_id]):
-                if inst.path == dest_path:
-                    # It already exists, now check its properties
-                    if inst != dest_inst:
-                        server.conn.ModifyInstance(dest_inst)
-                        dest_inst = server.conn.GetInstance(dest_path)
-                        self._owned_destinations[server_id][i] = dest_inst
-                    return dest_inst
-            dest_path = server.conn.CreateInstance(dest_inst)
-            dest_inst = server.conn.GetInstance(dest_path)
+            # If an instance with the same destination property exists,
+            # do not create a new instance.
+            for inst in self._owned_destinations[server_id]:
+                if inst['Destination'] == dest_inst['Destination']:
+                    return inst  # has path set
+        dest_path = server.conn.CreateInstance(dest_inst,
+                                               namespace=server.interop_ns)
+        dest_inst = server.conn.GetInstance(dest_path)
+        if owned:
             self._owned_destinations[server_id].append(dest_inst)
-        else:
-            # Responsibility to ensure it does not exist yet is with the user
-            dest_path = server.conn.CreateInstance(dest_inst)
-            dest_inst = server.conn.GetInstance(dest_path)
 
         return dest_inst
 
@@ -1253,44 +1273,32 @@ class WBEMSubscriptionManager(object):
         # Validate server_id
         server = self._get_server(server_id)
 
-        this_host = getfqdn()
         ownership = "owned" if owned else "permanent"
 
-        filter_path = CIMInstanceName(FILTER_CLASSNAME,
-                                      namespace=server.interop_ns)
+        this_client = getfqdn()
 
         filter_inst = CIMInstance(FILTER_CLASSNAME)
-        filter_inst.path = filter_path
         filter_inst['CreationClassName'] = FILTER_CLASSNAME
         filter_inst['SystemCreationClassName'] = SYSTEM_CREATION_CLASSNAME
-        filter_inst['SystemName'] = this_host
+        filter_inst['SystemName'] = self._systemnames[server_id]
         if filter_id:
             filter_inst['Name'] = _format(
-                'pywbemfilter:{0}:{1}:{2}:{3}',
-                ownership, self._subscription_manager_id, filter_id,
-                uuid.uuid4())
+                'pywbemfilter:{0}:{1}:{2}:{3}:{4}',
+                ownership, this_client, self._subscription_manager_id,
+                filter_id, uuid.uuid4())
         if name:
             filter_inst['Name'] = name
+
         filter_inst['SourceNamespace'] = source_namespace
         filter_inst['Query'] = query
         filter_inst['QueryLanguage'] = query_language
 
+        filter_path = server.conn.CreateInstance(
+            filter_inst, namespace=server.interop_ns)
+        filter_inst = server.conn.GetInstance(filter_path)
+
         if owned:
-            for i, inst in enumerate(self._owned_filters[server_id]):
-                if inst.path == filter_path:
-                    # It already exists, now check its properties
-                    if inst != filter_inst:
-                        server.conn.ModifyInstance(filter_inst)
-                        filter_inst = server.conn.GetInstance(filter_path)
-                        self._owned_filters[server_id][i] = filter_inst
-                    return filter_inst
-            filter_path = server.conn.CreateInstance(filter_inst)
-            filter_inst = server.conn.GetInstance(filter_path)
             self._owned_filters[server_id].append(filter_inst)
-        else:
-            # Responsibility to ensure it does not exist yet is with the user
-            filter_path = server.conn.CreateInstance(filter_inst)
-            filter_inst = server.conn.GetInstance(filter_path)
 
         return filter_inst
 
@@ -1334,7 +1342,9 @@ class WBEMSubscriptionManager(object):
         server = self._get_server(server_id)
 
         sub_path = CIMInstanceName(SUBSCRIPTION_CLASSNAME,
-                                   namespace=server.interop_ns)
+                                   namespace=server.interop_ns,
+                                   keybindings=[('Filter', filter_path),
+                                                ('Handler', dest_path)])
 
         sub_inst = CIMInstance(SUBSCRIPTION_CLASSNAME)
         sub_inst.path = sub_path
@@ -1347,12 +1357,14 @@ class WBEMSubscriptionManager(object):
                     # It does not have any properties besides its keys,
                     # so checking the path is sufficient.
                     return sub_inst
-            sub_path = server.conn.CreateInstance(sub_inst)
+            sub_path = server.conn.CreateInstance(
+                sub_inst, namespace=server.interop_ns)
             sub_inst = server.conn.GetInstance(sub_path)
             self._owned_subscriptions[server_id].append(sub_inst)
         else:
             # Responsibility to ensure it does not exist yet is with the user
-            sub_path = server.conn.CreateInstance(sub_inst)
+            sub_path = server.conn.CreateInstance(
+                sub_inst, namespace=server.interop_ns)
             sub_inst = server.conn.GetInstance(sub_path)
 
         return sub_inst
