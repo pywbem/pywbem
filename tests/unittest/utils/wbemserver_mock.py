@@ -59,6 +59,11 @@ DEFAULT_WBEM_SERVER_MOCK_DICT = {
         'dir': os.path.join(TESTSUITE_SCHEMA_DIR, 'FakeWBEMServer'),
         'files': []},
 
+    # if a url is defined it is set as the url of the mock wbem server
+    'url': None,
+
+    # Leaf classnames that will be installed in the WBEM server from the
+    # dmtf_schema defined above.
     'class_names': ['CIM_Namespace',
                     'CIM_ObjectManager',
                     'CIM_RegisteredProfile',
@@ -129,7 +134,7 @@ class WbemServerMock(object):
     tests
     """
 
-    def __init__(self, interop_ns=None, server_mock_data=None):
+    def __init__(self, interop_ns=None, server_mock_data=None, url=None):
         """
         Build the class repository for with the classes defined for
         the WBEMSERVER.  This is built either from a dictionary of data
@@ -143,6 +148,9 @@ class WbemServerMock(object):
             self.server_mock_data = server_mock_data
 
         self.system_name = self.server_mock_data['system_name']
+        self.url = self.server_mock_data['url']
+        if url:
+            self.url = url
         self.object_manager_name = \
             self.server_mock_data['object_manager']['Name']
 
@@ -180,7 +188,7 @@ class WbemServerMock(object):
              getattr(self, 'wbem_server', None), self.registered_profiles)
         return ret_str
 
-    def build_class_repo(self, default_namespace):
+    def build_class_repo(self, default_namespace, url=None):
         """
         Build the schema qualifier and class objects in the repository
         from a DMTF schema.
@@ -194,7 +202,7 @@ class WbemServerMock(object):
         # pylint: disable=protected-access
 
         FakedWBEMConnection._reset_logging_config()
-        conn = FakedWBEMConnection(default_namespace=default_namespace)
+        conn = FakedWBEMConnection(default_namespace=default_namespace, url=url)
 
         schema = DMTFCIMSchema(self.dmtf_schema_ver, self.schema_dir,
                                verbose=False)
@@ -435,7 +443,7 @@ class WbemServerMock(object):
               the namespaces
               the profiles
         """
-        conn = self.build_class_repo(self.interop_ns)
+        conn = self.build_class_repo(self.interop_ns, self.url)
         server = WBEMServer(conn)
         # NOTE: The wbemserver is not complete until the instances for at
         # least object manager and namespaces have been inserted. Any attempt
@@ -472,7 +480,7 @@ class WbemServerMock(object):
         prof_inst = server.get_selected_profiles(registered_org='SNIA',
                                                  registered_name='Server',
                                                  registered_version='1.1.0')
-        # TODO this is simplistic form and only builds one instance
+        # TODO this is simplistic form and only builds one instance of
         # conforms to.  Should expand but need better way to define instance
         # at other end.
         self.build_elementconformstoprofile_inst(conn,

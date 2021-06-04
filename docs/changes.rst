@@ -75,6 +75,8 @@ Released: not yet
 
 **Cleanup:**
 
+* Extend tests for SubscriptionManager to utilize pytest and cover error cases.
+
 **Known issues:**
 
 * See `list of open issues`_.
