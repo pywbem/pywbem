@@ -19,19 +19,19 @@
 #
 
 """
-Test for the WBEMServer class  in pywbem._server.py that uses the pywbem_mock
-support package the methods of the class. Mock is required since, testing
-WBEMServe requires access to a WBEMServer.
+Test for the WBEMSubscriptionManager class.
 """
 from __future__ import absolute_import, print_function
 
 import os
 import re
 from socket import getfqdn
+import pytest
 
 from ...utils import skip_if_moftab_regenerated
 from ..utils.dmtf_mof_schema_def import DMTF_TEST_SCHEMA_VER
 from ..utils.wbemserver_mock import WbemServerMock
+from ..utils.pytest_extensions import simplified_test_function
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
@@ -40,6 +40,8 @@ from pywbem import WBEMServer, CIMClassName, WBEMSubscriptionManager, \
     CIMInstance  # noqa: E402
 from pywbem._subscription_manager import SUBSCRIPTION_CLASSNAME, \
     DESTINATION_CLASSNAME, FILTER_CLASSNAME  # noqa: E402
+from pywbem_mock import OBJECTMANAGERNAME, \
+    SYSTEMNAME  # noqa: E402
 pywbem_mock = import_installed('pywbem_mock')
 from pywbem_mock import DMTFCIMSchema  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
@@ -50,6 +52,58 @@ from pywbem_mock import DMTFCIMSchema  # noqa: E402
 TESTSUITE_SCHEMA_DIR = os.path.join('tests', 'schema')
 
 VERBOSE = False
+
+# The following dictionary is the mock WBEM server configuration for the
+# WBEMServerMock class.  It defines a mock WBEM server that is build with
+# defined class schemas, classnames, etc.
+SUBSCRIPTION_WBEM_SERVER_MOCK_DICT = {
+    'dmtf_schema': {'version': DMTF_TEST_SCHEMA_VER,
+                    'dir': TESTSUITE_SCHEMA_DIR},
+    'tst_schema': {
+        'dir': os.path.join(TESTSUITE_SCHEMA_DIR, 'FakeWBEMServer'),
+        'files': []},
+
+    # url of the mock server.  if None the default pywbem_mock url is used
+    # This url can be overridden by the WBEMServerMock initialization parameter.
+    'url': None,
+
+    'class_names': ['CIM_Namespace',
+                    'CIM_ObjectManager',
+                    'CIM_RegisteredProfile',
+                    'CIM_ElementConformsToProfile',
+                    'CIM_ReferencedProfile',
+                    'CIM_ComputerSystem',
+                    'CIM_IndicationSubscription',
+                    'CIM_ListenerDestinationCIMXML',
+                    'CIM_IndicationFilter', ],
+
+    'class-mof': ["class XXX_StorageComputerSystem : CIM_ComputerSystem{};", ],
+    'system_name': SYSTEMNAME,
+    'object_manager': {'Name': OBJECTMANAGERNAME,
+                       'ElementName': 'Mock_Test',
+                       'Description': 'Mock_Test CIM Server Version 2.15.0'
+                                      ' Released', },
+    'interop_namspace': 'interop',
+    'other_namespaces': [],
+    'registered_profiles': [('DMTF', 'Indications', '1.1.0'),
+                            ('DMTF', 'Profile Registration', '1.0.0'),
+                            ('SNIA', 'Server', '1.1.0'),
+                            ('SNIA', 'Server', '1.2.0'), ],
+
+    'referenced_profiles': [
+        (('SNIA', 'Server', '1.2.0'), ('DMTF', 'Indications', '1.1.0')),
+    ],
+    # Define profile relation to central class instance
+    # First element is a profile, second is name and keybindings of a
+    # CIMInstanceName
+    'element_conforms_to_profile': [],
+    # List of CIMInstances. Each entry is a CIM instance with classname,
+    # and properties. All properties required to build the path must be
+    # defined. No other properties are required for this test.
+    # TODO: We may expand this for more scoping tests.
+    'central-instances': [],
+    'scoping-instances': []
+}
 
 
 class BaseMethodsForTests(object):
@@ -86,6 +140,7 @@ class BaseMethodsForTests(object):
                             include_missing_properties=True,
                             include_path=True):
         # TODO AM 8/18 The inst_from_classname() method is not used.
+        # NOTE: This method was never added to pywbem apparently
         """
         Build instance from class using class_name property to get class
         from a repository.
@@ -298,7 +353,7 @@ class TestSubMgrClass(BaseMethodsForTests):
 
             # confirm destination instance paths match
             assert sub_mgr.get_all_destinations(server_id)
-            # TODO: ks Finish this test completely when we add other
+            # TODO Finish this test completely when we add other
             #  changes for filter ids
 
             sub_mgr.remove_subscriptions(server_id, subscription_paths)
@@ -369,3 +424,416 @@ class TestSubMgrClass(BaseMethodsForTests):
             for filter_ in sub_mgr.get_all_filters(server_id):
                 sub_mgr.remove_filter(server_id, filter_.path)
             assert self.get_object_count(sub_mgr, server_id) == 0
+
+
+def setup_mock_server(url=None):
+    """
+    Setup a pywbem mock environment suitable for running subscription tests.
+    This is the same definition as the setup in the unittests above.
+    """
+    skip_if_moftab_regenerated()
+    server = WbemServerMock(interop_ns='interop', url=url,
+                            server_mock_data=SUBSCRIPTION_WBEM_SERVER_MOCK_DICT)
+    conn = server.wbem_server.conn
+    return conn
+
+
+OK = True
+RUN = True
+FAIL = False
+
+
+TESTCASES_SUBMGR = [
+
+    # Testcases for Subscription Tests multiple valid and invalid options
+    # in __init__, add_server, add_filter, add_destinations
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * submgr_id: submgr id
+    #   * connection_attrs: FakedWBEMConnection attributes. this variable causes
+    #     an add_server to be executed. If it is a list, multiple
+    #     a server is added for each dict in the list. The attributes of
+    #     the FakedWBEMConnection can be set as attributes. Note: this test
+    #     already sets the interop namespace automatically
+    #   * filter_attrs: dictionary of attributes for add_filter. If it is
+    #     a list, one filter is added for each dict in the list
+    #   * dest_attrs: dictionary of attributes for add_listener_destinations.
+    #     Since add_listener_destination can add lists, there is no option
+    #     to add a list for this item.
+    #   * subscription_attrs: dictionary or list dictionaries where each
+    #     dictionary is a dictionary that defines either the attributes of
+    #     the subscription or to make it simpler to define tests, an integer
+    #     for the position in the appropriate list for the required
+    #     filter or destination
+    #   * exp_result: Expected dictionary items, for validation. This includes:
+    #       * server_id - The expected server_id
+    #       * listener_count - Count of expected destinations
+    #       * filter_count - Count of expected filters.
+    #       * TODO: Add validation for filter, dest attributes
+    #       * subscription_count - Count of expected subscriptions.
+    #
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    (
+        "Create no valid id",
+        dict(
+            submgr_id='MySubscriptionManager',
+            connection_attrs=None,
+            filter_attrs=None,
+            dest_attrs=None,
+            subscription_attrs=None,
+            exp_result=dict()
+        ),
+        None, None, OK
+    ),
+    (
+        "Invalid subscription manager ID (includes :",
+        dict(
+            submgr_id='MySubscription:Manager',
+            connection_attrs=None,
+            filter_attrs=None,
+            dest_attrs=None,
+            subscription_attrs=None,
+            exp_result=dict()
+        ),
+        ValueError, None, OK
+    ),
+    (
+        "Invalid subscription manager id not a string :",
+        dict(
+            submgr_id=333,
+            connection_attrs=None,
+            filter_attrs=None,
+            dest_attrs=None,
+            subscription_attrs=None,
+            exp_result=dict()
+        ),
+        TypeError, None, OK
+    ),
+    (
+        "Invalid subscription manager id, value None",
+        dict(
+            submgr_id=None,
+            connection_attrs=None,
+            filter_attrs=None,
+            dest_attrs=None,
+            subscription_attrs=None,
+            exp_result=dict()
+        ),
+        ValueError, None, OK
+    ),
+    (
+        "Valid submgr id and server id",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            filter_attrs=None,
+            dest_attrs=None,
+            subscription_attrs=None,
+            exp_result=dict(server_id="http://FakedUrl:5988")
+        ),
+        None, None, OK
+    ),
+    (
+        "Valid submgr id and multiple server ids",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=[dict(url=None),
+                              dict(url="http://fake2:5988")],
+            filter_attrs=None,
+            dest_attrs=None,
+            subscription_attrs=None,
+            exp_result=dict(server_id=["http://FakedUrl:5988",
+                                       "http://fake2:5988"])
+        ),
+        None, None, OK
+    ),
+    (
+        "Add_filter with No name or filter_id fails",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            filter_attrs=dict(server_id="http://FakedUrl:5988",
+                              source_namespace='root/interop',
+                              query="SELECT * from blah",
+                              query_language='WQL',
+                              owned=True,
+                              filter_id=None, name=None),
+            dest_attrs=None,
+            subscription_attrs=None,
+            exp_result=dict(server_id="http://FakedUrl:5988")
+        ),
+        ValueError, None, OK
+    ),
+    (
+        "Add_filter with both name and filter_id fails",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            filter_attrs=dict(server_id="http://FakedUrl:5988",
+                              source_namespace='root/interop',
+                              query="SELECT * from blah",
+                              query_language='WQL',
+                              owned=True,
+                              filter_id="Fred", name="fred"),
+            dest_attrs=None,
+            subscription_attrs=None,
+            exp_result=dict(server_id="http://FakedUrl:5988")
+        ),
+        ValueError, None, OK
+    ),
+    (
+        "Add_filter with filter_id containing : character fails",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            filter_attrs=dict(server_id="http://FakedUrl:5988",
+                              source_namespace='root/interop',
+                              query="SELECT * from blah",
+                              query_language='WQL',
+                              owned=True,
+                              filter_id="Fred:", name=None),
+            dest_attrs=None,
+            subscription_attrs=None,
+            exp_result=dict(server_id="http://FakedUrl:5988", )
+        ),
+        ValueError, None, OK
+    ),
+    (
+        "Add_filter with filter_id not a string fails",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            filter_attrs=dict(server_id="http://FakedUrl:5988",
+                              source_namespace='root/interop',
+                              query="SELECT * from blah",
+                              query_language='WQL',
+                              owned=True,
+                              filter_id=9, name=None),
+            dest_attrs=None,
+            subscription_attrs=None,
+            exp_result=dict(server_id="http://FakedUrl:5988")
+        ),
+        TypeError, None, OK
+    ),
+    (
+        "Add_filter with valid filter",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            filter_attrs=dict(server_id="http://FakedUrl:5988",
+                              source_namespace='root/interop',
+                              query="SELECT * from blah",
+                              query_language='WQL',
+                              owned=True,
+                              filter_id="Filter1", name=None),
+            dest_attrs=None,
+            subscription_attrs=None,
+            exp_result=dict(server_id="http://FakedUrl:5988",
+                            filter_count=1)
+        ),
+        None, None, OK
+    ),
+    (
+        "Add_filter with  2 valid filters",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            filter_attrs=[dict(server_id="http://FakedUrl:5988",
+                               source_namespace='root/interop',
+                               query="SELECT * from blah",
+                               query_language='WQL',
+                               owned=True,
+                               filter_id="Filter1", name=None),
+                          dict(server_id="http://FakedUrl:5988",
+                               source_namespace='root/interop',
+                               query="SELECT * from blah",
+                               query_language='WQL',
+                               owned=True,
+                               filter_id="Filter2", name=None), ],
+            dest_attrs=None,
+            subscription_attrs=None,
+            exp_result=dict(server_id="http://FakedUrl:5988",
+                            filter_count=2)
+        ),
+        None, None, OK
+    ),
+    (
+        "Add listener_dest with invalid url",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            filter_attrs=None,
+            dest_attrs=dict(server_id="http://FakedUrl:5988",
+                            listener_urls="httpx",
+                            owned=True),
+            subscription_attrs=None,
+            exp_result=dict(server_id="http://FakedUrl:5988")
+        ),
+        ValueError, None, OK
+    ),
+    (
+        "Add valid listener_destination",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            filter_attrs=None,
+            dest_attrs=dict(server_id="http://FakedUrl:5988",
+                            listener_urls="http://localhost:5000",
+
+                            owned=True),
+            subscription_attrs=None,
+            exp_result=dict(server_id="http://FakedUrl:5988",
+                            listener_count=1)
+        ),
+        None, None, OK
+    ),
+    (
+        "Add multiple valid listener_destinations",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            filter_attrs=None,
+            dest_attrs=dict(server_id="http://FakedUrl:5988",
+                            listener_urls=["http://localhost:5000",
+                                           "https://localhost:5001"],
+                            owned=True),
+            subscription_attrs=None,
+            exp_result=dict(server_id="http://FakedUrl:5988",
+                            listener_count=2)
+        ),
+        None, None, OK
+    ),
+    (
+        "Add a single valid subscription",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            dest_attrs=dict(server_id="http://FakedUrl:5988",
+                            listener_urls="http://localhost:5000",
+                            owned=True),
+            filter_attrs=dict(server_id="http://FakedUrl:5988",
+                              source_namespace='root/interop',
+                              query="SELECT * from blah",
+                              query_language='WQL',
+                              owned=True,
+                              filter_id="Filter1", name=None),
+            subscription_attrs=dict(server_id="http://FakedUrl:5988",
+                                    filter_path=0,
+                                    destination_paths=0,
+                                    owned=True),
+            exp_result=dict(server_id="http://FakedUrl:5988",
+                            listener_count=1,
+                            filter_count=1,
+                            subscription_count=1)
+        ),
+        None, None, RUN
+    ),
+
+    # Tests that need to be added
+    # Add server_id second time, Should fail
+    # Add server where param is not WBEMServer
+    # add not_owned filters and destinations
+    # NOTE: The following tests will be added after merge with issue #2701
+    # Remove multiple owned subscriptions, filters, dests
+    # NOTE: Because of issue# 2704, we cannot test a number of capabilities
+    # NOTE: Eventually this should replace most of the unit tests.
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_SUBMGR)
+@simplified_test_function
+def test_subscriptionmanager(testcase, submgr_id, connection_attrs,
+                             filter_attrs, dest_attrs, subscription_attrs,
+                             exp_result):
+    """
+    Tests object init and add-server
+    """
+    skip_if_moftab_regenerated()
+
+    def define_connection(connection_attrs):
+        """
+        Create a new mock connection with the attributes defined in
+        connection_attrs.
+        This method also does an add_server with the created mock server.
+        Returns:
+            returns the server_id associated with the connection.
+        """
+        mock_server = WbemServerMock(
+            interop_ns='interop',
+            server_mock_data=SUBSCRIPTION_WBEM_SERVER_MOCK_DICT,
+            **connection_attrs)
+        return submgr.add_server(mock_server.wbem_server)
+
+    # The code to be tested.
+    submgr = WBEMSubscriptionManager(submgr_id)
+
+    # Test result arrays for one or more server_ids. Eachof the add and
+    # remove methods will insert the results into these lists for validation
+    # of the returns from these methods.
+    server_id = None
+    server_ids = []
+    added_filters = []
+    added_destinations = []
+    added_subscriptions = []
+
+    # If connection_attrs exists, set up the server and save the server_ids
+    # for later use in the test
+    if connection_attrs:
+        if isinstance(connection_attrs, list):
+            for connection_attr in connection_attrs:
+                server_ids.append(define_connection(connection_attr))
+        else:
+            server_id = define_connection(connection_attrs)
+
+    # Test for add filter, adds one or more filters
+    if filter_attrs:
+        if isinstance(filter_attrs, dict):
+            filter_attrs = [filter_attrs]
+        for attr in filter_attrs:
+            added_filters.append(submgr.add_filter(**attr))
+
+    # Test for add destinations. There is no option for a list here since
+    # the tested method includes adding lists
+    if dest_attrs:
+        added_destinations.extend(
+            submgr.add_listener_destinations(**dest_attrs))
+
+    if subscription_attrs:
+        if isinstance(subscription_attrs, dict):
+            subscription_attrs = [subscription_attrs]
+        for attr in subscription_attrs:
+            if isinstance(attr['filter_path'], int):
+                attr['filter_path'] = added_filters[attr['filter_path']].path
+            if isinstance(attr['destination_paths'], int):
+                attr['destination_paths'] = \
+                    added_destinations[attr['destination_paths']].path
+            rslts = submgr.add_subscriptions(**attr)
+            added_subscriptions.extend(rslts)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+    if "server_id" in exp_result:
+        if isinstance(exp_result['server_id'], list):
+            assert set(server_ids) == set(exp_result['server_id'])
+        else:
+            assert server_id == exp_result['server_id']
+
+    if 'listener_count' in exp_result:
+        assert len(submgr.get_all_destinations(server_id)) == \
+            exp_result['listener_count']
+
+    if 'filter_count' in exp_result:
+        assert len(submgr.get_all_filters(server_id)) == \
+            exp_result['filter_count']
+
+    if 'subscription_count' in exp_result:
+        assert len(submgr.get_all_subscriptions(server_id)) == \
+            exp_result['subscription_count']
