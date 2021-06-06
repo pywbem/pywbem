@@ -280,6 +280,7 @@ py_test_files := \
 # - 39252: cryptography cannot be upgraded to 3.3 on py34+py35
 # - 39606: cryptography cannot be upgraded to 3.3.2 on py34+py35
 # - 40291: pip cannot be upgraded to 21.1 py<3.6
+# - 40380..40386: notebook issues fixed in 6.1.5 which would prevent using notebook on py2
 
 safety_ignore_opts := \
     -i 38100 \
@@ -302,6 +303,13 @@ safety_ignore_opts := \
 		-i 39252 \
 		-i 39606 \
 		-i 40291 \
+		-i 40380 \
+		-i 40381 \
+		-i 40382 \
+		-i 40383 \
+		-i 40384 \
+		-i 40385 \
+		-i 40386 \
 
 # Python source files for test (unit test and function test)
 test_src_files := \
