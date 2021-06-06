@@ -39,6 +39,9 @@ Released: not yet
 
 * Docs: Fixed an error with the autodocsumm and Sphinx 4.0.0. (issue #2697)
 
+* Jupyter Notebook: Ignored safety issues 40380..40386 in order to continue
+  supporting it with Python 2.7. (issue #2703)
+
 **Enhancements:**
 
 * Improved the running of indication listeners via `WBEMListener.start()`:
