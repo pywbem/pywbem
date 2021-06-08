@@ -144,7 +144,7 @@ class FakedWBEMConnection(WBEMConnection):
     def __init__(self, default_namespace=DEFAULT_NAMESPACE,
                  use_pull_operations=False, stats_enabled=False,
                  timeout=None, response_delay=None,
-                 disable_pull_operations=None):
+                 disable_pull_operations=None, url=None):
         """
         Parameters:
 
@@ -187,6 +187,12 @@ class FakedWBEMConnection(WBEMConnection):
             The :attr:`~pywbem_mock.FakedWBEMConnection.disable_pull_operations`
             property can be used to set this variable.
 
+        url (:term:`string`):
+            Defines a url to replace the default http://FakedURL.5988 url which
+            is passed to the superclass. The url must be an acceptable syntax
+            for WBEMConnection initialization.  This is useful when multiple
+            mocks are required for testing.
+
         Raises:
           ValueError for invalid arguments
         """
@@ -201,7 +207,7 @@ class FakedWBEMConnection(WBEMConnection):
         self._disable_pull_operations = disable_pull_operations
 
         super(FakedWBEMConnection, self).__init__(
-            'http://FakedUrl:5988',
+            url or 'http://FakedUrl:5988',
             default_namespace=default_namespace,
             use_pull_operations=use_pull_operations,
             stats_enabled=stats_enabled, timeout=timeout)
