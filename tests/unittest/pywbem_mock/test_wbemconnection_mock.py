@@ -1110,6 +1110,42 @@ class TestFakedWBEMConnection(object):
         assert conn.default_namespace == DEFAULT_NAMESPACE
         assert conn.operation_recorder_enabled is False
 
+    def test_userdefined_url(self):
+        # pylint: disable=no-self-use
+        """
+        Test FadedWBEMConnection url __init__ parameter.
+        """
+        # pylint: disable=protected-access
+        FakedWBEMConnection._reset_logging_config()
+        conn = FakedWBEMConnection(url="http://FakedUrl1:5988")
+        assert conn.scheme == 'http'
+        assert conn.host == 'FakedUrl1:5988'
+        assert conn.url == 'http://FakedUrl1:5988'
+        assert conn.use_pull_operations is False
+        assert conn.stats_enabled is False
+        assert conn.default_namespace == DEFAULT_NAMESPACE
+        assert conn.operation_recorder_enabled is False
+
+    def test_multiple_urls(self):
+        # pylint: disable=no-self-use
+        """
+        Test FadedWBEMConnection url __init__ parameter.
+        """
+        # pylint: disable=protected-access
+        FakedWBEMConnection._reset_logging_config()
+        conn1 = FakedWBEMConnection(url="http://FakedUrl1:5988")
+        conn2 = FakedWBEMConnection(url="http://FakedUrl2:5988")
+        assert conn1.scheme == 'http'
+        assert conn1.host == 'FakedUrl1:5988'
+        assert conn1.url == 'http://FakedUrl1:5988'
+        assert conn1.use_pull_operations is False
+        assert conn1.stats_enabled is False
+        assert conn1.default_namespace == DEFAULT_NAMESPACE
+        assert conn1.operation_recorder_enabled is False
+        assert conn2.scheme == 'http'
+        assert conn2.host == 'FakedUrl2:5988'
+        assert conn2.url == 'http://FakedUrl2:5988'
+
 
 class TestRepoMethods(object):
     """
