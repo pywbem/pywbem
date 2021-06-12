@@ -605,6 +605,10 @@ TESTCASES_SUBMGR = [
     #       * listener_count - Count of expected destinations
     #       * filter_count - Count of expected filters.
     #       * TODO: Add validation for filter, dest attributes
+    #       * dest_props - Test for specific properties in specific instances.
+    #         TODO: define syntax
+    #       * filter_props - Test for specific properties in specific instances.
+    #         TODO: define syntax
     #       * subscription_count - Count of expected subscriptions.
     #
     # * exp_exc_types: Expected exception type(s), or None.
@@ -715,7 +719,7 @@ TESTCASES_SUBMGR = [
             submgr_id="ValidID",
             connection_attrs=dict(url=None),
             filter_attrs=dict(server_id="http://FakedUrl:5988",
-                              source_namespace='root/interop',
+                              source_namespaces='root/interop',
                               query="SELECT * from blah",
                               query_language='WQL',
                               owned=True,
@@ -736,7 +740,7 @@ TESTCASES_SUBMGR = [
             submgr_id="ValidID",
             connection_attrs=dict(url=None),
             filter_attrs=dict(server_id="http://FakedUrl:5988",
-                              source_namespace='root/interop',
+                              source_namespaces='root/interop',
                               query="SELECT * from blah",
                               query_language='WQL',
                               owned=True,
@@ -757,7 +761,7 @@ TESTCASES_SUBMGR = [
             submgr_id="ValidID",
             connection_attrs=dict(url=None),
             filter_attrs=dict(server_id="UnknownServerId",
-                              source_namespace='root/interop',
+                              source_namespaces='root/interop',
                               query="SELECT * from blah",
                               query_language='WQL',
                               owned=True,
@@ -778,7 +782,7 @@ TESTCASES_SUBMGR = [
             submgr_id="ValidID",
             connection_attrs=dict(url=None),
             filter_attrs=dict(server_id="http://FakedUrl:5988",
-                              source_namespace='root/interop',
+                              source_namespaces='root/interop',
                               query="SELECT * from blah",
                               query_language='WQL',
                               owned=True,
@@ -799,7 +803,7 @@ TESTCASES_SUBMGR = [
             submgr_id="ValidID",
             connection_attrs=[dict(url=None), dict(url=None)],
             filter_attrs=dict(server_id="http://FakedUrl:5988",
-                              source_namespace='root/interop',
+                              source_namespaces='root/interop',
                               query="SELECT * from blah",
                               query_language='WQL',
                               owned=True,
@@ -820,7 +824,7 @@ TESTCASES_SUBMGR = [
             submgr_id="ValidID",
             connection_attrs=dict(url=None),
             filter_attrs=dict(server_id="http://FakedUrl:5988",
-                              source_namespace='root/interop',
+                              source_namespaces='root/interop',
                               query="SELECT * from blah",
                               query_language='WQL',
                               owned=True,
@@ -841,7 +845,7 @@ TESTCASES_SUBMGR = [
             submgr_id="ValidID",
             connection_attrs=dict(url=None),
             filter_attrs=dict(server_id="http://FakedUrl:5988",
-                              source_namespace='root/interop',
+                              source_namespaces='root/interop',
                               query="SELECT * from blah",
                               query_language='WQL',
                               owned=True,
@@ -862,7 +866,7 @@ TESTCASES_SUBMGR = [
             submgr_id="ValidID",
             connection_attrs=dict(url=None),
             filter_attrs=dict(server_id="http://FakedUrl:5988",
-                              source_namespace='root/interop',
+                              source_namespaces='root/interop',
                               query="SELECT * from blah",
                               query_language='WQL',
                               owned=True,
@@ -874,7 +878,61 @@ TESTCASES_SUBMGR = [
             remove_subscriptions=None,
             remove_server_attrs=None,
             exp_result=dict(server_id="http://FakedUrl:5988",
-                            filter_count=1)
+                            filter_count=1,
+                            filter_props=[0, [('SourceNamespaces',
+                                               ['root/interop'])]]),
+        ),
+        None, None, OK
+    ),
+    (
+        "Add_filter with valid filter that has multiple source namespaces",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            filter_attrs=dict(server_id="http://FakedUrl:5988",
+                              source_namespaces=['root/interop', 'root/cimv2'],
+                              query="SELECT * from blah",
+                              query_language='WQL',
+                              owned=True,
+                              filter_id="Filter1", name=None),
+            dest_attrs=None,
+            subscription_attrs=None,
+            remove_destinations=None,
+            remove_filters=None,
+            remove_subscriptions=None,
+            remove_server_attrs=None,
+            exp_result=dict(server_id="http://FakedUrl:5988",
+                            filter_count=1,
+                            filter_props=[0, [('SourceNamespaces',
+                                               ['root/interop',
+                                                'root/cimv2'])]]),
+        ),
+        None, None, OK
+    ),
+    (
+        "Add valid filter with multiple source namespaces, sourcenamespace",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            filter_attrs=dict(server_id="http://FakedUrl:5988",
+                              source_namespaces=['root/interop', 'root/cimv2'],
+                              query="SELECT * from blah",
+                              query_language='WQL',
+                              owned=True,
+                              filter_id="Filter1", name=None,
+                              source_namespace="root/cimv3"),
+            dest_attrs=None,
+            subscription_attrs=None,
+            remove_destinations=None,
+            remove_filters=None,
+            remove_subscriptions=None,
+            remove_server_attrs=None,
+            exp_result=dict(
+                server_id="http://FakedUrl:5988",
+                filter_count=1,
+                filter_props=[0, [('SourceNamespaces', ['root/interop',
+                                                        'root/cimv2']),
+                                  ('SourceNamespace', 'root/cimv3')]], ),
         ),
         None, None, OK
     ),
@@ -884,7 +942,7 @@ TESTCASES_SUBMGR = [
             submgr_id="ValidID",
             connection_attrs=dict(url=None),
             filter_attrs=dict(server_id="http://FakedUrl:5988",
-                              source_namespace='root/interop',
+                              source_namespaces='root/interop',
                               query="SELECT * from blah",
                               query_language='WQL',
                               owned=True,
@@ -906,13 +964,13 @@ TESTCASES_SUBMGR = [
             submgr_id="ValidID",
             connection_attrs=dict(url=None),
             filter_attrs=[dict(server_id="http://FakedUrl:5988",
-                               source_namespace='root/interop',
+                               source_namespaces='root/interop',
                                query="SELECT * from blah",
                                query_language='WQL',
                                owned=True,
                                filter_id="Filter1", name=None),
                           dict(server_id="http://FakedUrl:5988",
-                               source_namespace='root/interop',
+                               source_namespaces='root/interop',
                                query="SELECT * from blah",
                                query_language='WQL',
                                owned=True,
@@ -1081,7 +1139,7 @@ TESTCASES_SUBMGR = [
         None, None, OK
     ),
     (
-        "Add multiple valid owned listener_destinations",
+        "Add multiple valid owned listener_destinations and remove server",
         dict(
             submgr_id="ValidID",
             connection_attrs=dict(url=None),
@@ -1097,6 +1155,36 @@ TESTCASES_SUBMGR = [
             remove_server_attrs="http://FakedUrl:5988",
             exp_result=dict(server_id="http://FakedUrl:5988",
                             listener_count=2)
+        ),
+        None, None, OK
+    ),
+    (
+        "Remove multiple subscriptions with remove server",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            dest_attrs=dict(server_id="http://FakedUrl:5988",
+                            listener_urls=["http://localhost:5000",
+                                           "https://localhost:5000"],
+                            owned=True),
+            filter_attrs=dict(server_id="http://FakedUrl:5988",
+                              source_namespaces='root/interop',
+                              query="SELECT * from blah",
+                              query_language='WQL',
+                              owned=True,
+                              filter_id="Filter1", name=None),
+            subscription_attrs=dict(server_id="http://FakedUrl:5988",
+                                    filter_path=0,
+                                    destination_paths=[0, 1],
+                                    owned=True),
+            remove_destinations=None,
+            remove_filters=None,
+            remove_subscriptions=None,
+            remove_server_attrs="http://FakedUrl:5988",
+            exp_result=dict(server_id="http://FakedUrl:5988",
+                            listener_count=2,
+                            filter_count=1,
+                            subscription_count=2)
         ),
         None, None, OK
     ),
@@ -1129,7 +1217,7 @@ TESTCASES_SUBMGR = [
                             listener_urls="http://localhost:5000",
                             owned=True),
             filter_attrs=dict(server_id="http://FakedUrl:5988",
-                              source_namespace='root/interop',
+                              source_namespaces='root/interop',
                               query="SELECT * from blah",
                               query_language='WQL',
                               owned=True,
@@ -1158,7 +1246,7 @@ TESTCASES_SUBMGR = [
                             listener_urls="http://localhost:5000",
                             owned=True),
             filter_attrs=dict(server_id="http://FakedUrl:5988",
-                              source_namespace='root/interop',
+                              source_namespaces='root/interop',
                               query="SELECT * from blah",
                               query_language='WQL',
                               owned=True,
@@ -1187,7 +1275,7 @@ TESTCASES_SUBMGR = [
                             listener_urls="http://localhost:5000",
                             owned=False),
             filter_attrs=dict(server_id="http://FakedUrl:5988",
-                              source_namespace='root/interop',
+                              source_namespaces='root/interop',
                               query="SELECT * from blah",
                               query_language='WQL',
                               owned=True,
@@ -1216,7 +1304,7 @@ TESTCASES_SUBMGR = [
                             listener_urls="http://localhost:5000",
                             owned=True),
             filter_attrs=dict(server_id="http://FakedUrl:5988",
-                              source_namespace='root/interop',
+                              source_namespaces='root/interop',
                               query="SELECT * from blah",
                               query_language='WQL',
                               owned=False,
@@ -1246,7 +1334,7 @@ TESTCASES_SUBMGR = [
                                            "https://localhost:5000"],
                             owned=True),
             filter_attrs=dict(server_id="http://FakedUrl:5988",
-                              source_namespace='root/interop',
+                              source_namespaces='root/interop',
                               query="SELECT * from blah",
                               query_language='WQL',
                               owned=True,
@@ -1297,7 +1385,7 @@ TESTCASES_SUBMGR = [
                                            "https://localhost:5000"],
                             owned=True),
             filter_attrs=dict(server_id="http://FakedUrl:5988",
-                              source_namespace='root/interop',
+                              source_namespaces='root/interop',
                               query="SELECT * from blah",
                               query_language='WQL',
                               owned=True,
@@ -1318,13 +1406,13 @@ TESTCASES_SUBMGR = [
         CIMError, None, OK
     ),
     (
-        "Test remove filter suceeds without subscription",
+        "Test remove filter succeeds without subscription",
         dict(
             submgr_id="ValidID",
             connection_attrs=dict(url=None),
             dest_attrs=None,
             filter_attrs=dict(server_id="http://FakedUrl:5988",
-                              source_namespace='root/interop',
+                              source_namespaces='root/interop',
                               query="SELECT * from blah",
                               query_language='WQL',
                               owned=True,
@@ -1350,7 +1438,7 @@ TESTCASES_SUBMGR = [
                                            "https://localhost:5000"],
                             owned=True),
             filter_attrs=dict(server_id="http://FakedUrl:5988",
-                              source_namespace='root/interop',
+                              source_namespaces='root/interop',
                               query="SELECT * from blah",
                               query_language='WQL',
                               owned=True,
@@ -1380,7 +1468,7 @@ TESTCASES_SUBMGR = [
                                            "https://localhost:5000"],
                             owned=True),
             filter_attrs=dict(server_id="http://FakedUrl:5988",
-                              source_namespace='root/interop',
+                              source_namespaces='root/interop',
                               query="SELECT * from blah",
                               query_language='WQL',
                               owned=True,
@@ -1410,7 +1498,7 @@ TESTCASES_SUBMGR = [
                                            "https://localhost:5000"],
                             owned=True),
             filter_attrs=dict(server_id="http://FakedUrl:5988",
-                              source_namespace='root/interop',
+                              source_namespaces='root/interop',
                               query="SELECT * from blah",
                               query_language='WQL',
                               owned=True,
@@ -1437,8 +1525,6 @@ TESTCASES_SUBMGR = [
     # Tests that need to be added
     # Add server where param is not WBEMServer
     # add not_owned filters and destinations
-    # NOTE: The following tests will be added after merge with issue #2701
-    # NOTE: add tests that depend on providers see issue# 2704
     # NOTE: Eventually this should replace most of the unit tests.
 ]
 
@@ -1561,6 +1647,18 @@ def test_subscriptionmanager(testcase, submgr_id, connection_attrs,
         dest_props = exp_result['dest_props']
         created_instance = added_destinations[dest_props[0]]
         props = dest_props[1]
+        for prop, value in props:
+            # If None expect either property with None or no property
+            if value is None:
+                if prop in created_instance:
+                    assert created_instance[prop] == value
+            else:
+                assert created_instance[prop] == value
+
+    if 'filter_props' in exp_result:
+        filter_props = exp_result['filter_props']
+        created_instance = added_filters[filter_props[0]]
+        props = filter_props[1]
         for prop, value in props:
             # If None expect either property with None or no property
             if value is None:
@@ -1722,7 +1820,7 @@ TESTCASES_SUBMGR_MODIFY = [
             submgr_id="ValidID",
             connection_attrs=dict(url=None),
             filter_attrs=dict(server_id="http://FakedUrl:5988",
-                              source_namespace='root/interop',
+                              source_namespaces='root/interop',
                               query="SELECT * from blah",
                               query_language='WQL',
                               owned=True,
@@ -1750,7 +1848,7 @@ TESTCASES_SUBMGR_MODIFY = [
             submgr_id="ValidID",
             connection_attrs=dict(url=None),
             filter_attrs=dict(server_id="http://FakedUrl:5988",
-                              source_namespace='root/interop',
+                              source_namespaces='root/interop',
                               query="SELECT * from blah",
                               query_language='WQL',
                               owned=True,
@@ -1781,7 +1879,7 @@ TESTCASES_SUBMGR_MODIFY = [
             submgr_id="ValidID",
             connection_attrs=dict(url=None),
             filter_attrs=dict(server_id="http://FakedUrl:5988",
-                              source_namespace='root/interop',
+                              source_namespaces='root/interop',
                               query="SELECT * from blah",
                               query_language='WQL',
                               owned=True,
@@ -1807,7 +1905,7 @@ TESTCASES_SUBMGR_MODIFY = [
         CIMError, None, OK
     ),
 
-    # TODO:
+    # TODO: The following tests are not in the test list.
     # 1. Test for missing required_property. This one very difficult because
     #    list of required properties is also properties always set by
     #    SubscriptionManager
