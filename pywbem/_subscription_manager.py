@@ -744,9 +744,9 @@ class WBEMSubscriptionManager(object):
                 del inst_list[i]
                 # continue loop to find any possible duplicate entries
 
-    def add_filter(self, server_id, source_namespace, query,
+    def add_filter(self, server_id, source_namespaces, query,
                    query_language=DEFAULT_QUERY_LANGUAGE, owned=True,
-                   filter_id=None, name=None):
+                   filter_id=None, name=None, source_namespace=None):
         """
         Add a :term:`dynamic indication filter` to a WBEM server, by creating
         an indication filter instance (of CIM class "CIM_IndicationFilter") in
@@ -799,8 +799,12 @@ class WBEMSubscriptionManager(object):
             The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
-          source_namespace (:term:`string`):
-            Source namespace of the indication filter.
+          source_namespaces (:term:`string`, list of :term:`string`, or None):
+            Source namespace or list of source namespaces  of the indication
+            filter. The values will be inserted into the CIM_IndicationFilter
+            SourceNamespaces property. If None, the SourceNamespaces property
+            will not be created. and the WBEM server will use the Interop
+            namespace as the source namespace for the indication filter.
 
           query (:term:`string`):
             Filter query in the specified query language.
@@ -837,6 +841,18 @@ class WBEMSubscriptionManager(object):
             filter instance, or `None` if the `filter_id` parameter is
             specified.
 
+          source_namespace (:term:`string):
+            Optional source namespace of the indication filter. If the
+            parameter is provided the value will be inserted into the
+            CIM_IndicationFilter SourceNamespace property. Otherwise the
+            SourceNamespace property will not be created. The `SourceNamespace`
+            property is deprecated in the DMTF CIM_IndicationFilter class in
+            favor of `SourceNamespaces`( see the `SourceNamespaces` parameter
+            above). This parameter is provided only to support calls to
+            add_filter() that use the `source_namespace` as a keyword parameter
+            or to support very old WBEM servers (prior to DMTF schema version
+            2.22) that require the `SourceNamespace` property.
+
         Returns:
 
             :class:`~pywbem.CIMInstance`: The created indication filter
@@ -870,9 +886,19 @@ class WBEMSubscriptionManager(object):
             raise ValueError("The name parameter cannot be used to add "
                              "owned filters.")
 
-        filter_inst = self._create_filter(server_id, source_namespace, query,
-                                          query_language, owned, filter_id,
-                                          name)
+        if source_namespaces is not None:
+            if not isinstance(source_namespaces, (six.string_types, list)):
+                raise TypeError(
+                    _format("source_namespaces must string or list. {0} is "
+                            "type {1}.", source_namespace,
+                            type(source_namespace)))
+
+            if isinstance(source_namespaces, six.string_types):
+                source_namespaces = [source_namespaces]
+
+        filter_inst = self._create_filter(
+            server_id, source_namespaces, query, query_language, owned,
+            filter_id, name, source_namespace=source_namespace)
 
         return filter_inst
 
@@ -1281,8 +1307,9 @@ class WBEMSubscriptionManager(object):
 
         return dest_inst
 
-    def _create_filter(self, server_id, source_namespace, query,
-                       query_language, owned, filter_id, name):
+    def _create_filter(self, server_id, source_namespaces, query,
+                       query_language, owned, filter_id, name,
+                       source_namespace):
         """
         Create a :term:`dynamic indication filter` instance in the Interop
         namespace of a WBEM server and return that instance.
@@ -1296,8 +1323,9 @@ class WBEMSubscriptionManager(object):
             The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
-          source_namespace (:term:`string`):
-            Source namespace of the indication filter.
+          source_namespaces (list of :term:`string` or None):
+            List of source namespaces of the indication filter. If None
+            the SourceNamespaces property will not be created.
 
           query (:term:`string`):
             Filter query in the specified query language.
@@ -1320,6 +1348,9 @@ class WBEMSubscriptionManager(object):
           name (:term:`string`):
             Value for the `Name` property of the filter instance, or `None`.
             Mutually exclusive with the `filter_id` parameter.
+
+          source_namespace (:term:`string` or None):
+            A namespace or None.
 
         Returns:
 
@@ -1349,8 +1380,10 @@ class WBEMSubscriptionManager(object):
                 filter_id, uuid.uuid4())
         if name:
             filter_inst['Name'] = name
-
-        filter_inst['SourceNamespace'] = source_namespace
+        if source_namespaces:
+            filter_inst['SourceNamespaces'] = source_namespaces
+        if source_namespace:
+            filter_inst['SourceNamespace'] = source_namespace
         filter_inst['Query'] = query
         filter_inst['QueryLanguage'] = query_language
 

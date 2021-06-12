@@ -29,6 +29,24 @@ Released: not yet
   raised in earlier versions may still be raised for other, less common cases.
   For details, see the corresponding item in the Enhancements section, below.
 
+* Changed 'SubscriptionManager.add_filter()' method to use the
+  'SourceNamespaces' property (allows multiple namespaces) of the
+  'CIM_IndicationFilter' class instead of the deprecated 'SourceNamespace'
+  property (allows only single namespace).  This changed the name of the
+  positional 'source_namespace' parameter to 'source_namespaces`. The new
+  parameter allows both string and list of strings as values.
+
+  This change brings the subscription manager in line with the incorporation of
+  the 'SourceNamespaces' property made to this CIM class definition
+  by DMTF CIM schema release 2.22.0.
+
+  An optional 'source_namespace' keyword parameter has been added to the
+  'add_filter()'method to account for any case where a WBEM Server cannot
+  handle the SourceNamespaces property. The primary incompatibility will be
+  that the instance created for CIM_Indication filter now has a property named
+  'SourceNamespaces' instead of 'SourceNamespace'. See further comments below
+  and issue #2725.
+
 **Deprecations:**
 
 **Bug fixes:**
@@ -123,6 +141,10 @@ Released: not yet
 
 * Finalized the support for SI units that was experimental so far, i.e. the
   'pywbem.siunit()' and 'pywbem.siunit_obj()' functions. (issue #2653)
+
+* Modify 'SubscriptionManager.add_filter()' to use the CIM_IndicationFilter
+  property 'SourceNamespaces' in place of the deprecated 'SourceNamespace'. (see
+  issue #2725 and the **Incompatible changes:** section above)
 
 **Cleanup:**
 

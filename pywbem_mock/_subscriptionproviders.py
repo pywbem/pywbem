@@ -386,6 +386,9 @@ class CIMIndicationFilterProvider(CommonMethodsMixin, InstanceWriteProvider):
         # Validates and possibly modifies the key properties except Name
         self.fix_key_properties(new_instance)
 
+        # Note: No test for SourceNamespace valid namespaces because profile
+        # allows creating filters for not-yet-created namespaces
+
         # Add missing properties that the might come from CIM_IndicationService
         # Issue # 2719, Should the following be set by the server or client
         new_instance['IndividualSubscriptionSupported'] = True
