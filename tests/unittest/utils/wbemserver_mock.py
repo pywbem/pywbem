@@ -78,6 +78,12 @@ DEFAULT_WBEM_SERVER_MOCK_DICT = {
                                       ' Released', },
     'interop_namspace': 'interop',
     'other_namespaces': [],
+    # mock providers that should be installed as part of startup
+    # The common parameter is the namespace for the provider
+    'providers': ["namespace_provider"],
+
+    # Definition of registered profiles.  Each entry creates a registered
+    # profile instance (i.e CIM_RegisteredProfile)
     'registered_profiles': [('DMTF', 'Indications', '1.1.0'),
                             ('DMTF', 'Profile Registration', '1.0.0'),
                             ('SNIA', 'Server', '1.2.0'),
@@ -87,6 +93,7 @@ DEFAULT_WBEM_SERVER_MOCK_DICT = {
                             ('SNIA', 'Software', '1.4.0'),
                             ('DMTF', 'Component', '1.4.0'), ],
 
+    # Each entry creates an instance of
     'referenced_profiles': [
         (('SNIA', 'Server', '1.2.0'), ('DMTF', 'Indications', '1.1.0')),
         (('SNIA', 'Server', '1.2.0'), ('SNIA', 'Array', '1.4.0')),
@@ -464,9 +471,13 @@ class WbemServerMock(object):
         if self.server_mock_data['other_namespaces']:
             namespaces.extend(self.server_mock_data['other_namespaces'])
 
-        conn.install_namespace_provider(self.interop_ns,
-                                        None,
-                                        verbose=None)
+        # Install providers from prenamed list. Need to add common
+        # method to mocker to replace install_namespace_provider
+        for provider in self.server_mock_data['providers']:
+            if provider == "namespace_provider":
+                conn.install_namespace_provider(self.interop_ns)
+            elif provider == 'subscription_providers':
+                conn.install_subscription_providers(self.interop_ns)
 
         self.build_reg_profile_insts(conn, self.registered_profiles)
 

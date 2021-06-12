@@ -152,6 +152,7 @@ import six
 
 from ._server import WBEMServer
 from ._cim_obj import CIMInstance, CIMInstanceName
+from ._cim_types import Uint16
 from ._cim_http import parse_url
 from ._cim_constants import CIM_ERR_FAILED
 from ._exceptions import CIMError
@@ -159,13 +160,27 @@ from ._utils import _format
 
 # CIM model classnames for subscription components
 SUBSCRIPTION_CLASSNAME = 'CIM_IndicationSubscription'
-DESTINATION_CLASSNAME = 'CIM_ListenerDestinationCIMXML'
+DESTINATION_CLASSNAME = 'CIM_ListenerDestination'
 FILTER_CLASSNAME = 'CIM_IndicationFilter'
 SYSTEM_CREATION_CLASSNAME = 'CIM_ComputerSystem'
 
 DEFAULT_QUERY_LANGUAGE = 'WQL'
 
 __all__ = ['WBEMSubscriptionManager']
+
+
+def validate_persistence_type(pt):
+    """ Validate persistence type integer with value 1,2,3 """
+    if pt is None:
+        return
+    if not isinstance(pt, int):
+        raise ValueError(
+            _format("The persistence_type must be an integer. {0} not "
+                    "allowed.", pt))
+    if pt < 2 or pt > 3:
+        raise ValueError(
+            _format("The persistence_type value must be between 1 and "
+                    "3. {0} not allowed.", pt))
 
 
 class WBEMSubscriptionManager(object):
@@ -469,7 +484,8 @@ class WBEMSubscriptionManager(object):
         for server_id in list(self._servers.keys()):
             self.remove_server(server_id)
 
-    def add_listener_destinations(self, server_id, listener_urls, owned=True):
+    def add_listener_destinations(self, server_id, listener_urls, owned=True,
+                                  persistence_type=None):
         """
         Register WBEM listeners to be the target of indications sent by a
         WBEM server.
@@ -541,6 +557,15 @@ class WBEMSubscriptionManager(object):
             permanent. See :ref:`WBEMSubscriptionManager` for details about
             these ownership types.
 
+          persistence_type (:class:`py:int`):
+            Integer value representing the value of the PersistenceType
+            property.  The following values are allowed: 2, Permanent,
+            3, Transient. the default if this parameter is not included is
+            3 (Transient) for owned destinations and to let the server set the
+            value for permanent destinations.  Most WBEM servers set the value
+            to 2(Permanent) if no value is provided.
+            This client does not provide for adding OtherPersistenceType
+
         Returns:
 
             :class:`py:list` of :class:`~pywbem.CIMInstance`: The created
@@ -565,7 +590,17 @@ class WBEMSubscriptionManager(object):
         # Here, the variable will be a single list item.
         listener_url = listener_urls
 
-        dest_inst = self._create_destination(server_id, listener_url, owned)
+        # if None and owned, set type 3
+        if persistence_type is None:
+            if owned:
+                persistence_type = 3
+            else:
+                validate_persistence_type(persistence_type)
+        else:
+            validate_persistence_type(persistence_type)
+
+        dest_inst = self._create_destination(server_id, listener_url, owned,
+                                             persistence_type)
 
         return [dest_inst]
 
@@ -1146,7 +1181,7 @@ class WBEMSubscriptionManager(object):
                 del inst_list[i]
                 # continue loop to find any possible duplicate entries
 
-    def _create_destination(self, server_id, dest_url, owned):
+    def _create_destination(self, server_id, dest_url, owned, persistence_type):
         """
         Create a listener destination instance in the Interop namespace of a
         WBEM server and return that instance.
@@ -1176,6 +1211,8 @@ class WBEMSubscriptionManager(object):
             Defines whether or not the created instance is *owned* by the
             subscription manager.
 
+          persistence_type (:class:)
+
         Returns:
 
             :class:`~pywbem.CIMInstance`: The created instance, as retrieved
@@ -1200,6 +1237,8 @@ class WBEMSubscriptionManager(object):
         dest_inst['CreationClassName'] = DESTINATION_CLASSNAME
         dest_inst['SystemCreationClassName'] = SYSTEM_CREATION_CLASSNAME
         dest_inst['SystemName'] = self._systemnames[server_id]
+        if persistence_type:
+            dest_inst['PersistenceType'] = Uint16(persistence_type)
 
         dest_inst['Name'] = _format(
             'pywbemdestination:{0}:{1}:{2}:{3}',
