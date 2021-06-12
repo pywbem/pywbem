@@ -37,4 +37,6 @@ from ._providerdependentregistry import *  # noqa: F403,F401
 from ._instancewriteprovider import *      # noqa: F403,F401
 from ._methodprovider import *             # noqa: F403,F401
 from ._namespaceprovider import *          # noqa: F403,F401
+from ._subscriptionproviders import *      # noqa: F403,F401
+
 from ._utils import *                      # noqa: F403,F401

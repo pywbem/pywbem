@@ -59,6 +59,9 @@ from ._utils import _uprint
 
 from ._namespaceprovider import CIMNamespaceProvider
 
+from ._subscriptionproviders import CIMIndicationSubscriptionProvider, \
+    CIMListenerDestinationProvider, CIMIndicationFilterProvider
+
 __all__ = ['FakedWBEMConnection']
 
 # Fake Server default values for parameters that apply to repo and operations
@@ -492,6 +495,69 @@ class FakedWBEMConnection(WBEMConnection):
 
         provider = CIMNamespaceProvider(self.cimrepository)
 
+        self.register_provider(provider,
+                               namespaces=interop_namespace,
+                               schema_pragma_files=schema_pragma_file,
+                               verbose=verbose)
+
+    def install_subscription_providers(self, interop_namespace,
+                                       schema_pragma_file=None,
+                                       verbose=None):
+        """
+        FakedWBEMConnection user method to install the indication subscription
+        providers in the Interop namespace where the proposed interop_namespace
+        is defined by the parameter interop_namespace
+
+        **Experimental:** *New in pywbem 1.3.0 as experimental.*
+
+        Because these provider requires a set of classes from the
+        DMTF schema, the schema_pragma_file install the schema is required.
+
+        This method should only be called once at the creation of the
+        mock environment.
+
+        Parameters:
+
+          interop_namespace  (:term:`string`):
+            The Interop namespace defined for this environment
+
+          schema_pragma_file (:term:`string`):
+            File path defining a CIM schema pragma file for the set of
+            CIM classes that make up a schema such as the DMTF schema.
+            This file must contain a pragma statement for each of the
+            classes defined in the schema.
+
+            If None, no attempt is made to any CIM classes required for the
+            provider and it is assumed that the CIM classes are already
+            installed
+
+          verbose (:class:`py:bool`):
+            If True, displays progress information as providers are installed.
+
+        Raises:
+          :exc:`~pywbem.CIMError`: with status code appropriate for any
+          error encountered in the installation of the provider.
+        """
+
+        # Determine if an interop namespace already exists and confirm that
+        # we are using a valid interop namespace name to add the
+        # new namespace.
+        if not self.find_interop_namespace():
+            self.add_namespace(interop_namespace)
+
+        provider = CIMListenerDestinationProvider(self.cimrepository)
+        self.register_provider(provider,
+                               namespaces=interop_namespace,
+                               schema_pragma_files=schema_pragma_file,
+                               verbose=verbose)
+
+        provider = CIMIndicationFilterProvider(self.cimrepository)
+        self.register_provider(provider,
+                               namespaces=interop_namespace,
+                               schema_pragma_files=schema_pragma_file,
+                               verbose=verbose)
+
+        provider = CIMIndicationSubscriptionProvider(self.cimrepository)
         self.register_provider(provider,
                                namespaces=interop_namespace,
                                schema_pragma_files=schema_pragma_file,

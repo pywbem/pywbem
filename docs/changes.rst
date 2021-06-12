@@ -104,6 +104,9 @@ Released: not yet
   the easy-server server and vault files. As part of that, increased the minimum
   version of the 'pytest-easy-server' package to 0.8.0. (issue #2660)
 
+* Added providers to the pywbem_mock environment for the  3 classes required to
+  manage subscriptions in a WBEM server.  (See issue #2704)
+
 **Cleanup:**
 
 * Extend tests for SubscriptionManager to utilize pytest and cover error cases.
