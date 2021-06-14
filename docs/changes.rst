@@ -51,6 +51,13 @@ Released: not yet
     to make the create/modify decision.
   - Added the client host as a component of the Name property for owned
     filters and destinations. (issue #2701).
+  - Fix issue where windows indication throughput is very slow.  It is in
+    the range of 1 indication every 2 seconds.  The issue is not pywbem but
+    windows itself apparently because of hosts file and DNS configuration
+    such that using localhost builds in a delay. This can be fixed by using
+    an IP address 127.0.0.1 for the indication listener or modifying the hosts
+    table in windows. For this test we chose to just change the host name  See
+    issue #528)
 
 * Docs: Fixed an error with the autodocsumm and Sphinx 4.0.0. (issue #2697)
 

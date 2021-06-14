@@ -640,7 +640,12 @@ def test_WBEMListener_send_indications(send_count):
     if LOGLEVEL > logging.NOTSET:
         logging.getLogger('').setLevel(LOGLEVEL)
 
-    host = 'localhost'
+    # Fixes issue #528 where on Windows, localhost adds multisecond delay
+    # probably due to hosts table or DNS misconfiguration.
+    if sys.platform == 'win32':
+        host = '127.0.0.1'
+    else:
+        host = 'localhost'
     http_port = 50000
 
     listener = WBEMListener(host, http_port)

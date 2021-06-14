@@ -13,13 +13,13 @@ import datetime
 import argparse as _argparse
 import re
 from random import randint
+import xml.etree.ElementTree as ET
 import requests
 # The following disables the urllib3 InsecureRequestWarning that gets
 # generated for every send when server cert verification is disabled.
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-import xml.etree.ElementTree as ET
-import json
+
 
 class ElapsedTimer(object):
     """
@@ -40,7 +40,7 @@ class ElapsedTimer(object):
         """
         dt = datetime.datetime.now() - self.start_time
         return ((dt.days * 24 * 3600) + dt.seconds) * 1000  \
-                + dt.microseconds / 1000.0
+            + dt.microseconds / 1000.0
 
     def elapsed_sec(self):
         """ get the elapsed time in seconds. Returns floating
@@ -49,7 +49,7 @@ class ElapsedTimer(object):
         return self.elapsed_ms() / 1000
 
 
-def create_indication_data(msg_id, sequence_number, source_id, delta_time, \
+def create_indication_data(msg_id, sequence_number, source_id, delta_time,
                            protocol_ver):
     '''
     Create a singled indication XML from the template and the included
@@ -84,10 +84,10 @@ def create_indication_data(msg_id, sequence_number, source_id, delta_time, \
       </MESSAGE>
     </CIM>"""
 
-    data = {'sequence_number' : sequence_number, 'source_id' : source_id,
-            'delta_time' : delta_time, 'protocol_ver' : protocol_ver,
-            'msg_id' : msg_id}
-    return data_template%data
+    data = {'sequence_number': sequence_number, 'source_id': source_id,
+            'delta_time': delta_time, 'protocol_ver': protocol_ver,
+            'msg_id': msg_id}
+    return data_template % data
 
 
 def send_indication(url, headers, payload, verbose, verify=None, keyfile=None,
@@ -140,18 +140,19 @@ def send_indication(url, headers, payload, verbose, verify=None, keyfile=None,
                                                          response.text))
     root = ET.fromstring(response.text)
     if (root.tag != 'CIM') or (root.attrib['CIMVERSION'] != '2.0') \
-                           or (root.attrib['DTDVERSION'] != '2.4'):
+            or (root.attrib['DTDVERSION'] != '2.4'):
 
-        print('Invalid XML\nResponse code=%s headers=%s data=%s' % \
-            (response.status_code, response.headers, response.text))
+        print('Invalid XML\nResponse code=%s headers=%s data=%s' %
+              (response.status_code, response.headers, response.text))
         return False
     for child in root:
         if child.tag != 'MESSAGE' or child.attrib['PROTOCOLVERSION'] != '1.4':
-            print('Invalid child\nResponse code=%s headers=%s data=%s' % \
+            print('Invalid child\nResponse code=%s headers=%s data=%s' %
                   (response.status_code, response.headers, response.text))
             return False
 
-    return True if(response.status_code == 200) else False
+    return response.status_code == 200
+
 
 def get_args():
     """
@@ -179,9 +180,11 @@ Examples:
     pos_arggroup.add_argument(
         'url', metavar='url', nargs='?', default='http://127.0.0.1',
         help='Optional url of listener '
-             'If supplied, must be schema+address[:port]. Schema determines ' \
-             ' whether http or https are used. Port may be defined in url ' \
-             'or with -p option. If not included default port = 5000')
+             'If supplied, must be schema+address[:port]. Schema determines '
+             ' whether http or https are used. Port may be defined in url '
+             'or with -p option. If not included default port = 5000. '
+             'On windows, host name "localhost" may be much slower than '
+             'default IP address 127.0.0.1')
 
     general_arggroup = argparser.add_argument_group('General options')
     general_arggroup.add_argument(
@@ -230,6 +233,7 @@ Examples:
 
     return args, argparser
 
+
 def main():
     """ Get arguments from get_args and create/send the number
         of indications defined.  Each indication is created from a
@@ -261,11 +265,11 @@ def main():
     # use for verification.
     verification = False if opts.cert_file is None else opts.cert_file
 
-    headers = {'content-type' : 'application/xml; charset=utf-8',
-               'CIMExport' : 'MethodRequest',
-               'CIMExportMethod' : 'ExportIndication',
-               'Accept-Encoding' : 'Identity',
-               'CIMProtocolVersion' : cim_protocol_version}
+    headers = {'content-type': 'application/xml; charset=utf-8',
+               'CIMExport': 'MethodRequest',
+               'CIMExportMethod': 'ExportIndication',
+               'Accept-Encoding': 'Identity',
+               'CIMProtocolVersion': cim_protocol_version}
     # includes accept-encoding because of requests issue.  He supplies it if
     # we don't TODO try None
 
@@ -297,7 +301,8 @@ def main():
             return
     endtime = timer.elapsed_sec()
     print('Sent %s in %s sec or %.2f ind/sec' % (opts.deliver, endtime,
-                                                 (opts.deliver/endtime)))
+                                                 (opts.deliver / endtime)))
+
 
 if __name__ == '__main__':
     sys.exit(main())
