@@ -58,6 +58,10 @@ Released: not yet
     an IP address 127.0.0.1 for the indication listener or modifying the hosts
     table in windows. For this test we chose to just change the host name  See
     issue #528)
+  - Fixes issue with SubscriptionManager class where add_destinations loses
+    the input parameter owned if there are multiple urls in the listener_urls
+    parameter (see issue #2715)
+
 
 * Docs: Fixed an error with the autodocsumm and Sphinx 4.0.0. (issue #2697)
 

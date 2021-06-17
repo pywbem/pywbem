@@ -574,6 +574,10 @@ TESTCASES_SUBMGR = [
     #     the subscription or to make it simpler to define tests, an integer
     #     for the position in the appropriate list for the required
     #     filter or destination.
+    #   * remove_destinations: Simple option that removes all destinations
+    #     created one by one using the saved list from creation
+    #   * remove_filter_attrs:
+    #   * remove_subscription_attrs:
     #   * remove_server_attrs: Single server_id identifying server to remove.
     #     This function is executed after all other methods and their tests so
     #     the other tests reflect what was added.
@@ -596,6 +600,9 @@ TESTCASES_SUBMGR = [
             filter_attrs=None,
             dest_attrs=None,
             subscription_attrs=None,
+            remove_destinations=None,
+            remove_filters=None,
+            remove_subscriptions=None,
             remove_server_attrs=None,
             exp_result=dict()
         ),
@@ -609,6 +616,9 @@ TESTCASES_SUBMGR = [
             filter_attrs=None,
             dest_attrs=None,
             subscription_attrs=None,
+            remove_destinations=None,
+            remove_filters=None,
+            remove_subscriptions=None,
             remove_server_attrs=None,
             exp_result=dict()
         ),
@@ -622,6 +632,9 @@ TESTCASES_SUBMGR = [
             filter_attrs=None,
             dest_attrs=None,
             subscription_attrs=None,
+            remove_destinations=None,
+            remove_filters=None,
+            remove_subscriptions=None,
             remove_server_attrs=None,
             exp_result=dict()
         ),
@@ -635,6 +648,9 @@ TESTCASES_SUBMGR = [
             filter_attrs=None,
             dest_attrs=None,
             subscription_attrs=None,
+            remove_destinations=None,
+            remove_filters=None,
+            remove_subscriptions=None,
             remove_server_attrs=None,
             exp_result=dict()
         ),
@@ -647,6 +663,9 @@ TESTCASES_SUBMGR = [
             connection_attrs=dict(url=None),
             filter_attrs=None,
             dest_attrs=None,
+            remove_destinations=None,
+            remove_filters=None,
+            remove_subscriptions=None,
             subscription_attrs=None,
             remove_server_attrs=None,
             exp_result=dict(server_id="http://FakedUrl:5988")
@@ -662,6 +681,9 @@ TESTCASES_SUBMGR = [
             filter_attrs=None,
             dest_attrs=None,
             subscription_attrs=None,
+            remove_destinations=None,
+            remove_filters=None,
+            remove_subscriptions=None,
             remove_server_attrs=None,
             exp_result=dict(server_id=["http://FakedUrl:5988",
                                        "http://fake2:5988"])
@@ -681,6 +703,30 @@ TESTCASES_SUBMGR = [
                               filter_id=None, name=None),
             dest_attrs=None,
             subscription_attrs=None,
+            remove_destinations=None,
+            remove_filters=None,
+            remove_subscriptions=None,
+            remove_server_attrs=None,
+            exp_result=dict(server_id="http://FakedUrl:5988")
+        ),
+        ValueError, None, OK
+    ),
+    (
+        "Add_filter with name and owned fails",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            filter_attrs=dict(server_id="http://FakedUrl:5988",
+                              source_namespace='root/interop',
+                              query="SELECT * from blah",
+                              query_language='WQL',
+                              owned=True,
+                              filter_id=None, name='NotAllowedWithOwned'),
+            dest_attrs=None,
+            subscription_attrs=None,
+            remove_destinations=None,
+            remove_filters=None,
+            remove_subscriptions=None,
             remove_server_attrs=None,
             exp_result=dict(server_id="http://FakedUrl:5988")
         ),
@@ -699,6 +745,9 @@ TESTCASES_SUBMGR = [
                               filter_id=None, name=None),
             dest_attrs=None,
             subscription_attrs=None,
+            remove_destinations=None,
+            remove_filters=None,
+            remove_subscriptions=None,
             remove_server_attrs=None,
             exp_result=dict(server_id="http://FakedUrl:5988")
         ),
@@ -717,6 +766,9 @@ TESTCASES_SUBMGR = [
                               filter_id="Fred", name="fred"),
             dest_attrs=None,
             subscription_attrs=None,
+            remove_destinations=None,
+            remove_filters=None,
+            remove_subscriptions=None,
             remove_server_attrs=None,
             exp_result=dict(server_id="http://FakedUrl:5988")
         ),
@@ -735,6 +787,9 @@ TESTCASES_SUBMGR = [
                               filter_id="Fred", name="fred"),
             dest_attrs=None,
             subscription_attrs=None,
+            remove_destinations=None,
+            remove_filters=None,
+            remove_subscriptions=None,
             remove_server_attrs=None,
             exp_result=dict(server_id="http://FakedUrl:5988")
         ),
@@ -753,6 +808,9 @@ TESTCASES_SUBMGR = [
                               filter_id="Fred:", name=None),
             dest_attrs=None,
             subscription_attrs=None,
+            remove_destinations=None,
+            remove_filters=None,
+            remove_subscriptions=None,
             remove_server_attrs=None,
             exp_result=dict(server_id="http://FakedUrl:5988", )
         ),
@@ -771,6 +829,9 @@ TESTCASES_SUBMGR = [
                               filter_id=9, name=None),
             dest_attrs=None,
             subscription_attrs=None,
+            remove_destinations=None,
+            remove_filters=None,
+            remove_subscriptions=None,
             remove_server_attrs=None,
             exp_result=dict(server_id="http://FakedUrl:5988")
         ),
@@ -789,6 +850,9 @@ TESTCASES_SUBMGR = [
                               filter_id="Filter1", name=None),
             dest_attrs=None,
             subscription_attrs=None,
+            remove_destinations=None,
+            remove_filters=None,
+            remove_subscriptions=None,
             remove_server_attrs=None,
             exp_result=dict(server_id="http://FakedUrl:5988",
                             filter_count=1)
@@ -808,11 +872,14 @@ TESTCASES_SUBMGR = [
                               filter_id="Filter1", name=None),
             dest_attrs=None,
             subscription_attrs=None,
+            remove_destinations=None,
+            remove_filters=None,
+            remove_subscriptions=None,
             remove_server_attrs="http://FakedUrl:5988",
             exp_result=dict(server_id="http://FakedUrl:5988",
                             filter_count=1)
         ),
-        None, None, RUN
+        None, None, OK
     ),
     (
         "Add_filter with  2 valid filters",
@@ -833,6 +900,9 @@ TESTCASES_SUBMGR = [
                                filter_id="Filter2", name=None), ],
             dest_attrs=None,
             subscription_attrs=None,
+            remove_destinations=None,
+            remove_filters=None,
+            remove_subscriptions=None,
             remove_server_attrs=None,
             exp_result=dict(server_id="http://FakedUrl:5988",
                             filter_count=2)
@@ -849,6 +919,9 @@ TESTCASES_SUBMGR = [
                             listener_urls="httpx",
                             owned=True),
             subscription_attrs=None,
+            remove_destinations=None,
+            remove_filters=None,
+            remove_subscriptions=None,
             remove_server_attrs=None,
             exp_result=dict(server_id="http://FakedUrl:5988")
         ),
@@ -865,6 +938,9 @@ TESTCASES_SUBMGR = [
 
                             owned=True),
             subscription_attrs=None,
+            remove_destinations=None,
+            remove_filters=None,
+            remove_subscriptions=None,
             remove_server_attrs=None,
             exp_result=dict(server_id="http://FakedUrl:5988",
                             listener_count=1)
@@ -872,7 +948,7 @@ TESTCASES_SUBMGR = [
         None, None, OK
     ),
     (
-        "Add multiple valid listener_destinations",
+        "Add multiple valid owned listener_destinations",
         dict(
             submgr_id="ValidID",
             connection_attrs=dict(url=None),
@@ -882,11 +958,34 @@ TESTCASES_SUBMGR = [
                                            "https://localhost:5001"],
                             owned=True),
             subscription_attrs=None,
-            remove_server_attrs=None,
+            remove_destinations=None,
+            remove_filters=None,
+            remove_subscriptions=None,
+            remove_server_attrs="http://FakedUrl:5988",
             exp_result=dict(server_id="http://FakedUrl:5988",
                             listener_count=2)
         ),
-        None, None, OK
+        None, None, RUN
+    ),
+    (
+        "Add multiple valid not=owned listener_destinations",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            filter_attrs=None,
+            dest_attrs=dict(server_id="http://FakedUrl:5988",
+                            listener_urls=["http://localhost:5000",
+                                           "https://localhost:5001"],
+                            owned=False),
+            subscription_attrs=None,
+            remove_destinations=None,
+            remove_filters=None,
+            remove_subscriptions=None,
+            remove_server_attrs="http://FakedUrl:5988",
+            exp_result=dict(server_id="http://FakedUrl:5988",
+                            listener_count=2)
+        ),
+        None, None, RUN
     ),
     (
         "Add a single valid subscription",
@@ -906,6 +1005,9 @@ TESTCASES_SUBMGR = [
                                     filter_path=0,
                                     destination_paths=0,
                                     owned=True),
+            remove_destinations=None,
+            remove_filters=None,
+            remove_subscriptions=None,
             remove_server_attrs=None,
             exp_result=dict(server_id="http://FakedUrl:5988",
                             listener_count=1,
@@ -934,6 +1036,8 @@ TESTCASES_SUBMGR = [
 @simplified_test_function
 def test_subscriptionmanager(testcase, submgr_id, connection_attrs,
                              filter_attrs, dest_attrs, subscription_attrs,
+                             remove_destinations, remove_filters,
+                             remove_subscriptions,
                              remove_server_attrs, exp_result):
     """
     Tests object init and add-server
@@ -1009,9 +1113,15 @@ def test_subscriptionmanager(testcase, submgr_id, connection_attrs,
         else:
             assert server_id == exp_result['server_id']
 
+    # test for listener_destinations created
     if 'listener_count' in exp_result:
         assert len(submgr.get_all_destinations(server_id)) == \
             exp_result['listener_count']
+        if dest_attrs['owned']:
+            assert len(submgr.get_owned_destinations(server_id)) == \
+                exp_result['listener_count']
+        else:
+            assert not submgr.get_owned_destinations(server_id)
 
     if 'filter_count' in exp_result:
         assert len(submgr.get_all_filters(server_id)) == \
@@ -1023,6 +1133,27 @@ def test_subscriptionmanager(testcase, submgr_id, connection_attrs,
 
     # The removal methods are executed after all others methods defined for
     # the test and after tests on the results of other method execution
+    if remove_destinations:
+        dests = submgr.get_all_destinations(server_id)
+        dest_paths = [inst.path for inst in dests]
+        submgr.remove_destinations(server_id, dest_paths)
+        assert len(submgr.get_all_destinations(server_id)) == 0
+        assert len(submgr.get_owned_destinations(server_id)) == 0
+
+    if remove_filters:
+        filters = submgr.get_all_filters(server_id)
+        for path in [inst.path for inst in filters]:
+            submgr.remove_filter(server_id, path)
+        assert len(submgr.get_all_filters(server_id)) == 0
+        assert len(submgr.get_owned_filters(server_id)) == 0
+
+    if remove_subscriptions:
+        subs = submgr.get_all_subscriptions(server_id)
+        paths = [inst.path for inst in subs]
+        submgr.remove_subscriptions(server_id, paths)
+        assert len(submgr.get_all_subscriptions(server_id)) == 0
+        assert len(submgr.get_owned_subscriptions(server_id)) == 0
+
     if remove_server_attrs:
         submgr.remove_server(remove_server_attrs)
 

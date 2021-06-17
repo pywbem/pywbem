@@ -558,7 +558,7 @@ class WBEMSubscriptionManager(object):
             dest_insts = []
             for listener_url in listener_urls:
                 new_dest_insts = self.add_listener_destinations(
-                    server_id, listener_url)
+                    server_id, listener_url, owned)
                 dest_insts.extend(new_dest_insts)
             return dest_insts
 
