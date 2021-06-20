@@ -61,6 +61,8 @@ Released: not yet
   - Fixes issue with SubscriptionManager class where add_destinations loses
     the input parameter owned if there are multiple urls in the listener_urls
     parameter (see issue #2715)
+  - Fixes issue where add_subscription returned wrong instance if the
+    instance already exists. (See issue #2719)
 
 
 * Docs: Fixed an error with the autodocsumm and Sphinx 4.0.0. (issue #2697)

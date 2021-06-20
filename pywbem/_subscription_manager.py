@@ -951,13 +951,11 @@ class WBEMSubscriptionManager(object):
         When creating permanent subscriptions, the indication filter and the
         listener destinations must not be owned.
 
-        Owned subscriptions are added or updated conditionally: If the
+        Owned subscriptions are added conditionally: If the
         subscription instance to be added is already registered with
-        this subscription manager and has the same property values, it is not
-        created or modified. If it has the same path but different property
-        values, it is modified to get the desired property values. If an
-        instance with this path does not exist yet (the normal case), it is
-        created.
+        this subscription manager and has the same path, it is not
+        created or modified. In that case, the instance already registered is
+        returned. This method does not modify subscriptions.
 
         Permanent subscriptions are created unconditionally, and it is up to
         the user to ensure that such an instance does not exist yet.
@@ -992,7 +990,9 @@ class WBEMSubscriptionManager(object):
         Returns:
 
             :class:`py:list` of :class:`~pywbem.CIMInstance`: The indication
-            subscription instances created in the WBEM server.
+            subscription instances created in the WBEM server or the instance
+            already in the WBEM server if the new instance is owned and there
+            is already an owned subscription with the same path.
 
         Raises:
 
@@ -1354,9 +1354,12 @@ class WBEMSubscriptionManager(object):
         if owned:
             for inst in self._owned_subscriptions[server_id]:
                 if inst.path == sub_path:
-                    # It does not have any properties besides its keys,
-                    # so checking the path is sufficient.
-                    return sub_inst
+                    # Return the instance originally created since the
+                    # creation process may have added properties.
+                    # We do not care about any differences in properties since
+                    # we only create new instances and sub_inst.path already
+                    # exists.
+                    return inst
             sub_path = server.conn.CreateInstance(
                 sub_inst, namespace=server.interop_ns)
             sub_inst = server.conn.GetInstance(sub_path)
