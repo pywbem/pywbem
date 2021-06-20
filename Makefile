@@ -490,7 +490,12 @@ endif
 
 pip_upgrade_$(pymn).done: Makefile
 	-$(call RM_FUNC,$@)
+ifeq ($(PLATFORM),Windows_native)
+	@echo "Makefile: On Windows, there is no automatic upgrade of Pip to a minimum version of 9.x. Current Pip version:"
+	$(PIP_CMD) --version
+else
 	bash -c 'pv=$$($(PIP_CMD) --version); if [[ $$pv =~ (^pip [1-8]\..*) ]]; then $(PIP_INSTALL_CMD) pip==9.0.1; fi'
+endif
 	$(PIP_INSTALL_CMD) $(pip_level_opts) pip
 	echo "done" >$@
 
