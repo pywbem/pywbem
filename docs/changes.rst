@@ -63,6 +63,10 @@ Released: not yet
     parameter (see issue #2715)
   - Fixes issue where add_subscription returned wrong instance if the
     instance already exists. (See issue #2719)
+  - Fix issues in SubscriptionManager.add_destination to add optional parameter
+    which populates the destination PersistenceType property and modified the
+    class for the destination to CIM_ListenerDestination since the
+    CIM_ListenerDestinationXML class is deprecated. (See issue #2712)
 
 
 * Docs: Fixed an error with the autodocsumm and Sphinx 4.0.0. (issue #2697)

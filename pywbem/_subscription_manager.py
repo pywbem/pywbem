@@ -149,6 +149,7 @@ import re
 from socket import getfqdn
 import uuid
 import six
+from nocasedict import NocaseDict
 
 from ._server import WBEMServer
 from ._cim_obj import CIMInstance, CIMInstanceName
@@ -170,17 +171,29 @@ __all__ = ['WBEMSubscriptionManager']
 
 
 def validate_persistence_type(pt):
-    """ Validate persistence type integer with value 1,2,3 """
+    """
+    Validate persistence type parameter pt as string possible
+    values::transient" or "permanent" and convert to corresponding integer
+    value
+    Returns integer value or None for the PersistenceType property based on the
+    input string.
+    """
     if pt is None:
-        return
-    if not isinstance(pt, int):
+        return None
+    if not isinstance(pt, six.string_types):
         raise ValueError(
-            _format("The persistence_type must be an integer. {0} not "
-                    "allowed.", pt))
-    if pt < 2 or pt > 3:
+            _format("The persistence_type must be a string. Type {0} not "
+                    "allowed.", type(pt)))
+
+    persistence_type_dict = NocaseDict([('permanent', 2), ('transient', 3)])
+
+    if pt not in persistence_type_dict:
         raise ValueError(
-            _format("The persistence_type value must be between 1 and "
-                    "3. {0} not allowed.", pt))
+            _format("The persistence_type string must be one of: {0}."
+                    " The value '{1}' is invalid",
+                    ", ".join(list(persistence_type_dict.keys())), pt))
+
+    return persistence_type_dict[pt]
 
 
 class WBEMSubscriptionManager(object):
@@ -557,14 +570,22 @@ class WBEMSubscriptionManager(object):
             permanent. See :ref:`WBEMSubscriptionManager` for details about
             these ownership types.
 
-          persistence_type (:class:`py:int`):
-            Integer value representing the value of the PersistenceType
-            property.  The following values are allowed: 2, Permanent,
-            3, Transient. the default if this parameter is not included is
-            3 (Transient) for owned destinations and to let the server set the
-            value for permanent destinations.  Most WBEM servers set the value
-            to 2(Permanent) if no value is provided.
-            This client does not provide for adding OtherPersistenceType
+          persistence_type (:term:`string`):
+            Optional string where the allowed strings are "transient" and
+            "permanent" and the default is None.  The strings are used to
+            set the PersistenceType property, an integer property with the
+            values of 2 (Permanent) or 3 (Transient)
+
+            The default value is None so that the PersistenceType
+            property is not created on the destination instance for permanent
+            filters. and is created with PersistenceType 3 (Transient) for owned
+            destinations.
+
+            Most WBEM servers set the PersistenceType value to 2 (Permanent) if
+            no value is provided.
+
+            This method does not provide for adding the OtherPersistenceType
+            property.
 
         Returns:
 
@@ -590,17 +611,14 @@ class WBEMSubscriptionManager(object):
         # Here, the variable will be a single list item.
         listener_url = listener_urls
 
-        # if None and owned, set type 3
-        if persistence_type is None:
-            if owned:
-                persistence_type = 3
-            else:
-                validate_persistence_type(persistence_type)
-        else:
-            validate_persistence_type(persistence_type)
+        # Validate which returns integer for instance PropertyValue or None
+        # and if None and owned, set type 3 (transient).
+        persistence_type_value = validate_persistence_type(persistence_type)
+        if owned and persistence_type is None:
+            persistence_type_value = 3
 
         dest_inst = self._create_destination(server_id, listener_url, owned,
-                                             persistence_type)
+                                             persistence_type_value)
 
         return [dest_inst]
 
@@ -1181,7 +1199,8 @@ class WBEMSubscriptionManager(object):
                 del inst_list[i]
                 # continue loop to find any possible duplicate entries
 
-    def _create_destination(self, server_id, dest_url, owned, persistence_type):
+    def _create_destination(self, server_id, dest_url, owned,
+                            persistence_type_value):
         """
         Create a listener destination instance in the Interop namespace of a
         WBEM server and return that instance.
@@ -1211,7 +1230,10 @@ class WBEMSubscriptionManager(object):
             Defines whether or not the created instance is *owned* by the
             subscription manager.
 
-          persistence_type (:class:)
+          persistence_type_value (:class:`int` or None)
+            If integer, it is the value of the PeristenceType property.  If
+            None, the PersistenceType property is not included in the
+            created instance.
 
         Returns:
 
@@ -1237,8 +1259,8 @@ class WBEMSubscriptionManager(object):
         dest_inst['CreationClassName'] = DESTINATION_CLASSNAME
         dest_inst['SystemCreationClassName'] = SYSTEM_CREATION_CLASSNAME
         dest_inst['SystemName'] = self._systemnames[server_id]
-        if persistence_type:
-            dest_inst['PersistenceType'] = Uint16(persistence_type)
+        if persistence_type_value is not None:
+            dest_inst['PersistenceType'] = Uint16(persistence_type_value)
 
         dest_inst['Name'] = _format(
             'pywbemdestination:{0}:{1}:{2}:{3}',
