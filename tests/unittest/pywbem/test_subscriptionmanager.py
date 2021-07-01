@@ -579,6 +579,8 @@ TESTCASES_SUBMGR = [
     #   * dest_attrs: dictionary of attributes for add_listener_destinations.
     #     Since add_listener_destination can add lists, there is no option
     #     to add a list for this item.
+    #   * modify_dest: dictionary of attributes for modify_instance of listener
+    #     destination.
     #   * subscription_attrs: dictionary or list dictionaries where each
     #     dictionary is a dictionary that defines either the attributes of
     #     the subscription or to make it simpler to define tests, an integer
@@ -1455,3 +1457,317 @@ def test_subscriptionmanager(testcase, submgr_id, connection_attrs,
             assert False
         except ValueError:
             pass
+
+
+TESTCASES_SUBMGR_MODIFY = [
+
+    # Testcases for Subscription Tests multiple valid and invalid options
+    # in __init__, add_server, add_filter, add_destinations
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * submgr_id: submgr id
+    #   * connection_attrs: FakedWBEMConnection attributes. this variable causes
+    #     an add_server to be executed. If it is a list, multiple
+    #     a server is added for each dict in the list. The attributes of
+    #     the FakedWBEMConnection can be set as attributes. Note: this test
+    #     already sets the interop namespace automatically
+    #   * filter_attrs: dictionary of attributes for add_filter. If it is
+    #     a list, one filter is added for each dict in the list
+    #   * dest_attrs: dictionary of attributes for add_listener_destinations.
+    #     Since add_listener_destination can add lists, there is no option
+    #     to add a list for this item.
+    #   * modify_dest: dictionary of attributes for modify_instance of listener
+    #     destination.
+    #   * subscription_attrs: dictionary or list dictionaries where each
+    #     dictionary is a dictionary that defines either the attributes of
+    #     the subscription or to make it simpler to define tests, an integer
+    #     for the position in the appropriate list for the required
+    #     filter or destination.
+    #   * modify_filter_attrs: defines inst/properties properties to modify.
+    #     The attributes are:
+    #       1. The index to the filter_dest to modify
+    #       2. dict of properties to modify
+    #   * modify_listener_dest_attrs: defines inst/properties properties to
+    #     modify. The attributes are:
+    #       1. The index to the listener_dest to modify
+    #       2. dict of properties to modify
+    #   * modify_subscription_attrs: defines inst/properties properties to
+    #     modify. The attributes are:
+    #       1. The index to the subscription_dest to modify
+    #       2. dict of properties to modify
+    #   * exp_result: Expected dictionary items, for validation. This includes:
+    #       * server_id - The expected server_id
+    #       * listener_count - Count of expected destinations
+    #       * filter_count - Count of expected filters.
+    #       * TODO: Add validation for filter, dest attributes
+    #       * subscription_count - Count of expected subscriptions.
+    #
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    (
+        "Modify fails, No modify property returns not supported from provider",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            filter_attrs=None,
+            dest_attrs=dict(server_id="http://FakedUrl:5988",
+                            listener_urls="http://localhost:5000",
+
+                            owned=True),
+            subscription_attrs=None,
+            modify_filter_attrs=None,
+            modify_dest_attrs=[0, []],
+            modify_subscription_attrs=None,
+            exp_result=dict(server_id="http://FakedUrl:5988",
+                            listener_count=1)
+        ),
+        CIMError, None, FAIL
+    ),
+    (
+        "Modify OK. Property modified",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            filter_attrs=dict(server_id="http://FakedUrl:5988",
+                              source_namespace='root/interop',
+                              query="SELECT * from blah",
+                              query_language='WQL',
+                              owned=True,
+                              filter_id="Filter1", name=None),
+            dest_attrs=dict(server_id="http://FakedUrl:5988",
+                            listener_urls="http://localhost:5000",
+
+                            owned=True),
+            subscription_attrs=None,
+            modify_dest_attrs=None,
+            modify_filter_attrs=[0, [('IndividualSubscriptionSupported',
+                                      True)]],
+            modify_subscription_attrs=None,
+            exp_result=dict(server_id="http://FakedUrl:5988",
+                            listener_count=1,
+                            filter_props=[0,
+                                          [('IndividualSubscriptionSupported',
+                                            True)]]),
+        ),
+        None, None, OK
+    ),
+    (
+        "Modify fails, Subscription exists",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            filter_attrs=dict(server_id="http://FakedUrl:5988",
+                              source_namespace='root/interop',
+                              query="SELECT * from blah",
+                              query_language='WQL',
+                              owned=True,
+                              filter_id="Filter1", name=None),
+            dest_attrs=dict(server_id="http://FakedUrl:5988",
+                            listener_urls="http://localhost:5000",
+
+                            owned=True),
+            subscription_attrs=dict(server_id="http://FakedUrl:5988",
+                                    filter_path=0,
+                                    destination_paths=[0],
+                                    owned=True),
+            modify_dest_attrs=None,
+            modify_filter_attrs=[0, [('IndividualSubscriptionSupported',
+                                      True)]],
+            modify_subscription_attrs=None,
+            exp_result=dict(server_id="http://FakedUrl:5988",
+                            listener_count=1,
+                            filter_props=[0,
+                                          [('IndividualSubscriptionSupported',
+                                            True)]]),
+        ),
+        CIMError, None, OK
+    ),
+    (
+        "Modify fails, Filter query language, mock provider forbids change",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            filter_attrs=dict(server_id="http://FakedUrl:5988",
+                              source_namespace='root/interop',
+                              query="SELECT * from blah",
+                              query_language='WQL',
+                              owned=True,
+                              filter_id="Filter1", name=None),
+            dest_attrs=dict(server_id="http://FakedUrl:5988",
+                            listener_urls="http://localhost:5000",
+
+                            owned=True),
+            subscription_attrs=dict(server_id="http://FakedUrl:5988",
+                                    filter_path=0,
+                                    destination_paths=[0],
+                                    owned=True),
+            modify_dest_attrs=None,
+            modify_filter_attrs=[0, [('QueryLanguage',
+                                      'WQL')]],
+            modify_subscription_attrs=None,
+            exp_result=dict(server_id="http://FakedUrl:5988",
+                            listener_count=1,
+                            filter_props=[0,
+                                          [('QueryLanguage',
+                                            'WQL')]]),
+        ),
+        CIMError, None, OK
+    ),
+
+    # TODO:
+    # 1. Test for missing required_property. This one very difficult because
+    #    list of required properties is also properties always set by
+    #    SubscriptionManager
+    # 2. IncludeQualifier on ModifyInstance. Again, special test
+    # 3. Invalid Namespace on __init__ of mock subscription providers
+    # 4. __repr__ for each mock subscription providers
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_SUBMGR_MODIFY)
+@simplified_test_function
+def test_submgr_modify(testcase, submgr_id, connection_attrs,
+                       filter_attrs, dest_attrs, subscription_attrs,
+                       modify_filter_attrs, modify_dest_attrs,
+                       modify_subscription_attrs, exp_result):
+    # pylint: disable=unused-argument
+    """
+    Tests the ability to modify instances of the subscription classes in the
+    pywbem_mock subscription providers. This creates filters, listener
+    destinations, and subscriptions and then tests with ModifyInstance.
+    Note: The subscription manager does not include ModifyInstance methods
+    for the indication subscription classes.
+    """
+    skip_if_moftab_regenerated()
+
+    def define_connection(connection_attrs):
+        """
+        Create a new mock connection with the attributes defined in
+        connection_attrs.
+        This method also does an add_server with the created mock server.
+        Returns:
+            returns the server_id associated with the connection and the
+            connection object.
+        """
+        mock_server = WbemServerMock(
+            interop_ns='interop',
+            server_mock_data=SUBSCRIPTION_WBEM_SERVER_MOCK_DICT,
+            **connection_attrs)
+        conn = mock_server.wbem_server.conn
+        return (submgr.add_server(mock_server.wbem_server), conn)
+
+    # The code to be tested starts here but encompasses most of this function
+    # depending on the function parameters  We did not set a specific place
+    # above which there should never be an exception. Depending on the tests,
+    # exceptions could occur throughout the code below.
+    submgr = WBEMSubscriptionManager(submgr_id)
+
+    # Test result arrays for one or more server_ids. Each of the add and
+    # remove methods will insert the results into these lists for validation
+    # of the returns from these methods.
+    server_id = None
+    server_ids = []
+    server_conn = None
+    added_filters = []
+    added_destinations = []
+    added_subscriptions = []
+
+    # The following code adds connections and filters
+    # If connection_attrs exists, set up the server and save the server_ids
+    # for later use in the test
+    if connection_attrs:
+        if isinstance(connection_attrs, list):
+            # DO not allow multiple connections for this test.
+            assert False
+            for connection_attr in connection_attrs:
+                server_ids.append(define_connection(connection_attr))
+        else:
+            server_id, server_conn = define_connection(connection_attrs)
+
+    # Test for add filter, adds one or more filters
+    if filter_attrs:
+        if isinstance(filter_attrs, dict):
+            filter_attrs = [filter_attrs]
+        for attr in filter_attrs:
+            added_filters.append(submgr.add_filter(**attr))
+
+    # Test for add destinations. There is no option for a list here since
+    # the tested method includes adding lists
+    if dest_attrs:
+        added_destinations.extend(
+            submgr.add_listener_destinations(**dest_attrs))
+
+    # Test for adding subscriptions based on the attributes in the dest
+    # definition. Here, the filter and dest components are integers defining
+    # The entry in the already created object lists to use for the path
+    # in the subscription.
+    if subscription_attrs:
+        if isinstance(subscription_attrs, dict):
+            subscription_attrs = [subscription_attrs]
+        for attr in subscription_attrs:
+            if isinstance(attr['filter_path'], int):
+                attr['filter_path'] = added_filters[attr['filter_path']].path
+            if isinstance(attr['destination_paths'], int):
+                attr['destination_paths'] = \
+                    added_destinations[attr['destination_paths']].path
+            elif isinstance(attr['destination_paths'], list):
+                dest_list = []
+                for item in attr['destination_paths']:
+                    dest_list.append(
+                        added_destinations[item].path)
+                attr['destination_paths'] = dest_list
+            rslts = submgr.add_subscriptions(**attr)
+            added_subscriptions.extend(rslts)
+
+    if modify_dest_attrs:
+        instance_to_modify = added_destinations[modify_dest_attrs[0]]
+        modified_instance = instance_to_modify.copy()
+        modified_instance.update(modify_dest_attrs[1])
+        pl = [p[0] for p in modify_dest_attrs[1]]
+        server_conn.ModifyInstance(modified_instance, PropertyList=pl)
+
+    if modify_filter_attrs:
+        instance_to_modify = added_filters[modify_filter_attrs[0]]
+        modified_instance = instance_to_modify.copy()
+        modified_instance.update(modify_filter_attrs[1])
+        pl = [p[0] for p in modify_filter_attrs[1]]
+        server_conn.ModifyInstance(modified_instance, PropertyList=pl)
+
+    if modify_subscription_attrs:
+        instance_to_modify = added_subscriptions[modify_subscription_attrs[0]]
+        modified_instance = instance_to_modify.copy()
+        modified_instance.update(modify_subscription_attrs[1])
+        pl = [p[0] for p in modify_subscription_attrs[1]]
+        server_conn.ModifyInstance(modified_instance)
+
+    if 'dest_props' in exp_result:
+        dest_props = exp_result['dest_props']
+        orig_instance = added_destinations[dest_props[0]]
+        updated_instance = server_conn.GetInstance(orig_instance.path)
+        props = dest_props[1]
+        for prop, value in props:
+            assert updated_instance[prop] == value
+
+    # test for listener_destinations created
+    if 'listener_count' in exp_result:
+        assert len(submgr.get_all_destinations(server_id)) == \
+            exp_result['listener_count']
+        if dest_attrs['owned']:
+            assert len(submgr.get_owned_destinations(server_id)) == \
+                exp_result['listener_count']
+        else:
+            assert not submgr.get_owned_destinations(server_id)
+
+    if 'filter_count' in exp_result:
+        assert len(submgr.get_all_filters(server_id)) == \
+            exp_result['filter_count']
+
+    if 'subscription_count' in exp_result:
+        assert len(submgr.get_all_subscriptions(server_id)) == \
+            exp_result['subscription_count']
