@@ -292,6 +292,7 @@ class CIMIndicationFilterProvider(CommonMethodsMixin, InstanceWriteProvider):
             namespace, new_instance)
 
     def ModifyInstance(self, modified_instance, IncludeQualifiers=None):
+        # pylint: disable=invalid-name
         """
         Modification of CIM_IndicationFilter instance not allowed
         """
@@ -399,6 +400,7 @@ class CIMListenerDestinationProvider(CommonMethodsMixin, InstanceWriteProvider):
             s=self)
 
     def CreateInstance(self, namespace, new_instance):
+        # pylint: disable=invalid-name
         """
         Create an instance of the CIM_ListenerDestination class in an
         Interop namespace of the CIM repository, and if not yet existing create
@@ -466,6 +468,7 @@ class CIMListenerDestinationProvider(CommonMethodsMixin, InstanceWriteProvider):
             namespace, new_instance)
 
     def ModifyInstance(self, modified_instance, IncludeQualifiers=None):
+        # pylint: disable=invalid-name
         """
         Modification of CIM_ListenerDestination instance not allowed
         """
@@ -554,8 +557,8 @@ class CIMIndicationSubscriptionProvider(CommonMethodsMixin,
         if not self.find_interop_namespace():
             raise CIMError(
                 CIM_ERR_INVALID_PARAMETER,
-                _format("Cannot create indication filter provider (for class "
-                        "{0}): "
+                _format("Cannot create indication subscription provider for "
+                        "class: {0}. "
                         "No Interop namespace exists in the CIM repository. "
                         "Valid Interop namespaces are: {1}",
                         FILTER_CLASSNAME,
@@ -572,6 +575,7 @@ class CIMIndicationSubscriptionProvider(CommonMethodsMixin,
             s=self)
 
     def CreateInstance(self, namespace, new_instance):
+        # pylint: disable=invalid-name
         """
         Create an instance of the CIM_IndicationFilter class in an Interop
         namespace of the CIM repository, and if not yet existing create the new
@@ -623,6 +627,7 @@ class CIMIndicationSubscriptionProvider(CommonMethodsMixin,
             namespace, new_instance)
 
     def ModifyInstance(self, modified_instance, IncludeQualifiers=None):
+        # pylint: disable=invalid-name
         """
         Modification of CIM_IndicationSubscription instance not allowed
         """

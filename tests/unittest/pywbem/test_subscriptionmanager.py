@@ -599,6 +599,7 @@ TESTCASES_SUBMGR = [
     #   * remove_server_attrs: Single server_id identifying server to remove.
     #     This function is executed after all other methods and their tests so
     #     the other tests reflect what was added.
+    #   * dest_props: TODO add definition from future pr
     #   * exp_result: Expected dictionary items, for validation. This includes:
     #       * server_id - The expected server_id
     #       * listener_count - Count of expected destinations
@@ -946,7 +947,7 @@ TESTCASES_SUBMGR = [
         ValueError, None, OK
     ),
     (
-        "Add listener_dest with invalid persistence_type value 4",
+        "Add listener_dest with invalid persistence_type integer 4",
         dict(
             submgr_id="ValidID",
             connection_attrs=dict(url=None),
@@ -964,7 +965,7 @@ TESTCASES_SUBMGR = [
         ValueError, None, OK
     ),
     (
-        "Add listener_dest with invalid persistence_type 1",
+        "Add listener_dest with invalid persistence_type integer 1",
         dict(
             submgr_id="ValidID",
             connection_attrs=dict(url=None),
@@ -982,25 +983,7 @@ TESTCASES_SUBMGR = [
         ValueError, None, OK
     ),
     (
-        "Add listener_dest with invalid persistence_type 0",
-        dict(
-            submgr_id="ValidID",
-            connection_attrs=dict(url=None),
-            filter_attrs=None,
-            dest_attrs=dict(server_id="http://FakedUrl:5988",
-                            listener_urls="http://localhost:5000",
-                            owned=True, persistence_type=0),
-            subscription_attrs=None,
-            remove_destinations=None,
-            remove_filters=None,
-            remove_subscriptions=None,
-            remove_server_attrs=None,
-            exp_result=dict(server_id="http://FakedUrl:5988")
-        ),
-        ValueError, None, OK
-    ),
-    (
-        "Add listener_dest with invalid persistence_type string",
+        "Add listener_dest with valid persistence_type string, invalid value",
         dict(
             submgr_id="ValidID",
             connection_attrs=dict(url=None),
@@ -1018,32 +1001,53 @@ TESTCASES_SUBMGR = [
         ValueError, None, OK
     ),
     (
-        "Add listener_dest with valid persistence_type 2",
+        "Add listener_dest with valid persistence_type 'transient",
         dict(
             submgr_id="ValidID",
             connection_attrs=dict(url=None),
             filter_attrs=None,
             dest_attrs=dict(server_id="http://FakedUrl:5988",
                             listener_urls="http://localhost:5000",
-                            owned=False, persistence_type=2),
+                            owned=False, persistence_type='transient'),
             subscription_attrs=None,
             remove_destinations=None,
             remove_filters=None,
             remove_subscriptions=None,
             remove_server_attrs=None,
-            exp_result=dict(server_id="http://FakedUrl:5988")
+            exp_result=dict(server_id="http://FakedUrl:5988",
+                            listener_count=1,
+                            dest_props=[0, [('PersistenceType', 3)]])
         ),
         None, None, OK
     ),
     (
-        "Add valid listener_destination",
+        "Add listener_dest with valid persistence_type 'permanent",
         dict(
             submgr_id="ValidID",
             connection_attrs=dict(url=None),
             filter_attrs=None,
             dest_attrs=dict(server_id="http://FakedUrl:5988",
                             listener_urls="http://localhost:5000",
-
+                            owned=False, persistence_type='permanent'),
+            subscription_attrs=None,
+            remove_destinations=None,
+            remove_filters=None,
+            remove_subscriptions=None,
+            remove_server_attrs=None,
+            exp_result=dict(server_id="http://FakedUrl:5988",
+                            listener_count=1,
+                            dest_props=[0, [('PersistenceType', 2)]])
+        ),
+        None, None, OK
+    ),
+    (
+        "Add listener_dest without persistence_type and owned.",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            filter_attrs=None,
+            dest_attrs=dict(server_id="http://FakedUrl:5988",
+                            listener_urls="http://localhost:5000",
                             owned=True),
             subscription_attrs=None,
             remove_destinations=None,
@@ -1051,7 +1055,28 @@ TESTCASES_SUBMGR = [
             remove_subscriptions=None,
             remove_server_attrs=None,
             exp_result=dict(server_id="http://FakedUrl:5988",
-                            listener_count=1)
+                            listener_count=1,
+                            dest_props=[0, [('PersistenceType', 3)]])
+        ),
+        None, None, OK
+    ),
+    (
+        "Add listener_dest without persistence_type owned=False.",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            filter_attrs=None,
+            dest_attrs=dict(server_id="http://FakedUrl:5988",
+                            listener_urls="http://localhost:5000",
+                            owned=False),
+            subscription_attrs=None,
+            remove_destinations=None,
+            remove_filters=None,
+            remove_subscriptions=None,
+            remove_server_attrs=None,
+            exp_result=dict(server_id="http://FakedUrl:5988",
+                            listener_count=1,
+                            dest_props=[0, [('PersistenceType', 2)]])
         ),
         None, None, OK
     ),
@@ -1365,6 +1390,18 @@ def test_subscriptionmanager(testcase, submgr_id, connection_attrs,
     if 'subscription_count' in exp_result:
         assert len(submgr.get_all_subscriptions(server_id)) == \
             exp_result['subscription_count']
+
+    if 'dest_props' in exp_result:
+        dest_props = exp_result['dest_props']
+        created_instance = added_destinations[dest_props[0]]
+        props = dest_props[1]
+        for prop, value in props:
+            # If None expect either property with None or no property
+            if value is None:
+                if prop in created_instance:
+                    assert created_instance[prop] == value
+            else:
+                assert created_instance[prop] == value
 
     # The removal methods are executed after all others methods defined for
     # the test and after tests on the results of other method execution
