@@ -65,17 +65,115 @@ class CommonMethodsMixin(object):
     Common Methods and functionality for the 3 providers defined to support
     indication subscriptions
     """
-    def _modify_instance_notsupported(self, modified_instance):
-        # pylint: disable=no-self-use
+
+    def validate_modify_instance(self, modified_instance,
+                                 modifiable_properties=None,
+                                 IncludeQualifiers=None):
+        # pylint: disable=invalid-name
         """
-        Generate exception if this method called. Use where Modify
-        Instance not permitted
+        Common code for ModifyInstance method for subscription providers.
+
+        This code validates that the modify instance is allowed and validates
+        that the properties to be modified are the ones allowed in the
+        modified_instance.
+
+        This method assumes that:
+
+        - The provider method is called only for the registered class and
+          namespace (only applies to user-defined providers).
+
+        - The Python types of all input parameters to this provider method are
+          as specified below.
+
+        - The classnames in modified_instance are consistent between
+          instance and instance path.
+
+        - The namespace exists in the CIM repository.
+
+        - The creation class of the instance to be modified exists in the
+          namespace of the CIM repository.
+
+        - The instance to be modified exists in the namespace of the CIM
+          repository.
+
+        - All properties in modified_instance that are to be modified are
+          exposed (i.e. defined and inherited with any overrides resolved) by
+          the creation class in the CIM repository, and have the same
+          type-related attributes (i.e. type, is_array, embedded_object).
+
+        - No key properties are requested to change their values.
+
+        Validation that should be performed by this provider method:
+
+        - modified_instance does not specify any changed values for
+          properties that are not allowed to be changed by the client,
+          depending on the model implemented by the provider.
+
+        Parameters:
+          modified_instance (:class:`~pywbem.CIMInstance`):
+            A representation of the modified CIM instance, also indicating its
+            instance path, with exactly the set of properties to be modified.
+
+            This object is a deep copy of the original client parameter, and may
+            be modified by the provider as needed, before storing it in the
+            CIM repository.
+
+            The `path` attribute of this object will be set and is the
+            instance path of the instance to be modified in the CIM repository.
+            Its `namespace`, `classname` and `keybindings` attributes
+            will be set. The names will be in any lexical case.
+
+            The `classname` attribute of this object will specify the creation
+            class of the instance to be modified, in any lexical case.
+
+            The `properties` attribute of this object will specify exactly the
+            set of properties that are to be updated, taking into account the
+            original ModifiedInstance and PropertyList input parameters of the
+            ModifyInstance() client call.
+            The lexical case of the property names has been adjusted to match
+            the lexical cae of the property definitions in the creation class
+            in the CIM repository.
+
+            The `qualifiers` attribute of this object, if non-empty, should
+            be ignored by the provider, because instance-level qualifiers have
+            been deprecated in CIM.
+
+          modifiable_properties (:term:`string` or list of :term:`string`):
+            Property names of properties that are modifiable by. If
+            properties that are not modifiable are included, the request
+            is rejected with CIM_ERR_INVALID_PARAMETER
+
+        Raises:
+            CIMError exception if either the modification not allowed
+            (supported_properties is None) or the properties in the modified
+            instance are not included in the modifiable_properties list
         """
-        raise CIMError(
-            CIM_ERR_NOT_SUPPORTED,
-            _format("Modification of {0} instances is not allowed: "
-                    "{1!A}",
-                    modified_instance.classname, modified_instance.path))
+
+        if not modifiable_properties:
+            raise CIMError(
+                CIM_ERR_NOT_SUPPORTED,
+                _format("Modification of {0} instances is not allowed: "
+                        "{1!A}",
+                        modified_instance.classname, modified_instance.path))
+        inst_properties = modified_instance.keys()
+
+        invalid_props = [pname for pname in inst_properties if pname not in
+                         modifiable_properties]
+
+        if IncludeQualifiers:
+            raise CIMError(
+                CIM_ERR_INVALID_PARAMETER,
+                _format("Modification of qualifiers is for {0}"
+                        "not allowed.", modified_instance.classname))
+        if invalid_props:
+            raise CIMError(
+                CIM_ERR_INVALID_PARAMETER,
+                _format("Modification of properties {0} instance of {1!A} is "
+                        "not allowed: {2!A}", ", ".join(invalid_props),
+                        modified_instance.classname, modified_instance.path))
+
+        if modified_instance.classname != SUBSCRIPTION_CLASSNAME:
+            self.validate_no_subscription(modified_instance.path)
 
     def parameter_is_interop(self, ns, classname):
         # pylint: disable=no-self-use
@@ -135,17 +233,26 @@ class CommonMethodsMixin(object):
     def validate_no_subscription(self, instance_name):
         """
         Validate that no subscriptions exist containing reference to this
-        instance
+        instance.
+
+        Parameters:
+
+          instance_name (:class:`~pywbem.CIMInstanceName`)
+            Instance name of the target instance. The class must be either
+            the filter class or the listener destination class
+
+        Returns:
+          Returns if there are no corresponding subscriptions.
         """
         # If a subscription exists containing this ListenerDestination,
-        # reject delete
+        # reject with exception
         if self.conn.ReferenceNames(instance_name,
                                     ResultClass=SUBSCRIPTION_CLASSNAME):
             # DSP1054 1.2 defines CIM error is raised by the server
             # in that case; we simulate it.
             raise CIMError(
                 CIM_ERR_FAILED,
-                _format("The instance {} is referenced by "
+                _format("The instance {0} is referenced by "
                         "subscriptions.", instance_name),
                 conn_id=self.conn.conn_id)
 
@@ -220,15 +327,11 @@ class CIMIndicationFilterProvider(CommonMethodsMixin, InstanceWriteProvider):
         """
         super(CIMIndicationFilterProvider, self).__init__(cimrepository)
 
-        # Tried to make this common but that failed because it could not
-        # find the init_common method.
-        # self.init_common(FILTER_CLASSNAME)
-
         if not self.find_interop_namespace():
             raise CIMError(
                 CIM_ERR_INVALID_PARAMETER,
-                _format("Cannot create indication filter provider (for class "
-                        "{0}): "
+                _format("Cannot create indication filter provider for class: "
+                        "{0}. "
                         "No Interop namespace exists in the CIM repository. "
                         "Valid Interop namespaces are: {1}",
                         FILTER_CLASSNAME,
@@ -245,6 +348,7 @@ class CIMIndicationFilterProvider(CommonMethodsMixin, InstanceWriteProvider):
             s=self)
 
     def CreateInstance(self, namespace, new_instance):
+        # pylint: disable=invalid-name
         """
         Create an instance of the CIM_IndicationFilter class in an Interop
         namespace of the CIM repository, and if not yet existing create the new
@@ -279,7 +383,7 @@ class CIMIndicationFilterProvider(CommonMethodsMixin, InstanceWriteProvider):
 
         self.validate_required_properties_exist(new_instance, namespace,
                                                 required_properties)
-        # validates and possibly modifies the key properties except Name
+        # Validates and possibly modifies the key properties except Name
         self.fix_key_properties(new_instance)
 
         # Add missing properties that the might come from CIM_IndicationService
@@ -294,11 +398,22 @@ class CIMIndicationFilterProvider(CommonMethodsMixin, InstanceWriteProvider):
     def ModifyInstance(self, modified_instance, IncludeQualifiers=None):
         # pylint: disable=invalid-name
         """
-        Modification of CIM_IndicationFilter instance not allowed
+        Modification of CIM_IndicationFilter instance allowed for selected
+        properties. See the documentation in
+        CommonMethodsMixin.validate_modify_instance for parameter
+        documentation.
         """
-        self._modify_instance_notsupported(modified_instance)
+        modifiable_properties = ['IndividualSubscriptionSupported']
 
-    def DeleteInstance(self, InstanceName):
+        self.validate_modify_instance(
+            modified_instance,
+            modifiable_properties=modifiable_properties,
+            IncludeQualifiers=IncludeQualifiers)
+
+        return super(CIMIndicationFilterProvider, self).ModifyInstance(
+            modified_instance, IncludeQualifiers=IncludeQualifiers)
+
+    def DeleteInstance(self, InstanceName):  # pylint: disable=invalid-name
         """
         Delete an instance of the CIM_IndicationFilter class in an Interop
         namespace of the CIM repository unless it has an outstanding
@@ -377,13 +492,11 @@ class CIMListenerDestinationProvider(CommonMethodsMixin, InstanceWriteProvider):
         """
         super(CIMListenerDestinationProvider, self).__init__(cimrepository)
 
-        # self.init_common(LISTENERDESTINATIONS_CLASSNAMES)
-
         if not self.find_interop_namespace():
             raise CIMError(
                 CIM_ERR_INVALID_PARAMETER,
-                _format("Cannot create indication filter provider (for classes "
-                        "({0}): "
+                _format("Cannot create listener destination provider for "
+                        "classes: ({0}). "
                         "No Interop namespace exists in the CIM repository. "
                         "Valid Interop namespaces are: {1}",
                         ", ".join(LISTENERDESTINATIONS_CLASSNAMES),
@@ -436,9 +549,11 @@ class CIMListenerDestinationProvider(CommonMethodsMixin, InstanceWriteProvider):
         sys_pname = 'SystemName'
         sccn_pname = 'SystemCreationClassName'
 
+        required_properties = [name_pname]
+
         # Validate that required properties are specified in the new instance
         self.validate_required_properties_exist(new_instance, namespace,
-                                                [name_pname])
+                                                required_properties)
 
         # Validate  or fix other key values in the new instance
         def _fix_key_prop(pname, new_prop_value, replacement=None):
@@ -470,11 +585,21 @@ class CIMListenerDestinationProvider(CommonMethodsMixin, InstanceWriteProvider):
     def ModifyInstance(self, modified_instance, IncludeQualifiers=None):
         # pylint: disable=invalid-name
         """
-        Modification of CIM_ListenerDestination instance not allowed
+        Modification of CIM_ListenerDestination instance allowed only for
+        selected properties. See the documentation in
+        CommonMethodsMixin.validate_modify_instance for parameter documentation.
         """
-        self._modify_instance_notsupported(modified_instance)
+        modifiable_properties = []
 
-    def DeleteInstance(self, InstanceName):
+        self.validate_modify_instance(
+            modified_instance,
+            modifiable_properties=modifiable_properties,
+            IncludeQualifiers=IncludeQualifiers)
+
+        return super(CIMListenerDestinationProvider, self).ModifyInstance(
+            modified_instance, IncludeQualifiers=IncludeQualifiers)
+
+    def DeleteInstance(self, InstanceName):  # pylint: disable=invalid-name
         """
         Delete an instance of the CIM_ListenerDestination class in an
         Interop namespace of the CIM repository unless it has an outstanding
@@ -507,10 +632,8 @@ class CIMListenerDestinationProvider(CommonMethodsMixin, InstanceWriteProvider):
 
         self.validate_no_subscription(InstanceName)
 
-        # Delete the instance from the CIM repository
-        instance_store = self.cimrepository.get_instance_store(
-            InstanceName.namespace)
-        instance_store.delete(InstanceName)
+        return super(CIMListenerDestinationProvider, self).DeleteInstance(
+            InstanceName)
 
 
 class CIMIndicationSubscriptionProvider(CommonMethodsMixin,
@@ -552,7 +675,6 @@ class CIMIndicationSubscriptionProvider(CommonMethodsMixin,
             Defines the CIM repository to be used by the provider.
         """
         super(CIMIndicationSubscriptionProvider, self).__init__(cimrepository)
-        # self.init_common(FILTER_CLASSNAME)
 
         if not self.find_interop_namespace():
             raise CIMError(
@@ -608,8 +730,6 @@ class CIMIndicationSubscriptionProvider(CommonMethodsMixin,
 
         required_properties = ["Filter", "Handler"]
 
-        # Validate that required properties are specified in the new instance
-
         self.validate_required_properties_exist(new_instance, namespace,
                                                 required_properties)
 
@@ -620,6 +740,9 @@ class CIMIndicationSubscriptionProvider(CommonMethodsMixin,
         new_instance['OnFatalErrorPolicy'] = Uint16(2)
         new_instance['RepeatNotificationPolicy'] = Uint16(2)
         new_instance['SubscriptionState'] = Uint16(2)
+        if 'SubscriptionDuration' in new_instance:
+            new_instance['SubscriptionTimeRemaining'] = \
+                new_instance['SubscriptionDuration']
 
         # Create the CIM instance for the new namespace in the CIM repository,
         # by delegating to the default provider method.
@@ -629,11 +752,36 @@ class CIMIndicationSubscriptionProvider(CommonMethodsMixin,
     def ModifyInstance(self, modified_instance, IncludeQualifiers=None):
         # pylint: disable=invalid-name
         """
-        Modification of CIM_IndicationSubscription instance not allowed
+        Modification of CIM_IndicationSubscription instance allowed only for
+        selected properties. See the documentation in
+        CommonMethodsMixin.validate_modify_instance for parameter documentation.
         """
-        self._modify_instance_notsupported(modified_instance)
+        # NOTE: The choice of modifiable properties is just to support tests
+        #       and may not reflect user needs since profile definition is
+        #       flexible
+        modifiable_properties = ['SubscriptionInfo', 'SubscriptionState',
+                                 'SubscriptionDuration']
 
-    def DeleteInstance(self, InstanceName):
+        # Validates the modify instance  but does not change any properties.
+        # If not valid, it generates exception
+        self.validate_modify_instance(
+            modified_instance, modifiable_properties=modifiable_properties,
+            IncludeQualifiers=IncludeQualifiers)
+
+        if modified_instance['SubscriptionDuration']:
+            modified_instance['SubscriptionTimeRemaining'] = \
+                modified_instance['SubscriptionDuration']
+
+        if modified_instance['SubscriptionDuration']:
+            modified_instance['SubscriptionTimeRemaining'] = \
+                modified_instance['SubscriptionDuration']
+
+        modified_instance['TimeOfLastStateChange'] = CIMDateTime.now()
+
+        return super(CIMIndicationSubscriptionProvider, self).ModifyInstance(
+            modified_instance, IncludeQualifiers=IncludeQualifiers)
+
+    def DeleteInstance(self, InstanceName):  # pylint: disable=invalid-name
         """
         Delete an instance of the CIM_IndicationSubscription class in an Interop
         namespace of the CIM repository unless it has an outstanding
@@ -664,7 +812,5 @@ class CIMIndicationSubscriptionProvider(CommonMethodsMixin,
         assert InstanceName.classname.lower() == \
             CIMIndicationSubscriptionProvider.provider_classnames.lower()
 
-        # Delete the instance from the CIM repository
-        instance_store = self.cimrepository.get_instance_store(
-            InstanceName.namespace)
-        instance_store.delete(InstanceName)
+        return super(CIMIndicationSubscriptionProvider, self).DeleteInstance(
+            InstanceName)
