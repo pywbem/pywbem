@@ -579,8 +579,6 @@ TESTCASES_SUBMGR = [
     #   * dest_attrs: dictionary of attributes for add_listener_destinations.
     #     Since add_listener_destination can add lists, there is no option
     #     to add a list for this item.
-    #   * modify_dest: dictionary of attributes for modify_instance of listener
-    #     destination.
     #   * subscription_attrs: dictionary or list dictionaries where each
     #     dictionary is a dictionary that defines either the attributes of
     #     the subscription or to make it simpler to define tests, an integer
