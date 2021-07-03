@@ -20,7 +20,7 @@ The :func:`pywbem.siunit_obj` and :func:`pywbem.siunit` functions translate
 the ``PUnit`` and ``Units`` qualifier values into human readable SI conformant
 unit strings.
 
-**Experimental:** *New in 1.1.0 as experimental*
+*New in pywbem 1.1 as experimental and finalized in 1.3.*
 
 Note: These functions do not perform any class operations; they take the
 qualifiers as input.
@@ -124,7 +124,7 @@ def siunit_obj(cim_obj, use_ascii=False):
     Returns a human readable SI conformant unit string from the
     ``PUnit`` or ``Units`` qualifiers of the specified CIM object.
 
-    **Experimental:** *New in 1.1.0 as experimental*
+    *New in pywbem 1.1 as experimental and finalized in 1.3.*
 
     If the CIM object has both the ``PUnit`` and ``Units`` qualifiers set, then
     ``PUnit`` is used and ``Units`` is ignored.
@@ -179,7 +179,7 @@ def siunit(punit=None, units=None, use_ascii=False):
     Returns a human readable SI conformant unit string from the specified
     ``PUnit`` or ``Units`` qualifier values.
 
-    **Experimental:** *New in 1.1.0 as experimental*
+    *New in pywbem 1.1 as experimental and finalized in 1.3.*
 
     If both ``punit`` and ``units`` are specified, then ``punit`` is used and
     ``units`` is ignored.
