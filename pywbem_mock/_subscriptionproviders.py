@@ -245,7 +245,7 @@ class CommonMethodsMixin(object):
           Returns if there are no corresponding subscriptions.
         """
         # If a subscription exists containing this ListenerDestination,
-        # reject with exception
+        # reject delete
         if self.conn.ReferenceNames(instance_name,
                                     ResultClass=SUBSCRIPTION_CLASSNAME):
             # DSP1054 1.2 defines CIM error is raised by the server

@@ -67,6 +67,8 @@ Released: not yet
     which populates the destination PersistenceType property and modified the
     class for the destination to CIM_ListenerDestination since the
     CIM_ListenerDestinationXML class is deprecated. (See issue #2712)
+  - Add capability to mock subscription providers to execute ModifyInstance
+    (See issue #2722)
 
 
 * Docs: Fixed an error with the autodocsumm and Sphinx 4.0.0. (issue #2697)
