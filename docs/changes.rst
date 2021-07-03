@@ -107,6 +107,9 @@ Released: not yet
 * Added providers to the pywbem_mock environment for the  3 classes required to
   manage subscriptions in a WBEM server.  (See issue #2704)
 
+* Finalized the support for SI units that was experimental so far, i.e. the
+  'pywbem.siunit()' and 'pywbem.siunit_obj()' functions. (issue #2653)
+
 **Cleanup:**
 
 * Extend tests for SubscriptionManager to utilize pytest and cover error cases.
