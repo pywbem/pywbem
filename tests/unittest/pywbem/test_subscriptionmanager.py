@@ -967,14 +967,14 @@ TESTCASES_SUBMGR = [
         ValueError, None, OK
     ),
     (
-        "Add listener_dest with invalid persistence_type integer 1",
+        "Add listener_dest with invalid persistence_type value 'blah",
         dict(
             submgr_id="ValidID",
             connection_attrs=dict(url=None),
             filter_attrs=None,
             dest_attrs=dict(server_id="http://FakedUrl:5988",
                             listener_urls="http://localhost:5000",
-                            owned=True, persistence_type=1),
+                            owned=True, persistence_type='blah'),
             subscription_attrs=None,
             remove_destinations=None,
             remove_filters=None,
@@ -1268,15 +1268,180 @@ TESTCASES_SUBMGR = [
         ),
         None, None, OK
     ),
+    (
+        "Test remove multiple destinations succeeds",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            dest_attrs=dict(server_id="http://FakedUrl:5988",
+                            listener_urls=["http://localhost:5000",
+                                           "https://localhost:5000"],
+                            owned=True),
+            filter_attrs=None,
+            subscription_attrs=None,
+            remove_destinations=True,
+            remove_filters=None,
+            remove_subscriptions=None,
+            remove_server_attrs=None,
+            exp_result=dict(server_id="http://FakedUrl:5988",
+                            listener_count=2,
+                            final_listener_count=0)
+        ),
+        None, None, OK
+    ),
+    (
+        "Test remove multiple destinations with subscriptions fails",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            dest_attrs=dict(server_id="http://FakedUrl:5988",
+                            listener_urls=["http://localhost:5000",
+                                           "https://localhost:5000"],
+                            owned=True),
+            filter_attrs=dict(server_id="http://FakedUrl:5988",
+                              source_namespace='root/interop',
+                              query="SELECT * from blah",
+                              query_language='WQL',
+                              owned=True,
+                              filter_id="Filter1", name=None),
+            subscription_attrs=dict(server_id="http://FakedUrl:5988",
+                                    filter_path=0,
+                                    destination_paths=[0, 1],
+                                    owned=True),
+            remove_destinations=True,
+            remove_filters=None,
+            remove_subscriptions=None,
+            remove_server_attrs=None,
+            exp_result=dict(server_id="http://FakedUrl:5988",
+                            listener_count=2,
+                            filter_count=1,
+                            subscription_count=2)
+        ),
+        CIMError, None, OK
+    ),
+    (
+        "Test remove filter suceeds without subscription",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            dest_attrs=None,
+            filter_attrs=dict(server_id="http://FakedUrl:5988",
+                              source_namespace='root/interop',
+                              query="SELECT * from blah",
+                              query_language='WQL',
+                              owned=True,
+                              filter_id="Filter1", name=None),
+            subscription_attrs=None,
+            remove_destinations=True,
+            remove_filters=[0],  # Removing this filter fails
+            remove_subscriptions=None,
+            remove_server_attrs=None,
+            exp_result=dict(server_id="http://FakedUrl:5988",
+                            filter_count=1,
+                            final_filtercount=1)
+        ),
+        None, None, OK
+    ),
+    (
+        "Test remove filter fails with subscription",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            dest_attrs=dict(server_id="http://FakedUrl:5988",
+                            listener_urls=["http://localhost:5000",
+                                           "https://localhost:5000"],
+                            owned=True),
+            filter_attrs=dict(server_id="http://FakedUrl:5988",
+                              source_namespace='root/interop',
+                              query="SELECT * from blah",
+                              query_language='WQL',
+                              owned=True,
+                              filter_id="Filter1", name=None),
+            subscription_attrs=dict(server_id="http://FakedUrl:5988",
+                                    filter_path=0,
+                                    destination_paths=[0, 1],
+                                    owned=True),
+            remove_destinations=True,
+            remove_filters=[0],  # Removing this filter fails
+            remove_subscriptions=None,
+            remove_server_attrs=None,
+            exp_result=dict(server_id="http://FakedUrl:5988",
+                            listener_count=2,
+                            filter_count=1,
+                            subscription_count=2)
+        ),
+        CIMError, None, OK
+    ),
+    (
+        "Test remove destinations with subscription fails",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            dest_attrs=dict(server_id="http://FakedUrl:5988",
+                            listener_urls=["http://localhost:5000",
+                                           "https://localhost:5000"],
+                            owned=True),
+            filter_attrs=dict(server_id="http://FakedUrl:5988",
+                              source_namespace='root/interop',
+                              query="SELECT * from blah",
+                              query_language='WQL',
+                              owned=True,
+                              filter_id="Filter1", name=None),
+            subscription_attrs=dict(server_id="http://FakedUrl:5988",
+                                    filter_path=0,
+                                    destination_paths=[0, 1],
+                                    owned=True),
+            remove_destinations=True,
+            remove_filters=[0],  # Removing this filter fails
+            remove_subscriptions=None,
+            remove_server_attrs=None,
+            exp_result=dict(server_id="http://FakedUrl:5988",
+                            listener_count=2,
+                            filter_count=1,
+                            subscription_count=2)
+        ),
+        CIMError, None, OK
+    ),
+    (
+        "Test remove subscriptions succeeds",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            dest_attrs=dict(server_id="http://FakedUrl:5988",
+                            listener_urls=["http://localhost:5000",
+                                           "https://localhost:5000"],
+                            owned=True),
+            filter_attrs=dict(server_id="http://FakedUrl:5988",
+                              source_namespace='root/interop',
+                              query="SELECT * from blah",
+                              query_language='WQL',
+                              owned=True,
+                              filter_id="Filter1", name=None),
+            subscription_attrs=dict(server_id="http://FakedUrl:5988",
+                                    filter_path=0,
+                                    destination_paths=[0, 1],
+                                    owned=True),
+            remove_destinations=None,
+            remove_filters=None,
+            remove_subscriptions=True,
+            remove_server_attrs=None,
+            exp_result=dict(server_id="http://FakedUrl:5988",
+                            listener_count=2,
+                            filter_count=1,
+                            subscription_count=2,
+                            final_subscription_count=0,
+                            final_filter_count=1,
+                            final_listener_count=2)
+        ),
+        None, None, RUN
+    ),
 
     # Tests that need to be added
     # Add server where param is not WBEMServer
     # add not_owned filters and destinations
     # NOTE: The following tests will be added after merge with issue #2701
-    # Remove multiple owned subscriptions, filters, dests
     # NOTE: add tests that depend on providers see issue# 2704
     # NOTE: Eventually this should replace most of the unit tests.
-    # Tests for expected instances/paths after creation of objects
 ]
 
 
@@ -1375,7 +1540,7 @@ def test_subscriptionmanager(testcase, submgr_id, connection_attrs,
         else:
             assert server_id == exp_result['server_id']
 
-    # test for listener_destinations created
+    # test instances created before any remove requests.
     if 'listener_count' in exp_result:
         assert len(submgr.get_all_destinations(server_id)) == \
             exp_result['listener_count']
@@ -1393,6 +1558,7 @@ def test_subscriptionmanager(testcase, submgr_id, connection_attrs,
         assert len(submgr.get_all_subscriptions(server_id)) == \
             exp_result['subscription_count']
 
+    # Test for properties in instances
     if 'dest_props' in exp_result:
         dest_props = exp_result['dest_props']
         created_instance = added_destinations[dest_props[0]]
@@ -1408,45 +1574,56 @@ def test_subscriptionmanager(testcase, submgr_id, connection_attrs,
     # The removal methods are executed after all others methods defined for
     # the test and after tests on the results of other method execution
     if remove_destinations is not None:
-        dests = submgr.get_all_destinations(server_id)
-        dest_paths = [inst.path for inst in dests]
+        dest_paths = [inst.path for inst in added_destinations]
         if isinstance(remove_destinations, bool):
+            assert remove_destinations
             submgr.remove_destinations(server_id, dest_paths)
             result = 0
         elif isinstance(remove_destinations, int):
             submgr.remove_destinations(server_id,
                                        dest_paths[remove_destinations])
-            result = len(dests) - 1
+            result = len(added_destinations) - 1
         elif isinstance(remove_destinations, list):
-            removal_paths = [dest_paths[dest] for dest in remove_destinations]
+            removal_paths = [added_destinations[i].path for i in
+                             remove_destinations]
             submgr.remove_destinations(server_id, removal_paths)
-            result -= len(remove_destinations)
+            result = len(added_destinations) - len(remove_destinations)
+
         assert len(submgr.get_all_destinations(server_id)) == result
 
     if remove_filters is not None:
-        filters = submgr.get_all_filters(server_id)
-        filter_paths = [inst.path for inst in filters]
+        filter_paths = [inst.path for inst in added_filters]
         if isinstance(remove_filters, bool):
+            assert remove_filters
             submgr.remove_filter(server_id, filter_paths)
             result = 0
         elif isinstance(remove_filters, int):
-            submgr.remove_filter(server_id, filter_paths[remove_destinations])
-            result = len(filters) - 1
+            submgr.remove_filter(server_id, filter_paths[remove_filters])
+            result = len(added_filters) - 1
         elif isinstance(remove_filters, list):
-            result = len(filters)
-            for path in dest_paths:
-                submgr.remove_filter(server_id,
-                                     filter_paths[path])
-            result -= len(remove_filters)
+            # Must remove one by one
+            for item in remove_filters:
+                submgr.remove_filter(server_id, filter_paths[item])
+            result = len(added_filters) - len(remove_filters)
         assert len(submgr.get_all_filters(server_id)) == result
 
-    # TODO: The code for this is incomplete.  Add the set of
     if remove_subscriptions is not None:
-        subs = submgr.get_all_subscriptions(server_id)
-        paths = [inst.path for inst in subs]
-        submgr.remove_subscriptions(server_id, paths)
-        assert len(submgr.get_all_subscriptions(server_id)) == 0
-        assert len(submgr.get_owned_subscriptions(server_id)) == 0
+        sub_paths = [inst.path for inst in added_subscriptions]
+        if isinstance(remove_subscriptions, bool):
+            assert remove_subscriptions
+            submgr.remove_subscriptions(server_id, sub_paths)
+            result = 0
+        elif isinstance(remove_subscriptions, int):
+            submgr.remove_subscriptions(server_id,
+                                        sub_paths[remove_destinations])
+            result = len(sub_paths) - 1
+        elif isinstance(remove_subscriptions, list):
+            removal_list = [added_subscriptions[i].path for i in
+                            remove_subscriptions]
+            submgr.remove_subscriptions(server_id, removal_list)
+            result = len(sub_paths) - len(remove_subscriptions)
+
+        assert len(submgr.get_all_subscriptions(server_id)) == result
 
     if remove_server_attrs:
         submgr.remove_server(remove_server_attrs)
@@ -1457,6 +1634,19 @@ def test_subscriptionmanager(testcase, submgr_id, connection_attrs,
             assert False
         except ValueError:
             pass
+
+    # Test for final counts after any remove test definitions
+    if 'final_listenercount' in exp_result:
+        assert len(submgr.get_all_destinations(server_id)) == \
+            exp_result['final_listener_count']
+
+    if 'final_filter_count' in exp_result:
+        assert len(submgr.get_all_filters(server_id)) == \
+            exp_result['final_filter_count']
+
+    if 'final_subscription_count' in exp_result:
+        assert len(submgr.get_all_subscriptions(server_id)) == \
+            exp_result['final_subscription_count']
 
 
 TESTCASES_SUBMGR_MODIFY = [
@@ -1501,7 +1691,8 @@ TESTCASES_SUBMGR_MODIFY = [
     #       * server_id - The expected server_id
     #       * listener_count - Count of expected destinations
     #       * filter_count - Count of expected filters.
-    #       * TODO: Add validation for filter, dest attributes
+    #       * dest_props: TODO: Will get doc from later pr
+    #       * TODO: Add validation for filter, subscriptions
     #       * subscription_count - Count of expected subscriptions.
     #
     # * exp_exc_types: Expected exception type(s), or None.
