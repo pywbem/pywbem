@@ -23,7 +23,10 @@ indication filters and listener destinations) for multiple WBEM servers and
 multiple WBEM listeners and for getting information about existing indication
 subscriptions.
 
-The WBEM listener is identified through its URL, so it may be the pywbem
+The SubscriptionManager only manages CIM/XML listener destinations and does not
+view, add, or remove other destinations such as files, etc.
+
+The CIM/XML WBEM listener is identified through its URL, so it may be the pywbem
 listener (that is, a :class:`~pywbem.WBEMListener` object) or any other WBEM
 listener.
 
@@ -161,7 +164,7 @@ from ._utils import _format
 
 # CIM model classnames for subscription components
 SUBSCRIPTION_CLASSNAME = 'CIM_IndicationSubscription'
-DESTINATION_CLASSNAME = 'CIM_ListenerDestination'
+DESTINATION_CLASSNAME = 'CIM_ListenerDestinationCIMXML'
 FILTER_CLASSNAME = 'CIM_IndicationFilter'
 SYSTEM_CREATION_CLASSNAME = 'CIM_ComputerSystem'
 

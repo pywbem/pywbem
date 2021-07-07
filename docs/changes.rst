@@ -82,9 +82,7 @@ Released: not yet
   - Fixes issue where add_subscription returned wrong instance if the
     instance already exists. (See issue #2719)
   - Fix issues in SubscriptionManager.add_destination to add optional parameter
-    which populates the destination PersistenceType property and modified the
-    class for the destination to CIM_ListenerDestination since the
-    CIM_ListenerDestinationXML class is deprecated. (See issue #2712)
+    which populates the destination PersistenceType property. (See issue #2712)
   - Add capability to mock subscription providers to execute ModifyInstance
     (See issue #2722)
 

@@ -20,7 +20,7 @@
 
 """
 This module implements user providerw for the classews required to create and
-manage CIM indications subscriptions including: CIM_ListenerDestination,
+manage CIM indications subscriptions including: CIM_ListenerDestinationCIMXML,
 CIM_IndicationFilter, and CIM_IndicationSubscription.  These providers are
 packaged as single file because they are all required together.
 
@@ -44,8 +44,6 @@ is included in a subscription.
 """
 import six
 
-from nocaselist import NocaseList
-
 from pywbem import CIMError, CIM_ERR_NOT_SUPPORTED, \
     CIM_ERR_INVALID_PARAMETER, CIM_ERR_FAILED, Uint16, CIMDateTime
 from pywbem._utils import _format
@@ -56,8 +54,7 @@ from .config import SYSTEMNAME, SYSTEMCREATIONCLASSNAME
 # CIM class name of the classes implemented in these providers
 SUBSCRIPTION_CLASSNAME = 'CIM_IndicationSubscription'
 FILTER_CLASSNAME = 'CIM_IndicationFilter'
-LISTENERDESTINATIONS_CLASSNAMES = NocaseList(['CIM_ListenerDestination',
-                                              'CIM_ListenerDestinationCIMXML'])
+LISTENERDESTINATION_CLASSNAME = 'CIM_ListenerDestinationCIMXML'
 
 
 class CommonMethodsMixin(object):
@@ -459,10 +456,10 @@ class CIMListenerDestinationProvider(CommonMethodsMixin, InstanceWriteProvider):
     # pylint: disable=line-too-long
     """
     Implements the user defined provider for the class
-    CIM_ListenerDestination.
+    CIM_ListenerDestinationCIMXML.
 
     This provider provides the create, modify, and delete methods for adding an
-    instance of the class CIM_ListenerDestination when a namespace is
+    instance of the class CIM_ListenerDestinationCIMXML when a namespace is
     created or deleted in a pywbem mock environment.
 
     This class and the instances of this class only exist in the WBEM server
@@ -472,7 +469,7 @@ class CIMListenerDestinationProvider(CommonMethodsMixin, InstanceWriteProvider):
     this class and by methods of its superclasses (i.e.  InstanceWriteProvider).
 
     The provider defines the class level attribute `provider_classnames`
-    (CIM_ListenerDestination)
+    (CIM_ListenerDestinationCIMXML)
 
     This provider presumes that an Interop namespace has been created before
     the provider object is constructed and fails the constructor if
@@ -484,7 +481,7 @@ class CIMListenerDestinationProvider(CommonMethodsMixin, InstanceWriteProvider):
     # for which this provider is responsible.
     #: provider_classnames (:term:`string`):
     #:        The classnames for this provider
-    provider_classnames = LISTENERDESTINATIONS_CLASSNAMES
+    provider_classnames = LISTENERDESTINATION_CLASSNAME
 
     def __init__(self, cimrepository):
         """
@@ -502,7 +499,7 @@ class CIMListenerDestinationProvider(CommonMethodsMixin, InstanceWriteProvider):
                         "classes: ({0}). "
                         "No Interop namespace exists in the CIM repository. "
                         "Valid Interop namespaces are: {1}",
-                        ", ".join(LISTENERDESTINATIONS_CLASSNAMES),
+                        ", ".join(LISTENERDESTINATION_CLASSNAME),
                         ", ".join(self.interop_namespace_names)))
 
         self.installed = False  # test if provider previously installed.
@@ -518,7 +515,7 @@ class CIMListenerDestinationProvider(CommonMethodsMixin, InstanceWriteProvider):
     def CreateInstance(self, namespace, new_instance):
         # pylint: disable=invalid-name
         """
-        Create an instance of the CIM_ListenerDestination class in an
+        Create an instance of the CIM_ListenerDestinationCIMXML class in an
         Interop namespace of the CIM repository, and if not yet existing create
         the new namespace in the CIM repository.
 
@@ -588,7 +585,7 @@ class CIMListenerDestinationProvider(CommonMethodsMixin, InstanceWriteProvider):
     def ModifyInstance(self, modified_instance, IncludeQualifiers=None):
         # pylint: disable=invalid-name
         """
-        Modification of CIM_ListenerDestination instance allowed only for
+        Modification of CIM_ListenerDestinationXIMXML instance allowed only for
         selected properties. See the documentation in
         CommonMethodsMixin.validate_modify_instance for parameter documentation.
         """
@@ -604,7 +601,7 @@ class CIMListenerDestinationProvider(CommonMethodsMixin, InstanceWriteProvider):
 
     def DeleteInstance(self, InstanceName):  # pylint: disable=invalid-name
         """
-        Delete an instance of the CIM_ListenerDestination class in an
+        Delete an instance of the CIM_ListenerDestinationCIMXML class in an
         Interop namespace of the CIM repository unless it has an outstanding
         association through a subscription.
 

@@ -74,7 +74,6 @@ SUBSCRIPTION_WBEM_SERVER_MOCK_DICT = {
                     'CIM_ReferencedProfile',
                     'CIM_ComputerSystem',
                     'CIM_IndicationSubscription',
-                    'CIM_ListenerDestination',
                     'CIM_ListenerDestinationCIMXML',
                     'CIM_IndicationFilter', ],
 
