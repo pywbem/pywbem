@@ -788,22 +788,6 @@ WBEMLISTENER_INCORRECT_HEADERS_TESTCASES = [
         }
     ),
     (
-        "Invalid Accept-Encoding header",
-        {
-            'Content-Type': 'application/xml',
-            'CIMExport': 'MethodRequest',
-            'CIMExportMethod': 'ExportIndication',
-            'Accept-Encoding': 'foo',
-            'CIMProtocolVersion': '1.4',
-        },
-        406,
-        {
-            'CIMErrorDetails': r'Invalid Accept-Encoding header .*',
-            'CIMError': r'header-mismatch',
-            'CIMExport': r'MethodResponse',
-        }
-    ),
-    (
         "Accept-Range header not permitted",
         {
             'Content-Type': 'application/xml',
