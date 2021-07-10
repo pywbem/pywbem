@@ -473,6 +473,19 @@ class TestCreateConnection(object):
             exc = exc_info.value
             assert re.match(r'is closed', str(exc))
 
+    def test_close_export(self):  # pylint: disable=no-self-use
+        """
+        Test closing a connection and invoking an export operation.
+        """
+        conn = WBEMConnection('http://localhost')
+        conn.close()
+        assert conn.session is None
+        indi = CIMInstance("CIM_AlertIndication")
+        with pytest.raises(ConnectionError) as exc_info:
+            conn.ExportIndication(NewIndication=indi)
+            exc = exc_info.value
+            assert re.match(r'is closed', str(exc))
+
     def test_context_manager(self):  # pylint: disable=no-self-use
         """
         Test the use of WBEMConnection as a context manager.

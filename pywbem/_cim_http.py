@@ -235,9 +235,10 @@ def request_exc_message(exc, conn):
     return message
 
 
-def wbem_request(conn, req_data, cimxml_headers):
+def wbem_request(conn, req_data, cimxml_headers, target_type='server'):
     """
-    Send an HTTP or HTTPS request to a WBEM server and return the response.
+    Send an HTTP or HTTPS request to a WBEM server or WBEM listener and return
+    the response.
 
     Parameters:
 
@@ -245,7 +246,8 @@ def wbem_request(conn, req_data, cimxml_headers):
         WBEM connection to be used.
 
       req_data (:term:`string`):
-        The CIM-XML formatted data to be sent as a request to the WBEM server.
+        The CIM-XML formatted data to be sent as a request to the WBEM server
+        or WBEM listener.
 
       cimxml_headers (:term:`py:iterable` of tuple(string,string)):
         Where each tuple contains: header name, header value.
@@ -256,12 +258,14 @@ def wbem_request(conn, req_data, cimxml_headers):
 
         A value of `None` is treated like an empty iterable.
 
+      target_type (:term:`string`): Target type: 'server' or 'listener'.
+
     Returns:
 
         Tuple containing:
 
-            The CIM-XML formatted response data from the WBEM server, as a
-            :term:`byte string` object.
+            The CIM-XML formatted response data from the WBEM server or
+            WBEM listener, as a :term:`byte string` object.
 
             The server response time in seconds as floating point number if
             this data was received from the server. If no data returned
@@ -278,7 +282,10 @@ def wbem_request(conn, req_data, cimxml_headers):
     if cimxml_headers is None:
         cimxml_headers = []
 
-    target = '/cimom'
+    if target_type == 'server':
+        target = '/cimom'
+    else:
+        target = ''
     target_url = '{}{}'.format(conn.url, target)
 
     # Make sure the data parameter is converted to a UTF-8 encoded byte string.
@@ -294,7 +301,7 @@ def wbem_request(conn, req_data, cimxml_headers):
     }
     req_headers.update(dict(cimxml_headers))
 
-    if conn.creds is not None:
+    if target_type == 'server' and conn.creds is not None:
         auth = '{0}:{1}'.format(conn.creds[0], conn.creds[1])
         auth64 = _ensure_unicode(base64.b64encode(
             _ensure_bytes(auth))).replace('\n', '')
@@ -329,14 +336,17 @@ def wbem_request(conn, req_data, cimxml_headers):
         msg = request_exc_message(exc, conn)
         raise ConnectionError(msg, conn_id=conn.conn_id)
 
-    # Get the optional response time header
-    svr_resp_time = resp.headers.get('WBEMServerResponseTime', None)
-    if svr_resp_time is not None:
-        try:
-            # convert to float and map from microsec to sec.
-            svr_resp_time = float(svr_resp_time) / 1000000
-        except ValueError:
-            pass
+    if target_type == 'server':
+        # Get the optional response time header
+        svr_resp_time = resp.headers.get('WBEMServerResponseTime', None)
+        if svr_resp_time is not None:
+            try:
+                # convert to float and map from microsec to sec.
+                svr_resp_time = float(svr_resp_time) / 1000000
+            except ValueError:
+                pass
+    else:
+        svr_resp_time = None
 
     if conn.operation_recorders:
         for recorder in conn.operation_recorders:
@@ -349,7 +359,7 @@ def wbem_request(conn, req_data, cimxml_headers):
 
     if resp.status_code != 200:
 
-        if resp.status_code == 401:
+        if target_type == 'server' and resp.status_code == 401:
 
             msg = "WBEM server returned HTTP status {0} ({1}).". \
                 format(resp.status_code, resp.reason)
@@ -391,6 +401,7 @@ def wbem_request(conn, req_data, cimxml_headers):
         cimerror_hdr = resp.headers.get('CIMError', None)
         cimdetails = {}
         if cimerror_hdr is not None:
+            # For WBEM listeners, this header will never be there
             pgdetails_hdr = resp.headers.get('PGErrorDetail', None)
             if pgdetails_hdr is not None:
                 cimdetails['PGErrorDetail'] = \

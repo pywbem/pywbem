@@ -144,6 +144,12 @@ Released: not yet
   property 'SourceNamespaces' in place of the deprecated 'SourceNamespace'. (see
   issue #2725 and the **Incompatible changes:** section above)
 
+* Added support for the ExportIndication export operation by extending
+  'WBEMConnection' to be able of targeting a WBEM listener instead of a WBEM
+  server, and by adding an 'ExportIndication()' method to 'WBEMConnection'.
+  The 'default_namespace' and 'use_pull_operations' init parameters and
+  properties are ignored when targeting a WBEM listener. (issue #2729)
+
 **Cleanup:**
 
 * Extend tests for SubscriptionManager to utilize pytest and cover error cases.

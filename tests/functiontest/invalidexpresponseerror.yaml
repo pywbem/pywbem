@@ -1,0 +1,862 @@
+- name: InvalidExportResponse1
+  description: ExportIndication response is valid XML but has invalid root element
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: ExportIndication
+      NewIndication:
+        pywbem_object: CIMInstance
+        classname: PyWBEM_Indication
+        properties:
+          name:
+            pywbem_object: CIMProperty
+            name: Name
+            value: run_cimoperations_test
+            type: string
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+        path: null
+  pywbem_response:
+    exception: CIMXMLParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMExport: MethodRequest
+      CIMExportMethod: ExportIndication
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEEXPREQ>
+            <EXPMETHODCALL NAME="ExportIndication">
+              <EXPPARAMVALUE NAME="NewIndication">
+                <INSTANCE CLASSNAME="PyWBEM_Indication">
+                  <PROPERTY NAME="Name" TYPE="string">
+                    <VALUE>run_cimoperations_test</VALUE>
+                  </PROPERTY>
+                </INSTANCE>
+              </EXPPARAMVALUE>
+            </EXPMETHODCALL>
+          </SIMPLEEXPREQ>
+        </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      CIMExport: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIMbad CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGEbad ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEEXPRSP>
+            <EXPMETHODRESPONSE NAME="ExportIndication">
+            </EXPMETHODRESPONSE>
+          </SIMPLEEXPRSP>
+        </MESSAGEbad>
+      </CIMbad>'
+
+- name: InvalidExportResponse2
+  description: ExportIndication response is valid XML but has invalid child element in CIM element
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: ExportIndication
+      NewIndication:
+        pywbem_object: CIMInstance
+        classname: PyWBEM_Indication
+        properties:
+          name:
+            pywbem_object: CIMProperty
+            name: Name
+            value: run_cimoperations_test
+            type: string
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+        path: null
+  pywbem_response:
+    exception: CIMXMLParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMExport: MethodRequest
+      CIMExportMethod: ExportIndication
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEEXPREQ>
+            <EXPMETHODCALL NAME="ExportIndication">
+              <EXPPARAMVALUE NAME="NewIndication">
+                <INSTANCE CLASSNAME="PyWBEM_Indication">
+                  <PROPERTY NAME="Name" TYPE="string">
+                    <VALUE>run_cimoperations_test</VALUE>
+                  </PROPERTY>
+                </INSTANCE>
+              </EXPPARAMVALUE>
+            </EXPMETHODCALL>
+          </SIMPLEEXPREQ>
+        </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      CIMExport: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGEbad ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEEXPRSP>
+            <EXPMETHODRESPONSE NAME="ExportIndication">
+            </EXPMETHODRESPONSE>
+          </SIMPLEEXPRSP>
+        </MESSAGEbad>
+      </CIM>'
+
+- name: InvalidExportResponse3
+  description: ExportIndication response is valid XML but has invalid child element in MESSAGE element
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: ExportIndication
+      NewIndication:
+        pywbem_object: CIMInstance
+        classname: PyWBEM_Indication
+        properties:
+          name:
+            pywbem_object: CIMProperty
+            name: Name
+            value: run_cimoperations_test
+            type: string
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+        path: null
+  pywbem_response:
+    exception: CIMXMLParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMExport: MethodRequest
+      CIMExportMethod: ExportIndication
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEEXPREQ>
+            <EXPMETHODCALL NAME="ExportIndication">
+              <EXPPARAMVALUE NAME="NewIndication">
+                <INSTANCE CLASSNAME="PyWBEM_Indication">
+                  <PROPERTY NAME="Name" TYPE="string">
+                    <VALUE>run_cimoperations_test</VALUE>
+                  </PROPERTY>
+                </INSTANCE>
+              </EXPPARAMVALUE>
+            </EXPMETHODCALL>
+          </SIMPLEEXPREQ>
+        </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      CIMExport: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEEXPRSPbad>
+            <EXPMETHODRESPONSE NAME="ExportIndication">
+            </EXPMETHODRESPONSE>
+          </SIMPLEEXPRSPbad>
+        </MESSAGE>
+      </CIM>'
+
+- name: InvalidExportResponse4
+  description: ExportIndication response is valid XML but has invalid child element in SIMPLEEXPRSP element
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: ExportIndication
+      NewIndication:
+        pywbem_object: CIMInstance
+        classname: PyWBEM_Indication
+        properties:
+          name:
+            pywbem_object: CIMProperty
+            name: Name
+            value: run_cimoperations_test
+            type: string
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+        path: null
+  pywbem_response:
+    exception: CIMXMLParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMExport: MethodRequest
+      CIMExportMethod: ExportIndication
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEEXPREQ>
+            <EXPMETHODCALL NAME="ExportIndication">
+              <EXPPARAMVALUE NAME="NewIndication">
+                <INSTANCE CLASSNAME="PyWBEM_Indication">
+                  <PROPERTY NAME="Name" TYPE="string">
+                    <VALUE>run_cimoperations_test</VALUE>
+                  </PROPERTY>
+                </INSTANCE>
+              </EXPPARAMVALUE>
+            </EXPMETHODCALL>
+          </SIMPLEEXPREQ>
+        </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      CIMExport: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEEXPRSP>
+            <EXPMETHODRESPONSEbad NAME="ExportIndication">
+            </EXPMETHODRESPONSEbad>
+          </SIMPLEEXPRSP>
+        </MESSAGE>
+      </CIM>'
+
+- name: InvalidExportResponse5
+  description: ExportIndication response is valid XML but has invalid EXPMETHODRESPONSE NAME
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: ExportIndication
+      NewIndication:
+        pywbem_object: CIMInstance
+        classname: PyWBEM_Indication
+        properties:
+          name:
+            pywbem_object: CIMProperty
+            name: Name
+            value: run_cimoperations_test
+            type: string
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+        path: null
+  pywbem_response:
+    exception: CIMXMLParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMExport: MethodRequest
+      CIMExportMethod: ExportIndication
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEEXPREQ>
+            <EXPMETHODCALL NAME="ExportIndication">
+              <EXPPARAMVALUE NAME="NewIndication">
+                <INSTANCE CLASSNAME="PyWBEM_Indication">
+                  <PROPERTY NAME="Name" TYPE="string">
+                    <VALUE>run_cimoperations_test</VALUE>
+                  </PROPERTY>
+                </INSTANCE>
+              </EXPPARAMVALUE>
+            </EXPMETHODCALL>
+          </SIMPLEEXPREQ>
+        </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      CIMExport: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEEXPRSP>
+            <EXPMETHODRESPONSE NAME="ExportIndicationbad">
+            </EXPMETHODRESPONSE>
+          </SIMPLEEXPRSP>
+        </MESSAGE>
+      </CIM>'
+
+- name: InvalidExportResponse6
+  description: ExportIndication response is valid XML but misses EXPMETHODRESPONSE element
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: ExportIndication
+      NewIndication:
+        pywbem_object: CIMInstance
+        classname: PyWBEM_Indication
+        properties:
+          name:
+            pywbem_object: CIMProperty
+            name: Name
+            value: run_cimoperations_test
+            type: string
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+        path: null
+  pywbem_response:
+    exception: CIMXMLParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMExport: MethodRequest
+      CIMExportMethod: ExportIndication
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEEXPREQ>
+            <EXPMETHODCALL NAME="ExportIndication">
+              <EXPPARAMVALUE NAME="NewIndication">
+                <INSTANCE CLASSNAME="PyWBEM_Indication">
+                  <PROPERTY NAME="Name" TYPE="string">
+                    <VALUE>run_cimoperations_test</VALUE>
+                  </PROPERTY>
+                </INSTANCE>
+              </EXPPARAMVALUE>
+            </EXPMETHODCALL>
+          </SIMPLEEXPREQ>
+        </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      CIMExport: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEEXPRSP>
+          </SIMPLEEXPRSP>
+        </MESSAGE>
+      </CIM>'
+
+- name: InvalidExportResponse7
+  description: ExportIndication response is valid XML but misses SIMPLEEXPRSP element
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: ExportIndication
+      NewIndication:
+        pywbem_object: CIMInstance
+        classname: PyWBEM_Indication
+        properties:
+          name:
+            pywbem_object: CIMProperty
+            name: Name
+            value: run_cimoperations_test
+            type: string
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+        path: null
+  pywbem_response:
+    exception: CIMXMLParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMExport: MethodRequest
+      CIMExportMethod: ExportIndication
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEEXPREQ>
+            <EXPMETHODCALL NAME="ExportIndication">
+              <EXPPARAMVALUE NAME="NewIndication">
+                <INSTANCE CLASSNAME="PyWBEM_Indication">
+                  <PROPERTY NAME="Name" TYPE="string">
+                    <VALUE>run_cimoperations_test</VALUE>
+                  </PROPERTY>
+                </INSTANCE>
+              </EXPPARAMVALUE>
+            </EXPMETHODCALL>
+          </SIMPLEEXPREQ>
+        </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      CIMExport: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+        </MESSAGE>
+      </CIM>'
+
+- name: InvalidExportResponse8
+  description: ExportIndication response is valid XML but misses MESSAGE element
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: ExportIndication
+      NewIndication:
+        pywbem_object: CIMInstance
+        classname: PyWBEM_Indication
+        properties:
+          name:
+            pywbem_object: CIMProperty
+            name: Name
+            value: run_cimoperations_test
+            type: string
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+        path: null
+  pywbem_response:
+    exception: CIMXMLParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMExport: MethodRequest
+      CIMExportMethod: ExportIndication
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEEXPREQ>
+            <EXPMETHODCALL NAME="ExportIndication">
+              <EXPPARAMVALUE NAME="NewIndication">
+                <INSTANCE CLASSNAME="PyWBEM_Indication">
+                  <PROPERTY NAME="Name" TYPE="string">
+                    <VALUE>run_cimoperations_test</VALUE>
+                  </PROPERTY>
+                </INSTANCE>
+              </EXPPARAMVALUE>
+            </EXPMETHODCALL>
+          </SIMPLEEXPREQ>
+        </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      CIMExport: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+      </CIM>'
+
+- name: InvalidExportResponse9
+  description: ExportIndication response is valid XML but has invalid additional EXPMETHODRESPONSE child element
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: ExportIndication
+      NewIndication:
+        pywbem_object: CIMInstance
+        classname: PyWBEM_Indication
+        properties:
+          name:
+            pywbem_object: CIMProperty
+            name: Name
+            value: run_cimoperations_test
+            type: string
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+        path: null
+  pywbem_response:
+    exception: CIMXMLParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMExport: MethodRequest
+      CIMExportMethod: ExportIndication
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEEXPREQ>
+            <EXPMETHODCALL NAME="ExportIndication">
+              <EXPPARAMVALUE NAME="NewIndication">
+                <INSTANCE CLASSNAME="PyWBEM_Indication">
+                  <PROPERTY NAME="Name" TYPE="string">
+                    <VALUE>run_cimoperations_test</VALUE>
+                  </PROPERTY>
+                </INSTANCE>
+              </EXPPARAMVALUE>
+            </EXPMETHODCALL>
+          </SIMPLEEXPREQ>
+        </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      CIMExport: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEEXPRSP>
+            <EXPMETHODRESPONSE NAME="ExportIndication">
+              <bad/>
+            </EXPMETHODRESPONSE>
+          </SIMPLEEXPRSP>
+        </MESSAGE>
+      </CIM>'
+
+- name: InvalidExportResponse10
+  description: ExportIndication response is valid XML but valid CIM-XML response for different request
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: ExportIndication
+      NewIndication:
+        pywbem_object: CIMInstance
+        classname: PyWBEM_Indication
+        properties:
+          name:
+            pywbem_object: CIMProperty
+            name: Name
+            value: run_cimoperations_test
+            type: string
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+        path: null
+  pywbem_response:
+    exception: CIMXMLParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMExport: MethodRequest
+      CIMExportMethod: ExportIndication
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEEXPREQ>
+            <EXPMETHODCALL NAME="ExportIndication">
+              <EXPPARAMVALUE NAME="NewIndication">
+                <INSTANCE CLASSNAME="PyWBEM_Indication">
+                  <PROPERTY NAME="Name" TYPE="string">
+                    <VALUE>run_cimoperations_test</VALUE>
+                  </PROPERTY>
+                </INSTANCE>
+              </EXPPARAMVALUE>
+            </EXPMETHODCALL>
+          </SIMPLEEXPREQ>
+        </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      CIMExport: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLERSP>
+            <IMETHODRESPONSE NAME="DeleteInstance">
+            </IMETHODRESPONSE>
+          </SIMPLERSP>
+        </MESSAGE>
+      </CIM>'
+
+- name: InvalidExportResponseXML1
+  description: ExportIndication response is invalid XML (begin and end tag not matching)
+  ignore_debug_comparison: true
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: ExportIndication
+      NewIndication:
+        pywbem_object: CIMInstance
+        classname: PyWBEM_Indication
+        properties:
+          name:
+            pywbem_object: CIMProperty
+            name: Name
+            value: run_cimoperations_test
+            type: string
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+        path: null
+  pywbem_response:
+    exception: XMLParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMExport: MethodRequest
+      CIMExportMethod: ExportIndication
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEEXPREQ>
+            <EXPMETHODCALL NAME="ExportIndication">
+              <EXPPARAMVALUE NAME="NewIndication">
+                <INSTANCE CLASSNAME="PyWBEM_Indication">
+                  <PROPERTY NAME="Name" TYPE="string">
+                    <VALUE>run_cimoperations_test</VALUE>
+                  </PROPERTY>
+                </INSTANCE>
+              </EXPPARAMVALUE>
+            </EXPMETHODCALL>
+          </SIMPLEEXPREQ>
+        </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      CIMExport: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEEXPRSP>
+            <EXPMETHODRESPONSE NAME="ExportIndication">
+            </EXPMETHODRESPONSE>
+          </SIMPLEEXPRSPbad>
+        </MESSAGE>
+      </CIM>'
+
+- name: InvalidExportResponseXML2
+  description: ExportIndication response is invalid XML (tag delimiters invalid)
+  ignore_debug_comparison: true
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: ExportIndication
+      NewIndication:
+        pywbem_object: CIMInstance
+        classname: PyWBEM_Indication
+        properties:
+          name:
+            pywbem_object: CIMProperty
+            name: Name
+            value: run_cimoperations_test
+            type: string
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+        path: null
+  pywbem_response:
+    exception: XMLParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMExport: MethodRequest
+      CIMExportMethod: ExportIndication
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEEXPREQ>
+            <EXPMETHODCALL NAME="ExportIndication">
+              <EXPPARAMVALUE NAME="NewIndication">
+                <INSTANCE CLASSNAME="PyWBEM_Indication">
+                  <PROPERTY NAME="Name" TYPE="string">
+                    <VALUE>run_cimoperations_test</VALUE>
+                  </PROPERTY>
+                </INSTANCE>
+              </EXPPARAMVALUE>
+            </EXPMETHODCALL>
+          </SIMPLEEXPREQ>
+        </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      CIMExport: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEEXPRSP>
+            <EXPMETHODRESPONSE NAME="ExportIndication">
+            </EXPMETHODRESPONSE>
+          </SIMPLEEXPRSP<
+        </MESSAGE>
+      </CIM>'
+
+- name: InvalidExportResponseXML3
+  description: ExportIndication response contains invalid character U+0000
+  ignore_debug_comparison: true
+  pywbem_request:
+    url: http://acme.com:80
+    creds:
+    - username
+    - password
+    namespace: root/cimv2
+    timeout: 10
+    debug: true
+    operation:
+      pywbem_method: ExportIndication
+      NewIndication:
+        pywbem_object: CIMInstance
+        classname: PyWBEM_Indication
+        properties:
+          name:
+            pywbem_object: CIMProperty
+            name: Name
+            value: run_cimoperations_test
+            type: string
+            reference_class: null
+            embedded_object: null
+            is_array: false
+            array_size: null
+            class_origin: null
+            propagated: null
+            qualifiers: {}
+        path: null
+  pywbem_response:
+    exception: XMLParseError
+  http_request:
+    verb: POST
+    url: http://acme.com:80/cimom
+    headers:
+      CIMExport: MethodRequest
+      CIMExportMethod: ExportIndication
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEEXPREQ>
+            <EXPMETHODCALL NAME="ExportIndication">
+              <EXPPARAMVALUE NAME="NewIndication">
+                <INSTANCE CLASSNAME="PyWBEM_Indication">
+                  <PROPERTY NAME="Name" TYPE="string">
+                    <VALUE>run_cimoperations_test</VALUE>
+                  </PROPERTY>
+                </INSTANCE>
+              </EXPPARAMVALUE>
+            </EXPMETHODCALL>
+          </SIMPLEEXPREQ>
+        </MESSAGE>
+      </CIM>'
+  http_response:
+    status: 200
+    headers:
+      CIMExport: MethodResponse
+    data: '<?xml version="1.0" encoding="utf-8" ?>
+      <CIM CIMVERSION="2.0" DTDVERSION="2.0">
+        <MESSAGE ID="1001" PROTOCOLVERSION="1.0">
+          <SIMPLEEXPRSP>
+            <EXPMETHODRESPONSE NAME="\u0000 ExportIndication">
+            </EXPMETHODRESPONSE>
+          </SIMPLEEXPRSP<
+        </MESSAGE>
+      </CIM>'

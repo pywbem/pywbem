@@ -25,12 +25,12 @@
 # pylint: disable=line-too-long
 """
 Objects of the :class:`~pywbem.WBEMConnection` class represent a connection to
-a WBEM server.
+a WBEM server or WBEM listener.
 All WBEM operations defined in :term:`DSP0200` can be issued across this connection.
 Each method of this class corresponds directly to a WBEM operation.
 
 ==========================================================  ==============================================================
-WBEMConnection method                                       Purpose
+WBEMConnection methods targeting a server                   Purpose
 ==========================================================  ==============================================================
 :meth:`~pywbem.WBEMConnection.EnumerateInstances`           Enumerate the instances of a class (including instances of its
                                                             subclasses)
@@ -123,6 +123,12 @@ WBEMConnection method                                       Purpose
 NOTE: The method EnumerationCount is to be deprecated from the DMTF specs
 and has not been implemented by any WBEM servers so was not implemented
 in pywbem.
+
+==========================================================  ==============================================================
+WBEMConnection methods targeting a listener                 Purpose
+==========================================================  ==============================================================
+:meth:`~pywbem.WBEMConnection.ExportIndication`             Send an indication to a WBEM listener
+==========================================================  ==============================================================
 """  # noqa: E501
 # pylint: enable=line-too-long
 # Note: When used before module docstrings, Pylint scopes the disable statement
@@ -360,23 +366,28 @@ def _validate_context(context):
 
 class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     """
-    A client's connection to a WBEM server. This is the main class of the
-    WBEM client library API.
+    A client's connection to a WBEM server or WBEM listener. This is the main
+    class of the WBEM client library API.
 
-    The connection object knows a default CIM namespace, which is used when no
-    namespace is specified on subsequent WBEM operations (that support
-    specifying namespaces). Thus, the connection object can be used as a
-    connection to multiple CIM namespaces on a WBEM server (when the namespace
-    is specified on subsequent operations), or as a connection to only the
-    default namespace (this allows omitting the namespace on subsequent
-    operations).
+    This class is used for communication with WBEM servers and WBEM listeners,
+    because the communication mechanisms are very similar. However, a
+    particular object of this class will connect to only one target which is
+    either a WBEM server or a WBEM listener, but never both.
+
+    When targeting a WBEM server, the connection object knows a default CIM
+    namespace, which is used when no namespace is specified on subsequent
+    WBEM operations (that support specifying namespaces). Thus, the connection
+    object can be used as a connection to multiple CIM namespaces on a
+    WBEM server (when the namespace is specified on subsequent operations),
+    or as a connection to only the default namespace (this allows omitting the
+    namespace on subsequent operations).
 
     As usual in HTTP, there is no persistent TCP connection; the connectedness
     provided by this class is only conceptual. That is, the creation of the
-    connection object does not cause any interaction with the WBEM server, and
-    each subsequent WBEM operation performs an independent, state-less
-    HTTP/HTTPS request. Usage of the `requests` Python package causes the
-    underlying resources such as sockets to be pooled, though.
+    connection object does not cause any interaction with the WBEM server or
+    WBEM listener, and each subsequent WBEM operation performs an independent,
+    state-less HTTP/HTTPS request. However, usage of the `requests` Python
+    package causes the underlying resources such as sockets to be pooled.
     A :meth:`~pywbem.WBEMConnection.close` method closes the underlying
     session of the `requests` package, releasing any sockets.
 
@@ -394,7 +405,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     After creating a :class:`~pywbem.WBEMConnection` object, various methods
     may be called on the object, which cause WBEM operations to be issued to
-    the WBEM server. See :ref:`WBEM operations` for a list of these methods.
+    the WBEM server or WBEM listener. See :ref:`WBEM operations` for a list of
+    these methods. Each operation method describes whether it can be used
+    with a WBEM server or with a WBEM listener.
 
     CIM elements such as instances or classes are represented as Python objects
     (see :ref:`CIM objects`). The caller does not need to know about the CIM-XML
@@ -418,12 +431,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     * Exceptions indicating operational errors:
 
       - :exc:`~pywbem.ConnectionError` - A connection with the WBEM server
-        could not be established or broke down.
+        or WBEM listener could not be established or broke down.
 
       - :exc:`~pywbem.AuthError` - Authentication failed with the WBEM server.
+        This exception cannot occur when targeting a WBEM listener.
 
-      - :exc:`~pywbem.TimeoutError` - The WBEM server did not respond in time
-        and the client timed out.
+      - :exc:`~pywbem.TimeoutError` - The WBEM server or WBEM listener did not
+        respond in time and the client timed out.
 
       Such exceptions can typically be resolved by the client user or server
       admin.
@@ -431,27 +445,27 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     * Exceptions indicating server-side issues:
 
       - :exc:`~pywbem.HTTPError` - HTTP error (bad status code) received from
-        WBEM server.
+        WBEM server or WBEM listener.
 
       - :exc:`~pywbem.CIMXMLParseError` - The response from the WBEM server
-        cannot be parsed because it is invalid CIM-XML (for example, a required
-        attribute is missing on an XML element).
+        or WBEM listener cannot be parsed because it is invalid CIM-XML
+        (for example, a required attribute is missing on an XML element).
 
-      - :exc:`~pywbem.XMLParseError` - The response from the WBEM server
-        cannot be parsed because it is invalid XML (for example, invalid
-        characters or UTF-8 sequences, or ill-formed XML).
+      - :exc:`~pywbem.XMLParseError` - The response from the WBEM server or
+        WBEM listener cannot be parsed because it is invalid XML (for example,
+        invalid characters or UTF-8 sequences, or ill-formed XML).
 
       Such exceptions nearly always indicate an issue with the implementation
-      of the WBEM server.
+      of the WBEM server or WBEM listener.
 
     * Other exceptions:
 
-      - :exc:`~pywbem.CIMError` - The WBEM server returned an error response
-        with a CIM status code.
+      - :exc:`~pywbem.CIMError` - The WBEM server or WBEM listener returned an
+        error response  with a CIM status code.
 
       Depending on the nature of the request, and on the CIM status code, the
       reason may be a client user error (e.g. incorrect class name) or
-      a server side issue (e.g. some internal error in the server).
+      a server side issue (e.g. some internal error in the server or listener).
 
     * Exceptions indicating programming errors (in pywbem or by the user):
 
@@ -489,7 +503,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         Parameters:
 
           url (:term:`string`):
-            URL of the WBEM server, in the format:
+            URL of the WBEM server or WBEM listener, in the format:
 
               ``[{scheme}://]{host}[:{port}]``
 
@@ -513,6 +527,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             * Port 5988 for URL scheme ``http``
             * Port 5989 for URL scheme ``https``
+
+            For WBEM listeners, the port usually different and should therefore
+            be specified in the URL.
 
             Examples for some URL formats:
 
@@ -548,6 +565,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             See :ref:`Authentication types` for an overview.
 
+            This parameter will be ignored when targeting a WBEM listener.
+
           default_namespace (:term:`string`):
             Default CIM namespace for this connection.
 
@@ -560,17 +579,19 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             The default namespace of the connection is used if no namespace
             or a namespace of `None` is specified for an operation.
 
+            This parameter will be ignored when targeting a WBEM listener.
+
           x509 (:class:`py:dict`):
             :term:`X.509` client certificate and key file to be presented
-            to the WBEM server during the TLS/SSL handshake.
+            to the WBEM server or WBEM listener during the TLS/SSL handshake.
 
             This parameter is ignored when HTTP is used.
 
-            If `None`, no client certificate is presented to the server,
-            resulting in TLS/SSL 1-way authentication to be used.
+            If `None`, no client certificate is presented to the server or
+            listener, resulting in TLS/SSL 1-way authentication to be used.
 
-            Otherwise, the client certificate is presented to the server,
-            resulting in TLS/SSL 2-way authentication to be used.
+            Otherwise, the client certificate is presented to the server or
+            listener, resulting in TLS/SSL 2-way authentication to be used.
             This parameter must be a dictionary containing the following
             two items:
 
@@ -591,7 +612,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
           ca_certs (:term:`string`):
             Selects the CA certificates (trusted certificates) for
-            verifying the X.509 server certificate returned by the WBEM server.
+            verifying the X.509 server certificate returned by the WBEM server
+            or WBEM listener.
 
             This parameter is ignored when HTTP is used or when the
             `no_verification` parameter is set to disable verification.
@@ -622,8 +644,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
           no_verification (:class:`py:bool`):
             Disables verification of the X.509 server certificate returned by
-            the WBEM server during TLS/SSL handshake, and disables verification
-            of the hostname.
+            the WBEM server or WBEM listener during TLS/SSL handshake, and
+            disables verification of the hostname.
 
             If `True`, verification is disabled; otherwise, verification is
             enabled.
@@ -634,12 +656,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             and should be avoided!
 
           timeout (:term:`number`):
-            Timeout in seconds, for requests sent to the server.
+            Timeout in seconds, for requests sent to the server or listener.
 
             *New in pywbem 0.8.*
 
-            If the server did not respond within the timeout duration, the
-            socket for the connection will be closed, causing a
+            If the server or listener did not respond within the timeout
+            duration, the socket for the connection will be closed, causing a
             :exc:`~pywbem.TimeoutError` to be raised.
 
             A value of `None` means that the connection uses the standard
@@ -675,6 +697,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             `False` (default) means that the `Iter...()` methods will only use
             traditional operations.
 
+            This parameter will be ignored when targeting a WBEM listener.
+
           stats_enabled (:class:`py:bool`):
             Initial enablement status for maintaining statistics about the
             WBEM operations executed via this connection.
@@ -684,9 +708,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             See the :ref:`WBEM operation statistics` section for details.
 
+            This parameter will be ignored when targeting a WBEM listener.
+
           proxies (:class:`py:dict`):
             Dictionary with the URLs of HTTP or SOCKS proxies to use for
-            the connection to the WBEM server.
+            the connection to the WBEM server or WBEM listener.
 
             *New in pywbem 1.0*
 
@@ -869,7 +895,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @property
     def url(self):
         """
-        :term:`unicode string`: Normalized URL of the WBEM server.
+        :term:`unicode string`: Normalized URL of the WBEM server or
+        WBEM listener.
 
         The scheme is in lower case and the default scheme (http) has been
         applied. Default port numbers (5988 for http and 5989 for https) have
@@ -887,7 +914,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def scheme(self):
         """
         :term:`unicode string`: Normalized scheme of the URL of the WBEM
-        server, for example 'http' or 'https'.
+        server or WBEM listener, for example 'http' or 'https'.
 
         The scheme is in lower case and the default scheme (http) has been
         applied.
@@ -900,7 +927,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def host(self):
         """
         :term:`unicode string`: Normalized host and port number of the WBEM
-        server, in the format ``host:port``.
+        server or WBEM listener, in the format ``host:port``.
 
         Default port numbers (5988 for http and 5989 for https) have been
         applied. For IPv6 addresses, the host has been normalized to RFC6874
@@ -924,6 +951,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         For details, see the description of the same-named init
         parameter of :class:`this class <pywbem.WBEMConnection>`.
+
+        This attribute is ignored when targeting a WBEM listener.
         """
         return self._creds
 
@@ -937,6 +966,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         parameter of :class:`this class <pywbem.WBEMConnection>`.
 
         This attribute is settable.
+
+        This attribute is ignored when targeting a WBEM listener.
         """
         return self._default_namespace
 
@@ -958,7 +989,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def x509(self):
         """
         :class:`py:dict`: :term:`X.509` client certificate and key file to be
-        presented to the WBEM server during the TLS/SSL handshake.
+        presented to the WBEM server or WBEM listener during the TLS/SSL
+        handshake.
 
         For details, see the description of the same-named init
         parameter of :class:`this class <pywbem.WBEMConnection>`.
@@ -969,7 +1001,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def ca_certs(self):
         """
         :term:`string`: Selects the CA certificates (trusted certificates) for
-        verifying the X.509 server certificate returned by the WBEM server.
+        verifying the X.509 server certificate returned by the WBEM server or
+        WBEM listener.
 
         For details, see the description of the same-named init
         parameter of :class:`this class <pywbem.WBEMConnection>`.
@@ -990,7 +1023,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @property
     def timeout(self):
         """
-        :term:`number`: Timeout in seconds, for requests sent to the server.
+        :term:`number`: Timeout in seconds, for requests sent to the server
+        or listener.
 
         *New in pywbem 0.8.*
 
@@ -1067,7 +1101,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def proxies(self):
         """
         :class:`py:dict`: Dictionary with the URLs of HTTP or SOCKS proxies to
-        use for the connection to the WBEM server.
+        use for the connection to the WBEM server or WBEM listener.
 
         *New in pywbem 1.0*
 
@@ -1120,6 +1154,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         This time is available only subsequent to the execution of an operation
         on this connection if the WBEMServerResponseTime is received from the
         WBEM server. Otherwise, the value is `None`.
+
+        When targeting a WBEM listener, the value is always `None`.
         """
         return self._last_server_response_time
 
@@ -1137,6 +1173,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         updated with the status of actually using pull operations. That status
         is maintained internally for each pull operation separately to
         accomodate WBEM servers that support only some of the pull operations.
+
+        This attribute is ignored when targeting a WBEM listener.
         """
         return self._use_pull_operations
 
@@ -1176,8 +1214,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def last_request(self):
         """
         :term:`unicode string`:
-        CIM-XML data of the last request sent to the WBEM server on this
-        connection, formatted as prettified XML.
+        CIM-XML data of the last request sent to the WBEM server or WBEM
+        listener on this connection, formatted as prettified XML.
 
         This property is only set when debug is enabled (see
         :attr:`~pywbem.WBEMConnection.debug`), and is `None` otherwise.
@@ -1195,8 +1233,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def last_raw_request(self):
         """
         :term:`unicode string`:
-        CIM-XML data of the last request sent to the WBEM server
-        on this connection, formatted as it was sent (=raw).
+        CIM-XML data of the last request sent to the WBEM server or WBEM
+        listener on this connection, formatted as it was sent (=raw).
 
         Prior to sending the very first request on this connection object,
         this property is `None`.
@@ -1210,19 +1248,19 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def last_reply(self):
         """
         :term:`unicode string`:
-        CIM-XML data of the last response received from the WBEM server
-        on this connection, formatted as prettified XML.
+        CIM-XML data of the last response received from the WBEM server or
+        WBEM listener on this connection, formatted as prettified XML.
 
         This property is only set when debug is enabled (see
         :attr:`~pywbem.WBEMConnection.debug`), and is `None` otherwise.
 
-        This property is set to `None` in the WBEM operation methods of
-        this class before the request is sent to the WBEM server, and is set
-        to the prettified response when the response has been received from
-        the WBEM server and XML parsed. If the XML parsing fails, this property
-        will be `None`, but the :attr:`~pywbem.WBEMConnection.last_raw_reply`
-        property does not depend on XML parsing and will already have been set
-        at that point.
+        This property is set to `None` in the WBEM operation methods of this
+        class before the request is sent to the WBEM server or WBEM listener,
+        and is set to the prettified response when the response has been
+        received from the WBEM server or WBEM listener and XML parsed. If the
+        XML parsing fails, this property will be `None`, but the
+        :attr:`~pywbem.WBEMConnection.last_raw_reply` property does not depend
+        on XML parsing and will already have been set at that point.
 
         Prior to sending the very first request on this connection object,
         this property is `None`.
@@ -1237,13 +1275,14 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     def last_raw_reply(self):
         """
         :term:`unicode string`:
-        CIM-XML data of the last response received from the WBEM server
-        on this connection, formatted as it was received (=raw).
+        CIM-XML data of the last response received from the WBEM server or WBEM
+        listener on this connection, formatted as it was received (=raw).
 
-        This property is set to `None` in the WBEM operation methods of
-        this class before the request is sent to the WBEM server, and is set
-        to the prettified response when the response has been received from
-        the WBEM server, and before XML parsing takes place.
+        This property is set to `None` in the WBEM operation methods of this
+        class before the request is sent to the WBEM server or WBEM listener,
+        and is set to the prettified response when the response has been
+        received from the WBEM server or WBEM listener, and before XML parsing
+        takes place.
 
         Prior to sending the very first request on this connection object,
         this property is `None`.
@@ -1275,10 +1314,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         The size of the HTTP body in the CIM-XML response of the last
         operation, in Bytes.
 
-        This property is set to 0 in the WBEM operation methods of
-        this class before the request is sent to the WBEM server, and is set
-        to the size when the response has been received from
-        the WBEM server, and before XML parsing takes place.
+        This property is set to 0 in the WBEM operation methods of this class
+        before the request is sent to the WBEM server or WBEM listener, and is
+        set to the size when the response has been received from the WBEM
+        server or WBEM listener, and before XML parsing takes place.
 
         Prior to sending the very first request on this connection object,
         this property is 0.
@@ -2206,6 +2245,157 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 output_params[p[0]] = cimvalue(p[2], p[1])
 
         return (returnvalue, output_params)
+
+    def _iexportcall(self, methodname, **params):
+        """
+        Invoke a CIM-XML export method.
+
+        Parameters:
+
+          methodname (string): Name of the export method
+            (e.g. 'ExportIndication').
+
+          **params (dict): Input parameters for the export method.
+
+        For failed export methods and invalid responses, raises an exception.
+
+        For successful operations, returns `None`.
+        """
+
+        self._verify_open()
+
+        # Create HTTP extension headers for CIM-XML.
+        # Note: The two-step encoding required by DSP0200 will be performed in
+        # wbem_request().
+
+        cimxml_headers = [
+            ('CIMExport', 'MethodRequest'),
+            ('CIMExportMethod', methodname),
+        ]
+
+        # Create parameter list
+
+        plist = [_cim_xml.EXPPARAMVALUE(x[0], tocimxml(x[1]))
+                 for x in params.items() if x[1] is not None]
+
+        # Build XML request
+
+        req_xml = _cim_xml.CIM(
+            _cim_xml.MESSAGE(
+                _cim_xml.SIMPLEEXPREQ(
+                    _cim_xml.EXPMETHODCALL(
+                        methodname,
+                        plist)),
+                '1001', '1.0'),
+            '2.0', '2.0')
+
+        request_data = req_xml.toxml()
+
+        # Set attributes recording the request.
+        # Also, reset attributes recording the reply in case we fail.
+        self._last_raw_request = request_data
+        self._last_request_len = len(request_data)
+        self._last_raw_reply = None
+        self._last_reply_len = 0
+        self._last_server_response_time = None
+        if self.debug:
+            self._last_request = None  # will be set upon access
+            self._last_request_xml_item = req_xml
+            self._last_reply = None
+            self._last_reply_xml_item = None
+
+        # Send request and receive response
+        reply_data, self._last_server_response_time = wbem_request(
+            self, request_data, cimxml_headers)
+
+        # Set attributes recording the response, part 1.
+        # Only those that can be done without parsing (which can fail).
+        self._last_raw_reply = reply_data
+        self._last_reply_len = len(reply_data)
+
+        # Parse the XML into a tuple tree (may raise CIMXMLParseError or
+        # XMLParseError):
+        tt_ = xml_to_tupletree_sax(reply_data, "CIM-XML export response")
+        tp = TupleParser(self.conn_id)
+        tup_tree = tp.parse_cim(tt_)
+
+        # Set attributes recording the response, part 2.
+        if self.debug:
+            self._last_reply = None  # will be set upon access
+            self._last_reply_xml_item = reply_data
+
+        # Check the tuple tree
+
+        if tup_tree[0] != 'CIM':
+            raise CIMXMLParseError(
+                _format("Expecting CIM element, got {0}", tup_tree[0]),
+                conn_id=self.conn_id)
+        tup_tree = tup_tree[2]
+
+        if tup_tree[0] != 'MESSAGE':
+            raise CIMXMLParseError(
+                _format("Expecting MESSAGE element, got {0}", tup_tree[0]),
+                conn_id=self.conn_id)
+        tup_tree = tup_tree[2]
+
+        if tup_tree[0] != 'SIMPLEEXPRSP':
+            raise CIMXMLParseError(
+                _format("Expecting SIMPLEEXPRSP element, got {0}", tup_tree[0]),
+                conn_id=self.conn_id)
+        tup_tree = tup_tree[2]
+
+        if tup_tree[0] != 'EXPMETHODRESPONSE':
+            raise CIMXMLParseError(
+                _format("Expecting EXPMETHODRESPONSE element, got {0}",
+                        tup_tree[0]),
+                conn_id=self.conn_id)
+
+        if tup_tree[1]['NAME'] != methodname:
+            raise CIMXMLParseError(
+                _format("Expecting attribute NAME={0!A}, got {1!A}",
+                        methodname, tup_tree[1]['NAME']),
+                conn_id=self.conn_id)
+        tup_tree = tup_tree[2]
+
+        # At this point tup_tree is a list of the child elements of
+        # EXPMETHODRESPONSE:
+        #   (ERROR | IRETURNVALUE?)
+        # or an empty list if there were no child elements.
+        # Note that output parameters are not supported in DSP0201.
+        #
+        # More specifically, the following cases are possible for tup_tree:
+        # - operation failed: List with one ERROR node
+        # - operation succeeded:
+        #   - operation has void return type (e.g. ExportIndication):
+        #     Empty list.
+        #
+        # Note that DSP0200 does not define any export methods with non-void
+        # return type.
+
+        # Check for failed operation
+        if tup_tree and tup_tree[0][0] == 'ERROR':
+            # The operation failed
+            err = tup_tree[0]
+            code = int(err[1]['CODE'])
+            err_insts = err[2] or None  # List of CIMInstance objects
+            if 'DESCRIPTION' in err[1]:
+                desc = err[1]['DESCRIPTION']
+            else:
+                desc = _format("Error code {0}", err[1]['CODE'])
+            raise CIMError(
+                code, desc, instances=err_insts, conn_id=self.conn_id,
+                request_data=request_data)
+
+        # At this point, we know the operation was successful.
+
+        if tup_tree:
+            # Since there are only export methods with a void return type, the
+            # tup_tree must be empty.
+            raise CIMXMLParseError(
+                _format("Unexpected {0} child element of EXPMETHODRESPONSE "
+                        "for export method {1} which is defined as void",
+                        tup_tree[0][0], methodname),
+                conn_id=self.conn_id)
 
     def _iparam_namespace_from_namespace(self, namespace):
         # pylint: disable=invalid-name,
@@ -9779,6 +9969,61 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 namespace,
                 QualifierName=QualifierName,
                 has_return_value=False)
+            return
+
+        except (CIMXMLParseError, XMLParseError) as exce:
+            exce.request_data = self.last_raw_request
+            exce.response_data = self.last_raw_reply
+            exc = exce
+            raise
+        except Exception as exce:
+            exc = exce
+            raise
+        finally:
+            self._last_operation_time = stats.stop_timer(
+                self.last_request_len, self.last_reply_len,
+                self.last_server_response_time, exc)
+            if self._operation_recorders:
+                self.operation_recorder_stage_result(None, exc)
+
+    def ExportIndication(self, NewIndication):
+        # pylint: disable=invalid-name
+        """
+        Send an indication to a WBEM listener.
+
+        This method performs the ExportIndication export method
+        (see :term:`DSP0200`). See :ref:`WBEM operations` for a list of
+        all methods performing such export methods.
+
+        If the export method succeeds, this method returns.
+        Otherwise, this method raises an exception.
+
+        Parameters:
+
+          NewIndication (:class:`~pywbem.CIMInstance`):
+            A representation of the CIM indication instance to be sent.
+
+        Raises:
+
+            Exceptions described in :class:`~pywbem.WBEMConnection`.
+        """
+
+        exc = None
+        method_name = 'ExportIndication'
+
+        if self._operation_recorders:
+            self.operation_recorder_reset()
+            self.operation_recorder_stage_pywbem_args(
+                method=method_name,
+                NewIndication=NewIndication)
+
+        try:
+
+            stats = self.statistics.start_timer(method_name)
+
+            self._iexportcall(
+                method_name,
+                NewIndication=NewIndication)
             return
 
         except (CIMXMLParseError, XMLParseError) as exce:
