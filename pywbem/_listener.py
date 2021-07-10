@@ -389,7 +389,7 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         tq_list = re.findall(TOKEN_QUALITY_FINDALL_PATTERN, accept_charset)
         found = False
         if tq_list is not None:
-            for token, quality in tq_list:
+            for token, _ in tq_list:
                 if token.lower() in ('utf-8', '*'):
                     found = True
                     break
@@ -400,26 +400,11 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                         "(need UTF-8 or *)", accept_charset))
             return
 
-        # Accept-Encoding header check described in DSP0200
-        accept_encoding = self.headers.get('Accept-Encoding', 'Identity')
-        tq_list = re.findall(TOKEN_QUALITY_FINDALL_PATTERN, accept_encoding)
-        identity_acceptable = False
-        identity_found = False
-        if tq_list is not None:
-            for token, quality in tq_list:
-                quality = 1 if quality == '' else float(quality)
-                if token.lower() in ('identity', '*'):
-                    identity_found = True
-                    if quality > 0:
-                        identity_acceptable = True
-                    break
-        if not identity_found or not identity_acceptable:
-            self.send_http_error(
-                406, 'header-mismatch',
-                _format("Invalid Accept-Encoding header value: {0} "
-                        "(need Identity with quality > 0 to be acceptable)",
-                        accept_encoding))
-            return
+        # Accept-Encoding header check described in DSP0200.
+        # The WBEM listener needs to support any Accept-Encoding header, so
+        # no check is performed.
+        # Note that the requests package adds the Accept-Encoding header with
+        # values such as "gzip, deflate" if not provided by the requester.
 
         # Accept-Language header check described in DSP0200.
         # Ignored, because this WBEM listener does not support multiple
@@ -580,7 +565,7 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         http_code = 200
         self.send_response(http_code, http_client.responses.get(http_code, ''))
-        self.send_header("Content-Type", "text/html")
+        self.send_header("Content-Type", "text/xml")
         self.send_header("Content-Length", str(len(resp_body)))
         self.send_header("CIMExport", "MethodResponse")
         self.end_headers()
@@ -613,7 +598,7 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         http_code = 200
         self.send_response(http_code, http_client.responses.get(http_code, ''))
-        self.send_header("Content-Type", "text/html")
+        self.send_header("Content-Type", "text/xml")
         self.send_header("Content-Length", str(len(resp_body)))
         self.send_header("CIMExport", "MethodResponse")
         self.end_headers()
