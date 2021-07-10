@@ -1960,21 +1960,27 @@ class TupleParser(object):
 
         return name(tup_tree), attrs(tup_tree), child
 
-    def parse_simpleexprsp(self, tup_tree):  # not implemented
+    def parse_simpleexprsp(self, tup_tree):
         """
-        Parsing support for the SIMPLEEXPRSP element is not implemented
-        in pywbem, because that element is only used in export responses.
-        Export responses are only sent by WBEM listeners and thus only need to
-        be parsed in WBEM servers.
+        Parse for SIMPLEEXPRSP Element.
 
-        This is no limitation of pywbem, because pywbem only supports WBEM
-        client and listener functionality.
+        This response element occurs when pywbem communicates with WBEM
+        listeners.
+
+          ::
+
+            <!ELEMENT SIMPLEEXPRSP (EXPMETHODRESPONSE)>
         """
-        self.notimplemented(tup_tree)
+
+        self.check_node(tup_tree, 'SIMPLEEXPRSP')
+
+        child = self.one_child(tup_tree, ('EXPMETHODRESPONSE',))
+
+        return name(tup_tree), attrs(tup_tree), child
 
     def parse_methodresponse(self, tup_tree):
         """
-        Parse expected METHODRESPONSE ELEMENT. I.e.
+        Parse expected METHODRESPONSE element:
 
           ::
 
@@ -1995,21 +2001,29 @@ class TupleParser(object):
                 self.list_of_various(tup_tree,
                                      ('ERROR', 'RETURNVALUE', 'PARAMVALUE')))
 
-    def parse_expmethodresponse(self, tup_tree):  # not implemented
+    def parse_expmethodresponse(self, tup_tree):
         """
-        Parsing support for the EXPMETHODRESPONSE element is not implemented
-        in pywbem, because that element is only used in export responses.
-        Export responses are only sent by WBEM listeners and thus only need to
-        be parsed in WBEM servers.
+        Parse the tuple for an EXPMETHODRESPONE element.
 
-        This is no limitation of pywbem, because pywbem only supports WBEM
-        client and listener functionality.
+        This response element occurs when pywbem communicates with WBEM
+        listeners.
+
+          ::
+
+            <!ELEMENT EXPMETHODRESPONSE (ERROR | IRETURNVALUE?)>
+            <!ATTLIST EXPMETHODRESPONSE
+                %CIMName;>
         """
-        self.notimplemented(tup_tree)
+
+        self.check_node(tup_tree, 'EXPMETHODRESPONSE', ('NAME',))
+
+        return (name(tup_tree), attrs(tup_tree),
+                self.list_of_various(tup_tree,
+                                     ('ERROR', 'IRETURNVALUE')))
 
     def parse_imethodresponse(self, tup_tree):
         """
-        Parse the tuple for an IMETHODRESPONE Element. I.e.
+        Parse the tuple for an IMETHODRESPONE element. I.e.
 
           ::
 

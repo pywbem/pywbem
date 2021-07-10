@@ -460,6 +460,25 @@ CIMINSTANCE_ALL_TCYAML = yaml_ordereddict([
     ('path', None),
 ])
 
+# CIMInstance object without path, with one property and the test client
+# YAML object
+CIMINSTANCE_ONE_OBJ = CIMInstance(
+    'CIM_Foo',
+    properties=[
+        CIMPROPERTY_S1_OBJ,
+    ],
+    path=None,
+)
+CIMINSTANCE_ONE_TCYAML = yaml_ordereddict([
+    ('pywbem_object', 'CIMInstance'),
+    ('classname', 'CIM_Foo'),
+    ('properties', yaml_ordereddict([
+        ('S1', CIMPROPERTY_S1_TCYAML),
+    ])),
+    ('qualifiers', yaml_ordereddict()),
+    ('path', None),
+])
+
 
 @pytest.fixture(params=[
     (CIMINSTANCE_ALL_OBJ, CIMINSTANCE_ALL_TCYAML),
@@ -1504,6 +1523,30 @@ TESTCASES_TESTCLIENTRECORDER_RECORD = [
         ),
     ),
 
+    (
+        "ExportIndication with an indication with property",
+        'ExportIndication',
+        dict(
+            NewIndication=CIMINSTANCE_ONE_OBJ,
+        ),
+        None,
+        None,
+        dict(
+            name='ExportIndication',
+            pywbem_request=dict(
+                url='http://acme.com:80',
+                creds=['username', 'password'],
+                debug=False,
+                timeout=10,
+                namespace='root/cimv2',
+                operation=dict(
+                    pywbem_method='ExportIndication',
+                    NewIndication=CIMINSTANCE_ONE_TCYAML,
+                ),
+            ),
+            pywbem_response=dict(),
+        ),
+    ),
 ]
 
 
