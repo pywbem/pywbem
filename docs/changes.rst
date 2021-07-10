@@ -37,6 +37,14 @@ Released: not yet
 * Windows: Removed dependency on bash command in pip upgrade in Makefile.
   (issue #2713)
 
+* WBEM listener: Fixed the incorrect Content-Type header value 'text/html' that
+  was set in its export responses by changing that to 'text/xml'.
+  (part of issue #2729)
+
+* WBEM listener: Removed the incorrect check for the Accept-Encoding header
+  value when processing export requests to be consistent with DSP0200 which
+  requires that WBEM listeners must support any value. (part of issue #2729)
+
 **Enhancements:**
 
 **Cleanup:**
