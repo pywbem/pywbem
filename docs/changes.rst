@@ -56,6 +56,7 @@ Released: not yet
   #395,
 
 * Fixes several issues in WBEMSubscriptionManager:
+
   - add_filter() and add_destinations() methods  can no longer modify
     existing instances on the WBEM server. They can only create new instances.
   - Modified the algorithm to determine owned filters and
@@ -85,7 +86,6 @@ Released: not yet
     which populates the destination PersistenceType property. (See issue #2712)
   - Add capability to mock subscription providers to execute ModifyInstance
     (See issue #2722)
-
 
 * Docs: Fixed an error with the autodocsumm and Sphinx 4.0.0. (issue #2697)
 
