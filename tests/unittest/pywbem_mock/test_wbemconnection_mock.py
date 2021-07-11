@@ -48,7 +48,6 @@ except ImportError:
     from mock import Mock
 
 import pytest
-from nocaselist import NocaseList
 from testfixtures import OutputCapture
 
 from ...utils import skip_if_moftab_regenerated
@@ -71,6 +70,7 @@ from pywbem import CIMClass, CIMProperty, CIMInstance, CIMMethod, \
     CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED, CIM_ERR_METHOD_NOT_FOUND, \
     CIM_ERR_FAILED, CIM_ERR_CLASS_HAS_CHILDREN, \
     CIM_ERR_CLASS_HAS_INSTANCES, MOFParseError  # noqa: E402
+from pywbem._vendor.nocaselist import NocaseList  # noqa: E402
 from pywbem._nocasedict import NocaseDict  # noqa: E402
 from pywbem._utils import _format  # noqa: E402
 from pywbem._cim_operations import pull_path_result_tuple  # noqa: E402

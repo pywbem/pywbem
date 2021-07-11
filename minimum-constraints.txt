@@ -97,9 +97,6 @@ six==1.14.0
 requests==2.22.0; python_version == '2.7'
 requests==2.20.1; python_version == '3.4'
 requests==2.22.0; python_version >= '3.5'
-yamlloader==0.5.5
-nocaselist==1.0.3
-nocasedict==1.0.1
 
 
 # Indirect dependencies for installation (not in requirements.txt)
@@ -115,6 +112,13 @@ cryptography==2.8; python_version == '3.4'
 cryptography==3.2.1; python_version == '3.5'
 cryptography==3.4.7; python_version >= '3.6'
 keyring==18.0.0
+
+
+# Direct dependencies for vendoring (must be consistent with vendorize-requirements.txt)
+
+# Vendoring packages
+# TODO: Re-enable the vendorize package once it has released a new version that solves its issue #13
+# vendorize==0.2.2
 
 
 # Direct dependencies for development (must be consistent with dev-requirements.txt)

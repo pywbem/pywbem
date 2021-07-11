@@ -167,6 +167,11 @@ jobs:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
       run: |
         make platform env
+    - name: Create the vendorized packages
+      env:
+        PACKAGE_LEVEL: ${{ matrix.package_level }}
+      run: |
+        make vendorize
     - name: Install the package and its dependents
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}

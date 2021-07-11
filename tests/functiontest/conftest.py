@@ -143,7 +143,6 @@ except ImportError:
     from ordereddict import OrderedDict
 import codecs
 import yaml
-import yamlloader
 import pytest
 import requests_mock
 import requests
@@ -154,6 +153,7 @@ import six
 from ..utils import import_installed
 pywbem = import_installed('pywbem')
 from pywbem._utils import _ensure_unicode, _ensure_bytes  # noqa: E402
+from pywbem._vendor import yamlloader  # noqa: E402
 from pywbem._nocasedict import NocaseDict  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 

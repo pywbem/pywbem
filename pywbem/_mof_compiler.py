@@ -89,8 +89,7 @@ except ImportError:
 import six
 from ply import yacc, lex
 
-from nocaselist import NocaseList
-
+from ._vendor.nocaselist import NocaseList
 from ._nocasedict import NocaseDict
 from ._cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \

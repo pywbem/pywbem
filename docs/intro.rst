@@ -304,6 +304,28 @@ Note that the development of pywbem still requires a number of operating
 system packages. See :ref:`Setting up the development environment` for details.
 
 
+.. _`Vendored Python packages`:
+
+Vendored Python packages
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Starting with pywbem 1.3.0, the pywbem package includes some vendored
+pure-Python packages. This was done to ease the packaging burden for Linux
+distributions that include pywbem but not these (relatively new) packages.
+
+The vendored packages are:
+
+* `nocasedict <https://pypi.org/project/nocasedict/>`_ (GNU Lesser General Public License v2.1 or later)
+* `nocaselist <https://pypi.org/project/nocaselist/>`_ (Apache Software License 2.0)
+* `yamlloader <https://pypi.org/project/yamlloader/>`_ (MIT License)
+
+The source code for these vendored packages is not stored in the pywbem
+repository, but is included into the pywbem package during its build process.
+
+The pywbem distribution archives provided on Pypi and on the repo release page
+do have these packages embedded.
+
+
 .. _`Package version`:
 
 Package version

@@ -190,6 +190,14 @@ Released: not yet
   can also be addressed by disabling the similarity checker, and addressed
   Pylint issues reported by Pylint 2.9. (issue #2672)
 
+* Pywbem now includes some dependent Python packages as vendored packages.
+  This was done to ease the packaging burden for Linux distributions that
+  include pywbem but not these packages. These packages have been removed from
+  the package dependency list of pywbem. They did not introduce any new
+  dependencies. The followinng Python packages are included:
+  nocaselist, nocasedict, and yamlloader.
+  (issue #2434)
+
 **Cleanup:**
 
 * Extend tests for SubscriptionManager to utilize pytest and cover error cases.

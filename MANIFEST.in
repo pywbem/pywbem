@@ -11,5 +11,7 @@ include mof_compiler
 include mof_compiler.bat
 include pywbem/*.py
 include pywbem_mock/*.py
+recursive-include pywbem/_vendor *
+recursive-exclude pywbem/_vendor *.pyc
 recursive-include tests *
 recursive-exclude tests *.pyc

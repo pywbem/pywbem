@@ -29,10 +29,9 @@ the creation and deletion of server CIM namespaces to be controlled through
 creation and deletion of instances of  the CIM_Namespace class.
 """
 
-from nocaselist import NocaseList
-
 from pywbem import CIMError, CIMInstance, CIM_ERR_NOT_SUPPORTED, \
     CIM_ERR_INVALID_PARAMETER
+from pywbem._vendor.nocaselist import NocaseList
 from pywbem._nocasedict import NocaseDict
 from pywbem._utils import _format
 

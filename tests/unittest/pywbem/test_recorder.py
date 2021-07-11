@@ -27,7 +27,6 @@ from testfixtures import LogCapture
 # Enabled only to display a tree of loggers
 # from logging_tree import printout as logging_tree_printout
 import yaml
-import yamlloader
 try:
     from collections import OrderedDict
 except ImportError:
@@ -50,6 +49,7 @@ from pywbem import CIMInstanceName, CIMInstance, CIMClassName, CIMClass, \
     configure_logger  # noqa: E402
 # Renamed the following import to not have py.test pick it up as a test class:
 from pywbem import TestClientRecorder as _TestClientRecorder  # noqa: E402
+from pywbem._vendor import yamlloader  # noqa: E402
 from pywbem._cim_operations import pull_path_result_tuple, \
     pull_inst_result_tuple  # noqa: E402
 from pywbem._utils import _format  # noqa: E402

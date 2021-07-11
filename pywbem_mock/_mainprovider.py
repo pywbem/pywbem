@@ -41,7 +41,6 @@ from collections import Counter
 from copy import deepcopy
 import re
 import six
-from nocaselist import NocaseList
 
 # pylint: disable=ungrouped-imports
 try:
@@ -59,6 +58,7 @@ from pywbem import CIMClass, CIMClassName, CIMInstanceName, \
     CIM_ERR_NOT_SUPPORTED, CIM_ERR_QUERY_LANGUAGE_NOT_SUPPORTED, \
     CIM_ERR_INVALID_QUERY, CIM_ERR_FAILED, CIM_ERR_CLASS_HAS_CHILDREN, \
     CIM_ERR_CLASS_HAS_INSTANCES, CIM_ERR_INVALID_SUPERCLASS
+from pywbem._vendor.nocaselist import NocaseList
 from pywbem._utils import _format
 
 from pywbem_mock.config import IGNORE_INSTANCE_IQ_PARAM, \

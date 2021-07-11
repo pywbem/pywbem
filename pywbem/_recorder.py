@@ -32,8 +32,8 @@ import logging
 
 import six
 import yaml
-import yamlloader
 
+from ._vendor import yamlloader
 from ._nocasedict import NocaseDict
 from ._cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
