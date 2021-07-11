@@ -47,6 +47,12 @@ Released: not yet
 
 **Enhancements:**
 
+* Added toleration support for WBEM servers that return a CIM status
+  CIM_ERR_FAILED when pywbem issues a pull operation and the server does not
+  support it. Note that DSP0200 requires the use of CIM status
+  CIM_ERR_NOT_SUPPORTED in this case, but at least one WBEM server returns
+  CIM_ERR_FAILED. (issue #2736)
+
 **Cleanup:**
 
 **Known issues:**
