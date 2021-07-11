@@ -33,15 +33,15 @@ following functionality:
 
 from __future__ import absolute_import, print_function
 
-from nocaselist import NocaseList
-
 from pywbem import CIMError, \
     CIM_ERR_NOT_FOUND, CIMInstance, CIMClass, \
     CIM_ERR_ALREADY_EXISTS, CIM_ERR_INVALID_NAMESPACE, \
     CIM_ERR_NAMESPACE_NOT_EMPTY, \
     WBEMServer
+from pywbem._vendor.nocaselist import NocaseList
 from pywbem._nocasedict import NocaseDict
 from pywbem._utils import _format
+
 
 # pywbem_mock implementation configuration variables that are used in
 # request responsders.

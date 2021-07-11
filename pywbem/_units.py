@@ -110,9 +110,9 @@ try:
 except ImportError:
     # pylint: disable=deprecated-class
     from collections import Sequence
-from nocasedict import NocaseDict
 import six
 
+from ._vendor.nocasedict import NocaseDict
 from ._cim_obj import CIMProperty, CIMMethod, CIMParameter
 from ._utils import _ensure_unicode
 

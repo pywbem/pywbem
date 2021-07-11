@@ -8,6 +8,7 @@
 
 
 -r test-requirements.txt
+-r vendorize-requirements.txt
 
 # Direct dependencies:
 

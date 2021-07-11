@@ -1,0 +1,10 @@
+# python-vendorize control file for the vendored packages.
+#
+# Keep the vendored packages and their versions in sync with docs/intro.rst.
+
+target = "pywbem/_vendor"
+packages = [
+    "nocasedict==1.0.1",
+    "nocaselist==1.0.3",
+    "git+https://github.com/andy-maier/yamlloader.git@0.5.5.post1#egg=yamlloader",
+]

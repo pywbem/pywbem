@@ -153,8 +153,8 @@ import re
 import warnings
 from socket import getfqdn
 import six
-from nocasedict import NocaseDict
 
+from ._vendor.nocasedict import NocaseDict
 from ._server import WBEMServer
 from ._cim_obj import CIMInstance, CIMInstanceName
 from ._cim_types import Uint16

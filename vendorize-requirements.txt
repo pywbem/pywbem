@@ -1,0 +1,7 @@
+# Pip requirements file for installing the 'vendorize' package.
+
+# Vendoring packages
+
+# TODO: Re-enable the vendorize package once it has released a new version that solves its issue #13
+git+https://github.com/andy-maier/python-vendorize.git@andy/handle-coding-declaration#egg=vendorize
+# vendorize>=0.2.2

@@ -13,6 +13,7 @@
 tmp.*
 *~
 .*~
+/pywbem/_vendor/
 pywbem.egg-info
 MANIFEST
 /AUTHORS
