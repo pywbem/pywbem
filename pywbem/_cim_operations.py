@@ -146,7 +146,8 @@ import six
 
 from . import _cim_xml
 from .config import DEFAULT_ITER_MAXOBJECTCOUNT, AUTO_GENERATE_SFCB_UEP_HEADER
-from ._cim_constants import DEFAULT_NAMESPACE, CIM_ERR_NOT_SUPPORTED
+from ._cim_constants import DEFAULT_NAMESPACE, CIM_ERR_NOT_SUPPORTED, \
+    CIM_ERR_FAILED
 from ._cim_types import CIMType, CIMDateTime, atomic_to_cim_xml
 from ._nocasedict import NocaseDict
 from ._cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
@@ -665,12 +666,16 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             This detection is performed for each pull operation separately, in
             order to accomodate WBEM servers that support only some of the pull
             operations. This will work on any WBEM server whether it supports
-            no, some, or all pull operations.
+            no, some, or all pull operations. Note that as per DSP0200, WBEM
+            servers need to return status code `CIM_ERR_NOT_SUPPORTED` if a
+            pull operation is not supported. Some WBEM servers return status
+            code `CIM_ERR_FAILED` in this case, which is treated by pywbem to
+            also mean that the pull operation is not supported.
 
             `True` means that the `Iter...()` methods will only use pull
             operations. If the WBEM server does not support pull operations, a
             :exc:`~pywbem.CIMError` with status code `CIM_ERR_NOT_SUPPORTED`
-            will be raised.
+            (or `CIM_ERR_FAILED` for some WBEM servers) will be raised.
 
             `False` (default) means that the `Iter...()` methods will only use
             traditional operations.
@@ -4726,15 +4731,24 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     pull_result = None   # clear the pull_result
                     return
 
-                # If NOT_SUPPORTED and first request, set flag and try
-                # alternative request operation.
-                # If _use_enum_inst_pull_operations is True, always raise
-                # the exception
                 except CIMError as ce:
-                    if self._use_enum_inst_pull_operations is None and \
-                       ce.status_code == CIM_ERR_NOT_SUPPORTED:
+                    # If the use of this kind of pull operations is still
+                    # undetermined and the status code indicates that they are
+                    # not supported, disable their use from now on.
+                    # Otherwise, the use of this kind of pull operations has
+                    # been requested and the server had some other issue, so the
+                    # returned CIM error is raised.
+                    # Note that DSP0200 requires that servers return
+                    # CIM_ERR_NOT_SUPPORTED for unsupported intrinsic
+                    # operations. SFCB returns CIM_ERR_FAILED for the pull
+                    # operations. Pywbem treats that as meaning the pull
+                    # operations are not supported.
+                    if (self._use_enum_inst_pull_operations is None and
+                            ce.status_code in
+                            (CIM_ERR_NOT_SUPPORTED, CIM_ERR_FAILED)):
                         self._use_enum_inst_pull_operations = False
                     else:
+                        assert self._use_enum_inst_pull_operations
                         raise
 
             # Cleanup if caller closes the iterator before exhausting it
@@ -4994,14 +5008,24 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     pull_result = None   # clear the pull_result
                     return
 
-                # If NOT_SUPPORTED and first request, set flag and try
-                # alternative request operation.
-                # If use_pull_operations is True, always raise the exception
                 except CIMError as ce:
+                    # If the use of this kind of pull operations is still
+                    # undetermined and the status code indicates that they are
+                    # not supported, disable their use from now on.
+                    # Otherwise, the use of this kind of pull operations has
+                    # been requested and the server had some other issue, so the
+                    # returned CIM error is raised.
+                    # Note that DSP0200 requires that servers return
+                    # CIM_ERR_NOT_SUPPORTED for unsupported intrinsic
+                    # operations. SFCB returns CIM_ERR_FAILED for the pull
+                    # operations. Pywbem treats that as meaning the pull
+                    # operations are not supported.
                     if (self._use_enum_path_pull_operations is None and
-                            ce.status_code == CIM_ERR_NOT_SUPPORTED):
+                            ce.status_code in
+                            (CIM_ERR_NOT_SUPPORTED, CIM_ERR_FAILED)):
                         self._use_enum_path_pull_operations = False
                     else:
+                        assert self._use_enum_path_pull_operations
                         raise
 
             # Cleanup if caller closes the iterator before exhausting it
@@ -5330,15 +5354,24 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     pull_result = None   # clear the pull_result
                     return
 
-                # If NOT_SUPPORTED and first request, set flag and try
-                # alternative request operation.
-                # If _use_assoc_inst_pull_operations is True, always raise
-                # the exception
                 except CIMError as ce:
+                    # If the use of this kind of pull operations is still
+                    # undetermined and the status code indicates that they are
+                    # not supported, disable their use from now on.
+                    # Otherwise, the use of this kind of pull operations has
+                    # been requested and the server had some other issue, so the
+                    # returned CIM error is raised.
+                    # Note that DSP0200 requires that servers return
+                    # CIM_ERR_NOT_SUPPORTED for unsupported intrinsic
+                    # operations. SFCB returns CIM_ERR_FAILED for the pull
+                    # operations. Pywbem treats that as meaning the pull
+                    # operations are not supported.
                     if (self._use_assoc_inst_pull_operations is None and
-                            ce.status_code == CIM_ERR_NOT_SUPPORTED):
+                            ce.status_code in
+                            (CIM_ERR_NOT_SUPPORTED, CIM_ERR_FAILED)):
                         self._use_assoc_inst_pull_operations = False
                     else:
+                        assert self._use_assoc_inst_pull_operations
                         raise
 
             # Cleanup if caller closes the iterator before exhausting it
@@ -5611,15 +5644,26 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     pull_result = None   # clear the pull_result
                     return
 
-                # If NOT_SUPPORTED and first request, set flag and try
-                # alternative request operation.
-                # If use_pull_operations is True, always raise the exception
                 except CIMError as ce:
+                    # If the use of this kind of pull operations is still
+                    # undetermined and the status code indicates that they are
+                    # not supported, disable their use from now on.
+                    # Otherwise, the use of this kind of pull operations has
+                    # been requested and the server had some other issue, so the
+                    # returned CIM error is raised.
+                    # Note that DSP0200 requires that servers return
+                    # CIM_ERR_NOT_SUPPORTED for unsupported intrinsic
+                    # operations. SFCB returns CIM_ERR_FAILED for the pull
+                    # operations. Pywbem treats that as meaning the pull
+                    # operations are not supported.
                     if (self._use_assoc_path_pull_operations is None and
-                            ce.status_code == CIM_ERR_NOT_SUPPORTED):
+                            ce.status_code in
+                            (CIM_ERR_NOT_SUPPORTED, CIM_ERR_FAILED)):
                         self._use_assoc_path_pull_operations = False
                     else:
+                        assert self._use_assoc_path_pull_operations
                         raise
+
             # Cleanup if caller closes the iterator before exhausting it
             finally:
                 # Cleanup only required if the pull context is open and not
@@ -5910,15 +5954,24 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     pull_result = None   # clear the pull_result
                     return
 
-                # If NOT_SUPPORTED and first request, set flag and try
-                # alternative request operation.
-                # If _use_ref_inst_pull_operations is True, always raise
-                # the exception
                 except CIMError as ce:
+                    # If the use of this kind of pull operations is still
+                    # undetermined and the status code indicates that they are
+                    # not supported, disable their use from now on.
+                    # Otherwise, the use of this kind of pull operations has
+                    # been requested and the server had some other issue, so the
+                    # returned CIM error is raised.
+                    # Note that DSP0200 requires that servers return
+                    # CIM_ERR_NOT_SUPPORTED for unsupported intrinsic
+                    # operations. SFCB returns CIM_ERR_FAILED for the pull
+                    # operations. Pywbem treats that as meaning the pull
+                    # operations are not supported.
                     if (self._use_ref_inst_pull_operations is None and
-                            ce.status_code == CIM_ERR_NOT_SUPPORTED):
+                            ce.status_code in
+                            (CIM_ERR_NOT_SUPPORTED, CIM_ERR_FAILED)):
                         self._use_ref_inst_pull_operations = False
                     else:
+                        assert self._use_ref_inst_pull_operations
                         raise
 
             # Cleanup if caller closes the iterator before exhausting it
@@ -6170,14 +6223,24 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     pull_result = None   # clear the pull_result
                     return
 
-                # If NOT_SUPPORTED and first request, set flag and try
-                # alternative request operation.
-                # If use_pull_operations is True, always raise the exception
                 except CIMError as ce:
+                    # If the use of this kind of pull operations is still
+                    # undetermined and the status code indicates that they are
+                    # not supported, disable their use from now on.
+                    # Otherwise, the use of this kind of pull operations has
+                    # been requested and the server had some other issue, so the
+                    # returned CIM error is raised.
+                    # Note that DSP0200 requires that servers return
+                    # CIM_ERR_NOT_SUPPORTED for unsupported intrinsic
+                    # operations. SFCB returns CIM_ERR_FAILED for the pull
+                    # operations. Pywbem treats that as meaning the pull
+                    # operations are not supported.
                     if (self._use_ref_path_pull_operations is None and
-                            ce.status_code == CIM_ERR_NOT_SUPPORTED):
+                            ce.status_code in
+                            (CIM_ERR_NOT_SUPPORTED, CIM_ERR_FAILED)):
                         self._use_ref_path_pull_operations = False
                     else:
+                        assert self._use_ref_path_pull_operations
                         raise
 
             # Cleanup if caller closes the iterator before exhausting it
@@ -6456,15 +6519,24 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     pull_result = None   # clear the pull_result
                     return rtn
 
-                # If NOT_SUPPORTED and first request, set flag and try
-                # alternative request operation.
-                # If _use_query_pull_operations is True, always raise
-                # the exception
                 except CIMError as ce:
-                    if self._use_query_pull_operations is None and \
-                       ce.status_code == CIM_ERR_NOT_SUPPORTED:
+                    # If the use of this kind of pull operations is still
+                    # undetermined and the status code indicates that they are
+                    # not supported, disable their use from now on.
+                    # Otherwise, the use of this kind of pull operations has
+                    # been requested and the server had some other issue, so the
+                    # returned CIM error is raised.
+                    # Note that DSP0200 requires that servers return
+                    # CIM_ERR_NOT_SUPPORTED for unsupported intrinsic
+                    # operations. SFCB returns CIM_ERR_FAILED for the pull
+                    # operations. Pywbem treats that as meaning the pull
+                    # operations are not supported.
+                    if (self._use_query_pull_operations is None and
+                            ce.status_code in
+                            (CIM_ERR_NOT_SUPPORTED, CIM_ERR_FAILED)):
                         self._use_query_pull_operations = False
                     else:
+                        assert self._use_query_pull_operations
                         raise
 
             # Cleanup if caller closes the iterator before exhausting it
