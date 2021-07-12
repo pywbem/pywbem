@@ -15,6 +15,11 @@ import logging.handlers
 import warnings
 from io import open as _open
 from datetime import datetime, timedelta
+try:
+    from collections.abc import Mapping
+except ImportError:
+    # pylint: disable=deprecated-class
+    from collections import Mapping
 
 import pytest
 import six
@@ -1588,6 +1593,20 @@ def test_TestClientRecorder_record(
     cleanup_recorder_yaml_file()
 
 
+def to_dict(mapping, dict_type):
+    """
+    Convert a mapping to a specific dict type, and also for all of its items
+    that are mappings, recursively.
+    """
+    assert isinstance(mapping, Mapping)
+    if not type(mapping) is dict_type:  # pylint: disable=unidiomatic-typecheck
+        mapping = dict(mapping)
+    for k, v in mapping.items():
+        if isinstance(v, Mapping):
+            mapping[k] = to_dict(v, dict_type)
+    return mapping
+
+
 def assert_yaml_equal(act_value, exp_value, location):
     """
     Assert that two YAML objects are equal, whereby dictionaries are compared
@@ -1602,7 +1621,7 @@ def assert_yaml_equal(act_value, exp_value, location):
         # Ensure unordered comparison by converting to dict.
         # Note that starting with Python 3.7, dict maintains order but equality
         # comparison does not take order into account.
-        act_value2 = dict(act_value)
+        act_value2 = to_dict(act_value, dict)
         assert act_value2 == exp_value, \
             "Unexpected YAML object at {}".format(location)
     else:

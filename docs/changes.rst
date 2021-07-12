@@ -150,6 +150,8 @@ Released: not yet
   The 'default_namespace' and 'use_pull_operations' init parameters and
   properties are ignored when targeting a WBEM listener. (issue #2729)
 
+* Test: Improved diff display when assertion in test_recorder.py fails.
+
 **Cleanup:**
 
 * Extend tests for SubscriptionManager to utilize pytest and cover error cases.
