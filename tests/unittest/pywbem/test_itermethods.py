@@ -33,7 +33,8 @@ except ImportError:
 from ...utils import import_installed
 pywbem = import_installed('pywbem')
 from pywbem import WBEMConnection, CIMInstance, CIMClass, CIMInstanceName, \
-    CIMClassName, CIMProperty, CIMError, CIM_ERR_NOT_SUPPORTED  # noqa: E402
+    CIMClassName, CIMProperty, CIMError, CIM_ERR_NOT_SUPPORTED, \
+    CIM_ERR_FAILED  # noqa: E402
 from pywbem.config import DEFAULT_ITER_MAXOBJECTCOUNT  # noqa: E402
 from pywbem._cim_operations import pull_inst_result_tuple, \
     pull_path_result_tuple, pull_query_result_tuple  # noqa: E402
@@ -113,6 +114,9 @@ class TestIterEnumerateInstances(object):
         "use_pull_param", [None, False]
     )
     @pytest.mark.parametrize(
+        "pull_status", [CIM_ERR_NOT_SUPPORTED, CIM_ERR_FAILED]
+    )
+    @pytest.mark.parametrize(
         "ns", [None, 'test/testnamespace']
     )
     @pytest.mark.parametrize(
@@ -129,9 +133,9 @@ class TestIterEnumerateInstances(object):
     @pytest.mark.parametrize(
         "pl", [None, 'pl1', ['pl1', 'pl2']]
     )
-    def test_trad_operation_success(self, use_pull_param, tst_insts, ns,
-                                    cim_classname, result_no_host_ns,
-                                    di, iq, lo, ico, pl,):
+    def test_trad_operation_success(
+            self, use_pull_param, pull_status, tst_insts, ns,
+            cim_classname, result_no_host_ns, di, iq, lo, ico, pl):
         # pylint: disable=no-self-use,redefined-outer-name
         """
         Test IterEnumerateInstances using the traditional operations,
@@ -162,7 +166,7 @@ class TestIterEnumerateInstances(object):
         # mock original function works, open returns CIMError
         conn.EnumerateInstances = Mock(return_value=rtn_insts)
         conn.OpenEnumerateInstances = \
-            Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
+            Mock(side_effect=CIMError(pull_status))
 
         assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
@@ -195,7 +199,10 @@ class TestIterEnumerateInstances(object):
         assert conn.use_pull_operations == use_pull_param
         assert result == tst_insts
 
-    def test_operation_fail(self, tst_insts):
+    @pytest.mark.parametrize(
+        "pull_status", [CIM_ERR_NOT_SUPPORTED, CIM_ERR_FAILED]
+    )
+    def test_operation_fail(self, pull_status, tst_insts):
         # pylint: disable=no-self-use,redefined-outer-name
         """
         Test IterEnumerateInstances forcing the use of pull operations
@@ -206,7 +213,7 @@ class TestIterEnumerateInstances(object):
 
         conn.EnumerateInstances = Mock(return_value=tst_insts)
         conn.OpenEnumerateInstances = \
-            Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'description'))
+            Mock(side_effect=CIMError(pull_status))
 
         assert conn.use_pull_operations is True
         # pylint: disable=protected-access
@@ -216,7 +223,7 @@ class TestIterEnumerateInstances(object):
             _ = list(conn.IterEnumerateInstances('CIM_Foo'))
 
         exc = exec_info.value
-        assert exc.status_code_name == 'CIM_ERR_NOT_SUPPORTED'
+        assert exc.status_code == pull_status
 
         # pylint: disable=protected-access
         assert conn._use_enum_inst_pull_operations is True
@@ -485,6 +492,9 @@ class TestIterEnumerateInstancePaths(object):
         "use_pull_param", [None, False]
     )
     @pytest.mark.parametrize(
+        "pull_status", [CIM_ERR_NOT_SUPPORTED, CIM_ERR_FAILED]
+    )
+    @pytest.mark.parametrize(
         "ns", [None, 'test/testnamespace']
     )
     @pytest.mark.parametrize(
@@ -493,8 +503,9 @@ class TestIterEnumerateInstancePaths(object):
     @pytest.mark.parametrize(
         "result_no_host_ns", [False, True]
     )
-    def test_trad_operation_success(self, use_pull_param, tst_paths, ns,
-                                    cim_classname, result_no_host_ns):
+    def test_trad_operation_success(
+            self, use_pull_param, pull_status, tst_paths, ns,
+            cim_classname, result_no_host_ns):
         # pylint: disable=no-self-use,redefined-outer-name
         """
         Test IterEnumerateInstancePaths using the traditional operations,
@@ -524,7 +535,7 @@ class TestIterEnumerateInstancePaths(object):
 
         conn.EnumerateInstanceNames = Mock(return_value=rtn_paths)
         conn.OpenEnumerateInstancePaths = \
-            Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
+            Mock(side_effect=CIMError(pull_status))
 
         assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
@@ -548,7 +559,10 @@ class TestIterEnumerateInstancePaths(object):
         assert conn.use_pull_operations == use_pull_param
         assert result == tst_paths
 
-    def test_operation_fail(self, tst_insts):
+    @pytest.mark.parametrize(
+        "pull_status", [CIM_ERR_NOT_SUPPORTED, CIM_ERR_FAILED]
+    )
+    def test_operation_fail(self, pull_status, tst_insts):
         # pylint: disable=no-self-use,redefined-outer-name
         """
         Test IterEnumerateInstancePaths forcing the use of pull operations
@@ -559,7 +573,7 @@ class TestIterEnumerateInstancePaths(object):
 
         conn.EnumerateInstanceNames = Mock(return_value=tst_insts)
         conn.OpenEnumerateInstancePaths = \
-            Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'description'))
+            Mock(side_effect=CIMError(pull_status))
 
         assert conn.use_pull_operations is True
         # pylint: disable=protected-access
@@ -569,7 +583,7 @@ class TestIterEnumerateInstancePaths(object):
             _ = list(conn.IterEnumerateInstancePaths('CIM_Foo'))
 
         exc = exec_info.value
-        assert exc.status_code_name == 'CIM_ERR_NOT_SUPPORTED'
+        assert exc.status_code == pull_status
 
         # pylint: disable=protected-access
         assert conn._use_enum_path_pull_operations is True
@@ -833,6 +847,9 @@ class TestIterReferenceInstances(object):
         "use_pull_param", [None, False]
     )
     @pytest.mark.parametrize(
+        "pull_status", [CIM_ERR_NOT_SUPPORTED, CIM_ERR_FAILED]
+    )
+    @pytest.mark.parametrize(
         "ns", [None, 'test/testnamespace']
     )
     @pytest.mark.parametrize(
@@ -850,8 +867,9 @@ class TestIterReferenceInstances(object):
     @pytest.mark.parametrize(
         "pl", [None, 'pl1', ['pl1', 'pl2']]
     )
-    def test_trad_operation_success(self, use_pull_param, tst_insts, ns,
-                                    rc, ro, iq, ico, pl,):
+    def test_trad_operation_success(
+            self, use_pull_param, pull_status, tst_insts, ns,
+            rc, ro, iq, ico, pl,):
         # pylint: disable=no-self-use,redefined-outer-name
         """
         Test IterReferenceInstances using the traditional operations,
@@ -870,7 +888,7 @@ class TestIterReferenceInstances(object):
         # mock original function works, open returns CIMError
         conn.References = Mock(return_value=tst_insts)
         conn.OpenReferenceInstances = \
-            Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
+            Mock(side_effect=CIMError(pull_status))
 
         assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
@@ -896,7 +914,10 @@ class TestIterReferenceInstances(object):
         assert conn.use_pull_operations == use_pull_param
         assert result == tst_insts
 
-    def test_operation_fail(self, tst_insts):
+    @pytest.mark.parametrize(
+        "pull_status", [CIM_ERR_NOT_SUPPORTED, CIM_ERR_FAILED]
+    )
+    def test_operation_fail(self, pull_status, tst_insts):
         # pylint: disable=no-self-use,redefined-outer-name
         """
         Test IterReferenceInstances forcing the use of pull operations
@@ -907,7 +928,7 @@ class TestIterReferenceInstances(object):
 
         conn.References = Mock(return_value=tst_insts)
         conn.OpenReferenceInstances = \
-            Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'description'))
+            Mock(side_effect=CIMError(pull_status))
 
         assert conn.use_pull_operations is True
         # pylint: disable=protected-access
@@ -918,7 +939,7 @@ class TestIterReferenceInstances(object):
                 self.target_path('root/cimv2')))
 
         exc = exec_info.value
-        assert exc.status_code_name == 'CIM_ERR_NOT_SUPPORTED'
+        assert exc.status_code == pull_status
 
         # pylint: disable=protected-access
         assert conn._use_ref_inst_pull_operations is True
@@ -1204,6 +1225,9 @@ class TestIterReferenceInstancePaths(object):
         "use_pull_param", [None, False]
     )
     @pytest.mark.parametrize(
+        "pull_status", [CIM_ERR_NOT_SUPPORTED, CIM_ERR_FAILED]
+    )
+    @pytest.mark.parametrize(
         "ns", [None, 'test/testnamespace']
     )
     # result_role, result_class
@@ -1213,8 +1237,8 @@ class TestIterReferenceInstancePaths(object):
                    ['RRole', None],
                    ['RRole', 'CIM_Blah']]
     )
-    def test_trad_operation_success(self, use_pull_param, tst_insts, ns, rc,
-                                    ro):
+    def test_trad_operation_success(
+            self, use_pull_param, pull_status, tst_insts, ns, rc, ro):
         # pylint: disable=no-self-use,redefined-outer-name
         """
         Test IterReferenceInstancePaths using the traditional operations,
@@ -1233,7 +1257,7 @@ class TestIterReferenceInstancePaths(object):
         # mock original function works, open returns CIMError
         conn.ReferenceNames = Mock(return_value=tst_insts)
         conn.OpenReferenceInstancePaths = \
-            Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
+            Mock(side_effect=CIMError(pull_status))
 
         assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
@@ -1253,7 +1277,10 @@ class TestIterReferenceInstancePaths(object):
         assert conn.use_pull_operations == use_pull_param
         assert result == tst_insts
 
-    def test_operation_fail(self, tst_insts):
+    @pytest.mark.parametrize(
+        "pull_status", [CIM_ERR_NOT_SUPPORTED, CIM_ERR_FAILED]
+    )
+    def test_operation_fail(self, pull_status, tst_insts):
         # pylint: disable=no-self-use,redefined-outer-name
         """
         Test IterReferenceInstancePaths forcing the use of pull operations
@@ -1264,7 +1291,7 @@ class TestIterReferenceInstancePaths(object):
 
         conn.ReferenceNames = Mock(return_value=tst_insts)
         conn.OpenReferenceInstancePaths = \
-            Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'description'))
+            Mock(side_effect=CIMError(pull_status))
 
         assert conn.use_pull_operations is True
         # pylint: disable=protected-access
@@ -1275,7 +1302,7 @@ class TestIterReferenceInstancePaths(object):
                 self.target_path('root/cimv2')))
 
         exc = exec_info.value
-        assert exc.status_code_name == 'CIM_ERR_NOT_SUPPORTED'
+        assert exc.status_code == pull_status
 
         # pylint: disable=protected-access
         assert conn._use_ref_path_pull_operations is True
@@ -1547,6 +1574,9 @@ class TestIterAssociatorInstances(object):
         "use_pull_param", [None, False]
     )
     @pytest.mark.parametrize(
+        "pull_status", [CIM_ERR_NOT_SUPPORTED, CIM_ERR_FAILED]
+    )
+    @pytest.mark.parametrize(
         "ns", [None, 'test/testnamespace']
     )
     @pytest.mark.parametrize(
@@ -1564,8 +1594,9 @@ class TestIterAssociatorInstances(object):
     @pytest.mark.parametrize(
         "pl", [None, 'pl1', ['pl1', 'pl2']]
     )
-    def test_trad_operation_success(self, use_pull_param, tst_insts, ns,
-                                    rc, ro, ac, rr, iq, ico, pl,):
+    def test_trad_operation_success(
+            self, use_pull_param, pull_status, tst_insts, ns,
+            rc, ro, ac, rr, iq, ico, pl):
         # pylint: disable=no-self-use,redefined-outer-name
         """
         Test IterAssociatorInstances using the traditional operations,
@@ -1584,7 +1615,7 @@ class TestIterAssociatorInstances(object):
         # mock original function works, open returns CIMError
         conn.Associators = Mock(return_value=tst_insts)
         conn.OpenAssociatorInstances = \
-            Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
+            Mock(side_effect=CIMError(pull_status))
 
         assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
@@ -1614,7 +1645,10 @@ class TestIterAssociatorInstances(object):
         assert conn.use_pull_operations == use_pull_param
         assert result == tst_insts
 
-    def test_operation_fail(self, tst_insts):
+    @pytest.mark.parametrize(
+        "pull_status", [CIM_ERR_NOT_SUPPORTED, CIM_ERR_FAILED]
+    )
+    def test_operation_fail(self, pull_status, tst_insts):
         # pylint: disable=no-self-use,redefined-outer-name
         """
         Test IterAssociatorInstances forcing the use of pull operations
@@ -1625,7 +1659,7 @@ class TestIterAssociatorInstances(object):
 
         conn.Associators = Mock(return_value=tst_insts)
         conn.OpenAssociatorInstances = \
-            Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'description'))
+            Mock(side_effect=CIMError(pull_status))
 
         assert conn.use_pull_operations is True
         # pylint: disable=protected-access
@@ -1636,7 +1670,7 @@ class TestIterAssociatorInstances(object):
                 self.target_path('root/cimv2')))
 
         exc = exec_info.value
-        assert exc.status_code_name == 'CIM_ERR_NOT_SUPPORTED'
+        assert exc.status_code == pull_status
 
         # pylint: disable=protected-access
         assert conn._use_assoc_inst_pull_operations is True
@@ -1926,6 +1960,9 @@ class TestIterAssociatorInstancePaths(object):
         "use_pull_param", [None, False]
     )
     @pytest.mark.parametrize(
+        "pull_status", [CIM_ERR_NOT_SUPPORTED, CIM_ERR_FAILED]
+    )
+    @pytest.mark.parametrize(
         "ns", [None, 'test/testnamespace']
     )
     # role, result_class, ResultRole, AssocClass
@@ -1935,8 +1972,8 @@ class TestIterAssociatorInstancePaths(object):
                            ['RRole', None, 'ARole', None],
                            ['RRole', 'CIM_Blah', 'ARole', 'AssocClass']]
     )
-    def test_trad_operation_success(self, use_pull_param, tst_paths, ns, rc,
-                                    ro, rr, ac):
+    def test_trad_operation_success(
+            self, use_pull_param, pull_status, tst_paths, ns, rc, ro, rr, ac):
         # pylint: disable=no-self-use,redefined-outer-name
         """
         Test IterAssociatorInstancePaths using the traditional operations,
@@ -1955,7 +1992,7 @@ class TestIterAssociatorInstancePaths(object):
         # mock original function works, open returns CIMError
         conn.AssociatorNames = Mock(return_value=tst_paths)
         conn.OpenAssociatorInstancePaths = \
-            Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
+            Mock(side_effect=CIMError(pull_status))
 
         assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
@@ -1979,7 +2016,10 @@ class TestIterAssociatorInstancePaths(object):
         assert conn.use_pull_operations == use_pull_param
         assert result == tst_paths
 
-    def test_operation_fail(self, tst_paths):
+    @pytest.mark.parametrize(
+        "pull_status", [CIM_ERR_NOT_SUPPORTED, CIM_ERR_FAILED]
+    )
+    def test_operation_fail(self, pull_status, tst_paths):
         # pylint: disable=no-self-use,redefined-outer-name
         """
         Test IterAssociatorInstancePaths forcing the use of pull operations
@@ -1990,7 +2030,7 @@ class TestIterAssociatorInstancePaths(object):
 
         conn.AssociatorNames = Mock(return_value=tst_paths)
         conn.OpenAssociatorInstancePaths = \
-            Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'description'))
+            Mock(side_effect=CIMError(pull_status))
 
         assert conn.use_pull_operations is True
         # pylint: disable=protected-access
@@ -2001,7 +2041,7 @@ class TestIterAssociatorInstancePaths(object):
                 self.target_path('root/cimv2')))
 
         exc = exec_info.value
-        assert exc.status_code_name == 'CIM_ERR_NOT_SUPPORTED'
+        assert exc.status_code == pull_status
 
         # pylint: disable=protected-access
         assert conn._use_assoc_path_pull_operations is True
@@ -2267,13 +2307,16 @@ class TestIterQueryInstances(object):
         "use_pull_param", [None, False]
     )
     @pytest.mark.parametrize(
+        "pull_status", [CIM_ERR_NOT_SUPPORTED, CIM_ERR_FAILED]
+    )
+    @pytest.mark.parametrize(
         "ns", [None, 'test/testnamespace']
     )
     @pytest.mark.parametrize(
         "ql, query", [(None, None), ('CQL', 'SELECT from *')]
     )
-    def test_trad_operation_success(self, use_pull_param, tst_insts, ns,
-                                    ql, query):
+    def test_trad_operation_success(
+            self, use_pull_param, pull_status, tst_insts, ns, ql, query):
         # pylint: disable=no-self-use,redefined-outer-name
         """
         Test IterQueryInstances using the traditional operations,
@@ -2292,7 +2335,7 @@ class TestIterQueryInstances(object):
         # mock original function works, open returns CIMError
         conn.ExecQuery = Mock(return_value=tst_insts)
         conn.OpenQueryInstances = \
-            Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'Blah'))
+            Mock(side_effect=CIMError(pull_status))
 
         assert conn.use_pull_operations == use_pull_param
         # pylint: disable=protected-access
@@ -2308,7 +2351,10 @@ class TestIterQueryInstances(object):
         assert conn.use_pull_operations == use_pull_param
         assert result_insts == tst_insts
 
-    def test_operation_fail(self, tst_insts):
+    @pytest.mark.parametrize(
+        "pull_status", [CIM_ERR_NOT_SUPPORTED, CIM_ERR_FAILED]
+    )
+    def test_operation_fail(self, pull_status, tst_insts):
         # pylint: disable=no-self-use,redefined-outer-name
         """
         Test IterQueryInstances forcing the use of pull operations
@@ -2319,7 +2365,7 @@ class TestIterQueryInstances(object):
 
         conn.ExecQuery = Mock(return_value=tst_insts)
         conn.OpenQueryInstances = \
-            Mock(side_effect=CIMError(CIM_ERR_NOT_SUPPORTED, 'description'))
+            Mock(side_effect=CIMError(pull_status))
 
         assert conn.use_pull_operations is True
         # pylint: disable=protected-access
@@ -2329,7 +2375,7 @@ class TestIterQueryInstances(object):
             conn.IterQueryInstances('CQL', 'Select from *')
 
         exc = exec_info.value
-        assert exc.status_code_name == 'CIM_ERR_NOT_SUPPORTED'
+        assert exc.status_code == pull_status
 
         # pylint: disable=protected-access
         assert conn._use_query_pull_operations is True
