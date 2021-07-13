@@ -45,6 +45,9 @@ Released: not yet
   value when processing export requests to be consistent with DSP0200 which
   requires that WBEM listeners must support any value. (part of issue #2729)
 
+* Fixed installation with setup.py on ubuntu for Python 2.7, 3.4, 3.5, by
+  pinning yamlloader to <1.0.0. (issue #2745)
+
 **Enhancements:**
 
 * Added toleration support for WBEM servers that return a CIM status
