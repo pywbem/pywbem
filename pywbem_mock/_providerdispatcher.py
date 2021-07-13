@@ -40,7 +40,7 @@ except ImportError:  # py2
 
 from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMParameter, CIMError, CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_PARAMETER, \
-    CIM_ERR_INVALID_CLASS, CIM_ERR_METHOD_NOT_FOUND, cimtype
+    CIM_ERR_INVALID_CLASS, CIM_ERR_METHOD_NOT_FOUND, cimtype, CIM_ERR_FAILED
 
 from pywbem._utils import _format
 from pywbem._nocasedict import NocaseDict
@@ -211,6 +211,13 @@ class ProviderDispatcher(BaseProvider):
                 CIM_ERR_INVALID_CLASS,
                 _format("Creation class {0!A} of new instance does not "
                         "exist in namespace {1!A} of the CIM repository.",
+                        NewInstance.classname, namespace))
+
+        if "Abstract" in creation_class.qualifiers:
+            raise CIMError(
+                CIM_ERR_FAILED,
+                _format("CreateInstance failed. Cannot instantiate abstract "
+                        "class {0!A} in Namespace {1!A}.",
                         NewInstance.classname, namespace))
 
         # Verify that the properties in the new instance are exposed by the

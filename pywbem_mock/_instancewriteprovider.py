@@ -130,6 +130,8 @@ class InstanceWriteProvider(BaseProvider):
           class in the CIM repository, and have the same type-related
           attributes (i.e. type, is_array, embedded_object).
 
+        - The creation class of the new instance must not be an abstract class.
+
         Validation that should be performed by this provider method:
 
         - new_instance does not specify any properties that are not

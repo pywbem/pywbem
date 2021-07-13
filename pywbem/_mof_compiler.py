@@ -2394,6 +2394,14 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                                 IncludeQualifiers=True)
             inst.path = CIMInstanceName.from_instance(
                 cls, inst, namespace=ns)
+
+        if "Abstract" in cls.qualifiers:
+            raise CIMError(
+                CIM_ERR_FAILED,
+                _format("CreateInstance failed. Cannot instantiate abstract "
+                        "class {0!A} in Namespace {1!A}.",
+                        inst.classname, ns))
+
         try:
             self.instances[ns].append(inst)
         except KeyError:  # namespace ns does not exist. Create it

@@ -6156,6 +6156,84 @@ class TestInstanceOperations(object):
         assert exc.status_code == CIM_ERR_ALREADY_EXISTS
 
     @pytest.mark.parametrize(
+        "ns", INITIAL_NAMESPACES + [None])
+    def test_createinstance_abstract(self, conn, ns):
+        # pylint: disable=no-self-use
+        """
+        Test createinstance of an abstract class. This test generates exception
+        """
+
+        # Create the model environment, qualifier decls and class
+        scopesc = NocaseDict([('CLASS', True), ('ASSOCIATION', True),
+                              ('INDICATION', True), ('PROPERTY', False),
+                              ('REFERENCE', False), ('METHOD', False),
+                              ('PARAMETER', False), ('ANY', False)])
+
+        scopesp = NocaseDict([('CLASS', False), ('ASSOCIATION', False),
+                              ('INDICATION', True), ('PROPERTY', True),
+                              ('REFERENCE', False), ('METHOD', False),
+                              ('PARAMETER', False), ('ANY', False)])
+
+        q1 = CIMQualifierDeclaration('Abstract', 'boolean', is_array=False,
+                                     scopes=scopesc,
+                                     overridable=False, tosubclass=True,
+                                     toinstance=False, translatable=None)
+        q2 = CIMQualifierDeclaration('key', 'boolean', is_array=False,
+                                     scopes=scopesp,
+                                     overridable=False, tosubclass=True,
+                                     toinstance=False, translatable=None)
+        qdecls = [q1, q2]
+
+        c = CIMClass(
+            'CIM_AbstractClass', qualifiers={'Abstract':
+                                             CIMQualifier('Abstract', True)},
+            properties={'InstanceID':
+                        CIMProperty('InstanceID', None, type='string',
+                                    qualifiers={'Key': CIMQualifier('Key',
+                                                                    True)})})
+
+        conn.add_cimobjects(qdecls, namespace=ns)
+        conn.add_cimobjects([c], namespace=ns)
+
+        # create the new instance
+        new_inst = CIMInstance('CIM_AbstractClass',
+                               properties={'InstanceID': "AbstractTestFail"})
+
+        # test add a second time.  Should generate exception.
+        with pytest.raises(CIMError) as exec_info:
+
+            # The code to be tested
+            conn.CreateInstance(new_inst)
+
+        exc = exec_info.value
+        assert exc.status_code == CIM_ERR_FAILED
+
+    @pytest.mark.parametrize(
+        "ns", INITIAL_NAMESPACES + [None])
+    def test_compile_inst_abstract(self, conn, ns):
+        # pylint: disable=no-self-use
+        """
+        Test compile that has an error compiling instance of abstract class
+        """
+        tst_mof = """
+            Qualifier Abstract : boolean = false,
+                Scope(class),
+                Flavor(DisableOverride, ToSubclass);
+
+             [ Abstract ]
+        class CIM_Abstract {string InstanceID;};
+        instance of CIM_Abstract {InstanceID="blah";};
+        """
+        skip_if_moftab_regenerated()
+
+        with pytest.raises(MOFRepositoryError) as exec_info:
+            # The code to be tested
+            conn.compile_mof_string(tst_mof, namespace=ns)
+
+        exc = exec_info.value
+        assert exc.cim_error.status_code == CIM_ERR_FAILED
+
+    @pytest.mark.parametrize(
         "interop_ns",
         # interop_ns: Interop ns (is added as default namespace to repo)
         ['interop', 'root/interop', 'root/PG_InterOp']

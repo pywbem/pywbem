@@ -47,6 +47,11 @@ Released: not yet
   'SourceNamespaces' instead of 'SourceNamespace'. See further comments below
   and issue #2725.
 
+* Added code to fail compile or creation in pywbem_mock of instance of 
+  Abstract class. Before this the WBEM server might fail the attempt but
+  the MOF compiler and pywbem_mock would build the instance 
+  (see issue # 2742).
+
 **Deprecations:**
 
 **Bug fixes:**
@@ -86,6 +91,9 @@ Released: not yet
     which populates the destination PersistenceType property. (See issue #2712)
   - Add capability to mock subscription providers to execute ModifyInstance
     (See issue #2722)
+  - Fixed pywbem_mock and the MOF_compiler to test for creation or compile
+    of an instance with a creation class that has the Abstract qualifier. This
+    will fail since abstract classes cannot be instantiated. (see issue #2742)
 
 * Docs: Fixed an error with the autodocsumm and Sphinx 4.0.0. (issue #2697)
 
