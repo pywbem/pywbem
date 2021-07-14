@@ -123,6 +123,7 @@ ifeq ($(PLATFORM),Windows_native)
   CP_FUNC = copy /y $(subst /,\\,$(1)) $(subst /,\\,$(2))
   ENV = set
   WHICH = where
+  DEV_NULL = nul
 else
   RM_FUNC = rm -f $(1)
   RM_R_FUNC = find . -type f -name '$(1)' -delete
@@ -131,6 +132,7 @@ else
   CP_FUNC = cp -r $(1) $(2)
   ENV = env | sort
   WHICH = which
+  DEV_NULL = /dev/null
 endif
 
 # Name of this Python package
@@ -156,7 +158,9 @@ coverage_html_dir := coverage_html
 
 # Package version (full version, including any pre-release suffixes, e.g. "0.1.0.dev1").
 # Note: The package version is defined in pywbem/_version.py.
-package_version := $(shell $(PYTHON_CMD) setup.py --version)
+# Note: Errors in getting the version (e.g. if wheel package is not installed) are
+# detected in _check_version. We avoid confusion by suppressing such errors here.
+package_version := $(shell $(PYTHON_CMD) setup.py --version 2>$(DEV_NULL))
 
 # Python versions
 python_version := $(shell $(PYTHON_CMD) tools/python_version.py 3)
