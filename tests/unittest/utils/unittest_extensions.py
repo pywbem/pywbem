@@ -10,6 +10,8 @@ from __future__ import absolute_import
 import re
 import os
 
+import six
+
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
 pywbem = import_installed('pywbem')
@@ -305,3 +307,28 @@ class CIMObjectMixin(object):
             if added_keys:
                 msg += ", added: %s" % list(added_keys)
             self.fail(msg)
+
+
+def assert_copy(cpy, org):
+    """
+    Assert that the copied object is a copy of the original object, as follows:
+
+    For mutable types, the copied object must be equal to the original object,
+    and they must be different objects.
+
+    For immutable types, the copied object must be equal to the original object,
+    but they may be the same object or different objects.
+
+    The determination of mutability in this function is not perfect; it is
+    optimized for the types that are used in the tests.
+    """
+    if isinstance(org, (dict, list)):
+        # Mutable
+        assert cpy == org
+        assert id(cpy) != id(org)
+    elif isinstance(org, (tuple, six.string_types, bool, int, type(None))):
+        # Immutable
+        assert cpy == org
+    else:
+        raise TypeError("assert_copy() does not support type {}".
+                        format(type(org)))

@@ -54,6 +54,8 @@ from testfixtures import OutputCapture
 from ...utils import skip_if_moftab_regenerated
 from ..utils.dmtf_mof_schema_def import TOTAL_QUALIFIERS, TOTAL_CLASSES, \
     install_test_dmtf_schema, DMTF_TEST_SCHEMA_VER
+from ..utils.pytest_extensions import simplified_test_function
+from ..utils.unittest_extensions import assert_copy
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
@@ -10204,3 +10206,84 @@ class TestDMTFCIMSchema(object):
                 clns = [clns]
             for cln in clns:
                 assert exc_str.find(cln)
+
+
+TESTCASES_COPY_FAKEDWBEMCONNECTION = [
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * init_kwargs: keyword args for FakedWBEMConnection __init
+    #   * perform_operation: Boolean that causes an operation to be performed
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for
+    #   debugger
+
+    (
+        "No init parameters, no operation performed",
+        dict(
+            init_kwargs=dict(),
+            perform_operation=False,
+        ),
+        None, None, True
+    ),
+    (
+        "No init parameters, with operation performed",
+        dict(
+            init_kwargs=dict(),
+            perform_operation=True,
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_COPY_FAKEDWBEMCONNECTION)
+@simplified_test_function
+def test_copy_fakedconn(
+        testcase, init_kwargs, perform_operation):
+    """Test FakedWBEMConnection.copy()"""
+
+    conn = FakedWBEMConnection(**init_kwargs)
+
+    if perform_operation:
+        try:
+            conn.GetQualifier('Abstract')
+        except pywbem.Error:  # Should fail with not found
+            pass
+
+    # The code to be tested
+    cpy = conn.copy()
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    # pylint: disable=protected-access,unidiomatic-type-check
+
+    assert type(cpy) is type(conn)  # noqa: E721
+    assert id(cpy) != id(conn)
+
+    # Verify attributes that should have been copied
+
+    assert_copy(cpy.default_namespace, conn.default_namespace)
+    assert_copy(cpy.use_pull_operations, conn.use_pull_operations)
+    assert_copy(cpy.stats_enabled, conn.stats_enabled)
+    assert_copy(cpy.timeout, conn.timeout)
+    assert_copy(cpy._response_delay, conn._response_delay)
+    assert_copy(cpy._disable_pull_operations, conn._disable_pull_operations)
+    assert_copy(cpy.url, conn.url)
+
+    # Verify attributes that should have been reused from original
+
+    assert id(cpy._cimrepository) == id(conn._cimrepository)
+    assert id(cpy._provider_registry) == id(conn._provider_registry)
+    assert id(cpy._provider_dependent_registry) == \
+        id(conn._provider_dependent_registry)
+    assert id(cpy._providerdispatcher) == id(conn._providerdispatcher)
+    assert id(cpy._mainprovider) == id(conn._mainprovider)
+
+    # pylint: enable=protected-access,unidiomatic-type-check

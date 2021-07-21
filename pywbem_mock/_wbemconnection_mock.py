@@ -364,6 +364,44 @@ class FakedWBEMConnection(WBEMConnection):
             "super={super})",
             s=self, super=super(FakedWBEMConnection, self).__repr__())
 
+    def copy(self):
+        """
+        *New in pywbem 1.3.*
+
+        Return a deep copy of the object with internal state reset and reusing
+        the same repository and registries.
+
+        The returned object uses the same repository, provider registry and
+        provider dependent registry objects as the original object.
+        Besides that, all other user-specifiable attributes of the object are
+        deep-copied, and all other internal state is reset.
+        """
+        cpy = FakedWBEMConnection(
+            default_namespace=self.default_namespace,
+            use_pull_operations=self.use_pull_operations,
+            stats_enabled=self.stats_enabled,
+            timeout=self.timeout,
+            response_delay=self._response_delay,
+            disable_pull_operations=self._disable_pull_operations,
+            url=self.url,
+        )  # only immutable parameters
+
+        # pylint: disable=protected-access
+
+        # Reuse repository and registries of the original object
+        cpy._cimrepository = self._cimrepository
+        cpy._provider_registry = self._provider_registry
+        cpy._provider_dependent_registry = self._provider_dependent_registry
+
+        # These objects know about the repository and registries, but other
+        # wise do not have internal state
+        cpy._providerdispatcher = self._providerdispatcher
+        cpy._mainprovider = self._mainprovider
+
+        # pylint: enable=protected-access
+
+        return cpy
+
     # The namespace management methods must be in the this class directly
     # so they can be access with call to the methods from instance of
     # this class. they are considered part of the external API.

@@ -47,9 +47,9 @@ Released: not yet
   'SourceNamespaces' instead of 'SourceNamespace'. See further comments below
   and issue #2725.
 
-* Added code to fail compile or creation in pywbem_mock of instance of 
+* Added code to fail compile or creation in pywbem_mock of instance of
   Abstract class. Before this the WBEM server might fail the attempt but
-  the MOF compiler and pywbem_mock would build the instance 
+  the MOF compiler and pywbem_mock would build the instance
   (see issue # 2742).
 
 **Deprecations:**
@@ -168,6 +168,17 @@ Released: not yet
   support it. Note that DSP0200 requires the use of CIM status
   CIM_ERR_NOT_SUPPORTED in this case, but at least one WBEM server returns
   CIM_ERR_FAILED. (issue #2736)
+
+* Added a 'copy()' method to 'WBEMConnection', 'FakedWBEMConnection',
+  'LogOperationRecorder', and 'TestClientRecorder'. The 'copy()' method returns
+  a copy of the object where user-specified attributes are copied and
+  any additional internal state is reset. In case of 'FakedWBEMConnection',
+  the repository and registries of the original object are reused by the
+  new object. (issue #2750)
+
+* The init methods of 'WBEMConnection' and 'LogOperationRecorder'
+  now copy any mutable input arguments in order to ensure the new object is
+  decoupled from the user-provided objects. (related to issue #2750)
 
 **Cleanup:**
 

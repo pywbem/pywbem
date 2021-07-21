@@ -241,6 +241,14 @@ class BaseOperationRecorder(object):
         self._conn_id = None
         self.reset()
 
+    def copy(self):
+        """
+        *New in pywbem 1.3.*
+
+        Abstract: Return a deep copy of the object with internal state reset.
+        """
+        raise NotImplementedError  # Must be implemented by subclasses
+
     def enable(self):
         """
         Enable the recorder.
@@ -511,14 +519,31 @@ class LogOperationRecorder(BaseOperationRecorder):
             self.apilogger = logging.getLogger(LOGGER_API_CALLS_NAME)
             self.httplogger = logging.getLogger(LOGGER_HTTP_NAME)
 
+    def copy(self):
+        """
+        *New in pywbem 1.3.*
+
+        Return a deep copy of the object with internal state reset.
+
+        The user-specifiable attributes of the object are deep-copied, and all
+        other internal state (e.g. staged operations) is reset.
+        """
+        cpy = LogOperationRecorder(
+            conn_id=self._conn_id,
+            detail_levels=self.detail_levels,
+        )  # init makes copies of mutable parameters
+        return cpy
+
     def set_detail_level(self, detail_levels):
         """
         Sets the detail levels from the input dictionary in detail_levels.
+
+        The input dictionary is copied.
         """
         if detail_levels is None:
             return
 
-        self.detail_levels = detail_levels
+        self.detail_levels = dict(detail_levels)  # dict is mutable, so we copy
         if 'api' in detail_levels:
             self.api_detail_level = detail_levels['api']
         if 'http' in detail_levels:
@@ -826,6 +851,20 @@ class TestClientRecorder(BaseOperationRecorder):
         """
         super(TestClientRecorder, self).__init__()
         self._fp = fp
+
+    def copy(self):
+        """
+        *New in pywbem 1.3.*
+
+        Return a copy of the object with internal state reset and reusing the
+        file-like object.
+
+        The attribute for the `fp` init parameter is reused by the returned
+        object without copying it, and any other internal state (e.g. staged
+        operations) is reset.
+        """
+        cpy = TestClientRecorder(fp=self._fp)
+        return cpy
 
     def record(self, pywbem_args, pywbem_result, http_request, http_response):
         """
