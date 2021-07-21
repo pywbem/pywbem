@@ -7,6 +7,7 @@ Unittest functions in _cim_operations.
 
 from __future__ import print_function, absolute_import
 
+import sys
 import os
 import re
 import pytest
@@ -14,6 +15,7 @@ import pytest
 from ...utils import skip_if_moftab_regenerated
 from ..utils.dmtf_mof_schema_def import install_test_dmtf_schema
 from ..utils.pytest_extensions import simplified_test_function
+from ..utils.unittest_extensions import assert_copy
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
@@ -31,6 +33,9 @@ pywbem_mock = import_installed('pywbem_mock')
 from pywbem_mock import FakedWBEMConnection  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
+# Name of null device
+DEV_NULL = 'nul' if sys.platform == 'win32' else '/dev/null'
+
 OK = True     # mark tests OK when they execute correctly
 RUN = True    # Mark OK = False and current test case being created RUN
 FAIL = False  # Any test currently FAILING or not tested yet
@@ -39,12 +44,12 @@ SKIP = False
 
 TESTCASES_INIT_WBEMCONNECTION = [
 
-    # Test WBEMConnection itit
-    # the testcase items are tuples with these items:
+    # Test WBEMConnection init
+    # The testcase items are tuples with these items:
     # * desc: Testcase description
     # * files: empty files to be created before the test
     # * init_kwargs: dict of init arguments for WBEMConnection, in addition to
-    #   the utl argument
+    #   the url argument
     # * exp_attrs: dict of expected WBEMConnection attributes after init
     # * exp_exc: Type of expected exception, or None
     # * exp_exc_regex: Regexp for the expected exception message, or None
@@ -1044,3 +1049,280 @@ def test_close():
 
         # The code to be tested, error case
         conn.close()
+
+
+TESTCASES_COPY_WBEMCONNECTION = [
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * files: empty files to be created before the test
+    #   * init_kwargs: keyword args for WBEMConnection __init
+    #   * set_debug: Boolean that causes debug to be enabled
+    #   * add_recorder: Boolean that causes a LogRecorder to be added
+    #   * enable_recorder: Boolean that causes recorders to be enabled
+    #   * enable_statistics: Boolean that causes statistics to be enabled
+    #   * perform_operation: Boolean that causes an operation to be performed
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for
+    #   debugger
+
+    (
+        "No optional init parameters, test defaults",
+        dict(
+            files=[],
+            init_kwargs=dict(
+                url='http://localhost:5988',
+            ),
+            set_debug=False,
+            add_recorder=False,
+            enable_recorder=False,
+            enable_statistics=False,
+            perform_operation=False,
+        ),
+        None, None, True
+    ),
+    (
+        "All optional init parameters, except x509 and ca_certs",
+        dict(
+            files=[],
+            init_kwargs=dict(
+                url='http://localhost:5988',
+                creds=('myuser', 'mypw'),
+                default_namespace='root/myns',
+                no_verification=True,
+                timeout=30,
+                use_pull_operations=True,
+                stats_enabled=True,
+                proxies={
+                    'http': 'http://user:pass@10.10.1.10:3128',
+                    'https': 'http://user:pass@10.10.1.10:1080',
+                },
+            ),
+            set_debug=False,
+            add_recorder=False,
+            enable_recorder=False,
+            enable_statistics=False,
+            perform_operation=False,
+        ),
+        None, None, True
+    ),
+    (
+        "x509 parameter that is a dict with existing cert_file and "
+        "existing key_file",
+        dict(
+            files=['mycertfile.tmp', 'mykeyfile.tmp'],
+            init_kwargs=dict(
+                url='http://localhost:5988',
+                x509=dict(
+                    cert_file='mycertfile.tmp',
+                    key_file='mykeyfile.tmp',
+                ),
+            ),
+            set_debug=False,
+            add_recorder=False,
+            enable_recorder=False,
+            enable_statistics=False,
+            perform_operation=False,
+        ),
+        None, None, True
+    ),
+    (
+        "x509 parameter that is a dict with existing cert_file and "
+        "omitted key_file",
+        dict(
+            files=['mycertfile.tmp'],
+            init_kwargs=dict(
+                url='http://localhost:5988',
+                x509=dict(
+                    cert_file='mycertfile.tmp',
+                ),
+            ),
+            set_debug=False,
+            add_recorder=False,
+            enable_recorder=False,
+            enable_statistics=False,
+            perform_operation=False,
+        ),
+        None, None, True
+    ),
+    (
+        "with a recorder",
+        dict(
+            files=[],
+            init_kwargs=dict(
+                url='http://localhost:5988',
+                creds=('myuser', 'mypw'),
+                default_namespace='root/myns',
+                no_verification=True,
+                timeout=30,
+                use_pull_operations=True,
+                stats_enabled=True,
+                proxies={
+                    'http': 'http://user:pass@10.10.1.10:3128',
+                    'https': 'http://user:pass@10.10.1.10:1080',
+                },
+            ),
+            set_debug=True,
+            add_recorder=True,
+            enable_recorder=True,
+            enable_statistics=True,
+            perform_operation=False,
+        ),
+        None, None, True
+    ),
+    (
+        "with a recorder and an operation performed",
+        dict(
+            files=[],
+            init_kwargs=dict(
+                url='http://localhost:5988',
+                creds=('myuser', 'mypw'),
+                default_namespace='root/myns',
+                no_verification=True,
+                timeout=1,
+                use_pull_operations=True,
+                stats_enabled=True,
+                proxies={
+                    'http': 'http://user:pass@10.10.1.10:3128',
+                    'https': 'http://user:pass@10.10.1.10:1080',
+                },
+            ),
+            set_debug=True,
+            add_recorder=True,
+            enable_recorder=True,
+            enable_statistics=True,
+            perform_operation=True,
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_COPY_WBEMCONNECTION)
+@simplified_test_function
+def test_copy_conn(
+        testcase, files, init_kwargs, set_debug, add_recorder, enable_recorder,
+        enable_statistics, perform_operation):
+    """Test WBEMConnection.copy()"""
+
+    try:
+        for fname in files:
+            open(fname, 'a').close()  # create empty file
+        dev_null = open(DEV_NULL, 'a')
+
+        conn = WBEMConnection(**init_kwargs)
+
+        if set_debug:
+            conn.debug = True
+
+        if add_recorder:
+            conn.add_operation_recorder(LogOperationRecorder('fake_conn_id'))
+            conn.add_operation_recorder(MyTestClientRecorder(dev_null))
+
+        if enable_recorder:
+            conn.operation_recorder_enabled = True
+
+        if enable_statistics:
+            conn.stats_enabled = True
+
+        if perform_operation:
+            try:
+                conn.GetQualifier('Abstract')
+            except pywbem.Error:  # Should time out
+                pass
+
+        # The code to be tested
+        cpy = conn.copy()
+
+        # Ensure that exceptions raised in the remainder of this function
+        # are not mistaken as expected exceptions
+        assert testcase.exp_exc_types is None
+
+        # pylint: disable=protected-access,unidiomatic-type-check
+
+        # Verify attributes that should have been copied
+
+        assert_copy(cpy.url, conn.url)
+        assert_copy(cpy.creds, conn.creds)
+        assert_copy(cpy.default_namespace, conn.default_namespace)
+        assert_copy(cpy.x509, conn.x509)
+        assert_copy(cpy.ca_certs, conn.ca_certs)
+        assert_copy(cpy.no_verification, conn.no_verification)
+        assert_copy(cpy.timeout, conn.timeout)
+        assert_copy(cpy.use_pull_operations, conn.use_pull_operations)
+        assert_copy(cpy.stats_enabled, conn.stats_enabled)
+        assert_copy(cpy.proxies, conn.proxies)
+        assert_copy(cpy._scheme, conn._scheme)
+        assert_copy(cpy._host, conn._host)
+        assert_copy(cpy._use_enum_inst_pull_operations,
+                    conn._use_enum_inst_pull_operations)
+        assert_copy(cpy._use_enum_path_pull_operations,
+                    conn._use_enum_path_pull_operations)
+        assert_copy(cpy._use_ref_inst_pull_operations,
+                    conn._use_ref_inst_pull_operations)
+        assert_copy(cpy._use_ref_path_pull_operations,
+                    conn._use_ref_path_pull_operations)
+        assert_copy(cpy._use_assoc_inst_pull_operations,
+                    conn._use_assoc_inst_pull_operations)
+        assert_copy(cpy._use_assoc_path_pull_operations,
+                    conn._use_assoc_path_pull_operations)
+        assert_copy(cpy._use_query_pull_operations,
+                    conn._use_query_pull_operations)
+
+        # Verify attributes that should have been reset
+
+        assert cpy._debug is False
+        assert cpy._last_raw_request is None
+        assert cpy._last_raw_reply is None
+        assert cpy._last_request is None
+        assert cpy._last_request_xml_item is None
+        assert cpy._last_reply is None
+        assert cpy._last_reply_xml_item is None
+        assert cpy._last_request_len == 0
+        assert cpy._last_reply_len == 0
+        assert cpy._last_operation_time is None
+        assert cpy._last_server_response_time is None
+
+        # Session object should be a new object
+        assert type(cpy.session) is type(conn.session)  # noqa: E721
+        assert id(cpy.session) != id(conn.session)
+        # Check that the Session object has adapters for the same schemes
+        assert len(cpy.session.adapters) == len(conn.session.adapters)
+        for scheme in conn.session.adapters:
+            assert scheme in cpy.session.adapters
+        # Beyond that, we do not determine whether the Session object is a
+        # deep copy or a new object, because that would make this test too
+        # much dependent on the internal structure of requests.Session.
+
+        # Recorder objects should be new objects, but with same enabled state
+        assert len(cpy._operation_recorders) == len(conn._operation_recorders)
+        for i, conn_rec in enumerate(conn._operation_recorders):
+            cpy_rec = cpy._operation_recorders[i]
+            assert type(cpy_rec) is type(conn_rec)  # noqa: E721
+            assert id(cpy_rec) != id(conn_rec)
+            assert cpy_rec._pywbem_method is None
+            assert cpy_rec._pywbem_args is None
+            assert cpy_rec._pywbem_result_ret is None
+            assert cpy_rec._pywbem_result_exc is None
+            assert cpy_rec.enabled == conn_rec.enabled
+
+        # Statistics object should be a new object, but with same enabled state
+        assert type(cpy._statistics) is type(conn._statistics)  # noqa: E721
+        assert id(cpy._statistics) != id(conn._statistics)
+        assert not cpy._statistics._op_stats
+        assert cpy._statistics.enabled == conn._statistics.enabled
+
+        # Verify attributes that have been treated specially
+
+        assert cpy._conn_id != conn._conn_id  # increased
+
+        # pylint: enable=protected-access,unidiomatic-type-check
+
+    finally:
+        for fname in files:
+            os.remove(fname)
+        dev_null.close()

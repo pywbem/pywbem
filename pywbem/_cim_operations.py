@@ -609,6 +609,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 but the file does not exist, :exc:`~py:exceptions.IOError` will
                 be raised.
 
+            The dictionary is copied.
+
             See :ref:`Authentication types` for an overview.
 
           ca_certs (:term:`string`):
@@ -724,6 +726,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             `None` (the default) causes the use of direct connections without
             using a proxy.
 
+            An input dictionary is copied.
+
             This parameter is passed on to the `proxies` parameter of the
             requests package. See the :ref:`Proxy support` section for details.
         """  # noqa: E501
@@ -734,7 +738,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         self._scheme = scheme
         self._host = hostport
         self._url = url
-        self._creds = creds
+        self._creds = creds  # tuple is immutable, so no copy
         if x509 is not None:
             if not isinstance(x509, dict):
                 raise TypeError(
@@ -758,7 +762,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     "The 'key_file' item in the x509 parameter must be a "
                     "string but has type: {0}".
                     format(type(key_file)))
-        self._x509 = x509
+        # x509 dict is mutable, so we copy it
+        self._x509 = None if x509 is None else dict(x509)
         self._ca_certs = ca_certs
         self._no_verification = no_verification
         self._timeout = timeout
@@ -896,6 +901,35 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """
         self.close()
         return False  # re-raise any exceptions
+
+    def copy(self):
+        """
+        *New in pywbem 1.3.*
+
+        Return a deep copy of the object with internal state reset.
+
+        The user-specifiable attributes of the object are deep-copied, and all
+        other internal state (e.g. session, statistics, debug data) is reset.
+
+        Any operation recorders on the original object are also deep-copied
+        while resetting their internal state (e.g. staged operations)
+        (see :meth:`~pywbem.BaseOperationRecorder.copy`).
+        """
+        cpy = WBEMConnection(
+            url=self.url,
+            creds=self.creds,
+            default_namespace=self.default_namespace,
+            x509=self.x509,
+            ca_certs=self.ca_certs,
+            no_verification=self.no_verification,
+            timeout=self.timeout,
+            use_pull_operations=self.use_pull_operations,
+            stats_enabled=self.stats_enabled,
+            proxies=self.proxies,
+        )  # init makes copies of mutable parameters
+        for rec in self.operation_recorders:
+            cpy.add_operation_recorder(rec.copy())
+        return cpy
 
     @property
     def url(self):
