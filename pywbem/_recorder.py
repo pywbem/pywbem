@@ -312,8 +312,10 @@ class BaseOperationRecorder(object):
         """
         if six.PY2:
             # Open with codecs to define text mode
+            # pylint: disable=consider-using-with
             return codecs.open(filename, mode=file_mode, encoding='utf-8')
 
+        # pylint: disable=consider-using-with
         return open(filename, file_mode, encoding='utf8')
 
     def reset(self, pull_op=None):

@@ -35,7 +35,7 @@ unsafe-load-any-extension=no
 # A comma-separated list of package or module names from where C extensions may
 # be loaded. Extensions are loading into the active Python interpreter and may
 # run arbitrary code
-extension-pkg-whitelist=
+extension-pkg-whitelist=termios,unicodedata
 
 # Allow optimization of some AST trees. This will activate a peephole AST
 # optimizer, which will apply various small optimizations. For instance, it can
@@ -83,7 +83,8 @@ disable=I0011, bad-option-value,
 
 # Issue #2672: Disabling R0801 is a circumvention for Pylint issue
 #   https://github.com/PyCQA/pylint/issues/4118 that appears in Pylint 2.7.0.
-#   Enable it again once the Pylint issue has been addressed.
+#   Enable it again once the Pylint issue has been addressed (expected for
+#   Pylint 2.10).
 
 # Note: "useless-object-inheritance" is python 3 only. In Python 2,
 #        "new-style" objects must inherit from object, or else
@@ -125,7 +126,7 @@ output-format=text
 files-output=no
 
 # Tells whether to display a full report or only the messages
-reports=yes
+reports=no
 
 # Python expression which should return a note less than 10 (10 is the highest
 # note). You have access to the variables errors warning, statement which

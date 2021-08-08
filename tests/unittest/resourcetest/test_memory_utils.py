@@ -46,7 +46,7 @@ if ENABLE_TESTS:
     SIZE_SET = size_obj(set())
     SIZE_CLASS = size_obj(EC_OBJ)
     SIZE_CLASS_DICT = size_obj(EC_OBJ.__dict__)
-    SIZE_REF = struct.calcsize('P')
+    SIZE_REF = struct.calcsize('P')  # pylint: disable=no-member
 
     TESTCASES_TOTAL_SIZEOF = [
 

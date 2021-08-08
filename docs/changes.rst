@@ -186,6 +186,10 @@ Released: not yet
 * Changed the WBEMConnection.timeout property to be settable. This allows
   adjusting the timeout after the connection has been created. (issue #2752)
 
+* Pylint: Removed pinning of Pylint to <2.7.0 because the performance issue
+  can also be addressed by disabling the similarity checker, and addressed
+  Pylint issues reported by Pylint 2.9. (issue #2672)
+
 **Cleanup:**
 
 * Extend tests for SubscriptionManager to utilize pytest and cover error cases.

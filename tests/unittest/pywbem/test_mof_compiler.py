@@ -74,6 +74,7 @@ class MOFTest(unittest.TestCase):
             print(msg, file=self.logfile)
 
         moflog_file = os.path.join(TEST_DIR, 'moflog.txt')
+        # pylint: disable=consider-using-with
         self.logfile = open(moflog_file, 'w')
         self.mofcomp = MOFCompiler(
             MOFWBEMConnection(),
@@ -91,6 +92,7 @@ class MOFTest(unittest.TestCase):
             print(msg, file=self.logfile2)
 
         moflog_file2 = os.path.join(TEST_DIR, 'moflog2.txt')
+        # pylint: disable=consider-using-with
         self.logfile2 = open(moflog_file2, 'w')
         self.mofcomp2 = MOFCompiler(
             MOFWBEMConnection(),
@@ -2243,6 +2245,8 @@ class TestFullSchema(MOFTest):
 
         # Create file for mof output
         mofout_filename = os.path.join(TEST_DIR, TMP_FILE)
+
+        # pylint: disable=consider-using-with
         mof_out_hndl = open(mofout_filename, 'w')
 
         # Output and verify the qualifier declarations
@@ -2732,6 +2736,7 @@ class Test_CreateInstanceWithDups(unittest.TestCase):
             print(msg, file=self.logfile)
 
         moflog_file = os.path.join(TEST_DIR, 'moflog.txt')
+        # pylint: disable=consider-using-with
         self.logfile = open(moflog_file, 'w')
         self.mofcomp = MOFCompiler(
             MOFWBEMConnectionInstDups(),

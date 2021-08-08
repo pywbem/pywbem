@@ -103,7 +103,7 @@ def total_sizeof(obj, iters=None):
     seen = set()  # Track which objects have already been seen
 
     default_size = sys.getsizeof(0)
-    ref_size = struct.calcsize('P')
+    ref_size = struct.calcsize('P')  # pylint: disable=no-member
 
     if DEBUG:
         nesting = [0]

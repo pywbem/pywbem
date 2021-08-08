@@ -36,6 +36,7 @@ import six
 try:
     from collections.abc import Mapping, Sequence
 except ImportError:  # py2
+    # pylint: disable=deprecated-class
     from collections import Mapping, Sequence
 
 from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
