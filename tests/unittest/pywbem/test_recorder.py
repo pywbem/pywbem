@@ -825,16 +825,12 @@ def test_BaseOperationRecorder_init():
     assert is_inherited_from(
         'enabled', _TestClientRecorder, BaseOperationRecorder)
 
-    try:
-        fp = open(os.devnull, 'w')
+    with open(os.devnull, 'w') as fp:
 
         # The code to be tested
         recorder = _TestClientRecorder(fp)
 
         assert recorder.enabled is True
-
-    finally:
-        fp.close()
 
 
 def test_BaseOperationRecorder_enable_disable():
@@ -853,8 +849,7 @@ def test_BaseOperationRecorder_enable_disable():
     assert is_inherited_from(
         'enabled', _TestClientRecorder, BaseOperationRecorder)
 
-    try:
-        fp = open(os.devnull, 'w')
+    with open(os.devnull, 'w') as fp:
 
         recorder = _TestClientRecorder(fp)
 
@@ -873,9 +868,6 @@ def test_BaseOperationRecorder_enable_disable():
         # The code to be tested
         recorder.enable()
         assert recorder.enabled is True
-
-    finally:
-        fp.close()
 
 
 TESTCASES_BASEOPERATIONRECORDER_OPEN_FILE = [
@@ -1323,8 +1315,7 @@ def test_TestClientRecorder_toyaml(testcase, obj, exp_yaml):
     Test function for TestClientRecorder.toyaml()
     """
 
-    try:
-        fp = open(os.devnull, 'w')
+    with open(os.devnull, 'w') as fp:
 
         recorder = _TestClientRecorder(fp)
         recorder.reset()
@@ -1332,9 +1323,6 @@ def test_TestClientRecorder_toyaml(testcase, obj, exp_yaml):
 
         # The code to be tested
         act_yaml = recorder.toyaml(obj)
-
-    finally:
-        fp.close()
 
     assert act_yaml == exp_yaml
 
@@ -3481,8 +3469,7 @@ def test_copy_testclientrecorder(
         testcase, init_kwargs, enable_recorder, record_operation):
     """Test TestClientRecorder.copy()"""
 
-    try:
-        dev_null = open(DEV_NULL, 'a')
+    with open(DEV_NULL, 'a') as dev_null:
 
         rec = _TestClientRecorder(dev_null, **init_kwargs)
 
@@ -3534,6 +3521,3 @@ def test_copy_testclientrecorder(
         assert cpy._http_response_payload is None
 
         # pylint: enable=protected-access,unidiomatic-type-check
-
-    finally:
-        dev_null.close()

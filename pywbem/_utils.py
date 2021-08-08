@@ -33,6 +33,7 @@ except ImportError:  # py2
 try:
     from collections.abc import Mapping, Set, MutableSequence, Sequence
 except ImportError:  # py2
+    # pylint: disable=deprecated-class
     from collections import Mapping, Set, MutableSequence, Sequence
 
 __all__ = []

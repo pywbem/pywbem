@@ -1280,8 +1280,7 @@ class FakedWBEMConnection(WBEMConnection):
                                 "pywbem.CIMParameter",
                                 methodname, localobject, type(param)))
         if params:
-            for pname in params:
-                pvalue = params[pname]
+            for pname, pvalue in params.items():
                 params_dict[pname] = CIMParameter(
                     pname, cimtype(pvalue), value=pvalue)
 
