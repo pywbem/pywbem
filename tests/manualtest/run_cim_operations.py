@@ -5870,9 +5870,8 @@ def consume_indication(indication, host):
     # pylint: disable=global-statement
     global RECEIVED_INDICATION_COUNT
     # increment count.
-    COUNTER_LOCK.acquire()
-    RECEIVED_INDICATION_COUNT += 1
-    COUNTER_LOCK.release()
+    with COUNTER_LOCK:
+        RECEIVED_INDICATION_COUNT += 1
 
 
 class TestSubscriptionsClass(PyWBEMServerClass):
@@ -5912,9 +5911,8 @@ class TestSubscriptionsClass(PyWBEMServerClass):
             # pylint: disable=global-statement
             global RECEIVED_INDICATION_COUNT
             # increment count.
-            COUNTER_LOCK.acquire()
-            RECEIVED_INDICATION_COUNT = 0
-            COUNTER_LOCK.release()
+            with COUNTER_LOCK:
+                RECEIVED_INDICATION_COUNT = 0
 
             listener.start()
         except Exception as ex:  # pylint: disable=broad-except

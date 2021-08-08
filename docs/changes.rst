@@ -56,6 +56,10 @@ Released: not yet
   CIM_ERR_NOT_SUPPORTED in this case, but at least one WBEM server returns
   CIM_ERR_FAILED. (issue #2736)
 
+* Pylint: Removed pinning of Pylint to <2.7.0 because the performance issue
+  can also be addressed by disabling the similarity checker, and addressed
+  Pylint issues reported by Pylint 2.9. (issue #2672)
+
 **Cleanup:**
 
 **Known issues:**

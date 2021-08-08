@@ -474,21 +474,16 @@ class DMTFCIMSchema(object):
                 _format("Unpacking CIM Schema archive: {0}",
                         self.schema_zip_file))
 
-            zfp = None
-            try:
-                zfp = ZipFile(self.schema_zip_file, 'r')
-                nlist = zfp.namelist()
-                for file_ in nlist:
-                    dfile = os.path.join(self.schema_mof_dir, file_)
-                    if dfile[-1] == '/':
-                        if not os.path.exists(dfile):
-                            os.mkdir(dfile)
-                    else:
-                        with open(dfile, 'w+b') as dfp:
-                            dfp.write(zfp.read(file_))
-            finally:
-                if zfp:
-                    zfp.close()
+        with ZipFile(self.schema_zip_file, 'r') as zfp:
+            nlist = zfp.namelist()
+            for file_ in nlist:
+                dfile = os.path.join(self.schema_mof_dir, file_)
+                if dfile[-1] == '/':
+                    if not os.path.exists(dfile):
+                        os.mkdir(dfile)
+                else:
+                    with open(dfile, 'w+b') as dfp:
+                        dfp.write(zfp.read(file_))
 
     def build_schema_mof(self, class_names):
         """

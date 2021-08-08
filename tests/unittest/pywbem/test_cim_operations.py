@@ -287,7 +287,9 @@ class TestCreateConnection(object):
 
         try:
             for fname in files:
-                open(fname, 'a').close()  # create empty file
+                # create empty file
+                with open(fname, 'a'):
+                    pass
 
             if exp_exc is not None:
                 with pytest.raises(exp_exc) as exc_info:
