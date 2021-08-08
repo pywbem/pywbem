@@ -1067,10 +1067,17 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         *New in pywbem 0.8.*
 
+        *New in pywbem 1.3.*: This attribute is settable.
+
         For details, see the description of the same-named init
         parameter of :class:`this class <pywbem.WBEMConnection>`.
         """
         return self._timeout
+
+    @timeout.setter
+    def timeout(self, timeout_value):
+        """Setter method; for a description see the getter method."""
+        self._timeout = timeout_value
 
     @property
     def operation_recorders(self):

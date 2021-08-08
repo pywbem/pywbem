@@ -325,7 +325,6 @@ class TestCreateConnection(object):
             ('x509', dict(cert_file='c', key_file='k')),
             ('ca_certs', 'xxx'),
             ('no_verification', True),
-            ('timeout', 30),
             ('last_raw_request', '<CIM/>'),
             ('last_raw_reply', '<CIM/>'),
             ('last_raw_reply', '<CIM/>'),
@@ -500,6 +499,16 @@ class TestCreateConnection(object):
             assert conn.url == 'http://localhost:5988'
             assert conn.session is not None
         assert conn.session is None
+
+
+def test_conn_set_timeout():
+    """
+    Test setting the 'timeout' property of WBEMConnection.
+    """
+    conn = WBEMConnection('http://localhost', timeout=20)
+    assert conn.timeout == 20
+    conn.timeout = 25
+    assert conn.timeout == 25
 
 
 class TestGetRsltParams(object):

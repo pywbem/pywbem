@@ -183,6 +183,9 @@ Released: not yet
   now copy any mutable input arguments in order to ensure the new object is
   decoupled from the user-provided objects. (related to issue #2750)
 
+* Changed the WBEMConnection.timeout property to be settable. This allows
+  adjusting the timeout after the connection has been created. (issue #2752)
+
 **Cleanup:**
 
 * Extend tests for SubscriptionManager to utilize pytest and cover error cases.
