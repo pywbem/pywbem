@@ -127,6 +127,7 @@ def validate_cim_xml(cim_xml_str, root_elem_name=None):
     else:
         xmllint_cmd = 'xmllint --dtdvalid {0} --noout -'.format(dtd_file_fw)
 
+    # pylint: disable=consider-using-with
     p = Popen(xmllint_cmd, stdout=PIPE, stderr=STDOUT, stdin=PIPE, shell=True)
 
     cim_xml_str = _ensure_bytes(cim_xml_str)

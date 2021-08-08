@@ -523,7 +523,7 @@ def test_repository_valid_methods(desc, args, condition, capsys):
                 .format(desc, name)
 
             rtnd_obj = xxx_repo.get(name)
-            assert rtnd_obj == input_items[type_dict][name]
+            assert rtnd_obj == obj
 
             # update each object with the same object as originally installed.
             xxx_repo.update(name, obj)
@@ -537,10 +537,10 @@ def test_repository_valid_methods(desc, args, condition, capsys):
 
         # Test iter_names and iter_values
         names = list(xxx_repo.iter_names())
-        assert set(names) == set(input_items[type_dict].keys())
+        assert set(names) == set(obj_dict.keys())
 
         objs = list(xxx_repo.iter_values())
-        assert set(objs) == set(input_items[type_dict].values())
+        assert set(objs) == set(obj_dict.values())
 
         for name, obj in obj_dict.items():
             xxx_repo.delete(name)

@@ -249,6 +249,7 @@ except ImportError:
 try:
     from collections.abc import ValuesView, ItemsView
 except ImportError:
+    # pylint: disable=deprecated-class
     from collections import ValuesView, ItemsView
 try:
     from builtins import type as builtin_type

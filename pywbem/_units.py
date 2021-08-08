@@ -108,6 +108,7 @@ import re
 try:
     from collections.abc import Sequence
 except ImportError:
+    # pylint: disable=deprecated-class
     from collections import Sequence
 from nocasedict import NocaseDict
 import six
@@ -743,8 +744,7 @@ def _uc2ascii(uc_str):
     Return the input string, where Unicode characters are replaced with their
     7-bit ASCII replacements as defined in UC2ASCII.
     """
-    for uc in UC2ASCII:
-        ac = UC2ASCII[uc]
+    for uc, ac in UC2ASCII.items():
         uc_str = uc_str.replace(uc, ac)
     return uc_str
 

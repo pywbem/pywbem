@@ -2015,9 +2015,7 @@ def _find_column(input_, token):
         if input_[i] == '\n':
             break
         i -= 1
-    column = lexpos - i - 1
-    if column < 0:
-        column = 0
+    column = max(lexpos - i - 1, 0)
     return column
 
 
@@ -2033,17 +2031,13 @@ def _get_error_context(input_, token):
     except ValueError:
         line = input_[lexpos]
 
-    i = input_.rfind('\n', 0, lexpos)
-    if i < 0:
-        i = 0
+    i = max(input_.rfind('\n', 0, lexpos), 0)
     line = input_[i:lexpos] + line
     lines = [line.strip('\r\n')]
     col = lexpos - i
     while len(lines) < 5 and i > 0:
         end = i
-        i = input_.rfind('\n', 0, i)
-        if i < 0:
-            i = 0
+        i = max(input_.rfind('\n', 0, i), 0)
         lines.insert(0, input_[i:end].strip('\r\n'))
     pointer = ''
     for dummy_ch in str(_value(token)):

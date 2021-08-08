@@ -744,8 +744,8 @@ class Statistics(object):
         Return a human readable display of the contents, for debug purposes.
         """
         ret = "Statistics(\n"
-        for name in self._op_stats:
-            ret += _format("  {0!A}\n", self._op_stats[name])
+        for stats_value in self._op_stats.values():
+            ret += _format("  {0!A}\n", stats_value)
         ret += ")"
         return ret
 

@@ -206,7 +206,7 @@ def patched_makefile(self, mode='r', bufsize=-1):
             timeout = self.timeout
         t.join(timeout)
         if t.is_alive():
-            raise socket.timeout
+            raise socket.timeout  # pylint: disable=no-member
 
     return self.fd
 

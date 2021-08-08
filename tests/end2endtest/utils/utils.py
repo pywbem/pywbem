@@ -274,7 +274,7 @@ class WBEMConnectionAsserted(WBEMConnection):
         Return an AssertionError about the specified exception.
         """
         parm_list = ["{0!r}".format(a) for a in args]
-        parm_list.extend(["{0}={1!r}".format(k, kwargs[k]) for k in kwargs])
+        parm_list.extend(["{0}={1!r}".format(k, v) for k, v in kwargs.items()])
         parm_str = ", ".join(parm_list)
         return AssertionError(
             "Server {0} at {1}: WBEMConnection.{2}() failed and raised "
@@ -454,7 +454,7 @@ def server_func_asserted(server, funcname, *args, **kwargs):
         return func(*args, **kwargs)
     except Error as exc:
         parm_list = ["{0!r}".format(a) for a in args]
-        parm_list.extend(["{0}={1!r}".format(k, kwargs[k]) for k in kwargs])
+        parm_list.extend(["{0}={1!r}".format(k, v) for k, v in kwargs.items()])
         parm_str = ", ".join(parm_list)
         raise AssertionError(
             "Server {0} at {1}: Calling WBEMServer.{2}() failed and "

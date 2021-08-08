@@ -7,6 +7,7 @@ from __future__ import absolute_import
 try:
     from collections.abc import Iterable
 except ImportError:  # py2
+    # pylint: disable=deprecated-class
     from collections import Iterable
 import six
 import pytest
