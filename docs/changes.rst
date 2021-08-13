@@ -94,6 +94,9 @@ Released: not yet
   - Fixed pywbem_mock and the MOF_compiler to test for creation or compile
     of an instance with a creation class that has the Abstract qualifier. This
     will fail since abstract classes cannot be instantiated. (see issue #2742)
+  - Removed use of unittest.Mock in pywbem_mock.FakedWBEMConnection to
+    use mock versions of _imethodcall and _methodcall and simply duck typed
+    the methods. (see issue #2755)
 
 * Docs: Fixed an error with the autodocsumm and Sphinx 4.0.0. (issue #2697)
 
