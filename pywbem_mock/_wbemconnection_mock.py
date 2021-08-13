@@ -31,10 +31,10 @@ import os
 import time
 import re
 from xml.dom import minidom
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from mock import Mock
+# try:
+#    from unittest.mock import Mock
+# except ImportError:
+#    from mock import Mock
 import six
 
 
@@ -249,8 +249,8 @@ class FakedWBEMConnection(WBEMConnection):
         # instance of this class as the client interface.
         self._mofwbemconnection = _MockMOFWBEMConnection(self)
 
-        self._imethodcall = Mock(side_effect=self._mock_imethodcall)
-        self._methodcall = Mock(side_effect=self._mock_methodcall)
+        self._imethodcall = self._mock_imethodcall
+        self._methodcall = self._mock_methodcall
 
     @property
     def namespaces(self):
