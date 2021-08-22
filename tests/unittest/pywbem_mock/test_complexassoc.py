@@ -28,6 +28,7 @@ of processing complex associations including ternary associations (more than
 from __future__ import absolute_import, print_function
 
 import os
+import io
 
 import pytest
 
@@ -225,10 +226,11 @@ def save_data(conn, mof, request, response, exp_response):
             conn.display_repository(dest=COMPLEX_MODEL_OUT_MOF)
 
         if not os.path.exists(COMPLEX_MODEL_MOF):
-            with open('complex_association_model.mof', 'w') as f:
+            with io.open('complex_association_model.mof', 'w',
+                         encoding='utf-8') as f:
                 print(mof, file=f)
 
-        with open(PYWBEMCLI_CMDS, 'a') as f:
+        with io.open(PYWBEMCLI_CMDS, 'a', encoding='utf-8') as f:
             print('%s ' % request, file=f)
             print("Resp : %s" % response, file=f)
             print("ExpResp : %s" % exp_response, file=f)
@@ -336,7 +338,7 @@ def test_complexref_classnames(conn, ns, target, r, rc, mof, exp_rslt,
     if cond == 'pdb':
         # pylint: disable=import-outside-toplevel
         import pdb
-        pdb.set_trace()  # pylint: disable=no-member
+        pdb.set_trace()  # pylint: disable=forgotten-debug-statement
 
     rtn_clns = conn.ReferenceNames(target, ResultClass=rc, Role=r)
     exp_ns = ns or conn.default_namespace
@@ -488,7 +490,7 @@ def test_complexref_instnames(conn, ns, target, r, rc, mof, exp_rslt,
     if cond == 'pdb':
         # pylint: disable=import-outside-toplevel
         import pdb
-        pdb.set_trace()  # pylint: disable=no-member
+        pdb.set_trace()  # pylint: disable=forgotten-debug-statement
 
     target_inst = CIMInstanceName(target[0],
                                   keybindings={'InstanceID': target[1]},
@@ -621,7 +623,7 @@ def test_complexassoc_classnames(conn, ns, target, r, rr, ac,
     if cond == 'pdb':
         # pylint: disable=import-outside-toplevel
         import pdb
-        pdb.set_trace()  # pylint: disable=no-member
+        pdb.set_trace()  # pylint: disable=forgotten-debug-statement
 
     rtn_clns = conn.AssociatorNames(target,
                                     AssocClass=ac,
@@ -1146,7 +1148,7 @@ def test_complexassoc_instnames(conn, ns, target, r, rr, ac,
     if cond == 'pdb':
         # pylint: disable=import-outside-toplevel
         import pdb
-        pdb.set_trace()  # pylint: disable=no-member
+        pdb.set_trace()  # pylint: disable=forgotten-debug-statement
 
     skip_if_moftab_regenerated()
 

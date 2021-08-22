@@ -8,6 +8,7 @@ Unittest functions in _cim_operations.
 from __future__ import print_function, absolute_import
 
 import os
+import io
 import re
 import pytest
 
@@ -52,7 +53,7 @@ TESTCASES_INIT_WBEMCONNECTION = [
     (
         "No optional init parameters, test defaults",
         [],
-        dict(),
+        {},
         dict(
             creds=None,
             default_namespace='root/cimv2',
@@ -133,7 +134,7 @@ TESTCASES_INIT_WBEMCONNECTION = [
                 key_file='mykeyfile.tmp',
             ),
         ),
-        dict(),
+        {},
         IOError, "Client certificate file .* not found"
     ),
     (
@@ -146,7 +147,7 @@ TESTCASES_INIT_WBEMCONNECTION = [
                 key_file='nonexistingkeyfile.tmp',
             ),
         ),
-        dict(),
+        {},
         IOError, "Client key file .* not found"
     ),
     (
@@ -159,7 +160,7 @@ TESTCASES_INIT_WBEMCONNECTION = [
                 key_file=None,
             ),
         ),
-        dict(),
+        {},
         TypeError, "cert_file.* must be a string"
     ),
     (
@@ -172,7 +173,7 @@ TESTCASES_INIT_WBEMCONNECTION = [
                 key_file=None,
             ),
         ),
-        dict(),
+        {},
         TypeError, "The 'cert_file' item in the x509 parameter must be a string"
     ),
     (
@@ -185,7 +186,7 @@ TESTCASES_INIT_WBEMCONNECTION = [
                 key_file=3,
             ),
         ),
-        dict(),
+        {},
         TypeError, "The 'key_file' item in the x509 parameter must be a string",
     ),
     (
@@ -197,7 +198,7 @@ TESTCASES_INIT_WBEMCONNECTION = [
                 key_file=None,
             ),
         ),
-        dict(),
+        {},
         ValueError, "The x509 parameter does not have the required key "
         "'cert_file'"
     ),
@@ -208,7 +209,7 @@ TESTCASES_INIT_WBEMCONNECTION = [
         dict(
             x509='mycertfile.tmp',
         ),
-        dict(),
+        {},
         TypeError, "x509 .* must be a dictionary"
     ),
     (
@@ -228,7 +229,7 @@ TESTCASES_INIT_WBEMCONNECTION = [
         dict(
             ca_certs=42,
         ),
-        dict(),
+        {},
         TypeError, "ca_certs .* invalid type"
     ),
     (
@@ -237,7 +238,7 @@ TESTCASES_INIT_WBEMCONNECTION = [
         dict(
             ca_certs='mycacertfile.tmp',
         ),
-        dict(),
+        {},
         IOError, "file or directory not found"
     ),
     (
@@ -263,7 +264,7 @@ TESTCASES_INIT_WBEMCONNECTION = [
         dict(
             proxies=42,
         ),
-        dict(),
+        {},
         TypeError, "proxies .* must be a dictionary .*"
     ),
 ]
@@ -288,7 +289,7 @@ class TestCreateConnection(object):
         try:
             for fname in files:
                 # create empty file
-                with open(fname, 'a'):
+                with io.open(fname, 'a', encoding='utf-8'):
                     pass
 
             if exp_exc is not None:
@@ -349,7 +350,7 @@ class TestCreateConnection(object):
 
     @pytest.mark.parametrize(
         'kwargs, exp_default_namespace', [
-            (dict(), DEFAULT_NAMESPACE),
+            ({}, DEFAULT_NAMESPACE),
             (dict(default_namespace=None), DEFAULT_NAMESPACE),
             (dict(default_namespace=DEFAULT_NAMESPACE), DEFAULT_NAMESPACE),
             (dict(default_namespace='blah'), 'blah'),

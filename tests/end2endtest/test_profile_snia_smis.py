@@ -150,7 +150,7 @@ def test_snia_smis_profile_tree_not_circular(wbem_connection):  # noqa: F811
         # Profile ancestry for the each specification instance:
         # * key: std_uri of profile
         # * value: std_uri of its referencing profile (or spec, for the top)
-        profile_ancestry = dict()
+        profile_ancestry = {}
 
         for top_profile_inst in top_profiles:
 

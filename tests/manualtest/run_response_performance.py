@@ -7,6 +7,7 @@ from __future__ import absolute_import, print_function
 
 import sys as _sys
 import os as _os
+import io
 import time
 import argparse as _argparse
 import datetime
@@ -34,9 +35,6 @@ except ImportError:
         """Compatible parse_cim() function"""
         tp = TupleParser()
         return tp.parse_cim(tt)
-
-if six.PY2:
-    import codecs  # pylint: disable=wrong-import-order
 
 # default input arguments.  These are small so a user who
 # just calls the code does not fall into long run.
@@ -91,16 +89,11 @@ def _uprint(dest, text):  # pylint: disable=too-many-branches
 
     elif isinstance(dest, (six.text_type, six.binary_type)):
         if isinstance(text, six.text_type):
-            open_kwargs = dict(mode='a', encoding='utf-8')
+            kw = dict(mode='a', encoding='utf-8')
         else:
-            open_kwargs = dict(mode='ab')
-        if six.PY2:
-            # Open with codecs to be able to set text mode
-            with codecs.open(dest, **open_kwargs) as fn:
-                fn.write(text)
-        else:
-            with open(dest, **open_kwargs) as fn:
-                fn.write(text)
+            kw = dict(mode='ab')
+        with io.open(dest, **kw) as fn:  # pylint: disable=unspecified-encoding
+            fn.write(text)
     else:
         raise TypeError(
             "dest must be None or a string, but is {0}".
@@ -364,7 +357,7 @@ class ExecuteTests(object):
 
         # if dest defined, output to file defined by dest
         if self.logfile:
-            with open(self.logfile, 'w') as stream:
+            with io.open(self.logfile, 'w', encoding='utf-8') as stream:
                 ps = pstats.Stats(profiler, stream=stream)
                 ps.strip_dirs()
                 ps.sort_stats(*self.cprofilesort)

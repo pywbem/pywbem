@@ -22,6 +22,7 @@ Operation recorder interface and implementations.
 """
 
 from __future__ import print_function, absolute_import
+import io
 from collections import namedtuple
 try:
     from collections import OrderedDict
@@ -42,9 +43,6 @@ from ._cim_types import CIMInt, CIMFloat, CIMDateTime
 from ._exceptions import CIMError
 from ._logging import LOGGER_API_CALLS_NAME, LOGGER_HTTP_NAME
 from ._utils import _ensure_unicode, _format
-
-if six.PY2:
-    import codecs  # pylint: disable=wrong-import-order
 
 
 __all__ = ['BaseOperationRecorder', 'TestClientRecorder',
@@ -302,13 +300,8 @@ class BaseOperationRecorder(object):
 
             recorder_file.close()
         """
-        if six.PY2:
-            # Open with codecs to define text mode
-            # pylint: disable=consider-using-with
-            return codecs.open(filename, mode=file_mode, encoding='utf-8')
-
         # pylint: disable=consider-using-with
-        return open(filename, file_mode, encoding='utf8')
+        return io.open(filename, file_mode, encoding='utf-8')
 
     def reset(self, pull_op=None):
         """Reset all the attributes in the class. This also allows setting
@@ -813,18 +806,21 @@ class TestClientRecorder(BaseOperationRecorder):
             An open file that each test case will be written to.  This file
             should have been opened in text mode.
 
-            Since there are differences between python 2 and 3 in opening
+            Since there are differences between Python 2 and 3 in opening
             files in text mode, the static method
             :meth:`~pywbem.BaseOperationRecorder.open_file`
-            can be used to open the file or python 2/3 compatible open::
+            can be used to open the file.
 
-              from io import open
-                  f = open('blah.log', encoding='utf-8')
+            Alternatively, the Python 2/3 compatible :func:`py:io.open` can be
+            used.
 
-        Example::
+        Examples::
 
           recorder = TestClientRecorder(
               BaseOperationRecorder.open_file('recorder.log'))
+
+          recorder = TestClientRecorder(
+              io.open('recorder.log', mode='w', encoding='utf-8')
         """
         super(TestClientRecorder, self).__init__()
         self._fp = fp

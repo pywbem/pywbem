@@ -927,7 +927,7 @@ TESTCASES_MINUTESFROMUTC_INIT = [
         "Test with missing required arguments",
         dict(
             args=[],
-            kwargs=dict(),
+            kwargs={},
             exp_offset=None,
         ),
         TypeError, None, True
@@ -936,7 +936,7 @@ TESTCASES_MINUTESFROMUTC_INIT = [
         "Test with minimal number of positional arguments",
         dict(
             args=[30],
-            kwargs=dict(),
+            kwargs={},
             exp_offset=30,
         ),
         None, None, True
@@ -956,7 +956,7 @@ TESTCASES_MINUTESFROMUTC_INIT = [
         "Test with too many positional arguments",
         dict(
             args=[30, 0],
-            kwargs=dict(),
+            kwargs={},
             exp_offset=None,
         ),
         TypeError, None, True

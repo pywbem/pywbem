@@ -1484,7 +1484,7 @@ TESTCASES_CIMINSTANCENAME_SETATTR = [
             item='keybindings',
             new_value=None,
             exp_attrs=dict(
-                keybindings=dict(),
+                keybindings={},
             ),
         ),
         None, None, True
@@ -2229,7 +2229,7 @@ TESTCASES_CIMINSTANCENAME_REPR = [
     (
         CIMInstanceName(
             classname='CIM_Foo',
-            keybindings=dict())
+            keybindings={})
     ),
     # (
     #    CIMInstanceName(
@@ -2330,7 +2330,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
         "Classname only, with implied default args",
         dict(
             obj=CIMInstanceName('CIM_Foo'),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
             )
@@ -2386,7 +2386,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 'CIM_Foo',
                 [CIMProperty('Cheepy', 'Birds', type='string')]
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2404,7 +2404,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 'CIM_Foo',
                 [CIMProperty('Cheepy', 'Birds', type='char16')]
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2422,7 +2422,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 'CIM_Foo',
                 [CIMProperty('Cheepy', True, type='boolean')]
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2440,7 +2440,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 'CIM_Foo',
                 [CIMProperty('Cheepy', 42, type='uint8')]
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2458,7 +2458,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 'CIM_Foo',
                 [CIMProperty('Cheepy', 42, type='uint16')]
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2476,7 +2476,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 'CIM_Foo',
                 [CIMProperty('Cheepy', 42, type='uint32')]
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2494,7 +2494,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 'CIM_Foo',
                 [CIMProperty('Cheepy', 42, type='uint64')]
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2512,7 +2512,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 'CIM_Foo',
                 [CIMProperty('Cheepy', 42, type='sint8')]
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2530,7 +2530,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 'CIM_Foo',
                 [CIMProperty('Cheepy', 42, type='sint16')]
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2548,7 +2548,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 'CIM_Foo',
                 [CIMProperty('Cheepy', 42, type='sint32')]
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2566,7 +2566,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 'CIM_Foo',
                 [CIMProperty('Cheepy', 42, type='sint64')]
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2584,7 +2584,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 'CIM_Foo',
                 [CIMProperty('Cheepy', 42.1, type='real32')]
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2602,7 +2602,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 'CIM_Foo',
                 [CIMProperty('Cheepy', 42.1, type='real64')]
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2622,7 +2622,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                              CIMDateTime('19980125133015.123456-300'),
                              type='datetime')]
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2642,7 +2642,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 [CIMProperty('Cheepy', CIMInstanceName('CIM_Ref'),
                              type='reference')]
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2659,7 +2659,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
         "Classname with one keybinding with value of Char16 with unicode value",
         dict(
             obj=CIMInstanceName('CIM_Foo', {'Cheepy': Char16(u'Birds')}),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2674,7 +2674,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
         "Classname with one keybinding with value of Char16 with byte value",
         dict(
             obj=CIMInstanceName('CIM_Foo', {'Cheepy': Char16(b'Birds')}),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2689,7 +2689,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
         "Classname with one keybinding with value of unicode string type",
         dict(
             obj=CIMInstanceName('CIM_Foo', {'Cheepy': u'Birds'}),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2704,7 +2704,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
         "Classname with one keybinding with value of byte string type",
         dict(
             obj=CIMInstanceName('CIM_Foo', {'Cheepy': b'Birds'}),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2719,7 +2719,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
         "Classname with one keybinding with value of boolean True",
         dict(
             obj=CIMInstanceName('CIM_Foo', {'Cheepy': True}),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2734,7 +2734,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
         "Classname with one keybinding with value of boolean False",
         dict(
             obj=CIMInstanceName('CIM_Foo', {'Cheepy': False}),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2749,7 +2749,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
         "Classname with one keybinding with value of int",
         dict(
             obj=CIMInstanceName('CIM_Foo', {'Cheepy': 42}),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2764,7 +2764,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
         "Classname with one keybinding with value of Uint8",
         dict(
             obj=CIMInstanceName('CIM_Foo', {'Cheepy': Uint8(42)}),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2779,7 +2779,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
         "Classname with one keybinding with value of Uint16",
         dict(
             obj=CIMInstanceName('CIM_Foo', {'Cheepy': Uint16(42)}),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2794,7 +2794,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
         "Classname with one keybinding with value of Uint32",
         dict(
             obj=CIMInstanceName('CIM_Foo', {'Cheepy': Uint32(42)}),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2809,7 +2809,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
         "Classname with one keybinding with value of Uint64",
         dict(
             obj=CIMInstanceName('CIM_Foo', {'Cheepy': Uint64(42)}),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2824,7 +2824,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
         "Classname with one keybinding with value of Sint8",
         dict(
             obj=CIMInstanceName('CIM_Foo', {'Cheepy': Sint8(42)}),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2839,7 +2839,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
         "Classname with one keybinding with value of Sint16",
         dict(
             obj=CIMInstanceName('CIM_Foo', {'Cheepy': Sint16(42)}),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2854,7 +2854,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
         "Classname with one keybinding with value of Sint32",
         dict(
             obj=CIMInstanceName('CIM_Foo', {'Cheepy': Sint32(42)}),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2869,7 +2869,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
         "Classname with one keybinding with value of Sint64",
         dict(
             obj=CIMInstanceName('CIM_Foo', {'Cheepy': Sint64(42)}),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2884,7 +2884,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
         "Classname with one keybinding with value of float",
         dict(
             obj=CIMInstanceName('CIM_Foo', {'Cheepy': 42.1}),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2899,7 +2899,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
         "Classname with one keybinding with value of Real32",
         dict(
             obj=CIMInstanceName('CIM_Foo', {'Cheepy': Real32(42.1)}),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2914,7 +2914,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
         "Classname with one keybinding with value of Real64",
         dict(
             obj=CIMInstanceName('CIM_Foo', {'Cheepy': Real64(42.1)}),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2932,7 +2932,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 'CIM_Foo',
                 {'Cheepy': CIMDateTime('19980125133015.123456-300')}
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2952,7 +2952,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 'CIM_Foo',
                 {'Cheepy': CIMInstanceName('CIM_Ref')}
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -2973,7 +2973,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 'CIM_Foo',
                 {'Cheepy': CIMInstanceName('CIM_Ref', namespace='root/cimv2')}
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -3001,7 +3001,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 {'Cheepy': CIMInstanceName('CIM_Ref', namespace='root/cimv2',
                                            host='woot')}
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -3027,7 +3027,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
         "Classname with one keybinding, with implied default args",
         dict(
             obj=CIMInstanceName('CIM_Foo', {'Cheepy': 'Birds'}),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Cheepy">',
@@ -3104,7 +3104,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                     ('Ref', CIMInstanceName('CIM_Bar')),
                 ]),
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
                 '<KEYBINDING NAME="Name">',
@@ -3244,7 +3244,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 'CIM_Foo',
                 namespace='root/cimv2',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<LOCALINSTANCEPATH>',
                 '<LOCALNAMESPACEPATH>',
@@ -3328,7 +3328,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
                 namespace='root/cimv2',
                 host='woot.com',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCEPATH>',
                 '<NAMESPACEPATH>',
@@ -3417,7 +3417,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
         "Keybinding value with invalid datetime type",
         dict(
             obj=CIMINSTANCENAME_INV_KEYBINDINGS_1,
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=None
         ),
         TypeError, None, True
@@ -3426,7 +3426,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
         "Keybinding value with invalid CIMParameter type",
         dict(
             obj=CIMINSTANCENAME_INV_KEYBINDINGS_2,
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=None
         ),
         TypeError, None, True
@@ -3435,7 +3435,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
         "Keybinding value with invalid CIMProperty type",
         dict(
             obj=CIMINSTANCENAME_INV_KEYBINDINGS_3,
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=None
         ),
         TypeError, None, True
@@ -6779,7 +6779,7 @@ TESTCASES_CIMINSTANCE_SETATTR = [
             item='properties',
             new_value=None,
             exp_attrs=dict(
-                properties=dict(),
+                properties={},
             ),
         ),
         None, None, True
@@ -6923,7 +6923,7 @@ TESTCASES_CIMINSTANCE_SETATTR = [
             item='qualifiers',
             new_value=None,
             exp_attrs=dict(
-                qualifiers=dict(),
+                qualifiers={},
             ),
         ),
         None, None, True
@@ -7140,7 +7140,7 @@ TESTCASES_CIMINSTANCE_UPDATE_PROPERTY = [
         dict(
             obj_kwargs=dict(
                 classname='C1',
-                properties=dict(),
+                properties={},
                 path=CIMInstanceName(
                     'C1',
                     keybindings=dict(K1='V1')
@@ -7213,7 +7213,7 @@ TESTCASES_CIMINSTANCE_UPDATE_EXISTING = [
                 ),
             ),
             func_args=[],
-            func_kwargs=dict(),
+            func_kwargs={},
             exp_attrs=dict(
                 properties=dict(
                     P1=CIMProperty('P1', 'V1'),
@@ -7234,7 +7234,7 @@ TESTCASES_CIMINSTANCE_UPDATE_EXISTING = [
             func_args=[
                 [('P1', 'V1new')],
             ],
-            func_kwargs=dict(),
+            func_kwargs={},
             exp_attrs=dict(
                 properties=dict(
                     P1=CIMProperty('P1', 'V1new'),
@@ -7255,7 +7255,7 @@ TESTCASES_CIMINSTANCE_UPDATE_EXISTING = [
             func_args=[
                 CIMInstanceName('C2', keybindings=dict(P1='V1new')),
             ],
-            func_kwargs=dict(),
+            func_kwargs={},
             exp_attrs=dict(
                 properties=dict(
                     P1=CIMProperty('P1', 'V1new'),
@@ -7297,7 +7297,7 @@ TESTCASES_CIMINSTANCE_UPDATE_EXISTING = [
             func_args=[
                 [('P2', 'V2new')],
             ],
-            func_kwargs=dict(),
+            func_kwargs={},
             exp_attrs=dict(
                 properties=dict(
                     P1=CIMProperty('P1', 'V1'),  # P2 ignored
@@ -7318,7 +7318,7 @@ TESTCASES_CIMINSTANCE_UPDATE_EXISTING = [
             func_args=[
                 CIMInstanceName('C2', keybindings=dict(P2='V2new')),
             ],
-            func_kwargs=dict(),
+            func_kwargs={},
             exp_attrs=dict(
                 properties=dict(
                     P1=CIMProperty('P1', 'V1'),  # P2 ignored
@@ -7361,7 +7361,7 @@ TESTCASES_CIMINSTANCE_UPDATE_EXISTING = [
             func_args=[
                 [('P1', 'V1new'), ('P2', 'V2new')],
             ],
-            func_kwargs=dict(),
+            func_kwargs={},
             exp_attrs=dict(
                 properties=dict(
                     P1=CIMProperty('P1', 'V1new'),  # P2 ignored
@@ -7384,7 +7384,7 @@ TESTCASES_CIMINSTANCE_UPDATE_EXISTING = [
                 [('P1', 'V1new')],
                 [('P2', 'V2new')],
             ],
-            func_kwargs=dict(),
+            func_kwargs={},
             exp_attrs=dict(
                 properties=dict(
                     P1=CIMProperty('P1', 'V1new'),  # P2 ignored
@@ -7406,7 +7406,7 @@ TESTCASES_CIMINSTANCE_UPDATE_EXISTING = [
             func_args=[
                 CIMInstanceName('C2', keybindings=dict(P1='V1new', P2='V2new'))
             ],
-            func_kwargs=dict(),
+            func_kwargs={},
             exp_attrs=dict(
                 properties=dict(
                     P1=CIMProperty('P1', 'V1new'),  # P2 ignored
@@ -8111,7 +8111,7 @@ TESTCASES_CIMINSTANCE_TOCIMXML = [
         "No path, implied default args",
         dict(
             obj=CIMInstance('CIM_Foo'),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCE CLASSNAME="CIM_Foo"/>',
             )
@@ -8151,7 +8151,7 @@ TESTCASES_CIMINSTANCE_TOCIMXML = [
                 'CIM_Foo',
                 path=CIMINSTANCENAME_CLASSNAME1,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<VALUE.NAMEDINSTANCE>',
                 '<INSTANCENAME CLASSNAME="CIM_Foo"/>',
@@ -8203,7 +8203,7 @@ TESTCASES_CIMINSTANCE_TOCIMXML = [
                 'CIM_Foo',
                 path=CIMINSTANCENAME_NAMESPACE1,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<VALUE.OBJECTWITHLOCALPATH>',
                 '<LOCALINSTANCEPATH>',
@@ -8265,7 +8265,7 @@ TESTCASES_CIMINSTANCE_TOCIMXML = [
                 'CIM_Foo',
                 path=CIMINSTANCENAME_HOST1,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<VALUE.INSTANCEWITHPATH>',
                 '<INSTANCEPATH>',
@@ -8338,7 +8338,7 @@ TESTCASES_CIMINSTANCE_TOCIMXML = [
                     CIMProperty('P2', 42, type='uint16'),
                 ],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCE CLASSNAME="CIM_Foo">',
                 '<PROPERTY NAME="P1" TYPE="string">',
@@ -8364,7 +8364,7 @@ TESTCASES_CIMINSTANCE_TOCIMXML = [
                     CIMQualifier('Q1', True),
                 ],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCE CLASSNAME="CIM_Foo">',
                 '<QUALIFIER NAME="Q2" TYPE="string">',
@@ -8394,7 +8394,7 @@ TESTCASES_CIMINSTANCE_TOCIMXML = [
                     CIMProperty('P1', 'bla'),
                 ],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<INSTANCE CLASSNAME="CIM_Foo">',
                 '<QUALIFIER NAME="Q2" TYPE="string">',
@@ -8420,7 +8420,7 @@ TESTCASES_CIMINSTANCE_TOCIMXML = [
         "With invalid property object (type string)",
         dict(
             obj=CIMINSTANCE_INV_PROPERTY_1,
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=None
         ),
         # raises TypeError since 0.12
@@ -8430,7 +8430,7 @@ TESTCASES_CIMINSTANCE_TOCIMXML = [
         "With invalid property object (type Uint16)",
         dict(
             obj=CIMINSTANCE_INV_PROPERTY_2,
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=None
         ),
         # raises TypeError since 0.12
@@ -8556,7 +8556,7 @@ TESTCASES_CIMINSTANCE_TOMOF = [
         "Instance without properties",
         dict(
             obj=CIMInstance(classname='C1'),
-            kwargs=dict(),
+            kwargs={},
             exp_mof="""\
 instance of C1 {
 };
@@ -8573,7 +8573,7 @@ instance of C1 {
                     CIMProperty('p1', value=None, type='string'),
                 ],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof="""\
 instance of C1 {
    p1 = NULL;
@@ -8591,7 +8591,7 @@ instance of C1 {
                     CIMProperty('p1', value=None, type='string'),
                 ],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof="""\
 instance of C1 {
    p1 = NULL;
@@ -8609,7 +8609,7 @@ instance of C1 {
                     CIMProperty('p1', value='abc'),
                 ],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof="""\
 instance of C1 {
    p1 = "abc";
@@ -8627,7 +8627,7 @@ instance of C1 {
                     CIMProperty('p1', value=Uint8(7)),
                 ],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof="""\
 instance of C1 {
    p1 = 7;
@@ -8645,7 +8645,7 @@ instance of C1 {
                     CIMProperty('p1', value=[Sint8(-1), Sint8(5)]),
                 ],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof="""\
 instance of C1 {
    p1 = { -1, 5 };
@@ -8672,7 +8672,7 @@ instance of C1 {
                     ),
                 ],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof="""\
 instance of C1 {
    p1 = "instance of EC {\\n   e1 = \\"abc\\";\\n};\\n";
@@ -8702,7 +8702,7 @@ instance of C1 {
                     ),
                 ],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof="""\
 instance of C1 {
    p1 =
@@ -8732,7 +8732,7 @@ instance of C1 {
                     ),
                 ],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof="""\
 instance of C1 {
    p1 = "instance of EC {\\n   e1 = \\"abc\\";\\n};\\n";
@@ -8763,7 +8763,7 @@ instance of C1 {
                     ),
                 ],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof="""\
 instance of C1 {
    p1 = "class EC {\\n\\n   uint32 e1;\\n\\n};\\n";
@@ -8790,7 +8790,7 @@ instance of C1 {
                     ),
                 ],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof="""\
 instance of C1 {
    p1 = "/:RC.k1=\\"abc\\"";
@@ -14131,7 +14131,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             item='qualifiers',
             new_value=None,
             exp_attrs=dict(
-                qualifiers=dict(),
+                qualifiers={},
             ),
         ),
         None, None, True
@@ -15005,7 +15005,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
         "Name with ASCII characters, as byte string",
         dict(
             obj=CIMProperty(b'Foo', value=None, type='string'),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="string"/>',
             )
@@ -15016,7 +15016,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
         "Name with ASCII characters, as unicode string",
         dict(
             obj=CIMProperty(u'Foo', value=None, type='string'),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="string"/>',
             )
@@ -15027,7 +15027,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
         "Name with non-ASCII UCS-2 characters, as byte string",
         dict(
             obj=CIMProperty(b'Foo\xC3\xA9', value=None, type='string'),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<PROPERTY NAME="Foo\u00E9" TYPE="string"/>',
             )
@@ -15038,7 +15038,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
         "Name with non-ASCII UCS-2 characters, as unicode string",
         dict(
             obj=CIMProperty(u'Foo\u00E9', value=None, type='string'),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<PROPERTY NAME="Foo\u00E9" TYPE="string"/>',
             )
@@ -15049,7 +15049,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
         "Name with non-UCS-2 characters, as byte string",
         dict(
             obj=CIMProperty(b'Foo\xF0\x90\x85\x82', value=None, type='string'),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<PROPERTY NAME="Foo\U00010142" TYPE="string"/>',
             )
@@ -15060,7 +15060,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
         "Name with non-UCS-2 characters, as unicode string",
         dict(
             obj=CIMProperty(u'Foo\U00010142', value=None, type='string'),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<PROPERTY NAME="Foo\U00010142" TYPE="string"/>',
             )
@@ -15079,7 +15079,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                     CIMQualifier('Q1', True),
                 ],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="string">',
                 '<QUALIFIER NAME="Q2" TYPE="string">',
@@ -15102,7 +15102,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='boolean', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="boolean"/>',
             )
@@ -15115,7 +15115,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='boolean', value=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="boolean">',
                 '<VALUE>TRUE</VALUE>',
@@ -15130,7 +15130,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='boolean', value=False,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="boolean">',
                 '<VALUE>FALSE</VALUE>',
@@ -15147,7 +15147,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='string', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="string"/>',
             )
@@ -15161,7 +15161,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='string', value='foo',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="string">',
                 '<VALUE>foo</VALUE>',
@@ -15177,7 +15177,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='string', value=u'foo\u00E9',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<PROPERTY NAME="Foo" TYPE="string">',
                 u'<VALUE>foo\u00E9</VALUE>',
@@ -15193,7 +15193,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='string', value=u'foo\U00010142',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<PROPERTY NAME="Foo" TYPE="string">',
                 u'<VALUE>foo\U00010142</VALUE>',
@@ -15211,7 +15211,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='string',
                 value=CIMInstance('CIM_Emb'), embedded_object='instance',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY EmbeddedObject="instance"',
                 ' NAME="Foo" TYPE="string">',
@@ -15230,7 +15230,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='string',
                 value=CIMInstance('CIM_Emb'), embedded_object='object',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY EmbeddedObject="object"',
                 ' NAME="Foo" TYPE="string">',
@@ -15249,7 +15249,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='string',
                 value=CIMClass('CIM_Emb'), embedded_object='object',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY EmbeddedObject="object"',
                 ' NAME="Foo" TYPE="string">',
@@ -15269,7 +15269,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='char16', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="char16"/>',
             )
@@ -15283,7 +15283,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='char16', value='f',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="char16">',
                 '<VALUE>f</VALUE>',
@@ -15299,7 +15299,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='char16', value=u'\u00E9',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<PROPERTY NAME="Foo" TYPE="char16">',
                 u'<VALUE>\u00E9</VALUE>',
@@ -15315,7 +15315,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='char16', value=u'\U00010142',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<PROPERTY NAME="Foo" TYPE="char16">',
                 u'<VALUE>\U00010142</VALUE>',
@@ -15332,7 +15332,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='uint8', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="uint8"/>',
             )
@@ -15345,7 +15345,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='uint8', value=42,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="uint8">',
                 '<VALUE>42</VALUE>',
@@ -15362,7 +15362,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='uint16', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="uint16"/>',
             )
@@ -15375,7 +15375,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='uint16', value=1234,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="uint16">',
                 '<VALUE>1234</VALUE>',
@@ -15392,7 +15392,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='uint32', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="uint32"/>',
             )
@@ -15405,7 +15405,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='uint32', value=12345678,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="uint32">',
                 '<VALUE>12345678</VALUE>',
@@ -15422,7 +15422,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='uint64', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="uint64"/>',
             )
@@ -15435,7 +15435,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='uint64', value=123456789012,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="uint64">',
                 '<VALUE>123456789012</VALUE>',
@@ -15452,7 +15452,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='sint8', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="sint8"/>',
             )
@@ -15465,7 +15465,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='sint8', value=-42,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="sint8">',
                 '<VALUE>-42</VALUE>',
@@ -15482,7 +15482,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='sint16', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="sint16"/>',
             )
@@ -15495,7 +15495,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='sint16', value=-1234,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="sint16">',
                 '<VALUE>-1234</VALUE>',
@@ -15512,7 +15512,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='sint32', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="sint32"/>',
             )
@@ -15525,7 +15525,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='sint32', value=-12345678,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="sint32">',
                 '<VALUE>-12345678</VALUE>',
@@ -15542,7 +15542,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='sint64', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="sint64"/>',
             )
@@ -15555,7 +15555,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='sint64', value=-123456789012,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="sint64">',
                 '<VALUE>-123456789012</VALUE>',
@@ -15572,7 +15572,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='real32', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="real32"/>',
             )
@@ -15585,7 +15585,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='real32', value=0.42,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="real32">',
                 '<VALUE>0.42</VALUE>',
@@ -15601,7 +15601,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='real32', value=1.2345678901,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="real32">',
                 '<VALUE>1.2345678901</VALUE>',
@@ -15616,7 +15616,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='real32', value=42.0,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="real32">',
                 '<VALUE>42.0</VALUE>',
@@ -15631,7 +15631,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='real32', value=-42.0E-3,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="real32">',
                 '<VALUE>-0.042</VALUE>',
@@ -15646,7 +15646,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='real32', value=-42.0E+3,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="real32">',
                 '<VALUE>-42000.0</VALUE>',
@@ -15661,7 +15661,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='real32', value=-42.0E-30,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="real32">',
                 '<VALUE>-4.2E-29</VALUE>',
@@ -15676,7 +15676,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='real32', value=-42.0E+30,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="real32">',
                 '<VALUE>-4.2E+31</VALUE>',
@@ -15691,7 +15691,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='real32', value=float('inf'),
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="real32">',
                 '<VALUE>INF</VALUE>',  # must be upper case
@@ -15706,7 +15706,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='real32', value=float('-inf'),
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="real32">',
                 '<VALUE>-INF</VALUE>',  # must be upper case
@@ -15721,7 +15721,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='real32', value=float('nan'),
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="real32">',
                 '<VALUE>NaN</VALUE>',  # must be upper case
@@ -15738,7 +15738,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='real64', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="real64"/>',
             )
@@ -15751,7 +15751,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='real64', value=0.42,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="real64">',
                 '<VALUE>0.42</VALUE>',
@@ -15767,7 +15767,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='real64', value=1.2345678901234567,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="real64">',
                 '<VALUE>1.2345678901234567</VALUE>',
@@ -15782,7 +15782,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='real64', value=42.0,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="real64">',
                 '<VALUE>42.0</VALUE>',
@@ -15797,7 +15797,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='real64', value=-42.0E-3,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="real64">',
                 '<VALUE>-0.042</VALUE>',
@@ -15812,7 +15812,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='real64', value=-42.0E+3,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="real64">',
                 '<VALUE>-42000.0</VALUE>',
@@ -15827,7 +15827,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='real64', value=-42.0E-30,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="real64">',
                 '<VALUE>-4.2E-29</VALUE>',
@@ -15842,7 +15842,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='real64', value=-42.0E+30,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="real64">',
                 '<VALUE>-4.2E+31</VALUE>',
@@ -15857,7 +15857,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='real64', value=float('inf'),
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="real64">',
                 '<VALUE>INF</VALUE>',  # must be upper case
@@ -15872,7 +15872,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='real64', value=float('-inf'),
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="real64">',
                 '<VALUE>-INF</VALUE>',  # must be upper case
@@ -15887,7 +15887,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='real64', value=float('nan'),
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="real64">',
                 '<VALUE>NaN</VALUE>',  # must be upper case
@@ -15904,7 +15904,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='datetime', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="datetime"/>',
             )
@@ -15918,7 +15918,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='datetime',
                 value=datetime(2014, 9, 22, 10, 49, 20, 524789),
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="datetime">',
                 '<VALUE>20140922104920.524789+000</VALUE>',
@@ -15934,7 +15934,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='datetime',
                 value=timedelta(10, 49, 20),
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="datetime">',
                 '<VALUE>00000010000049.000020:000</VALUE>',
@@ -15951,7 +15951,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='reference', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.REFERENCE NAME="Foo"/>',
             )
@@ -15965,7 +15965,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='reference',
                 value=CIMInstanceName('CIM_Foo'),
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.REFERENCE NAME="Foo">',
                 '<VALUE.REFERENCE>',
@@ -15985,7 +15985,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='boolean', value=None,
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="boolean"/>',
             )
@@ -15999,7 +15999,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='boolean', value=[],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="boolean">',
                 '<VALUE.ARRAY/>',
@@ -16015,7 +16015,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='boolean', value=[None],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="boolean">',
                 '<VALUE.ARRAY>',
@@ -16033,7 +16033,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='boolean', value=[True],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="boolean">',
                 '<VALUE.ARRAY>',
@@ -16051,7 +16051,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='boolean', value=[False],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="boolean">',
                 '<VALUE.ARRAY>',
@@ -16071,7 +16071,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='string', value=None,
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="string"/>',
             )
@@ -16085,7 +16085,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='string', value=[],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="string">',
                 '<VALUE.ARRAY/>',
@@ -16101,7 +16101,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='string', value=[None],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="string">',
                 '<VALUE.ARRAY>',
@@ -16120,7 +16120,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='string', value=['foo'],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="string">',
                 '<VALUE.ARRAY>',
@@ -16139,7 +16139,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='string', value=[u'foo\u00E9'],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<PROPERTY.ARRAY NAME="Foo" TYPE="string">',
                 u'<VALUE.ARRAY>',
@@ -16158,7 +16158,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='string', value=[u'foo\U00010142'],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<PROPERTY.ARRAY NAME="Foo" TYPE="string">',
                 u'<VALUE.ARRAY>',
@@ -16179,7 +16179,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='string', is_array=True,
                 value=[CIMInstance('CIM_Emb')], embedded_object='instance',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY EmbeddedObject="instance"',
                 ' NAME="Foo" TYPE="string">',
@@ -16201,7 +16201,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='string', is_array=True,
                 value=[CIMInstance('CIM_Emb')], embedded_object='object',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY EmbeddedObject="object"',
                 ' NAME="Foo" TYPE="string">',
@@ -16223,7 +16223,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='string', is_array=True,
                 value=[CIMClass('CIM_Emb')], embedded_object='object',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY EmbeddedObject="object"',
                 ' NAME="Foo" TYPE="string">',
@@ -16246,7 +16246,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='char16', value=None,
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="char16"/>',
             )
@@ -16260,7 +16260,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='char16', value=[],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="char16">',
                 '<VALUE.ARRAY/>',
@@ -16276,7 +16276,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='char16', value=[None],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="char16">',
                 '<VALUE.ARRAY>',
@@ -16295,7 +16295,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='char16', value=['f'],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="char16">',
                 '<VALUE.ARRAY>',
@@ -16314,7 +16314,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='char16', value=[u'\u00E9'],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<PROPERTY.ARRAY NAME="Foo" TYPE="char16">',
                 u'<VALUE.ARRAY>',
@@ -16333,7 +16333,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='char16', value=[u'\U00010142'],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<PROPERTY.ARRAY NAME="Foo" TYPE="char16">',
                 u'<VALUE.ARRAY>',
@@ -16353,7 +16353,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='uint8', value=None,
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="uint8"/>',
             )
@@ -16367,7 +16367,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='uint8', value=[],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="uint8">',
                 '<VALUE.ARRAY/>',
@@ -16383,7 +16383,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='uint8', value=[None],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="uint8">',
                 '<VALUE.ARRAY>',
@@ -16401,7 +16401,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='uint8', value=[42],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="uint8">',
                 '<VALUE.ARRAY>',
@@ -16421,7 +16421,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='uint16', value=None,
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="uint16"/>',
             )
@@ -16435,7 +16435,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='uint16', value=[],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="uint16">',
                 '<VALUE.ARRAY/>',
@@ -16451,7 +16451,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='uint16', value=[None],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="uint16">',
                 '<VALUE.ARRAY>',
@@ -16469,7 +16469,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='uint16', value=[1234],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="uint16">',
                 '<VALUE.ARRAY>',
@@ -16489,7 +16489,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='uint32', value=None,
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="uint32"/>',
             )
@@ -16503,7 +16503,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='uint32', value=[],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="uint32">',
                 '<VALUE.ARRAY/>',
@@ -16519,7 +16519,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='uint32', value=[None],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="uint32">',
                 '<VALUE.ARRAY>',
@@ -16537,7 +16537,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='uint32', value=[12345678],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="uint32">',
                 '<VALUE.ARRAY>',
@@ -16557,7 +16557,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='uint64', value=None,
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="uint64"/>',
             )
@@ -16571,7 +16571,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='uint64', value=[],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="uint64">',
                 '<VALUE.ARRAY/>',
@@ -16587,7 +16587,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='uint64', value=[None],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="uint64">',
                 '<VALUE.ARRAY>',
@@ -16605,7 +16605,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='uint64', value=[123456789012],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="uint64">',
                 '<VALUE.ARRAY>',
@@ -16625,7 +16625,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='sint8', value=None,
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="sint8"/>',
             )
@@ -16639,7 +16639,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='sint8', value=[],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="sint8">',
                 '<VALUE.ARRAY/>',
@@ -16655,7 +16655,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='sint8', value=[None],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="sint8">',
                 '<VALUE.ARRAY>',
@@ -16673,7 +16673,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='sint8', value=[-42],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="sint8">',
                 '<VALUE.ARRAY>',
@@ -16693,7 +16693,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='sint16', value=None,
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="sint16"/>',
             )
@@ -16707,7 +16707,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='sint16', value=[],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="sint16">',
                 '<VALUE.ARRAY/>',
@@ -16723,7 +16723,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='sint16', value=[None],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="sint16">',
                 '<VALUE.ARRAY>',
@@ -16741,7 +16741,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='sint16', value=[-1234],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="sint16">',
                 '<VALUE.ARRAY>',
@@ -16761,7 +16761,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='sint32', value=None,
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="sint32"/>',
             )
@@ -16775,7 +16775,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='sint32', value=[],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="sint32">',
                 '<VALUE.ARRAY/>',
@@ -16791,7 +16791,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='sint32', value=[None],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="sint32">',
                 '<VALUE.ARRAY>',
@@ -16809,7 +16809,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='sint32', value=[-12345678],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="sint32">',
                 '<VALUE.ARRAY>',
@@ -16829,7 +16829,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='sint64', value=None,
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="sint64"/>',
             )
@@ -16843,7 +16843,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='sint64', value=[],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="sint64">',
                 '<VALUE.ARRAY/>',
@@ -16859,7 +16859,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='sint64', value=[None],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="sint64">',
                 '<VALUE.ARRAY>',
@@ -16877,7 +16877,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='sint64', value=[-123456789012],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="sint64">',
                 '<VALUE.ARRAY>',
@@ -16897,7 +16897,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='real32', value=None,
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="real32"/>',
             )
@@ -16911,7 +16911,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='real32', value=[],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="real32">',
                 '<VALUE.ARRAY/>',
@@ -16927,7 +16927,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='real32', value=[None],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="real32">',
                 '<VALUE.ARRAY>',
@@ -16945,7 +16945,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='real32', value=[0.42],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="real32">',
                 '<VALUE.ARRAY>',
@@ -16964,7 +16964,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='real32', value=[1.2345678901],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="real32">',
                 '<VALUE.ARRAY>',
@@ -16983,7 +16983,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='real32', value=[42.0],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="real32">',
                 '<VALUE.ARRAY>',
@@ -17002,7 +17002,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='real32', value=[-42.0E-3],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="real32">',
                 '<VALUE.ARRAY>',
@@ -17021,7 +17021,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='real32', value=[-42.0E+3],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="real32">',
                 '<VALUE.ARRAY>',
@@ -17040,7 +17040,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='real32', value=[-42.0E-30],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="real32">',
                 '<VALUE.ARRAY>',
@@ -17059,7 +17059,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='real32', value=[-42.0E+30],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="real32">',
                 '<VALUE.ARRAY>',
@@ -17078,7 +17078,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='real32', value=[float('inf')],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="real32">',
                 '<VALUE.ARRAY>',
@@ -17097,7 +17097,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='real32', value=[float('-inf')],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="real32">',
                 '<VALUE.ARRAY>',
@@ -17116,7 +17116,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='real32', value=[float('nan')],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="real32">',
                 '<VALUE.ARRAY>',
@@ -17136,7 +17136,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='real64', value=None,
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="real64"/>',
             )
@@ -17150,7 +17150,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='real64', value=[],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="real64">',
                 '<VALUE.ARRAY/>',
@@ -17166,7 +17166,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='real64', value=[None],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="real64">',
                 '<VALUE.ARRAY>',
@@ -17184,7 +17184,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='real64', value=[0.42],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="real64">',
                 '<VALUE.ARRAY>',
@@ -17203,7 +17203,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='real64', value=[1.2345678901234567],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="real64">',
                 '<VALUE.ARRAY>',
@@ -17222,7 +17222,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='real64', value=[42.0],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="real64">',
                 '<VALUE.ARRAY>',
@@ -17241,7 +17241,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='real64', value=[-42.0E-3],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="real64">',
                 '<VALUE.ARRAY>',
@@ -17260,7 +17260,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='real64', value=[-42.0E+3],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="real64">',
                 '<VALUE.ARRAY>',
@@ -17279,7 +17279,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='real64', value=[-42.0E-30],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="real64">',
                 '<VALUE.ARRAY>',
@@ -17298,7 +17298,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='real64', value=[-42.0E+30],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="real64">',
                 '<VALUE.ARRAY>',
@@ -17317,7 +17317,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='real64', value=[float('inf')],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="real64">',
                 '<VALUE.ARRAY>',
@@ -17336,7 +17336,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='real64', value=[float('-inf')],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="real64">',
                 '<VALUE.ARRAY>',
@@ -17355,7 +17355,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='real64', value=[float('nan')],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="real64">',
                 '<VALUE.ARRAY>',
@@ -17375,7 +17375,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='datetime', value=None,
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="datetime"/>',
             )
@@ -17389,7 +17389,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='datetime', value=[],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="datetime">',
                 '<VALUE.ARRAY/>',
@@ -17405,7 +17405,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 'Foo', type='datetime', value=[None],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="datetime">',
                 '<VALUE.ARRAY>',
@@ -17424,7 +17424,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 value=[datetime(2014, 9, 22, 10, 49, 20, 524789)],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="datetime">',
                 '<VALUE.ARRAY>',
@@ -17443,7 +17443,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
                 value=[timedelta(10, 49, 20)],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY.ARRAY NAME="Foo" TYPE="datetime">',
                 '<VALUE.ARRAY>',
@@ -17464,7 +17464,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='uint32', value=None, class_origin='CIM_Origin',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY CLASSORIGIN="CIM_Origin" NAME="Foo" TYPE="uint32"/>',
             )
@@ -17477,7 +17477,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='uint32', value=None, propagated=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" PROPAGATED="true" TYPE="uint32"/>',
             )
@@ -17490,7 +17490,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(
                 'Foo', type='uint32', value=None, propagated=False,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" PROPAGATED="false" TYPE="uint32"/>',
             )
@@ -18096,7 +18096,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
         dict(
             obj=CIMProperty(
                 name='P1',
-                value=list(),
+                value=[],
                 type='uint32',
                 is_array=True,
             ),
@@ -20290,7 +20290,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
         "Name with ASCII characters, as byte string",
         dict(
             obj=CIMQualifier(b'Foo', value=None, type='string'),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="string"/>',
             )
@@ -20301,7 +20301,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
         "Name with ASCII characters, as unicode string",
         dict(
             obj=CIMQualifier(u'Foo', value=None, type='string'),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="string"/>',
             )
@@ -20312,7 +20312,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
         "Name with non-ASCII UCS-2 characters, as byte string",
         dict(
             obj=CIMQualifier(b'Foo\xC3\xA9', value=None, type='string'),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<QUALIFIER NAME="Foo\u00E9" TYPE="string"/>',
             )
@@ -20323,7 +20323,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
         "Name with non-ASCII UCS-2 characters, as unicode string",
         dict(
             obj=CIMQualifier(u'Foo\u00E9', value=None, type='string'),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<QUALIFIER NAME="Foo\u00E9" TYPE="string"/>',
             )
@@ -20334,7 +20334,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
         "Name with non-UCS-2 characters, as byte string",
         dict(
             obj=CIMQualifier(b'Foo\xF0\x90\x85\x82', value=None, type='string'),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<QUALIFIER NAME="Foo\U00010142" TYPE="string"/>',
             )
@@ -20345,7 +20345,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
         "Name with non-UCS-2 characters, as unicode string",
         dict(
             obj=CIMQualifier(u'Foo\U00010142', value=None, type='string'),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<QUALIFIER NAME="Foo\U00010142" TYPE="string"/>',
             )
@@ -20361,7 +20361,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
                 'Foo', type='boolean', value=None,
                 propagated=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" PROPAGATED="true" TYPE="boolean"/>',
             )
@@ -20375,7 +20375,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
                 'Foo', type='boolean', value=None,
                 propagated=False,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" PROPAGATED="false" TYPE="boolean"/>',
             )
@@ -20391,7 +20391,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
                 'Foo', type='boolean', value=None,
                 overridable=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" OVERRIDABLE="true" TYPE="boolean"/>',
             )
@@ -20405,7 +20405,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
                 'Foo', type='boolean', value=None,
                 overridable=False,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" OVERRIDABLE="false" TYPE="boolean"/>',
             )
@@ -20421,7 +20421,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
                 'Foo', type='boolean', value=None,
                 tosubclass=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TOSUBCLASS="true" TYPE="boolean"/>',
             )
@@ -20435,7 +20435,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
                 'Foo', type='boolean', value=None,
                 tosubclass=False,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TOSUBCLASS="false" TYPE="boolean"/>',
             )
@@ -20451,7 +20451,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
                 'Foo', type='boolean', value=None,
                 toinstance=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TOINSTANCE="true" TYPE="boolean"/>',
             )
@@ -20465,7 +20465,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
                 'Foo', type='boolean', value=None,
                 toinstance=False,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TOINSTANCE="false" TYPE="boolean"/>',
             )
@@ -20481,7 +20481,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
                 'Foo', type='boolean', value=None,
                 translatable=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TRANSLATABLE="true" TYPE="boolean"/>',
             )
@@ -20495,7 +20495,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
                 'Foo', type='boolean', value=None,
                 translatable=False,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TRANSLATABLE="false" TYPE="boolean"/>',
             )
@@ -20510,7 +20510,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='boolean', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="boolean"/>',
             )
@@ -20523,7 +20523,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='boolean', value=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="boolean">',
                 '<VALUE>TRUE</VALUE>',
@@ -20538,7 +20538,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='boolean', value=False,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="boolean">',
                 '<VALUE>FALSE</VALUE>',
@@ -20555,7 +20555,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='string', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="string"/>',
             )
@@ -20569,7 +20569,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='string', value='foo',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="string">',
                 '<VALUE>foo</VALUE>',
@@ -20585,7 +20585,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='string', value=u'foo\u00E9',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<QUALIFIER NAME="Foo" TYPE="string">',
                 u'<VALUE>foo\u00E9</VALUE>',
@@ -20601,7 +20601,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='string', value=u'foo\U00010142',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<QUALIFIER NAME="Foo" TYPE="string">',
                 u'<VALUE>foo\U00010142</VALUE>',
@@ -20618,7 +20618,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='char16', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="char16"/>',
             )
@@ -20632,7 +20632,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='char16', value='f',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="char16">',
                 '<VALUE>f</VALUE>',
@@ -20648,7 +20648,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='char16', value=u'\u00E9',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<QUALIFIER NAME="Foo" TYPE="char16">',
                 u'<VALUE>\u00E9</VALUE>',
@@ -20664,7 +20664,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='char16', value=u'\U00010142',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<QUALIFIER NAME="Foo" TYPE="char16">',
                 u'<VALUE>\U00010142</VALUE>',
@@ -20681,7 +20681,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='uint8', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="uint8"/>',
             )
@@ -20694,7 +20694,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='uint8', value=42,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="uint8">',
                 '<VALUE>42</VALUE>',
@@ -20711,7 +20711,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='uint16', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="uint16"/>',
             )
@@ -20724,7 +20724,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='uint16', value=1234,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="uint16">',
                 '<VALUE>1234</VALUE>',
@@ -20741,7 +20741,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='uint32', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="uint32"/>',
             )
@@ -20754,7 +20754,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='uint32', value=12345678,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="uint32">',
                 '<VALUE>12345678</VALUE>',
@@ -20771,7 +20771,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='uint64', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="uint64"/>',
             )
@@ -20784,7 +20784,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='uint64', value=123456789012,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="uint64">',
                 '<VALUE>123456789012</VALUE>',
@@ -20801,7 +20801,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='sint8', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="sint8"/>',
             )
@@ -20814,7 +20814,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='sint8', value=-42,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="sint8">',
                 '<VALUE>-42</VALUE>',
@@ -20831,7 +20831,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='sint16', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="sint16"/>',
             )
@@ -20844,7 +20844,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='sint16', value=-1234,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="sint16">',
                 '<VALUE>-1234</VALUE>',
@@ -20861,7 +20861,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='sint32', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="sint32"/>',
             )
@@ -20874,7 +20874,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='sint32', value=-12345678,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="sint32">',
                 '<VALUE>-12345678</VALUE>',
@@ -20891,7 +20891,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='sint64', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="sint64"/>',
             )
@@ -20904,7 +20904,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='sint64', value=-123456789012,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="sint64">',
                 '<VALUE>-123456789012</VALUE>',
@@ -20921,7 +20921,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real32', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real32"/>',
             )
@@ -20934,7 +20934,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real32', value=0.42,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real32">',
                 '<VALUE>0.42</VALUE>',
@@ -20950,7 +20950,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real32', value=1.2345678901,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real32">',
                 '<VALUE>1.2345678901</VALUE>',
@@ -20965,7 +20965,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real32', value=42.0,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real32">',
                 '<VALUE>42.0</VALUE>',
@@ -20980,7 +20980,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real32', value=-42.0E-3,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real32">',
                 '<VALUE>-0.042</VALUE>',
@@ -20995,7 +20995,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real32', value=-42.0E+3,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real32">',
                 '<VALUE>-42000.0</VALUE>',
@@ -21010,7 +21010,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real32', value=-42.0E-30,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real32">',
                 '<VALUE>-4.2E-29</VALUE>',
@@ -21025,7 +21025,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real32', value=-42.0E+30,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real32">',
                 '<VALUE>-4.2E+31</VALUE>',
@@ -21040,7 +21040,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real32', value=float('inf'),
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real32">',
                 '<VALUE>INF</VALUE>',  # must be upper case
@@ -21055,7 +21055,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real32', value=float('-inf'),
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real32">',
                 '<VALUE>-INF</VALUE>',  # must be upper case
@@ -21070,7 +21070,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real32', value=float('nan'),
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real32">',
                 '<VALUE>NaN</VALUE>',  # must be upper case
@@ -21087,7 +21087,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real64', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real64"/>',
             )
@@ -21100,7 +21100,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real64', value=0.42,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real64">',
                 '<VALUE>0.42</VALUE>',
@@ -21116,7 +21116,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real64', value=1.2345678901234567,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real64">',
                 '<VALUE>1.2345678901234567</VALUE>',
@@ -21131,7 +21131,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real64', value=42.0,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real64">',
                 '<VALUE>42.0</VALUE>',
@@ -21146,7 +21146,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real64', value=-42.0E-3,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real64">',
                 '<VALUE>-0.042</VALUE>',
@@ -21161,7 +21161,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real64', value=-42.0E+3,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real64">',
                 '<VALUE>-42000.0</VALUE>',
@@ -21176,7 +21176,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real64', value=-42.0E-30,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real64">',
                 '<VALUE>-4.2E-29</VALUE>',
@@ -21191,7 +21191,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real64', value=-42.0E+30,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real64">',
                 '<VALUE>-4.2E+31</VALUE>',
@@ -21206,7 +21206,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real64', value=float('inf'),
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real64">',
                 '<VALUE>INF</VALUE>',  # must be upper case
@@ -21221,7 +21221,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real64', value=float('-inf'),
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real64">',
                 '<VALUE>-INF</VALUE>',  # must be upper case
@@ -21236,7 +21236,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real64', value=float('nan'),
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real64">',
                 '<VALUE>NaN</VALUE>',  # must be upper case
@@ -21253,7 +21253,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='datetime', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="datetime"/>',
             )
@@ -21267,7 +21267,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
                 'Foo', type='datetime',
                 value=datetime(2014, 9, 22, 10, 49, 20, 524789),
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="datetime">',
                 '<VALUE>20140922104920.524789+000</VALUE>',
@@ -21283,7 +21283,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
                 'Foo', type='datetime',
                 value=timedelta(10, 49, 20),
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="datetime">',
                 '<VALUE>00000010000049.000020:000</VALUE>',
@@ -21302,7 +21302,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='boolean', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="boolean"/>',
             )
@@ -21315,7 +21315,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='boolean', value=[],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="boolean">',
                 '<VALUE.ARRAY/>',
@@ -21330,7 +21330,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='boolean', value=[None],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="boolean">',
                 '<VALUE.ARRAY>',
@@ -21347,7 +21347,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='boolean', value=[True],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="boolean">',
                 '<VALUE.ARRAY>',
@@ -21364,7 +21364,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='boolean', value=[False],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="boolean">',
                 '<VALUE.ARRAY>',
@@ -21383,7 +21383,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='string', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="string"/>',
             )
@@ -21396,7 +21396,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='string', value=[],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="string">',
                 '<VALUE.ARRAY/>',
@@ -21411,7 +21411,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='string', value=[None],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="string">',
                 '<VALUE.ARRAY>',
@@ -21429,7 +21429,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='string', value=['foo'],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="string">',
                 '<VALUE.ARRAY>',
@@ -21447,7 +21447,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='string', value=[u'foo\u00E9'],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<QUALIFIER NAME="Foo" TYPE="string">',
                 u'<VALUE.ARRAY>',
@@ -21465,7 +21465,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='string', value=[u'foo\U00010142'],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<QUALIFIER NAME="Foo" TYPE="string">',
                 u'<VALUE.ARRAY>',
@@ -21484,7 +21484,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='char16', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="char16"/>',
             )
@@ -21497,7 +21497,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='char16', value=[],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="char16">',
                 '<VALUE.ARRAY/>',
@@ -21512,7 +21512,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='char16', value=[None],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="char16">',
                 '<VALUE.ARRAY>',
@@ -21530,7 +21530,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='char16', value=['f'],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="char16">',
                 '<VALUE.ARRAY>',
@@ -21548,7 +21548,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='char16', value=[u'\u00E9'],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<QUALIFIER NAME="Foo" TYPE="char16">',
                 u'<VALUE.ARRAY>',
@@ -21566,7 +21566,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='char16', value=[u'\U00010142'],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<QUALIFIER NAME="Foo" TYPE="char16">',
                 u'<VALUE.ARRAY>',
@@ -21585,7 +21585,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='uint8', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="uint8"/>',
             )
@@ -21598,7 +21598,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='uint8', value=[],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="uint8">',
                 '<VALUE.ARRAY/>',
@@ -21613,7 +21613,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='uint8', value=[None],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="uint8">',
                 '<VALUE.ARRAY>',
@@ -21630,7 +21630,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='uint8', value=[42],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="uint8">',
                 '<VALUE.ARRAY>',
@@ -21649,7 +21649,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='uint16', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="uint16"/>',
             )
@@ -21662,7 +21662,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='uint16', value=[],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="uint16">',
                 '<VALUE.ARRAY/>',
@@ -21677,7 +21677,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='uint16', value=[None],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="uint16">',
                 '<VALUE.ARRAY>',
@@ -21694,7 +21694,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='uint16', value=[1234],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="uint16">',
                 '<VALUE.ARRAY>',
@@ -21713,7 +21713,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='uint32', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="uint32"/>',
             )
@@ -21726,7 +21726,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='uint32', value=[],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="uint32">',
                 '<VALUE.ARRAY/>',
@@ -21741,7 +21741,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='uint32', value=[None],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="uint32">',
                 '<VALUE.ARRAY>',
@@ -21758,7 +21758,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='uint32', value=[12345678],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="uint32">',
                 '<VALUE.ARRAY>',
@@ -21777,7 +21777,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='uint64', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="uint64"/>',
             )
@@ -21790,7 +21790,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='uint64', value=[],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="uint64">',
                 '<VALUE.ARRAY/>',
@@ -21805,7 +21805,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='uint64', value=[None],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="uint64">',
                 '<VALUE.ARRAY>',
@@ -21822,7 +21822,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='uint64', value=[123456789012],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="uint64">',
                 '<VALUE.ARRAY>',
@@ -21841,7 +21841,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='sint8', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="sint8"/>',
             )
@@ -21854,7 +21854,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='sint8', value=[],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="sint8">',
                 '<VALUE.ARRAY/>',
@@ -21869,7 +21869,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='sint8', value=[None],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="sint8">',
                 '<VALUE.ARRAY>',
@@ -21886,7 +21886,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='sint8', value=[-42],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="sint8">',
                 '<VALUE.ARRAY>',
@@ -21905,7 +21905,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='sint16', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="sint16"/>',
             )
@@ -21918,7 +21918,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='sint16', value=[],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="sint16">',
                 '<VALUE.ARRAY/>',
@@ -21933,7 +21933,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='sint16', value=[None],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="sint16">',
                 '<VALUE.ARRAY>',
@@ -21950,7 +21950,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='sint16', value=[-1234],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="sint16">',
                 '<VALUE.ARRAY>',
@@ -21969,7 +21969,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='sint32', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="sint32"/>',
             )
@@ -21982,7 +21982,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='sint32', value=[],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="sint32">',
                 '<VALUE.ARRAY/>',
@@ -21997,7 +21997,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='sint32', value=[None],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="sint32">',
                 '<VALUE.ARRAY>',
@@ -22014,7 +22014,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='sint32', value=[-12345678],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="sint32">',
                 '<VALUE.ARRAY>',
@@ -22033,7 +22033,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='sint64', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="sint64"/>',
             )
@@ -22046,7 +22046,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='sint64', value=[],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="sint64">',
                 '<VALUE.ARRAY/>',
@@ -22061,7 +22061,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='sint64', value=[None],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="sint64">',
                 '<VALUE.ARRAY>',
@@ -22078,7 +22078,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='sint64', value=[-123456789012],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="sint64">',
                 '<VALUE.ARRAY>',
@@ -22097,7 +22097,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real32', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real32"/>',
             )
@@ -22110,7 +22110,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real32', value=[],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real32">',
                 '<VALUE.ARRAY/>',
@@ -22125,7 +22125,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real32', value=[None],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real32">',
                 '<VALUE.ARRAY>',
@@ -22142,7 +22142,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real32', value=[0.42],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real32">',
                 '<VALUE.ARRAY>',
@@ -22160,7 +22160,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real32', value=[1.2345678901],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real32">',
                 '<VALUE.ARRAY>',
@@ -22178,7 +22178,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real32', value=[42.0],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real32">',
                 '<VALUE.ARRAY>',
@@ -22196,7 +22196,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real32', value=[-42.0E-3],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real32">',
                 '<VALUE.ARRAY>',
@@ -22214,7 +22214,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real32', value=[-42.0E+3],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real32">',
                 '<VALUE.ARRAY>',
@@ -22232,7 +22232,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real32', value=[-42.0E-30],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real32">',
                 '<VALUE.ARRAY>',
@@ -22250,7 +22250,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real32', value=[-42.0E+30],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real32">',
                 '<VALUE.ARRAY>',
@@ -22268,7 +22268,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real32', value=[float('inf')],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real32">',
                 '<VALUE.ARRAY>',
@@ -22286,7 +22286,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real32', value=[float('-inf')],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real32">',
                 '<VALUE.ARRAY>',
@@ -22304,7 +22304,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real32', value=[float('nan')],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real32">',
                 '<VALUE.ARRAY>',
@@ -22323,7 +22323,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real64', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real64"/>',
             )
@@ -22336,7 +22336,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real64', value=[],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real64">',
                 '<VALUE.ARRAY/>',
@@ -22351,7 +22351,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real64', value=[None],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real64">',
                 '<VALUE.ARRAY>',
@@ -22368,7 +22368,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real64', value=[0.42],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real64">',
                 '<VALUE.ARRAY>',
@@ -22386,7 +22386,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real64', value=[1.2345678901234567],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real64">',
                 '<VALUE.ARRAY>',
@@ -22404,7 +22404,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real64', value=[42.0],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real64">',
                 '<VALUE.ARRAY>',
@@ -22422,7 +22422,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real64', value=[-42.0E-3],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real64">',
                 '<VALUE.ARRAY>',
@@ -22440,7 +22440,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real64', value=[-42.0E+3],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real64">',
                 '<VALUE.ARRAY>',
@@ -22458,7 +22458,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real64', value=[-42.0E-30],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real64">',
                 '<VALUE.ARRAY>',
@@ -22476,7 +22476,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real64', value=[-42.0E+30],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real64">',
                 '<VALUE.ARRAY>',
@@ -22494,7 +22494,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real64', value=[float('inf')],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real64">',
                 '<VALUE.ARRAY>',
@@ -22512,7 +22512,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real64', value=[float('-inf')],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real64">',
                 '<VALUE.ARRAY>',
@@ -22530,7 +22530,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='real64', value=[float('nan')],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="real64">',
                 '<VALUE.ARRAY>',
@@ -22549,7 +22549,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='datetime', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="datetime"/>',
             )
@@ -22562,7 +22562,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='datetime', value=[],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="datetime">',
                 '<VALUE.ARRAY/>',
@@ -22577,7 +22577,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(
                 'Foo', type='datetime', value=[None],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="datetime">',
                 '<VALUE.ARRAY>',
@@ -22595,7 +22595,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
                 'Foo', type='datetime',
                 value=[datetime(2014, 9, 22, 10, 49, 20, 524789)],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="datetime">',
                 '<VALUE.ARRAY>',
@@ -22613,7 +22613,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
                 'Foo', type='datetime',
                 value=[timedelta(10, 49, 20)],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="datetime">',
                 '<VALUE.ARRAY>',
@@ -23896,7 +23896,7 @@ TESTCASES_CIMCLASSNAME_TOCIMXML = [
         "Classname only, with implied default args",
         dict(
             obj=CIMClassName('CIM_Foo'),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<CLASSNAME NAME="CIM_Foo"/>',
             )
@@ -23952,7 +23952,7 @@ TESTCASES_CIMCLASSNAME_TOCIMXML = [
                 'CIM_Foo',
                 namespace='root/cimv2',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<LOCALCLASSPATH>',
                 '<LOCALNAMESPACEPATH>',
@@ -24036,7 +24036,7 @@ TESTCASES_CIMCLASSNAME_TOCIMXML = [
                 namespace='root/cimv2',
                 host='woot.com',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<CLASSPATH>',
                 '<NAMESPACEPATH>',
@@ -25848,7 +25848,7 @@ TESTCASES_CIMCLASS_SETATTR = [
             item='properties',
             new_value=None,
             exp_attrs=dict(
-                properties=dict(),
+                properties={},
             ),
         ),
         None, None, True
@@ -25988,7 +25988,7 @@ TESTCASES_CIMCLASS_SETATTR = [
             item='methods',
             new_value=None,
             exp_attrs=dict(
-                methods=dict(),
+                methods={},
             ),
         ),
         None, None, True
@@ -26120,7 +26120,7 @@ TESTCASES_CIMCLASS_SETATTR = [
             item='qualifiers',
             new_value=None,
             exp_attrs=dict(
-                qualifiers=dict(),
+                qualifiers={},
             ),
         ),
         None, None, True
@@ -26891,7 +26891,7 @@ TESTCASES_CIMCLASS_TOCIMXML = [
         "No path",
         dict(
             obj=CIMClass('CIM_Foo'),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<CLASS NAME="CIM_Foo"/>',
             )
@@ -26905,7 +26905,7 @@ TESTCASES_CIMCLASS_TOCIMXML = [
                 'CIM_Foo',
                 path=CIMCLASSNAME_CLASSNAME1,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<CLASS NAME="CIM_Foo"/>',
             )
@@ -26919,7 +26919,7 @@ TESTCASES_CIMCLASS_TOCIMXML = [
                 'CIM_Foo',
                 path=CIMCLASSNAME_NAMESPACE1,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<CLASS NAME="CIM_Foo"/>',
             )
@@ -26933,7 +26933,7 @@ TESTCASES_CIMCLASS_TOCIMXML = [
                 'CIM_Foo',
                 path=CIMCLASSNAME_HOST1,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<CLASS NAME="CIM_Foo"/>',
             )
@@ -26952,7 +26952,7 @@ TESTCASES_CIMCLASS_TOCIMXML = [
                     CIMProperty('P2', 42, type='uint16'),
                 ],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<CLASS NAME="CIM_Foo">',
                 '<PROPERTY NAME="P1" TYPE="string">',
@@ -26978,7 +26978,7 @@ TESTCASES_CIMCLASS_TOCIMXML = [
                     CIMMethod('M1', return_type='uint32'),
                 ],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<CLASS NAME="CIM_Foo">',
                 '<METHOD NAME="M2" TYPE="string"/>',
@@ -27000,7 +27000,7 @@ TESTCASES_CIMCLASS_TOCIMXML = [
                     CIMQualifier('Q1', True),
                 ],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<CLASS NAME="CIM_Foo">',
                 '<QUALIFIER NAME="Q2" TYPE="string">',
@@ -27034,7 +27034,7 @@ TESTCASES_CIMCLASS_TOCIMXML = [
                     CIMMethod('M1', return_type='uint32'),
                 ],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<CLASS NAME="CIM_Foo">',
                 '<QUALIFIER NAME="Q2" TYPE="string">',
@@ -27208,7 +27208,7 @@ TESTCASES_CIMCLASS_TOMOF = [
                 ],
                 path=None
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof="""\
    [q1 ( "qv1" )]
 class C1 : C2 {
@@ -27250,7 +27250,7 @@ class C1 : C2 {
                     ),
                 ],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof=u"""\
 class C1 {
 
@@ -27286,7 +27286,7 @@ class C1 {
                     ),
                 ],
             ),
-            kwargs=dict(),
+            kwargs={},
             # pylint: disable=line-too-long
             exp_mof=u"""\
 class C1 {
@@ -28343,7 +28343,7 @@ TESTCASES_CIMMETHOD_SETATTR = [
             item='parameters',
             new_value=None,
             exp_attrs=dict(
-                parameters=dict(),
+                parameters={},
             ),
         ),
         None, None, True
@@ -28487,7 +28487,7 @@ TESTCASES_CIMMETHOD_SETATTR = [
             item='qualifiers',
             new_value=None,
             exp_attrs=dict(
-                qualifiers=dict(),
+                qualifiers={},
             ),
         ),
         None, None, True
@@ -29079,7 +29079,7 @@ TESTCASES_CIMMETHOD_TOCIMXML = [
         "Name with ASCII characters, as byte string",
         dict(
             obj=CIMMethod(b'Foo', return_type='string'),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<METHOD NAME="Foo" TYPE="string"/>',
             )
@@ -29090,7 +29090,7 @@ TESTCASES_CIMMETHOD_TOCIMXML = [
         "Name with ASCII characters, as unicode string",
         dict(
             obj=CIMMethod(u'Foo', return_type='string'),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<METHOD NAME="Foo" TYPE="string"/>',
             )
@@ -29101,7 +29101,7 @@ TESTCASES_CIMMETHOD_TOCIMXML = [
         "Name with non-ASCII UCS-2 characters, as byte string",
         dict(
             obj=CIMMethod(b'Foo\xC3\xA9', return_type='string'),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<METHOD NAME="Foo\u00E9" TYPE="string"/>',
             )
@@ -29112,7 +29112,7 @@ TESTCASES_CIMMETHOD_TOCIMXML = [
         "Name with non-ASCII UCS-2 characters, as unicode string",
         dict(
             obj=CIMMethod(u'Foo\u00E9', return_type='string'),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<METHOD NAME="Foo\u00E9" TYPE="string"/>',
             )
@@ -29123,7 +29123,7 @@ TESTCASES_CIMMETHOD_TOCIMXML = [
         "Name with non-UCS-2 characters, as byte string",
         dict(
             obj=CIMMethod(b'Foo\xF0\x90\x85\x82', return_type='string'),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<METHOD NAME="Foo\U00010142" TYPE="string"/>',
             )
@@ -29134,7 +29134,7 @@ TESTCASES_CIMMETHOD_TOCIMXML = [
         "Name with non-UCS-2 characters, as unicode string",
         dict(
             obj=CIMMethod(u'Foo\U00010142', return_type='string'),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<METHOD NAME="Foo\U00010142" TYPE="string"/>',
             )
@@ -29153,7 +29153,7 @@ TESTCASES_CIMMETHOD_TOCIMXML = [
                     CIMQualifier('Q1', True),
                 ],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<METHOD NAME="Foo" TYPE="string">',
                 '<QUALIFIER NAME="Q2" TYPE="string">',
@@ -29176,7 +29176,7 @@ TESTCASES_CIMMETHOD_TOCIMXML = [
             obj=CIMMethod(
                 'Foo', return_type='boolean',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<METHOD NAME="Foo" TYPE="boolean"/>',
             )
@@ -29189,7 +29189,7 @@ TESTCASES_CIMMETHOD_TOCIMXML = [
             obj=CIMMethod(
                 'Foo', return_type='string',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<METHOD NAME="Foo" TYPE="string"/>',
             )
@@ -29202,7 +29202,7 @@ TESTCASES_CIMMETHOD_TOCIMXML = [
             obj=CIMMethod(
                 'Foo', return_type='real32',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<METHOD NAME="Foo" TYPE="real32"/>',
             )
@@ -29215,7 +29215,7 @@ TESTCASES_CIMMETHOD_TOCIMXML = [
             obj=CIMMethod(
                 'Foo', return_type='sint64',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<METHOD NAME="Foo" TYPE="sint64"/>',
             )
@@ -29228,7 +29228,7 @@ TESTCASES_CIMMETHOD_TOCIMXML = [
             obj=CIMMethod(
                 'Foo', return_type='datetime',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<METHOD NAME="Foo" TYPE="datetime"/>',
             )
@@ -29247,7 +29247,7 @@ TESTCASES_CIMMETHOD_TOCIMXML = [
                     CIMParameter('P1', type='string', is_array=True),
                 ],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<METHOD NAME="Foo" TYPE="uint32">',
                 '<PARAMETER NAME="P2" TYPE="boolean"/>',
@@ -29265,7 +29265,7 @@ TESTCASES_CIMMETHOD_TOCIMXML = [
             obj=CIMMethod(
                 'Foo', return_type='uint32', class_origin='CIM_Origin',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<METHOD CLASSORIGIN="CIM_Origin" NAME="Foo" TYPE="uint32"/>',
             )
@@ -29278,7 +29278,7 @@ TESTCASES_CIMMETHOD_TOCIMXML = [
             obj=CIMMethod(
                 'Foo', return_type='uint32', propagated=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<METHOD NAME="Foo" PROPAGATED="true" TYPE="uint32"/>',
             )
@@ -29291,7 +29291,7 @@ TESTCASES_CIMMETHOD_TOCIMXML = [
             obj=CIMMethod(
                 'Foo', return_type='uint32', propagated=False,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<METHOD NAME="Foo" PROPAGATED="false" TYPE="uint32"/>',
             )
@@ -32874,7 +32874,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             item='qualifiers',
             new_value=None,
             exp_attrs=dict(
-                qualifiers=dict(),
+                qualifiers={},
             ),
         ),
         None, None, True
@@ -33428,7 +33428,7 @@ TESTCASES_CIMPARAMETER_TOCIMXML = [
         "Argument as_value defaults to False",
         dict(
             obj=CIMParameter(b'Foo', type='string', value=None),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<PARAMETER NAME="Foo" TYPE="string"/>',
             )
@@ -39722,7 +39722,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
             item='scopes',
             new_value=OrderedDict(),
             exp_attrs=dict(
-                scopes=dict(),
+                scopes={},
             ),
         ),
         None, None, True
@@ -39754,7 +39754,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
             item='scopes',
             new_value=None,
             exp_attrs=dict(
-                scopes=dict(),
+                scopes={},
             ),
         ),
         None, None, True
@@ -40645,7 +40645,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
         "Name with ASCII characters, as byte string",
         dict(
             obj=CIMQualifierDeclaration(b'Foo', value=None, type='string'),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="string"/>',
@@ -40657,7 +40657,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
         "Name with ASCII characters, as unicode string",
         dict(
             obj=CIMQualifierDeclaration(u'Foo', value=None, type='string'),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="string"/>',
@@ -40671,7 +40671,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 b'Foo\xC3\xA9', value=None, type='string'
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo\u00E9"',
                 ' TYPE="string"/>',
@@ -40685,7 +40685,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 u'Foo\u00E9', value=None, type='string'
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo\u00E9"',
                 u' TYPE="string"/>',
@@ -40699,7 +40699,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 b'Foo\xF0\x90\x85\x82', value=None, type='string'
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo\U00010142"',
                 u' TYPE="string"/>',
@@ -40713,7 +40713,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 u'Foo\U00010142', value=None, type='string'
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo\U00010142"',
                 u' TYPE="string"/>',
@@ -40730,7 +40730,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='boolean', value=None,
                 scopes=[],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="boolean"/>',
@@ -40745,7 +40745,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='boolean', value=None,
                 scopes=[('ASSOCIATION', True)],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="boolean">',
@@ -40762,7 +40762,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='boolean', value=None,
                 scopes=[('ASSOCIATION', True), ('PROPERTY', True)],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="boolean">',
@@ -40779,7 +40779,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='boolean', value=None,
                 scopes=[('ANY', True)],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="boolean">',
@@ -40800,7 +40800,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='boolean', value=None,
                 overridable=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' OVERRIDABLE="true" TYPE="boolean"/>',
@@ -40815,7 +40815,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='boolean', value=None,
                 overridable=False,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' OVERRIDABLE="false" TYPE="boolean"/>',
@@ -40832,7 +40832,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='boolean', value=None,
                 tosubclass=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TOSUBCLASS="true" TYPE="boolean"/>',
@@ -40847,7 +40847,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='boolean', value=None,
                 tosubclass=False,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TOSUBCLASS="false" TYPE="boolean"/>',
@@ -40864,7 +40864,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='boolean', value=None,
                 toinstance=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TOINSTANCE="true" TYPE="boolean"/>',
@@ -40879,7 +40879,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='boolean', value=None,
                 toinstance=False,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TOINSTANCE="false" TYPE="boolean"/>',
@@ -40896,7 +40896,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='boolean', value=None,
                 translatable=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TRANSLATABLE="true" TYPE="boolean"/>',
@@ -40911,7 +40911,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='boolean', value=None,
                 translatable=False,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TRANSLATABLE="false" TYPE="boolean"/>',
@@ -40927,7 +40927,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='boolean', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="boolean"/>',
@@ -40941,7 +40941,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='boolean', value=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="boolean">',
@@ -40957,7 +40957,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='boolean', value=False,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="boolean">',
@@ -40975,7 +40975,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='string', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="string"/>',
@@ -40990,7 +40990,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='string', value='foo',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="string">',
@@ -41007,7 +41007,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='string', value=u'foo\u00E9',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 u' TYPE="string">',
@@ -41024,7 +41024,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='string', value=u'foo\U00010142',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 u' TYPE="string">',
@@ -41042,7 +41042,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='char16', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="char16"/>',
@@ -41057,7 +41057,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='char16', value='f',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="char16">',
@@ -41074,7 +41074,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='char16', value=u'\u00E9',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 u' TYPE="char16">',
@@ -41092,7 +41092,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='char16', value=u'\U00010142',
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 u' TYPE="char16">',
@@ -41110,7 +41110,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='uint8', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="uint8"/>',
@@ -41125,7 +41125,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='uint8', value=42,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="uint8">',
@@ -41143,7 +41143,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='uint16', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="uint16"/>',
@@ -41158,7 +41158,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='uint16', value=1234,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="uint16">',
@@ -41176,7 +41176,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='uint32', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="uint32"/>',
@@ -41191,7 +41191,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='uint32', value=12345678,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="uint32">',
@@ -41209,7 +41209,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='uint64', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="uint64"/>',
@@ -41224,7 +41224,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='uint64', value=123456789012,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="uint64">',
@@ -41242,7 +41242,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='sint8', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="sint8"/>',
@@ -41257,7 +41257,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='sint8', value=-42,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="sint8">',
@@ -41275,7 +41275,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='sint16', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="sint16"/>',
@@ -41290,7 +41290,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='sint16', value=-1234,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="sint16">',
@@ -41308,7 +41308,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='sint32', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="sint32"/>',
@@ -41323,7 +41323,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='sint32', value=-12345678,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="sint32">',
@@ -41341,7 +41341,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='sint64', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="sint64"/>',
@@ -41356,7 +41356,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='sint64', value=-123456789012,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="sint64">',
@@ -41374,7 +41374,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='real32', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="real32"/>',
@@ -41388,7 +41388,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='real32', value=0.42,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="real32">',
@@ -41405,7 +41405,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='real32', value=1.2345678901,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="real32">',
@@ -41422,7 +41422,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='real32', value=42.0,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="real32">',
@@ -41439,7 +41439,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='real32', value=-42.0E-3,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="real32">',
@@ -41456,7 +41456,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='real32', value=-42.0E+3,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="real32">',
@@ -41473,7 +41473,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='real32', value=-42.0E-30,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="real32">',
@@ -41490,7 +41490,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='real32', value=-42.0E+30,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="real32">',
@@ -41506,7 +41506,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='real32', value=float('inf'),
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="real32">',
@@ -41522,7 +41522,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='real32', value=float('-inf'),
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="real32">',
@@ -41538,7 +41538,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='real32', value=float('nan'),
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="real32">',
@@ -41556,7 +41556,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='real64', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="real64"/>',
@@ -41570,7 +41570,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='real64', value=0.42,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="real64">',
@@ -41587,7 +41587,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='real64', value=1.2345678901234567,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="real64">',
@@ -41604,7 +41604,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='real64', value=42.0,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="real64">',
@@ -41621,7 +41621,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='real64', value=-42.0E-3,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="real64">',
@@ -41638,7 +41638,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='real64', value=-42.0E+3,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="real64">',
@@ -41655,7 +41655,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='real64', value=-42.0E-30,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="real64">',
@@ -41672,7 +41672,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='real64', value=-42.0E+30,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="real64">',
@@ -41688,7 +41688,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='real64', value=float('inf'),
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="real64">',
@@ -41704,7 +41704,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='real64', value=float('-inf'),
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="real64">',
@@ -41720,7 +41720,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='real64', value=float('nan'),
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="real64">',
@@ -41738,7 +41738,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             obj=CIMQualifierDeclaration(
                 'Foo', type='datetime', value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="datetime"/>',
@@ -41753,7 +41753,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='datetime',
                 value=datetime(2014, 9, 22, 10, 49, 20, 524789),
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="datetime">',
@@ -41770,7 +41770,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='datetime',
                 value=timedelta(10, 49, 20),
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
                 ' TYPE="datetime">',
@@ -41791,7 +41791,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='boolean', value=None,
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="boolean"/>',
@@ -41806,7 +41806,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='boolean', value=[],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="boolean">',
@@ -41824,7 +41824,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='boolean', value=[None],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="boolean">',
@@ -41844,7 +41844,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='boolean', value=[True],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="boolean">',
@@ -41864,7 +41864,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='boolean', value=[False],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="boolean">',
@@ -41885,7 +41885,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='string', value=None,
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="string"/>',
@@ -41900,7 +41900,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='string', value=[],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="string">',
@@ -41918,7 +41918,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='string', value=[None],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="string">',
@@ -41938,7 +41938,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='string', value=['foo'],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="string">',
@@ -41958,7 +41958,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='string', value=[u'foo\u00E9'],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="string">',
@@ -41978,7 +41978,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='string', value=[u'foo\U00010142'],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="string">',
@@ -41999,7 +41999,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='char16', value=None,
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="char16"/>',
@@ -42014,7 +42014,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='char16', value=[],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="char16">',
@@ -42032,7 +42032,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='char16', value=[None],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="char16">',
@@ -42052,7 +42052,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='char16', value=['f'],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="char16">',
@@ -42072,7 +42072,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='char16', value=[u'\u00E9'],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 u' TYPE="char16">',
@@ -42093,7 +42093,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='char16', value=[u'\U00010142'],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 u'<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 u' TYPE="char16">',
@@ -42114,7 +42114,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='uint8', value=None,
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="uint8"/>',
@@ -42129,7 +42129,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='uint8', value=[],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="uint8">',
@@ -42146,7 +42146,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='uint8', value=[None],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="uint8">',
@@ -42166,7 +42166,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='uint8', value=[42],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="uint8">',
@@ -42187,7 +42187,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='uint16', value=None,
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="uint16"/>',
@@ -42202,7 +42202,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='uint16', value=[],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="uint16">',
@@ -42220,7 +42220,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='uint16', value=[None],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="uint16">',
@@ -42240,7 +42240,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='uint16', value=[1234],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="uint16">',
@@ -42261,7 +42261,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='uint32', value=None,
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="uint32"/>',
@@ -42276,7 +42276,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='uint32', value=[],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="uint32">',
@@ -42294,7 +42294,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='uint32', value=[None],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="uint32">',
@@ -42314,7 +42314,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='uint32', value=[12345678],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="uint32">',
@@ -42335,7 +42335,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='uint64', value=None,
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="uint64"/>',
@@ -42350,7 +42350,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='uint64', value=[],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="uint64">',
@@ -42368,7 +42368,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='uint64', value=[None],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="uint64">',
@@ -42388,7 +42388,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='uint64', value=[123456789012],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="uint64">',
@@ -42409,7 +42409,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='sint8', value=None,
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="sint8"/>',
@@ -42424,7 +42424,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='sint8', value=[],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="sint8">',
@@ -42441,7 +42441,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='sint8', value=[None],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="sint8">',
@@ -42461,7 +42461,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='sint8', value=[-42],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="sint8">',
@@ -42482,7 +42482,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='sint16', value=None,
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="sint16"/>',
@@ -42497,7 +42497,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='sint16', value=[],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="sint16">',
@@ -42515,7 +42515,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='sint16', value=[None],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="sint16">',
@@ -42535,7 +42535,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='sint16', value=[-1234],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="sint16">',
@@ -42556,7 +42556,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='sint32', value=None,
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="sint32"/>',
@@ -42571,7 +42571,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='sint32', value=[],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="sint32">',
@@ -42589,7 +42589,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='sint32', value=[None],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="sint32">',
@@ -42609,7 +42609,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='sint32', value=[-12345678],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="sint32">',
@@ -42630,7 +42630,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='sint64', value=None,
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="sint64"/>',
@@ -42645,7 +42645,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='sint64', value=[],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="sint64">',
@@ -42663,7 +42663,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='sint64', value=[None],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="sint64">',
@@ -42683,7 +42683,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='sint64', value=[-123456789012],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="sint64">',
@@ -42704,7 +42704,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='real32', value=None,
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="real32"/>',
@@ -42719,7 +42719,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='real32', value=[],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="real32">',
@@ -42737,7 +42737,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='real32', value=[None],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="real32">',
@@ -42757,7 +42757,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='real32', value=[0.42],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="real32">',
@@ -42777,7 +42777,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='real32', value=[1.2345678901],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="real32">',
@@ -42797,7 +42797,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='real32', value=[42.0],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="real32">',
@@ -42817,7 +42817,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='real32', value=[-42.0E-3],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="real32">',
@@ -42837,7 +42837,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='real32', value=[-42.0E+3],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="real32">',
@@ -42857,7 +42857,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='real32', value=[-42.0E-30],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="real32">',
@@ -42877,7 +42877,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='real32', value=[-42.0E+30],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="real32">',
@@ -42897,7 +42897,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='real32', value=[float('inf')],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="real32">',
@@ -42917,7 +42917,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='real32', value=[float('-inf')],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="real32">',
@@ -42937,7 +42937,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='real32', value=[float('nan')],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="real32">',
@@ -42958,7 +42958,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='real64', value=None,
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="real64"/>',
@@ -42973,7 +42973,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='real64', value=[],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="real64">',
@@ -42991,7 +42991,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='real64', value=[None],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="real64">',
@@ -43011,7 +43011,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='real64', value=[0.42],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="real64">',
@@ -43031,7 +43031,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='real64', value=[1.2345678901234567],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="real64">',
@@ -43051,7 +43051,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='real64', value=[42.0],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="real64">',
@@ -43071,7 +43071,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='real64', value=[-42.0E-3],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="real64">',
@@ -43091,7 +43091,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='real64', value=[-42.0E+3],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="real64">',
@@ -43111,7 +43111,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='real64', value=[-42.0E-30],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="real64">',
@@ -43131,7 +43131,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='real64', value=[-42.0E+30],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="real64">',
@@ -43151,7 +43151,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='real64', value=[float('inf')],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="real64">',
@@ -43171,7 +43171,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='real64', value=[float('-inf')],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="real64">',
@@ -43191,7 +43191,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='real64', value=[float('nan')],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="real64">',
@@ -43212,7 +43212,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='datetime', value=None,
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="datetime"/>',
@@ -43227,7 +43227,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='datetime', value=[],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="datetime">',
@@ -43245,7 +43245,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 'Foo', type='datetime', value=[None],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="datetime">',
@@ -43266,7 +43266,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 value=[datetime(2014, 9, 22, 10, 49, 20, 524789)],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="datetime">',
@@ -43287,7 +43287,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
                 value=[timedelta(10, 49, 20)],
                 is_array=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="datetime">',
@@ -43434,7 +43434,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOMOF = [
                 toinstance=True,
                 translatable=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof=u"""\
 Qualifier Q1 : string[5] = { "abc" },
     Scope(property, method, parameter),
@@ -43451,7 +43451,7 @@ Qualifier Q1 : string[5] = { "abc" },
                 type='string',
                 value=None,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof=u"""\
 Qualifier Q1 : string,
     Scope();
@@ -43467,7 +43467,7 @@ Qualifier Q1 : string,
                 type='string',
                 value="dq=\",sq=\',bs=\\",
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof=u"""\
 Qualifier Q1 : string = "dq=\\",sq=\\',bs=\\\\",
     Scope();
@@ -43483,7 +43483,7 @@ Qualifier Q1 : string = "dq=\\",sq=\\',bs=\\\\",
                 type='string',
                 value="bt=\b,tb=\t,nl=\n,vt=\f,cr=\r",
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof=u"""\
 Qualifier Q1 : string = "bt=\\b,tb=\\t,nl=\\n,vt=\\f,cr=\\r",
     Scope();
@@ -43499,7 +43499,7 @@ Qualifier Q1 : string = "bt=\\b,tb=\\t,nl=\\n,vt=\\f,cr=\\r",
                 type='char16',
                 value="\n",
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof=u"""\
 Qualifier Q1 : char16 = '\\n',
     Scope();
@@ -43515,7 +43515,7 @@ Qualifier Q1 : char16 = '\\n',
                 type='boolean',
                 value=False,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof=u"""\
 Qualifier Q1 : boolean = false,
     Scope();
@@ -43531,7 +43531,7 @@ Qualifier Q1 : boolean = false,
                 type='uint32',
                 value=42,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof=u"""\
 Qualifier Q1 : uint32 = 42,
     Scope();
@@ -43547,7 +43547,7 @@ Qualifier Q1 : uint32 = 42,
                 type='real32',
                 value=Real32(42.1),
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof=u"""\
 Qualifier Q1 : real32 = 42.1,
     Scope();
@@ -43564,7 +43564,7 @@ Qualifier Q1 : real32 = 42.1,
                 type='datetime',
                 value=CIMDateTime('20140924193040.654321+120'),
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof=u"""\
 Qualifier Q1 : datetime = "20140924193040.654321+120",
     Scope();
@@ -43582,7 +43582,7 @@ Qualifier Q1 : datetime = "20140924193040.654321+120",
                 array_size=None,
                 value=[],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof=u"""\
 Qualifier Q1 : string[] = {  },
     Scope();
@@ -43600,7 +43600,7 @@ Qualifier Q1 : string[] = {  },
                 array_size=None,
                 value=["abc", "def"],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof=u"""\
 Qualifier Q1 : string[] = { "abc", "def" },
     Scope();
@@ -43618,7 +43618,7 @@ Qualifier Q1 : string[] = { "abc", "def" },
                 array_size=5,
                 value=["abc", "def"],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof=u"""\
 Qualifier Q1 : string[5] = { "abc", "def" },
     Scope();
@@ -43634,7 +43634,7 @@ Qualifier Q1 : string[5] = { "abc", "def" },
                 type='string',
                 scopes=[('CLASS', True)],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof=u"""\
 Qualifier Q1 : string,
     Scope(class);
@@ -43653,7 +43653,7 @@ Qualifier Q1 : string,
                         ('REFERENCE', True), ('METHOD', True),
                         ('PARAMETER', True)],
             ),
-            kwargs=dict(),
+            kwargs={},
             # pylint: disable=line-too-long
             exp_mof=u"""\
 Qualifier Q1 : string,
@@ -43671,7 +43671,7 @@ Qualifier Q1 : string,
                 type='string',
                 scopes=[('ANY', True)],
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof=u"""\
 Qualifier Q1 : string,
     Scope(any);
@@ -43687,7 +43687,7 @@ Qualifier Q1 : string,
                 type='string',
                 overridable=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof=u"""\
 Qualifier Q1 : string,
     Scope(),
@@ -43705,7 +43705,7 @@ Qualifier Q1 : string,
                 overridable=True,
                 tosubclass=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof=u"""\
 Qualifier Q1 : string,
     Scope(),
@@ -43722,7 +43722,7 @@ Qualifier Q1 : string,
                 type='string',
                 overridable=False,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof=u"""\
 Qualifier Q1 : string,
     Scope(),
@@ -43739,7 +43739,7 @@ Qualifier Q1 : string,
                 type='string',
                 tosubclass=False,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof=u"""\
 Qualifier Q1 : string,
     Scope(),
@@ -43756,7 +43756,7 @@ Qualifier Q1 : string,
                 type='string',
                 tosubclass=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof=u"""\
 Qualifier Q1 : string,
     Scope(),
@@ -43773,7 +43773,7 @@ Qualifier Q1 : string,
                 type='string',
                 translatable=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof=u"""\
 Qualifier Q1 : string,
     Scope(),
@@ -43790,7 +43790,7 @@ Qualifier Q1 : string,
                 type='string',
                 toinstance=True,
             ),
-            kwargs=dict(),
+            kwargs={},
             exp_mof=u"""\
 Qualifier Q1 : string,
     Scope();
@@ -43891,7 +43891,7 @@ TESTCASES_CIMVALUE = [
         "Verify order of positional arguments",
         dict(
             args=[u'a', 'string'],
-            kwargs=dict(),
+            kwargs={},
             exp_obj=u'a',
         ),
         None, None, True,
@@ -44951,7 +44951,7 @@ TESTCASES_MOFSTR = [
                 False,
                 u'"',
             ],
-            kwargs=dict(),
+            kwargs={},
             exp_result=(u'"abcdefgh"', 12),
         ),
         None, None, True,

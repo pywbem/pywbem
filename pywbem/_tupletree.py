@@ -386,7 +386,7 @@ def check_invalid_utf8_sequences(utf8_string, meaning, conn_id=None):
     # before the str type gets decoded to unicode, because afterwards
     # surrogates produced from ill-formed UTF-8 cannot be distinguished from
     # legally produced surrogates (for code points above U+FFFF).
-    ifs_list = list()
+    ifs_list = []
     for m in _ILL_FORMED_UTF8_RE.finditer(utf8_string):
         ifs_pos = m.start(1)
         ifs_seq = m.group(1)
@@ -498,7 +498,7 @@ def check_invalid_xml_chars(xml_string, meaning, conn_id=None):
 
     # Check for Unicode characters that cannot legally be represented as XML
     # characters.
-    ixc_list = list()
+    ixc_list = []
     last_ixc_pos = -2
     for m in _ILLEGAL_XML_CHARS_RE.finditer(xml_string):
         ixc_pos = m.start(1)

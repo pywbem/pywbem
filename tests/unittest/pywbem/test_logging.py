@@ -21,6 +21,7 @@ Unit test logging functionality in _logging.py
 from __future__ import absolute_import, print_function
 
 import os
+import io
 import re
 import logging
 
@@ -482,7 +483,7 @@ class TestLoggerOutput(BaseLoggingExecutionTests):
             format(LOGGER_API_CALLS_NAME),
         ]
 
-        with open(TEST_OUTPUT_LOG, "r") as log_fp:
+        with io.open(TEST_OUTPUT_LOG, "r", encoding='utf-8') as log_fp:
             log_lines = log_fp.readlines()
         assert len(log_lines) == len(exp_line_patterns)
         for i, pattern in enumerate(exp_line_patterns):
@@ -543,11 +544,11 @@ class TestLoggerPropagate(object):
 
         pkg_logger.removeHandler(pkg_handler)
 
-        with open(logger_filename) as logger_fp:
+        with io.open(logger_filename, encoding='utf-8') as logger_fp:
             logger_line = logger_fp.read()
         assert re.match(r'.*-%s\..*-Connection:' % logger_name, logger_line)
 
-        with open(pkg_filename) as pkg_fp:
+        with io.open(pkg_filename, encoding='utf-8') as pkg_fp:
             pkg_line = pkg_fp.read()
         if propagate:
             assert re.match(r'.*-pywbem.*-Connection:', pkg_line)
