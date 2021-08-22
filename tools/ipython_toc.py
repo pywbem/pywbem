@@ -7,12 +7,13 @@ Returns string to paste into notebook.
 '''
 
 import sys
+import io
 import json
 
 
 def main(ifilepath):
 
-    with open(ifilepath, 'r') as infile:
+    with io.open(ifilepath, 'r', encoding='utf-8') as infile:
         notebook = json.loads(infile.read())
 
     cells = notebook['cells']

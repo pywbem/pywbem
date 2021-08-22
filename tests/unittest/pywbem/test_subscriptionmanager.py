@@ -626,7 +626,7 @@ TESTCASES_SUBMGR = [
             remove_filters=None,
             remove_subscriptions=None,
             remove_server_attrs=None,
-            exp_result=dict()
+            exp_result={}
         ),
         None, None, OK
     ),
@@ -642,7 +642,7 @@ TESTCASES_SUBMGR = [
             remove_filters=None,
             remove_subscriptions=None,
             remove_server_attrs=None,
-            exp_result=dict()
+            exp_result={}
         ),
         ValueError, None, OK
     ),
@@ -658,7 +658,7 @@ TESTCASES_SUBMGR = [
             remove_filters=None,
             remove_subscriptions=None,
             remove_server_attrs=None,
-            exp_result=dict()
+            exp_result={}
         ),
         TypeError, None, OK
     ),
@@ -674,7 +674,7 @@ TESTCASES_SUBMGR = [
             remove_filters=None,
             remove_subscriptions=None,
             remove_server_attrs=None,
-            exp_result=dict()
+            exp_result={}
         ),
         ValueError, None, OK
     ),

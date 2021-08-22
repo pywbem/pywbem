@@ -50,7 +50,7 @@ class ProviderDependentRegistry(object):
         # Dictionary of registered provider dependent files.
         # Key: Normalized path name of mock script.
         # Value: List of normalized path names of provider dependent files.
-        self._registry = dict()
+        self._registry = {}
 
     def __repr__(self):
         return _format(

@@ -102,7 +102,7 @@ from ._cim_constants import CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, \
     CIM_ERR_INVALID_SUPERCLASS, CIM_ERR_INVALID_PARAMETER, \
     CIM_ERR_NOT_SUPPORTED
 from ._exceptions import Error, CIMError
-from ._utils import _format
+from ._utils import _format, _ensure_unicode
 
 __all__ = ['MOFCompileError', 'MOFParseError', 'MOFDependencyError',
            'MOFRepositoryError', 'MOFCompiler', 'BaseRepositoryConnection']
@@ -2751,7 +2751,8 @@ class MOFCompiler(object):
 
           log_func (:term:`callable`):
             A logger function that is invoked for each compiler message.
-            The logger function must take one parameter of string type.
+            The logger function must take one parameter of string type
+            (byte string or unicode string).
             The default logger function prints to stdout.
             If `None`, compiler messages are not logged.
         """  # noqa: E501
@@ -2833,7 +2834,7 @@ class MOFCompiler(object):
         :class:`~pywbem.MOFCompiler` object.
         """
         if self._log_func:
-            self._log_func(msg)
+            self._log_func(_ensure_unicode(msg))
 
     def compile_embedded_value(self, mof, ns, filename=None):
         """
@@ -3041,7 +3042,7 @@ class MOFCompiler(object):
                 raise IOError(
                     _format("No such file: {0!A}", filename))
             filename = rfilename
-        with open(filename, "r") as f:
+        with io.open(filename, "r", encoding='utf-8') as f:
             mof = f.read()
 
         return self.compile_string(mof, ns, filename=filename)

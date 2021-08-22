@@ -665,7 +665,7 @@ class FakedWBEMConnection(WBEMConnection):
         # By default, error messages are always printed in addition to being
         # raised as MOFCompileError. We only want them to be printed in verbose
         # mode:
-        log_func_kwargs = dict()
+        log_func_kwargs = {}
         if not verbose:
             log_func_kwargs['log_func'] = None
 
@@ -741,7 +741,7 @@ class FakedWBEMConnection(WBEMConnection):
         # By default, error messages are always printed in addition to being
         # raised as MOFCompileError. We only want them to be printed in verbose
         # mode:
-        log_func_kwargs = dict()
+        log_func_kwargs = {}
         if not verbose:
             log_func_kwargs['log_func'] = None
 
