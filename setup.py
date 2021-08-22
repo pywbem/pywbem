@@ -24,6 +24,7 @@ Setup script for pywbem project.
 
 import sys
 import os
+import io
 import re
 import fnmatch
 # setuptools needs to be imported before distutils in order to work.
@@ -47,7 +48,7 @@ def get_version(version_file):
     requirements list of this package (otherwise it cannot be executed in
     a fresh Python environment).
     """
-    with open(version_file, 'r') as fp:
+    with io.open(version_file, 'r', encoding='utf-8') as fp:
         version_source = fp.read()
     _globals = {}
     exec(version_source, _globals)  # pylint: disable=exec-used
@@ -60,7 +61,7 @@ def get_requirements(requirements_file):
     non-comment lines. The returned lines are without any trailing newline
     characters.
     """
-    with open(requirements_file, 'r') as fp:
+    with io.open(requirements_file, 'r', encoding='utf-8') as fp:
         lines = fp.readlines()
     reqs = []
     for line in lines:
@@ -75,7 +76,7 @@ def read_file(a_file):
     """
     Read the specified file and return its content as one string.
     """
-    with open(a_file, 'r') as fp:
+    with io.open(a_file, 'r', encoding='utf-8') as fp:
         content = fp.read()
     return content
 

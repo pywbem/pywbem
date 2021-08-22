@@ -9,11 +9,10 @@ from __future__ import absolute_import, print_function
 # pylint: disable=too-many-lines,no-self-use
 import sys
 import os
-import os.path
+import io
 import logging
 import logging.handlers
 import warnings
-from io import open as _open
 from datetime import datetime, timedelta
 
 import pytest
@@ -764,7 +763,7 @@ def load_recorder_yaml_file():
     Load the test YAML file created by the test recorder and return its content
     as a dict.
     """
-    with _open(TEST_YAML_FILE, encoding="utf-8") as fp:
+    with io.open(TEST_YAML_FILE, encoding="utf-8") as fp:
         yaml_content = yaml.load(
             fp, Loader=yamlloader.ordereddict.CSafeLoader)
     return yaml_content
@@ -797,7 +796,7 @@ def test_BaseOperationRecorder_init():
     assert is_inherited_from(
         'enabled', _TestClientRecorder, BaseOperationRecorder)
 
-    with open(os.devnull, 'w') as fp:
+    with io.open(os.devnull, 'w', encoding='utf-8') as fp:
 
         # The code to be tested
         recorder = _TestClientRecorder(fp)
@@ -821,7 +820,7 @@ def test_BaseOperationRecorder_enable_disable():
     assert is_inherited_from(
         'enabled', _TestClientRecorder, BaseOperationRecorder)
 
-    with open(os.devnull, 'w') as fp:
+    with io.open(os.devnull, 'w', encoding='utf-8') as fp:
 
         recorder = _TestClientRecorder(fp)
 
@@ -924,7 +923,7 @@ def test_BaseOperationRecorder_open_file(testcase, text, exp_bytes):
     fp.write(text)
     fp.close()
 
-    with open(tmp_filename, 'rb') as fp:
+    with io.open(tmp_filename, 'rb') as fp:
         act_bytes = fp.read()
     assert act_bytes == exp_bytes
 
@@ -1287,7 +1286,7 @@ def test_TestClientRecorder_toyaml(testcase, obj, exp_yaml):
     Test function for TestClientRecorder.toyaml()
     """
 
-    with open(os.devnull, 'w') as fp:
+    with io.open(os.devnull, 'w', encoding='utf-8') as fp:
 
         recorder = _TestClientRecorder(fp)
         recorder.reset()
