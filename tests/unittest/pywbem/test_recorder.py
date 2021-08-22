@@ -9,11 +9,10 @@ from __future__ import absolute_import, print_function
 # pylint: disable=too-many-lines,no-self-use
 import sys
 import os
-import os.path
+import io
 import logging
 import logging.handlers
 import warnings
-from io import open as _open
 from datetime import datetime, timedelta
 try:
     from collections.abc import Mapping
@@ -792,7 +791,7 @@ def load_recorder_yaml_file():
     Load the test YAML file created by the test recorder and return its content
     as a dict.
     """
-    with _open(TEST_YAML_FILE, encoding="utf-8") as fp:
+    with io.open(TEST_YAML_FILE, encoding="utf-8") as fp:
         yaml_content = yaml.load(
             fp, Loader=yamlloader.ordereddict.CSafeLoader)
     return yaml_content
@@ -825,7 +824,7 @@ def test_BaseOperationRecorder_init():
     assert is_inherited_from(
         'enabled', _TestClientRecorder, BaseOperationRecorder)
 
-    with open(os.devnull, 'w') as fp:
+    with io.open(os.devnull, 'w', encoding='utf-8') as fp:
 
         # The code to be tested
         recorder = _TestClientRecorder(fp)
@@ -849,7 +848,7 @@ def test_BaseOperationRecorder_enable_disable():
     assert is_inherited_from(
         'enabled', _TestClientRecorder, BaseOperationRecorder)
 
-    with open(os.devnull, 'w') as fp:
+    with io.open(os.devnull, 'w', encoding='utf-8') as fp:
 
         recorder = _TestClientRecorder(fp)
 
@@ -952,7 +951,7 @@ def test_BaseOperationRecorder_open_file(testcase, text, exp_bytes):
     fp.write(text)
     fp.close()
 
-    with open(tmp_filename, 'rb') as fp:
+    with io.open(tmp_filename, 'rb') as fp:
         act_bytes = fp.read()
     assert act_bytes == exp_bytes
 
@@ -1315,7 +1314,7 @@ def test_TestClientRecorder_toyaml(testcase, obj, exp_yaml):
     Test function for TestClientRecorder.toyaml()
     """
 
-    with open(os.devnull, 'w') as fp:
+    with io.open(os.devnull, 'w', encoding='utf-8') as fp:
 
         recorder = _TestClientRecorder(fp)
         recorder.reset()
@@ -1541,7 +1540,7 @@ TESTCASES_TESTCLIENTRECORDER_RECORD = [
                     NewIndication=CIMINSTANCE_ONE_TCYAML,
                 ),
             ),
-            pywbem_response=dict(),
+            pywbem_response={},
         ),
     ),
 ]
@@ -3434,7 +3433,7 @@ TESTCASES_COPY_TESTCLIENTRECORDER = [
     (
         "Not enabled",
         dict(
-            init_kwargs=dict(),
+            init_kwargs={},
             enable_recorder=False,
             record_operation=False,
         ),
@@ -3443,7 +3442,7 @@ TESTCASES_COPY_TESTCLIENTRECORDER = [
     (
         "With recorder enabled",
         dict(
-            init_kwargs=dict(),
+            init_kwargs={},
             enable_recorder=True,
             record_operation=False,
         ),
@@ -3452,7 +3451,7 @@ TESTCASES_COPY_TESTCLIENTRECORDER = [
     (
         "With recorder enabled, operation performed",
         dict(
-            init_kwargs=dict(),
+            init_kwargs={},
             enable_recorder=True,
             record_operation=True,
         ),
@@ -3469,7 +3468,7 @@ def test_copy_testclientrecorder(
         testcase, init_kwargs, enable_recorder, record_operation):
     """Test TestClientRecorder.copy()"""
 
-    with open(DEV_NULL, 'a') as dev_null:
+    with io.open(DEV_NULL, 'a', encoding='utf-8') as dev_null:
 
         rec = _TestClientRecorder(dev_null, **init_kwargs)
 

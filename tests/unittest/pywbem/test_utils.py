@@ -261,7 +261,7 @@ TESTCASES_FORMAT_FIXED = [
         dict(
             format_str=u"",
             format_args=[],
-            format_kwargs=dict(),
+            format_kwargs={},
             exp_result="",
         ),
         None, None, True
@@ -271,7 +271,7 @@ TESTCASES_FORMAT_FIXED = [
         dict(
             format_str=b"",
             format_args=[],
-            format_kwargs=dict(),
+            format_kwargs={},
             exp_result="",
         ),
         None if BYTE_FORMAT_SUPPORTED else TypeError, None, True
@@ -281,7 +281,7 @@ TESTCASES_FORMAT_FIXED = [
         dict(
             format_str="",
             format_args=[],
-            format_kwargs=dict(),
+            format_kwargs={},
             exp_result="",
         ),
         None, None, True
@@ -291,7 +291,7 @@ TESTCASES_FORMAT_FIXED = [
         dict(
             format_str=u"{0}",
             format_args=[u"abc"],
-            format_kwargs=dict(),
+            format_kwargs={},
             exp_result=u"abc",
         ),
         None, None, True
@@ -301,7 +301,7 @@ TESTCASES_FORMAT_FIXED = [
         dict(
             format_str=b"{0}",
             format_args=[u"abc"],
-            format_kwargs=dict(),
+            format_kwargs={},
             exp_result=u"abc",
         ),
         None if BYTE_FORMAT_SUPPORTED else TypeError, None, True
@@ -311,7 +311,7 @@ TESTCASES_FORMAT_FIXED = [
         dict(
             format_str="{0}",
             format_args=[u"abc"],
-            format_kwargs=dict(),
+            format_kwargs={},
             exp_result=u"abc",
         ),
         None, None, True
@@ -321,7 +321,7 @@ TESTCASES_FORMAT_FIXED = [
         dict(
             format_str=u"{0}",
             format_args=[b"abc"],
-            format_kwargs=dict(),
+            format_kwargs={},
             exp_result="abc" if six.PY2 else "b'abc'",
         ),
         None, None, True
@@ -331,7 +331,7 @@ TESTCASES_FORMAT_FIXED = [
         dict(
             format_str=b"{0}",
             format_args=[b"abc"],
-            format_kwargs=dict(),
+            format_kwargs={},
             exp_result="abc" if six.PY2 else "b'abc'",
         ),
         None if BYTE_FORMAT_SUPPORTED else TypeError, None, True
@@ -341,7 +341,7 @@ TESTCASES_FORMAT_FIXED = [
         dict(
             format_str="{0}",
             format_args=[b"abc"],
-            format_kwargs=dict(),
+            format_kwargs={},
             exp_result="abc" if six.PY2 else "b'abc'",
         ),
         None, None, True
@@ -351,7 +351,7 @@ TESTCASES_FORMAT_FIXED = [
         dict(
             format_str=u"{0!s}",
             format_args=[b"abc"],
-            format_kwargs=dict(),
+            format_kwargs={},
             exp_result="abc" if six.PY2 else "b'abc'",
         ),
         None, None, True
@@ -361,7 +361,7 @@ TESTCASES_FORMAT_FIXED = [
         dict(
             format_str=u"{0!s}",
             format_args=[u"abc"],
-            format_kwargs=dict(),
+            format_kwargs={},
             exp_result="abc",
         ),
         None, None, True
@@ -371,7 +371,7 @@ TESTCASES_FORMAT_FIXED = [
         dict(
             format_str="{0!r}",
             format_args=[b"abc"],
-            format_kwargs=dict(),
+            format_kwargs={},
             exp_result="'abc'" if six.PY2 else "b'abc'",
         ),
         None, None, True
@@ -381,7 +381,7 @@ TESTCASES_FORMAT_FIXED = [
         dict(
             format_str="{0!r}",
             format_args=[u"abc"],
-            format_kwargs=dict(),
+            format_kwargs={},
             exp_result="u'abc'" if six.PY2 else "'abc'",
         ),
         None, None, True
@@ -391,7 +391,7 @@ TESTCASES_FORMAT_FIXED = [
         dict(
             format_str="{0!a}",
             format_args=[b"abc"],
-            format_kwargs=dict(),
+            format_kwargs={},
             exp_result="'abc'" if six.PY2 else "b'abc'",
         ),
         None, None, True
@@ -401,7 +401,7 @@ TESTCASES_FORMAT_FIXED = [
         dict(
             format_str="{0!a}",
             format_args=[u"abc"],
-            format_kwargs=dict(),
+            format_kwargs={},
             exp_result="u'abc'" if six.PY2 else "'abc'",
         ),
         None, None, True
@@ -411,7 +411,7 @@ TESTCASES_FORMAT_FIXED = [
         dict(
             format_str="{0!A}",
             format_args=[b"abc"],
-            format_kwargs=dict(),
+            format_kwargs={},
             exp_result="'abc'",
         ),
         None, None, True
@@ -421,7 +421,7 @@ TESTCASES_FORMAT_FIXED = [
         dict(
             format_str="{0!A}",
             format_args=[u"abc"],
-            format_kwargs=dict(),
+            format_kwargs={},
             exp_result="'abc'",
         ),
         None, None, True
@@ -431,7 +431,7 @@ TESTCASES_FORMAT_FIXED = [
         dict(
             format_str="{0!A}",
             format_args=[u"a\u00E0b"],
-            format_kwargs=dict(),
+            format_kwargs={},
             exp_result="'a\\u00e0b'",
         ),
         None, None, True
@@ -441,7 +441,7 @@ TESTCASES_FORMAT_FIXED = [
         dict(
             format_str="{0!A}",
             format_args=[u"a\u0412b"],
-            format_kwargs=dict(),
+            format_kwargs={},
             exp_result="'a\\u0412b'",
         ),
         None, None, True
@@ -451,7 +451,7 @@ TESTCASES_FORMAT_FIXED = [
         dict(
             format_str="{0!A}",
             format_args=[u"a\U0001D122b"],
-            format_kwargs=dict(),
+            format_kwargs={},
             exp_result="'a\\U0001d122b'",
         ),
         None, None, True
@@ -461,7 +461,7 @@ TESTCASES_FORMAT_FIXED = [
         dict(
             format_str="{0!A}",
             format_args=[['a', 'b']],
-            format_kwargs=dict(),
+            format_kwargs={},
             exp_result="['a', 'b']",
         ),
         None, None, True
@@ -471,7 +471,7 @@ TESTCASES_FORMAT_FIXED = [
         dict(
             format_str="{0!A}",
             format_args=[('a', 'b')],
-            format_kwargs=dict(),
+            format_kwargs={},
             exp_result="('a', 'b')",
         ),
         None, None, True
@@ -481,7 +481,7 @@ TESTCASES_FORMAT_FIXED = [
         dict(
             format_str="{0!A}",
             format_args=[set(['a'])],
-            format_kwargs=dict(),
+            format_kwargs={},
             exp_result="{'a'}",
         ),
         None, None, True
@@ -491,7 +491,7 @@ TESTCASES_FORMAT_FIXED = [
         dict(
             format_str="{0!A}",
             format_args=[{'a': 1}],
-            format_kwargs=dict(),
+            format_kwargs={},
             exp_result="{'a': 1}",
         ),
         None, None, True
@@ -501,7 +501,7 @@ TESTCASES_FORMAT_FIXED = [
         dict(
             format_str="{0!A}",
             format_args=[OrderedDict([('a', 1), ('b', 2)])],
-            format_kwargs=dict(),
+            format_kwargs={},
             exp_result="OrderedDict({'a': 1, 'b': 2})",
         ),
         None, None, True
@@ -511,7 +511,7 @@ TESTCASES_FORMAT_FIXED = [
         dict(
             format_str="{0!A}",
             format_args=[NocaseDict([('a', 1), ('b', 2)])],
-            format_kwargs=dict(),
+            format_kwargs={},
             exp_result="NocaseDict({'a': 1, 'b': 2})",
         ),
         None, None, True
@@ -521,7 +521,7 @@ TESTCASES_FORMAT_FIXED = [
         dict(
             format_str="{0!x}",
             format_args=["abc"],
-            format_kwargs=dict(),
+            format_kwargs={},
             exp_result=None,
         ),
         ValueError, None, True

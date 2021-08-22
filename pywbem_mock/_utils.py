@@ -24,12 +24,11 @@ Utility functionsto support pywbem_mock.
 
 from __future__ import absolute_import, print_function
 
-import locale
 import sys
-import six
+import io
+import locale
 
-if six.PY2:
-    import codecs  # pylint: disable=wrong-import-order
+import six
 
 STDOUT_ENCODING = getattr(sys.stdout, 'encoding', None)
 if not STDOUT_ENCODING:
@@ -71,16 +70,11 @@ def _uprint(dest, text):
         sys.stdout.write(text)
     elif isinstance(dest, (six.text_type, six.binary_type)):
         if isinstance(text, six.text_type):
-            open_kwargs = dict(mode='a', encoding='utf-8')
+            kw = dict(mode='a', encoding='utf-8')
         else:
-            open_kwargs = dict(mode='ab')
-        if six.PY2:
-            # Open with codecs to be able to set text mode
-            with codecs.open(dest, **open_kwargs) as f:
-                f.write(text)
-        else:
-            with open(dest, **open_kwargs) as f:
-                f.write(text)
+            kw = dict(mode='ab')
+        with io.open(dest, **kw) as f:  # pylint: disable=unspecified-encoding
+            f.write(text)
     else:
         raise TypeError(
             "dest must be None or a string, but is {0}".

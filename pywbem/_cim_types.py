@@ -206,7 +206,7 @@ class SlottedPickleMixin(object):
     def __getstate__(self):
         ""  # Avoids docstring to be inherited
 
-        dct = dict()
+        dct = {}
         for attr in self.__slots__:
             dct[attr] = getattr(self, attr)
 

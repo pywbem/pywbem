@@ -5,6 +5,7 @@ Pytest fixtures for pywbem end2end tests.
 from __future__ import absolute_import
 
 import os
+import io
 import warnings
 from contextlib import contextmanager
 import json
@@ -39,7 +40,7 @@ PROFILES_YAML_FILE = os.path.join('tests', 'profiles', 'profiles.yml')
 # Profile definition list.
 # The list items are profile definition items, as described in the profile
 # definition file.
-with open(PROFILES_YAML_FILE, 'r') as _fp:
+with io.open(PROFILES_YAML_FILE, 'r', encoding='utf-8') as _fp:
     PROFILE_DEFINITION_LIST = yaml.safe_load(_fp)
 del _fp  # pylint: disable=undefined-loop-variable
 

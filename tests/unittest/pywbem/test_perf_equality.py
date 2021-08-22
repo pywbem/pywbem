@@ -6,6 +6,8 @@ Measure performance of equality tests.
 
 from __future__ import absolute_import
 
+import io
+
 import pytest
 import six
 try:
@@ -116,7 +118,7 @@ def test_perf_eq(desc, obj1, obj2):
 
     stdev_pct = 100.0 * stdev_us / t_us if t_us != 0 else 0.0
 
-    with open(outfile, 'a') as fp:
+    with io.open(outfile, 'a', encoding='utf-8') as fp:
         fp.write("{}: {:.3f} us (std.dev. {:.1f}% in {} runs with {} "
                  "outliers)\n".
                  format(desc, t_us, stdev_pct, num_runs, num_out))
