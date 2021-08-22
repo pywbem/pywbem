@@ -100,12 +100,12 @@ class ServerObjectCache(object):
         # - value: dictionary of named lists:
         #   - key: list name
         #   _ value: list of CIM objects (e.g. CIMInstanceName, CIMClass)
-        self._server_dict = dict()
+        self._server_dict = {}
 
     def add_list(self, server_url, list_name, obj_list):
         """Add obj_list to the list named list_name"""
         if server_url not in self._server_dict:
-            self._server_dict[server_url] = dict()
+            self._server_dict[server_url] = {}
         list_dict = self._server_dict[server_url]
         if list_name in list_dict:
             raise KeyError(

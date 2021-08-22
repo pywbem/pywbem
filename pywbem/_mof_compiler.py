@@ -3039,7 +3039,7 @@ class MOFCompiler(object):
                 raise IOError(
                     _format("No such file: {0!A}", filename))
             filename = rfilename
-        with open(filename, "r") as f:
+        with io.open(filename, "r", encoding='utf-8') as f:
             mof = f.read()
 
         return self.compile_string(mof, ns, filename=filename)

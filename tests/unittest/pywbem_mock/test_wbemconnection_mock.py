@@ -31,6 +31,7 @@ simplified_test_function completely controls the test parameters.
 from __future__ import absolute_import, print_function
 
 import os
+import io
 import shutil
 import re
 from copy import deepcopy
@@ -1649,7 +1650,7 @@ class TestRepoMethods(object):
         conn.display_repository(dest=tst_file)
 
         assert os.path.isfile(tst_file)
-        with open(tst_file, 'r') as f:
+        with io.open(tst_file, 'r', encoding='utf-8') as f:
             data = f.read()
         # test key parts of resulting file.
         assert data.startswith(
@@ -1724,7 +1725,7 @@ class TestRepoMethods(object):
 
         if condition == 'pdb':
             import pdb  # pylint: disable=import-outside-toplevel
-            pdb.set_trace()  # pylint: disable=no-member
+            pdb.set_trace()  # pylint: disable=forgotten-debug-statement
 
         conn.add_cimobjects(tst_classeswqualifiers, namespace=ns)
         conn.add_cimobjects(tst_instances, namespace=ns)
@@ -2782,7 +2783,7 @@ class TestUserDefinedProviders(object):
 
         if condition == "pdb":
             import pdb  # pylint: disable=import-outside-toplevel
-            pdb.set_trace()  # pylint: disable=no-member
+            pdb.set_trace()  # pylint: disable=forgotten-debug-statement
 
         add_objects_to_repo(conn, ns, tst_classeswqualifiersandinsts)
 
@@ -2928,7 +2929,7 @@ class TestUserDefinedProviders(object):
 
         if condition == "pdb":
             import pdb  # pylint: disable=import-outside-toplevel
-            pdb.set_trace()  # pylint: disable=no-member
+            pdb.set_trace()  # pylint: disable=forgotten-debug-statement
 
         skip_if_moftab_regenerated()
         add_objects_to_repo(conn, ns, [tst_classeswqualifiers, tst_instances])
@@ -3054,7 +3055,7 @@ class TestUserDefinedProviders(object):
 
         if condition == "pdb":
             import pdb  # pylint: disable=import-outside-toplevel
-            pdb.set_trace()  # pylint: disable=no-member
+            pdb.set_trace()  # pylint: disable=forgotten-debug-statement
 
         nss = []
         for item in inputs:
@@ -3524,7 +3525,7 @@ class TestClassOperations(object):
         rslt_pl = rslt_cl.properties.keys()
         assert set(rslt_pl) == set(exp_pl)
 
-        tst_cls_dict = dict()
+        tst_cls_dict = {}
         for cl in tst_classes:
             tst_cls_dict[cl.classname] = resolve_class(conn, cl, ns)
 
@@ -6157,7 +6158,7 @@ class TestInstanceOperations(object):
             (
                 "Create namespace with missing Name property in instance",
                 ['root/blah'],
-                CIMInstance('CIM_Namespace', properties=dict()),
+                CIMInstance('CIM_Namespace', properties={}),
                 None, CIMError(CIM_ERR_INVALID_PARAMETER)
             ),
         ]
@@ -6423,7 +6424,7 @@ class TestInstanceOperations(object):
 
         if condition == 'pdb':
             import pdb  # pylint: disable=import-outside-toplevel
-            pdb.set_trace()  # pylint: disable=no-member
+            pdb.set_trace()  # pylint: disable=forgotten-debug-statement
 
         add_objects_to_repo(conn, ns, [tst_classeswqualifiers, tst_instances])
 
@@ -9575,7 +9576,7 @@ class TestInvokeMethod(object):
 
         if condition == 'pdb':
             import pdb  # pylint: disable=import-outside-toplevel
-            pdb.set_trace()  # pylint: disable=no-member
+            pdb.set_trace()  # pylint: disable=forgotten-debug-statement
 
         if not exp_exc:
             # Two calls to account for **params
@@ -9784,7 +9785,7 @@ class TestBaseProvider(object):
 
         if condition == 'pdb':
             import pdb  # pylint: disable=import-outside-toplevel
-            pdb.set_trace()  # pylint: disable=no-member
+            pdb.set_trace()  # pylint: disable=forgotten-debug-statement
 
         add_objects_to_repo(conn, ns, [tst_classeswqualifiers])
 

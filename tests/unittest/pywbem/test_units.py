@@ -40,7 +40,7 @@ TESTCASES_SIUNIT_OBJ = [
     (
         "No input argument (cim_obj is required)",
         dict(
-            in_kwargs=dict(),
+            in_kwargs={},
             exp_result=None,
         ),
         TypeError, None, True
@@ -199,7 +199,7 @@ TESTCASES_SIUNIT_GENERAL = [
     (
         "No input arguments",
         dict(
-            in_kwargs=dict(),
+            in_kwargs={},
             exp_result=None,
         ),
         None, None, True

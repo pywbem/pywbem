@@ -75,6 +75,7 @@ compiling DMTF CIM classes for any test significantly.
 """
 
 import os
+import io
 from zipfile import ZipFile
 import shutil
 import re
@@ -146,7 +147,7 @@ def build_schema_mof(class_names, schema_pragma_file):
         class_names = [class_names]
 
     schema_lines = []
-    with open(schema_pragma_file, 'r') as f:
+    with io.open(schema_pragma_file, 'r', encoding='utf-8') as f:
         schema_lines = f.readlines()
 
     # Build list  classname/line number pairs
@@ -460,7 +461,7 @@ class DMTFCIMSchema(object):
                     _format("DMTF Schema archive not found at url {0}: {1}",
                             self.schema_zip_url, ie))
 
-            with open(self.schema_zip_file, 'wb') as fp:
+            with io.open(self.schema_zip_file, 'wb') as fp:
                 for data in ufo:
                     fp.write(data)
 
@@ -484,7 +485,7 @@ class DMTFCIMSchema(object):
                         if not os.path.exists(dfile):
                             os.mkdir(dfile)
                     else:
-                        with open(dfile, 'w+b') as dfp:
+                        with io.open(dfile, 'w+b') as dfp:
                             dfp.write(zfp.read(file_))
             finally:
                 if zfp:

@@ -9,11 +9,10 @@ from __future__ import absolute_import, print_function
 # pylint: disable=too-many-lines,no-self-use
 import sys
 import os
-import os.path
+import io
 import logging
 import logging.handlers
 import warnings
-from io import open as _open
 from datetime import datetime, timedelta
 
 import pytest
@@ -764,7 +763,7 @@ def load_recorder_yaml_file():
     Load the test YAML file created by the test recorder and return its content
     as a dict.
     """
-    with _open(TEST_YAML_FILE, encoding="utf-8") as fp:
+    with io.open(TEST_YAML_FILE, encoding="utf-8") as fp:
         yaml_content = yaml.load(
             fp, Loader=yamlloader.ordereddict.CSafeLoader)
     return yaml_content
@@ -797,8 +796,12 @@ def test_BaseOperationRecorder_init():
     assert is_inherited_from(
         'enabled', _TestClientRecorder, BaseOperationRecorder)
 
+<<<<<<< HEAD
     try:
         fp = open(os.devnull, 'w')
+=======
+    with io.open(os.devnull, 'w', encoding='utf-8') as fp:
+>>>>>>> ec92e27d (Fixed new issues reported by Pylint 2.10; Cleanup of open())
 
         # The code to be tested
         recorder = _TestClientRecorder(fp)
@@ -825,8 +828,12 @@ def test_BaseOperationRecorder_enable_disable():
     assert is_inherited_from(
         'enabled', _TestClientRecorder, BaseOperationRecorder)
 
+<<<<<<< HEAD
     try:
         fp = open(os.devnull, 'w')
+=======
+    with io.open(os.devnull, 'w', encoding='utf-8') as fp:
+>>>>>>> ec92e27d (Fixed new issues reported by Pylint 2.10; Cleanup of open())
 
         recorder = _TestClientRecorder(fp)
 
@@ -932,7 +939,7 @@ def test_BaseOperationRecorder_open_file(testcase, text, exp_bytes):
     fp.write(text)
     fp.close()
 
-    with open(tmp_filename, 'rb') as fp:
+    with io.open(tmp_filename, 'rb') as fp:
         act_bytes = fp.read()
     assert act_bytes == exp_bytes
 
@@ -1295,8 +1302,12 @@ def test_TestClientRecorder_toyaml(testcase, obj, exp_yaml):
     Test function for TestClientRecorder.toyaml()
     """
 
+<<<<<<< HEAD
     try:
         fp = open(os.devnull, 'w')
+=======
+    with io.open(os.devnull, 'w', encoding='utf-8') as fp:
+>>>>>>> ec92e27d (Fixed new issues reported by Pylint 2.10; Cleanup of open())
 
         recorder = _TestClientRecorder(fp)
         recorder.reset()
@@ -1504,6 +1515,33 @@ TESTCASES_TESTCLIENTRECORDER_RECORD = [
         ),
     ),
 
+<<<<<<< HEAD
+=======
+    (
+        "ExportIndication with an indication with property",
+        'ExportIndication',
+        dict(
+            NewIndication=CIMINSTANCE_ONE_OBJ,
+        ),
+        None,
+        None,
+        dict(
+            name='ExportIndication',
+            pywbem_request=dict(
+                url='http://acme.com:80',
+                creds=['username', 'password'],
+                debug=False,
+                timeout=10,
+                namespace='root/cimv2',
+                operation=dict(
+                    pywbem_method='ExportIndication',
+                    NewIndication=CIMINSTANCE_ONE_TCYAML,
+                ),
+            ),
+            pywbem_response={},
+        ),
+    ),
+>>>>>>> ec92e27d (Fixed new issues reported by Pylint 2.10; Cleanup of open())
 ]
 
 
@@ -3225,3 +3263,248 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
                              propagate=True)
 
         capture.check()
+<<<<<<< HEAD
+=======
+
+
+TESTCASES_COPY_LOGRECORDER = [
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * init_kwargs: keyword args for LogOperationRecorder init
+    #   * enable_recorder: Boolean that causes recorders to be enabled
+    #   * record_operation: Boolean that causes an operation to be performed
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for
+    #   debugger
+
+    (
+        "Only required init parameters",
+        dict(
+            init_kwargs=dict(
+                conn_id='test_id',
+            ),
+            enable_recorder=False,
+            record_operation=False,
+        ),
+        None, None, True
+    ),
+    (
+        "All init parameters",
+        dict(
+            init_kwargs=dict(
+                conn_id='test_id',
+                detail_levels=None,
+            ),
+            enable_recorder=False,
+            record_operation=False,
+        ),
+        None, None, True
+    ),
+    (
+        "With recorder enabled",
+        dict(
+            init_kwargs=dict(
+                conn_id='test_id',
+                detail_levels=None,
+            ),
+            enable_recorder=True,
+            record_operation=False,
+        ),
+        None, None, True
+    ),
+    (
+        "With recorder enabled, operation performed",
+        dict(
+            init_kwargs=dict(
+                conn_id='test_id',
+                detail_levels=None,
+            ),
+            enable_recorder=True,
+            record_operation=True,
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_COPY_LOGRECORDER)
+@simplified_test_function
+def test_copy_logrecorder(
+        testcase, init_kwargs, enable_recorder, record_operation):
+    """Test LogOperationRecorder.copy()"""
+
+    rec = LogOperationRecorder(**init_kwargs)
+
+    if enable_recorder:
+        rec.enable()
+
+    if record_operation:
+        rec.stage_pywbem_args(
+            method='GetQualifier', QualifierName='Abstract')
+        rec.stage_pywbem_result(
+            CIMQualifier('Abstract', type='boolean', value=True), None)
+        rec.stage_http_request(
+            'test_id', 11, 'http://localhost', '/cimon', 'POST', {}, b'<CIM/>')
+        rec.stage_http_response1(
+            'test_id', 11, 200, 'OK', {})
+        rec.stage_http_response2(b'<CIM/>')
+        rec.record_staged()
+
+    # The code to be tested
+    cpy = rec.copy()
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    # pylint: disable=protected-access,unidiomatic-type-check
+
+    # Verify attributes that should have been copied
+
+    assert_copy(cpy.detail_levels, rec.detail_levels)
+    assert_copy(cpy.api_detail_level, rec.api_detail_level)
+    assert_copy(cpy.http_detail_level, rec.http_detail_level)
+    assert_copy(cpy.api_maxlen, rec.api_maxlen)
+    assert_copy(cpy.http_maxlen, rec.http_maxlen)
+
+    # Verify attributes that should have been reset
+
+    assert cpy._pywbem_method is None
+    assert cpy._pywbem_args is None
+    assert cpy._pywbem_result_ret is None
+    assert cpy._pywbem_result_exc is None
+    assert cpy._http_request_version is None
+    assert cpy._http_request_url is None
+    assert cpy._http_request_target is None
+    assert cpy._http_request_method is None
+    assert cpy._http_request_headers is None
+    assert cpy._http_request_payload is None
+    assert cpy._http_response_version is None
+    assert cpy._http_response_status is None
+    assert cpy._http_response_reason is None
+    assert cpy._http_response_headers is None
+    assert cpy._http_response_payload is None
+
+    # Logger objects are obtained via logging.getLogger() so they should be
+    # the same objects.
+    assert type(cpy.apilogger) is type(rec.apilogger)  # noqa: E721
+    assert id(cpy.apilogger) == id(rec.apilogger)
+    assert type(cpy.httplogger) is type(rec.httplogger)  # noqa: E721
+    assert id(cpy.httplogger) == id(rec.httplogger)
+
+    # Verify attributes that have been treated specially
+
+    assert cpy._conn_id == rec._conn_id  # TODO: verify
+
+    # pylint: enable=protected-access,unidiomatic-type-check
+
+
+TESTCASES_COPY_TESTCLIENTRECORDER = [
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * init_kwargs: Additional keyword args for TestClientRecorder init
+    #   * enable_recorder: Boolean that causes recorders to be enabled
+    #   * record_operation: Boolean that causes an operation to be performed
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for
+    #   debugger
+
+    (
+        "Not enabled",
+        dict(
+            init_kwargs={},
+            enable_recorder=False,
+            record_operation=False,
+        ),
+        None, None, True
+    ),
+    (
+        "With recorder enabled",
+        dict(
+            init_kwargs={},
+            enable_recorder=True,
+            record_operation=False,
+        ),
+        None, None, True
+    ),
+    (
+        "With recorder enabled, operation performed",
+        dict(
+            init_kwargs={},
+            enable_recorder=True,
+            record_operation=True,
+        ),
+        None, None, True
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_COPY_TESTCLIENTRECORDER)
+@simplified_test_function
+def test_copy_testclientrecorder(
+        testcase, init_kwargs, enable_recorder, record_operation):
+    """Test TestClientRecorder.copy()"""
+
+    with io.open(DEV_NULL, 'a', encoding='utf-8') as dev_null:
+
+        rec = _TestClientRecorder(dev_null, **init_kwargs)
+
+        if enable_recorder:
+            rec.enable()
+
+        if record_operation:
+            rec.stage_pywbem_args(
+                method='GetQualifier', QualifierName='Abstract')
+            rec.stage_pywbem_result(
+                CIMQualifier('Abstract', type='boolean', value=True), None)
+            rec.stage_http_request(
+                'test_id', 11, 'http://localhost', '/cimon', 'POST', {},
+                b'<CIM/>')
+            rec.stage_http_response1(
+                'test_id', 11, 200, 'OK', {})
+            rec.stage_http_response2(b'<CIM/>')
+            rec.record_staged()
+
+        # The code to be tested
+        cpy = rec.copy()
+
+        # Ensure that exceptions raised in the remainder of this function
+        # are not mistaken as expected exceptions
+        assert testcase.exp_exc_types is None
+
+        # pylint: disable=protected-access,unidiomatic-type-check
+
+        # Verify attributes that should have been the same object
+
+        assert cpy._fp is rec._fp
+
+        # Verify attributes that should have been reset
+
+        assert cpy._pywbem_method is None
+        assert cpy._pywbem_args is None
+        assert cpy._pywbem_result_ret is None
+        assert cpy._pywbem_result_exc is None
+        assert cpy._http_request_version is None
+        assert cpy._http_request_url is None
+        assert cpy._http_request_target is None
+        assert cpy._http_request_method is None
+        assert cpy._http_request_headers is None
+        assert cpy._http_request_payload is None
+        assert cpy._http_response_version is None
+        assert cpy._http_response_status is None
+        assert cpy._http_response_reason is None
+        assert cpy._http_response_headers is None
+        assert cpy._http_response_payload is None
+
+        # pylint: enable=protected-access,unidiomatic-type-check
+>>>>>>> ec92e27d (Fixed new issues reported by Pylint 2.10; Cleanup of open())

@@ -140,7 +140,7 @@ def message_arg(request):
 
 @pytest.fixture(params=[
     # Tuple of (conn_id_kwarg, exp_conn_str)
-    (dict(), TEST_CONN_STR_NONE),
+    ({}, TEST_CONN_STR_NONE),
     (dict(conn_id=None), TEST_CONN_STR_NONE),
     (dict(conn_id=TEST_CONN_ID), TEST_CONN_STR),
 ], scope='module')
@@ -158,7 +158,7 @@ def conn_info(request):
 
 @pytest.fixture(params=[
     # Tuple of (request_data_kwarg, exp_request_data)
-    (dict(), None),
+    ({}, None),
     (dict(request_data=None), None),
     (dict(request_data=b'<CIM/>'), b'<CIM/>'),
 ], scope='module')
@@ -177,7 +177,7 @@ def request_data_info(request):
 
 @pytest.fixture(params=[
     # Tuple of (response_data_kwarg, exp_request_data)
-    (dict(), None),
+    ({}, None),
     (dict(response_data=None), None),
     (dict(response_data=b'<CIM/>'), b'<CIM/>'),
 ], scope='module')

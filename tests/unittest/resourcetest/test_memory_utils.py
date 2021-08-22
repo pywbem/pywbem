@@ -41,8 +41,8 @@ if ENABLE_TESTS:
     SIZE_NONE = size_obj(None)
     SIZE_INT = size_obj(42)
     SIZE_TUPLE = size_obj(tuple())
-    SIZE_LIST = size_obj(list())
-    SIZE_DICT = size_obj(dict())
+    SIZE_LIST = size_obj([])
+    SIZE_DICT = size_obj({})
     SIZE_SET = size_obj(set())
     SIZE_CLASS = size_obj(EC_OBJ)
     SIZE_CLASS_DICT = size_obj(EC_OBJ.__dict__)
@@ -148,7 +148,7 @@ if ENABLE_TESTS:
         (
             "Test empty list",
             dict(
-                obj=list(),
+                obj=[],
                 exp_size=SIZE_LIST,
             ),
             None, None, True
@@ -173,7 +173,7 @@ if ENABLE_TESTS:
         (
             "Test empty dict",
             dict(
-                obj=dict(),
+                obj={},
                 exp_size=SIZE_DICT,
             ),
             None, None, True

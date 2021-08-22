@@ -16,9 +16,9 @@ from __future__ import absolute_import
 # pylint: disable=missing-docstring,superfluous-parens,no-self-use
 
 import sys
+import os
 import re
 from socket import getfqdn
-import os.path
 import threading
 import types
 from datetime import timedelta, datetime
@@ -27,6 +27,7 @@ from getpass import getpass
 import warnings
 import time
 import traceback
+
 from six.moves.urllib.parse import urlparse
 import six
 

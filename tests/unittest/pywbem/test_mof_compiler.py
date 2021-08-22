@@ -5,6 +5,7 @@
 from __future__ import print_function, absolute_import
 
 import os
+import io
 import unittest
 import re
 import pytest
@@ -74,7 +75,8 @@ class MOFTest(unittest.TestCase):
             print(msg, file=self.logfile)
 
         moflog_file = os.path.join(TEST_DIR, 'moflog.txt')
-        self.logfile = open(moflog_file, 'w')
+        # pylint: disable=consider-using-with
+        self.logfile = io.open(moflog_file, 'w', encoding='utf-8')
         self.mofcomp = MOFCompiler(
             MOFWBEMConnection(),
             search_paths=[TEST_DMTF_CIMSCHEMA_MOF_DIR],
@@ -91,7 +93,8 @@ class MOFTest(unittest.TestCase):
             print(msg, file=self.logfile2)
 
         moflog_file2 = os.path.join(TEST_DIR, 'moflog2.txt')
-        self.logfile2 = open(moflog_file2, 'w')
+        # pylint: disable=consider-using-with
+        self.logfile2 = io.open(moflog_file2, 'w', encoding='utf-8')
         self.mofcomp2 = MOFCompiler(
             MOFWBEMConnection(),
             search_paths=None, verbose=False,
@@ -2243,7 +2246,9 @@ class TestFullSchema(MOFTest):
 
         # Create file for mof output
         mofout_filename = os.path.join(TEST_DIR, TMP_FILE)
-        mof_out_hndl = open(mofout_filename, 'w')
+
+        # pylint: disable=consider-using-with
+        mof_out_hndl = io.open(mofout_filename, 'w', encoding='utf-8')
 
         # Output and verify the qualifier declarations
         orig_qual_decls = repo.qualifiers[NAME_SPACE]
@@ -2345,7 +2350,7 @@ class TestPartialSchema(MOFTest):
         self.partial_schema_file = 'test_partial_schema.mof'
         test_schemafile = os.path.join(TEST_DMTF_CIMSCHEMA_MOF_DIR,
                                        self.partial_schema_file)
-        with open(test_schemafile, "w") as sf:
+        with io.open(test_schemafile, "w", encoding='utf-8') as sf:
             sf.write(schema_mof)
 
         self.mofcomp.compile_file(test_schemafile, NAME_SPACE)
@@ -2732,7 +2737,8 @@ class Test_CreateInstanceWithDups(unittest.TestCase):
             print(msg, file=self.logfile)
 
         moflog_file = os.path.join(TEST_DIR, 'moflog.txt')
-        self.logfile = open(moflog_file, 'w')
+        # pylint: disable=consider-using-with
+        self.logfile = io.open(moflog_file, 'w', encoding='utf-8')
         self.mofcomp = MOFCompiler(
             MOFWBEMConnectionInstDups(),
             search_paths=[TEST_DMTF_CIMSCHEMA_MOF_DIR],

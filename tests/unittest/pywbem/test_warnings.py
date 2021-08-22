@@ -97,7 +97,7 @@ def simple_args(request):
 
 @pytest.fixture(params=[
     # Tuple of (conn_id_kwarg, exp_conn_str)
-    (dict(), TEST_CONN_STR_NONE),
+    ({}, TEST_CONN_STR_NONE),
     (dict(conn_id=None), TEST_CONN_STR_NONE),
     (dict(conn_id=TEST_CONN_ID), TEST_CONN_STR),
 ], scope='module')
