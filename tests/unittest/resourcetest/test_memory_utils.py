@@ -36,16 +36,6 @@ if ENABLE_TESTS:
         """
         return sys.getsizeof(obj)
 
-    EC_OBJ = EmptyClass()
-
-    SIZE_NONE = size_obj(None)
-    SIZE_INT = size_obj(42)
-    SIZE_TUPLE = size_obj(tuple())
-    SIZE_LIST = size_obj([])
-    SIZE_DICT = size_obj({})
-    SIZE_SET = size_obj(set())
-    SIZE_CLASS = size_obj(EC_OBJ)
-    SIZE_CLASS_DICT = size_obj(EC_OBJ.__dict__)
     SIZE_REF = struct.calcsize('P')  # pylint: disable=no-member
 
     TESTCASES_TOTAL_SIZEOF = [
@@ -66,7 +56,7 @@ if ENABLE_TESTS:
             "Test None",
             dict(
                 obj=None,
-                exp_size=SIZE_NONE,
+                exp_size=size_obj(None),
             ),
             None, None, True
         ),
@@ -74,7 +64,7 @@ if ENABLE_TESTS:
             "Test int",
             dict(
                 obj=2020,
-                exp_size=SIZE_INT,
+                exp_size=size_obj(2020),
             ),
             None, None, True
         ),
@@ -124,7 +114,7 @@ if ENABLE_TESTS:
             "Test empty tuple",
             dict(
                 obj=tuple(),
-                exp_size=SIZE_TUPLE,
+                exp_size=size_obj(tuple()),
             ),
             None, None, True
         ),
@@ -132,7 +122,7 @@ if ENABLE_TESTS:
             "Test tuple with one int item",
             dict(
                 obj=(2000,),
-                exp_size=SIZE_TUPLE + 1 * (SIZE_REF + SIZE_INT),
+                exp_size=size_obj((42,)) + size_obj(42),
             ),
             None, None, True
         ),
@@ -140,7 +130,7 @@ if ENABLE_TESTS:
             "Test tuple with two int items",
             dict(
                 obj=(2000, 2001),
-                exp_size=SIZE_TUPLE + 2 * (SIZE_REF + SIZE_INT),
+                exp_size=size_obj((42, 43)) + 2 * size_obj(42),
             ),
             None, None, True
         ),
@@ -149,7 +139,7 @@ if ENABLE_TESTS:
             "Test empty list",
             dict(
                 obj=[],
-                exp_size=SIZE_LIST,
+                exp_size=size_obj([]),
             ),
             None, None, True
         ),
@@ -157,7 +147,7 @@ if ENABLE_TESTS:
             "Test list with one int item",
             dict(
                 obj=[2000],
-                exp_size=SIZE_LIST + 1 * (SIZE_REF + SIZE_INT),
+                exp_size=size_obj([42]) + size_obj(42),
             ),
             None, None, True
         ),
@@ -165,7 +155,7 @@ if ENABLE_TESTS:
             "Test list with two int items",
             dict(
                 obj=[2000, 2001],
-                exp_size=SIZE_LIST + 2 * (SIZE_REF + SIZE_INT),
+                exp_size=size_obj([42, 43]) + 2 * size_obj(42),
             ),
             None, None, True
         ),
@@ -174,7 +164,7 @@ if ENABLE_TESTS:
             "Test empty dict",
             dict(
                 obj={},
-                exp_size=SIZE_DICT,
+                exp_size=size_obj({}),
             ),
             None, None, True
         ),
@@ -182,7 +172,7 @@ if ENABLE_TESTS:
             "Test dict with one int/int item",
             dict(
                 obj={2000: 2001},
-                exp_size=SIZE_DICT + 2 * SIZE_INT,
+                exp_size=size_obj({42: 43}) + 2 * size_obj(42),
             ),
             None, None, True
         ),
@@ -190,7 +180,7 @@ if ENABLE_TESTS:
             "Test dict with two int/int items",
             dict(
                 obj={2000: 2001, 2002: 2003},
-                exp_size=SIZE_DICT + 4 * SIZE_INT,
+                exp_size=size_obj({42: 43, 44: 45}) + 4 * size_obj(42),
             ),
             None, None, True
         ),
@@ -235,7 +225,7 @@ if ENABLE_TESTS:
                         'Q1', type='string', value=None)) +
                     size_obj(u'Q1') +  # _name
                     size_obj(u'string') +  # _type
-                    SIZE_NONE +  # _value (first None object)
+                    size_obj(None) +  # _value (first None object)
                     SIZE_REF +  # _propagated
                     SIZE_REF +  # _overridable
                     SIZE_REF +  # _tosubclass
