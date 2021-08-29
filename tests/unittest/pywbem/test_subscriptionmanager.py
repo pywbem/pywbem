@@ -155,7 +155,7 @@ class BaseMethodsForTests(object):
             include_missing_properties=include_missing_properties,
             include_path=include_path)
 
-    def add_filter(self, sub_mgr, server_id, filter_id, owned=True):
+    def add_filter(self, sub_mgr, server_id, owned, filter_id=None, name=None):
         """
         Create a single filter definition in the sub_mgr (which adds it to
         the repository) and returns the path of the new filter instance.
@@ -169,18 +169,23 @@ class BaseMethodsForTests(object):
         self.test_classname = CIMClassName(self.test_class,
                                            namespace=self.test_class_namespace)
 
+        kwargs = {}
+        if filter_id is not None:
+            kwargs['filter_id'] = filter_id
+        if name is not None:
+            kwargs['name'] = name
         filter_ = sub_mgr.add_filter(server_id,
                                      self.test_class_namespace,
                                      self.test_query,
                                      query_language="DMTF:CQL",
-                                     filter_id=filter_id,
-                                     owned=owned)
+                                     owned=owned, **kwargs)
         return filter_.path
 
     def get_objects_from_server(self):
         """
-        Using Server class, get count of Filters, Subscriptions, Destinations
-        from server as confirmation outside of SubscriptionManagerCode.
+        Using the WBEMServer instance, get count of Filters, Subscriptions,
+        and Destinations that match the respective patterns (for filters,
+        it only matches owned filters).
         """
         server = WBEMServer(self.conn)
         system_name = server.cimom_inst['SystemName']
@@ -341,19 +346,17 @@ class TestSubMgrClass(BaseMethodsForTests):
 
             # Create an owned listener, filter, and subscription
 
-            dests = sub_mgr.add_listener_destinations(server_id,
-                                                      listener_url,
-                                                      owned=True)
+            dests = sub_mgr.add_listener_destinations(
+                server_id, listener_url, owned=True)
             assert len(dests) == 1
             dest_path = dests[0].path
             # Note: this method returns path.
-            filter_path = self.add_filter(sub_mgr, server_id, 'NotUsed',
-                                          owned=True)
+            filter_path = self.add_filter(
+                sub_mgr, server_id, owned=True, filter_id='MyFilterID')
             # Should create a single subscription since there is just one
             # destination
-            subscriptions = sub_mgr.add_subscriptions(server_id,
-                                                      filter_path,
-                                                      owned=True)
+            subscriptions = sub_mgr.add_subscriptions(
+                server_id, filter_path, owned=True)
 
             assert len(subscriptions) == 1
             subscription_paths = [inst.path for inst in subscriptions]
@@ -377,9 +380,8 @@ class TestSubMgrClass(BaseMethodsForTests):
             # Issue #701
             # Test that the same owned subscription is not created a second
             # time because the path is the same as the first.
-            subscriptions2 = sub_mgr.add_subscriptions(server_id,
-                                                       filter_path,
-                                                       owned=True)
+            subscriptions2 = sub_mgr.add_subscriptions(
+                server_id, filter_path, owned=True)
             assert len(subscriptions2) == 1
             # Cannot assert subscription equality because of starttime
             # which is time dependent
@@ -400,8 +402,8 @@ class TestSubMgrClass(BaseMethodsForTests):
 
             # Confirm trying to create same filter a second time does
             # create a filter since each filter has unique guid
-            filter_path2 = self.add_filter(sub_mgr, server_id, 'NotUsed',
-                                           owned=True)
+            filter_path2 = self.add_filter(
+                sub_mgr, server_id, owned=True, filter_id='MyFilterID')
             assert len(sub_mgr.get_owned_filters(server_id)) == 2
 
             assert filter_path2 != filter_path
@@ -421,12 +423,11 @@ class TestSubMgrClass(BaseMethodsForTests):
         # confirm no filters, destinations, subscriptions in server
         assert self.get_objects_from_server() == 0
 
-    def test_create_not_owned_subscription(self):
+    def test_create_permanent_subscription(self):
         """
-        Test creating not_owned filter, destination and filter and determining
+        Test creating permanent filter, destination and filter and determining
         if they are retained by the server after the subscription manager
         is closed.
-
         """
         sm = "test_create_delete_subscription"
         server = WBEMServer(self.conn)
@@ -438,8 +439,8 @@ class TestSubMgrClass(BaseMethodsForTests):
             dests = sub_mgr.add_listener_destinations(server_id, listener_url,
                                                       owned=False)
             dest_paths = [dest.path for dest in dests]
-            filter_path = self.add_filter(sub_mgr, server_id, 'NotUsed',
-                                          owned=False)
+            filter_path = self.add_filter(
+                sub_mgr, server_id, owned=False, name='MyName')
             subscriptions = sub_mgr.add_subscriptions(
                 server_id, filter_path,
                 destination_paths=dest_paths,
@@ -452,7 +453,7 @@ class TestSubMgrClass(BaseMethodsForTests):
 
         # Test that subscriptions instances are still in repo
         # self.conn.display_repository()
-        assert self.get_objects_from_server() == 3
+        assert self.get_objects_from_server() == 2  # filter specified name
 
         # Create a new submgr and and test for filters, etc. retrieved.
         with WBEMSubscriptionManager(subscription_manager_id=sm) as sub_mgr:
@@ -498,10 +499,10 @@ class TestSubMgrClass(BaseMethodsForTests):
                                                   owned=True)
         assert len(dests) == 1
         dest_path = dests[0].path
-        filter_path = self.add_filter(submgr1, server_id1, 'NotUsed',
-                                      owned=True)
-        subscriptions = submgr1.add_subscriptions(server_id1, filter_path,
-                                                  owned=True)
+        filter_path = self.add_filter(
+            submgr1, server_id1, owned=True, filter_id='MyFilterID')
+        subscriptions = submgr1.add_subscriptions(
+            server_id1, filter_path, owned=True)
 
         assert len(subscriptions) == 1
         subscription_paths = [inst.path for inst in subscriptions]
