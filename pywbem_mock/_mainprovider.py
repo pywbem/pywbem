@@ -49,7 +49,7 @@ try:
     from time import perf_counter as delta_time
 except ImportError:
     # time.clock() was deprecated in Python 3.3
-    from time import clock as delta_time
+    from time import clock as delta_time  # pylint: disable=deprecated-method
 # pylint: enable=ungrouped-imports
 
 from pywbem import CIMClass, CIMClassName, CIMInstanceName, \
