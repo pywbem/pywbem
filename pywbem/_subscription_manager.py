@@ -765,8 +765,9 @@ class WBEMSubscriptionManager(object):
 
           This should be used in cases where the user needs to have control
           over the filter name (e.g. because a DMTF management profile
-          requires a particular name), but it cannot be used for owned
-          filters.
+          requires a particular name).
+
+          The `name` parameter can only be specified for permanent filters.
 
         * indirectly by specifying the `filter_id` parameter.
 
@@ -783,13 +784,11 @@ class WBEMSubscriptionManager(object):
           ``{filter_id}`` is the filter ID; and
           ``{guid}`` is a globally unique identifier.
 
-        Only owned  filters can use the filter_id to create the
-        `Name` property.
+          The `filter_id` parameter can only be specified for owned filters.
 
         Owned indication filters are added or updated conditionally: If the
         indication filter instance to be added is already registered with
-        this subscription manager , it is not
-        created.
+        this subscription manager, it is not created.
 
         This method does not modify existing CIM_IndicationFilter instances.
 
@@ -833,6 +832,8 @@ class WBEMSubscriptionManager(object):
             contain the character ':' because that is the separator between
             components within the value of the `Name` property.
 
+            This parameter can only be specified for owned filters.
+
             There is no requirement that the filter ID be unique. This can be
             used to identify groups of filters by using the same value for
             multiple filters.
@@ -843,6 +844,8 @@ class WBEMSubscriptionManager(object):
             The filter name to be used directly for the `Name` property of the
             filter instance, or `None` if the `filter_id` parameter is
             specified.
+
+            This parameter can only be specified for permanent filters.
 
           source_namespace (:term:`string):
             Optional source namespace of the indication filter. If the
@@ -878,6 +881,9 @@ class WBEMSubscriptionManager(object):
                 raise ValueError("The filter_id and name parameters are both "
                                  "specified, but only one of them must be "
                                  "specified")
+            if not owned:
+                raise ValueError("The filter_id parameter cannot be used to "
+                                 "add permanent filters.")
             if not isinstance(filter_id, six.string_types):
                 raise TypeError(
                     _format("Invalid type for filter ID: {0!A}", filter_id))

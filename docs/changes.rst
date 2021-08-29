@@ -47,6 +47,10 @@ Released: not yet
   'SourceNamespaces' instead of 'SourceNamespace'. See further comments below
   and issue #2725.
 
+* Changed the 'SubscriptionManager.add_filter()' method to no longer allow
+  specifying the 'filter_id' parameter for permanent filters. The documentation
+  had already disallowed that case, but the code allowed it. (issue #2757)
+
 * Added code to fail compile or creation in pywbem_mock of instance of
   Abstract class. Before this the WBEM server might fail the attempt but
   the MOF compiler and pywbem_mock would build the instance
@@ -62,6 +66,10 @@ Released: not yet
 
 * Fixes several issues in WBEMSubscriptionManager:
 
+  - Fixed the discrepancy between documentation and code in add_filter()
+    regarding 'filter_id', 'name' and ownership type: The only allowed
+    combinations are now owned filters with 'filter_id' and permanent filters
+    with 'name'. (issue #2757)
   - add_filter() and add_destinations() methods  can no longer modify
     existing instances on the WBEM server. They can only create new instances.
   - Modified the algorithm to determine owned filters and
