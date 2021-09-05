@@ -51,6 +51,9 @@ Released: not yet
 * Mitigated Pylint issue 'deprecated-method' when using time.perf_counter()
   on Python versions 3.6 and 3.7. (issue #2768)
 
+* Mitigated new Pylint error 'not-an-iterable' when using 'WBEMServer'
+  properties that return lists and use deferred initialization. (issue #2770)
+
 **Enhancements:**
 
 * Added toleration support for WBEM servers that return a CIM status

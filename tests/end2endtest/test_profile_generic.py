@@ -104,6 +104,7 @@ def test_undefined_profiles(wbem_connection):  # noqa: F811
         'RegisteredOrganization')
 
     undefined_profile_ids = []
+    # pylint: disable=not-an-iterable
     for inst in server_prop_asserted(server, 'profiles'):
         org = org_vm.tovalues(inst['RegisteredOrganization'])
         name = inst['RegisteredName']
