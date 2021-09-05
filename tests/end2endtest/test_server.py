@@ -38,6 +38,7 @@ def test_namespace_consistency(
     msg = "for server at URL {0!r}".format(wbem_connection.url)
 
     interop_ns_lower = server_prop_asserted(server, 'interop_ns').lower()
+    # pylint: disable=not-an-iterable
     namespaces_lower = [ns.lower()
                         for ns in server_prop_asserted(server, 'namespaces')]
     namespace_paths = server_prop_asserted(server, 'namespace_paths')
@@ -48,6 +49,7 @@ def test_namespace_consistency(
     # does not represent it as a CIM instance. In that case, server.namespaces
     # contains the Interop namespace while server.namespace_paths does not.
     # The following checks accomodate that.
+    # pylint: disable=not-an-iterable
     for ns_path in namespace_paths:
         assert ns_path.namespace.lower() == interop_ns_lower, msg
         ns_path_name_lower = ns_path['Name'].lower()
@@ -68,6 +70,7 @@ def test_namespace_getinstance(
 
     namespace_paths = server_prop_asserted(server, 'namespace_paths')
 
+    # pylint: disable=not-an-iterable
     for path in namespace_paths:
 
         inst = wbem_connection.GetInstance(
@@ -146,6 +149,7 @@ def test_profiles(
 
     interop_ns_lower = server_prop_asserted(server, 'interop_ns').lower()
 
+    # pylint: disable=not-an-iterable
     for profile_inst in profile_insts:
         assert profile_inst.path is not None, msg
         assert profile_inst.path.namespace.lower() == interop_ns_lower, msg
@@ -177,5 +181,6 @@ def test_get_selected_profiles_no_filter(
     all_profile_insts = server_func_asserted(server, 'get_selected_profiles')
 
     assert len(profile_insts) == len(all_profile_insts), msg
+    # pylint: disable=not-an-iterable
     for inst in profile_insts:
         assert inst in all_profile_insts, msg
