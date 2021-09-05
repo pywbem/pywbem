@@ -149,6 +149,7 @@ The :ref:`Tutorial` section contains a tutorial about the subscription manager.
 """
 
 import re
+import warnings
 from socket import getfqdn
 import uuid
 import six
@@ -158,8 +159,9 @@ from ._server import WBEMServer
 from ._cim_obj import CIMInstance, CIMInstanceName
 from ._cim_types import Uint16
 from ._cim_http import parse_url
-from ._cim_constants import CIM_ERR_FAILED
+from ._cim_constants import CIM_ERR_FAILED, CIM_ERR_ALREADY_EXISTS
 from ._exceptions import CIMError
+from ._warnings import OldNameFilterWarning
 from ._utils import _format
 
 # CIM model classnames for subscription components
@@ -216,24 +218,14 @@ class WBEMSubscriptionManager(object):
           subscription_manager_id (:term:`string`):
             A subscription manager ID string that is used as a component in
             the value of the `Name` property of indication filter and listener
-            destination instances to help the user identify these instances in
-            a WBEM server.
+            destination instances and thus allows identifying these instances
+            in a WBEM server.
 
             Must not be `None`.
 
             The string must consist of printable characters, and must not
             contain the character ':' because that is the separator between
             components within the value of the `Name` property.
-
-            The subscription manager ID must be unique on the current client
-            host.
-
-            For example, the form of the `Name` property of a filter instance
-            is (for details, see
-            :meth:`~pywbem.WBEMSubscriptionManager.add_filter`):
-
-              ``"pywbemfilter:" {ownership} ":" {subscription_manager_id} ":"
-              {filter_id} ":" {guid}``
 
         Raises:
 
@@ -407,14 +399,25 @@ class WBEMSubscriptionManager(object):
                 self._owned_destinations[server_id].append(inst)
 
         filter_name_pattern = re.compile(
+            _format(r'^pywbemfilter:{0}:[^:]*$',
+                    self._subscription_manager_id))
+        filter_name_old_pattern = re.compile(  # before pywbem 1.3
             _format(r'^pywbemfilter:owned:{0}:{1}:[^:]*:[^:]*$',
                     this_client, self._subscription_manager_id))
+
         filter_insts = server.conn.EnumerateInstances(
             FILTER_CLASSNAME, namespace=server.interop_ns)
 
         for inst in filter_insts:
             if re.match(filter_name_pattern, inst.path.keybindings['Name']):
                 self._owned_filters[server_id].append(inst)
+            if re.match(filter_name_old_pattern, inst.path.keybindings['Name']):
+                warnings.warn(
+                    _format(
+                        "Ignored owned indication filter instance in WBEM "
+                        "server that has the old name format : {0}",
+                        inst.path),
+                    OldNameFilterWarning, 2)
 
         sub_insts = server.conn.EnumerateInstances(
             SUBSCRIPTION_CLASSNAME, namespace=server.interop_ns)
@@ -773,27 +776,20 @@ class WBEMSubscriptionManager(object):
 
           In this case, the value of the `Name` property will be:
 
-          ``"pywbemfilter:" {ownership} ":" {client_host_name} ":"
-          {subscription_manager_id} ":" {filter_id} ":" {guid}``
+          ``"pywbemfilter:" {submgr_id} ":" {filter_id}``
 
-          where
-          ``{ownership}`` is ``"owned"`` or ``"permanent"`` dependent on
-          whether the filter is owned or permmanent;
-          ``{client_host_name}`` is the fqdn of the client hos;
-          ``{subscription_manager_id}`` is the subscription manager ID;
-          ``{filter_id}`` is the filter ID; and
-          ``{guid}`` is a globally unique identifier.
+          where:
+
+          - ``{submgr_id}`` is the subscription manager ID
+          - ``{filter_id}`` is the filter ID
 
           The `filter_id` parameter can only be specified for owned filters.
 
-        Owned indication filters are added or updated conditionally: If the
-        indication filter instance to be added is already registered with
-        this subscription manager, it is not created.
-
-        This method does not modify existing CIM_IndicationFilter instances.
-
-        Permanent indication filters are created unconditionally, and it is
-        up to the user to ensure that such an instance does not exist yet.
+        If an indication filter instance with the specified or generated 'Name'
+        property already exists, the method raises
+        CIMError(CIM_ERR_ALREADY_EXISTS). Note that this is a more strict
+        behavior than what a WBEM server would do, because the 'Name' property
+        is only one of four key properties.
 
         Parameters:
 
@@ -847,13 +843,13 @@ class WBEMSubscriptionManager(object):
 
             This parameter can only be specified for permanent filters.
 
-          source_namespace (:term:`string):
+          source_namespace (:term:`string`):
             Optional source namespace of the indication filter. If the
             parameter is provided the value will be inserted into the
             CIM_IndicationFilter SourceNamespace property. Otherwise the
             SourceNamespace property will not be created. The `SourceNamespace`
             property is deprecated in the DMTF CIM_IndicationFilter class in
-            favor of `SourceNamespaces`( see the `SourceNamespaces` parameter
+            favor of `SourceNamespaces` (see the `SourceNamespaces` parameter
             above). This parameter is provided only to support calls to
             add_filter() that use the `source_namespace` as a keyword parameter
             or to support very old WBEM servers (prior to DMTF schema version
@@ -865,8 +861,9 @@ class WBEMSubscriptionManager(object):
             instance.
 
         Raises:
-
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            CIMError(CIM_ERR_ALREADY_EXISTS): A filter with the specified or
+              generated 'Name' property already exists in the server.
             ValueError: Incorrect input parameter values.
             TypeError: Incorrect input parameter types.
         """
@@ -906,7 +903,7 @@ class WBEMSubscriptionManager(object):
                 source_namespaces = [source_namespaces]
 
         filter_inst = self._create_filter(
-            server_id, source_namespaces, query, query_language, owned,
+            server_id, source_namespaces, query, query_language,
             filter_id, name, source_namespace=source_namespace)
 
         return filter_inst
@@ -1317,8 +1314,7 @@ class WBEMSubscriptionManager(object):
         return dest_inst
 
     def _create_filter(self, server_id, source_namespaces, query,
-                       query_language, owned, filter_id, name,
-                       source_namespace):
+                       query_language, filter_id, name, source_namespace):
         """
         Create a :term:`dynamic indication filter` instance in the Interop
         namespace of a WBEM server and return that instance.
@@ -1344,14 +1340,9 @@ class WBEMSubscriptionManager(object):
 
             Examples: 'WQL', 'DMTF:CQL'.
 
-          owned (:class:`py:bool`):
-            Defines whether or not the created instance is *owned* by the
-            subscription manager.
-
           filter_id (:term:`string`):
             Filter ID string to be incorporated into the `Name` property of the
-            filter instance, as detailed for `subscription_manager_id`, or
-            `None`.
+            filter instance, or `None`.
             Mutually exclusive with the `name` parameter.
 
           name (:term:`string`):
@@ -1374,21 +1365,17 @@ class WBEMSubscriptionManager(object):
         # Validate server_id
         server = self._get_server(server_id)
 
-        ownership = "owned" if owned else "permanent"
-
-        this_client = getfqdn()
+        owned = filter_id is not None
 
         filter_inst = CIMInstance(FILTER_CLASSNAME)
         filter_inst['CreationClassName'] = FILTER_CLASSNAME
         filter_inst['SystemCreationClassName'] = SYSTEM_CREATION_CLASSNAME
         filter_inst['SystemName'] = self._systemnames[server_id]
-        if filter_id:
-            filter_inst['Name'] = _format(
-                'pywbemfilter:{0}:{1}:{2}:{3}:{4}',
-                ownership, this_client, self._subscription_manager_id,
-                filter_id, uuid.uuid4())
-        if name:
-            filter_inst['Name'] = name
+        if owned:
+            name = _format(
+                'pywbemfilter:{0}:{1}',
+                self._subscription_manager_id, filter_id)
+        filter_inst['Name'] = name
         if source_namespaces:
             filter_inst['SourceNamespaces'] = source_namespaces
         if source_namespace:
@@ -1396,6 +1383,15 @@ class WBEMSubscriptionManager(object):
         filter_inst['Query'] = query
         filter_inst['QueryLanguage'] = query_language
 
+        existing_filter_insts = server.conn.EnumerateInstances(
+            FILTER_CLASSNAME, namespace=server.interop_ns)
+        for inst in existing_filter_insts:
+            name_prop = inst.properties.get('Name', None)  # CIMProperty
+            if name_prop and name_prop.value == name:
+                raise CIMError(
+                    CIM_ERR_ALREADY_EXISTS,
+                    "Filter instance with Name='{0}' already exists: {1}".
+                    format(name, inst.path))
         filter_path = server.conn.CreateInstance(
             filter_inst, namespace=server.interop_ns)
         filter_inst = server.conn.GetInstance(filter_path)

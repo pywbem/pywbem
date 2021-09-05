@@ -36,7 +36,7 @@ from ..utils.pytest_extensions import simplified_test_function
 from ...utils import import_installed
 pywbem = import_installed('pywbem')
 from pywbem import WBEMServer, CIMClassName, WBEMSubscriptionManager, \
-    CIMInstance, CIMDateTime, CIMError  # noqa: E402
+    CIMInstance, CIMDateTime, CIMError, CIM_ERR_ALREADY_EXISTS  # noqa: E402
 from pywbem._subscription_manager import SUBSCRIPTION_CLASSNAME, \
     DESTINATION_CLASSNAME, FILTER_CLASSNAME  # noqa: E402
 from pywbem_mock import OBJECTMANAGERNAME, \
@@ -400,21 +400,19 @@ class TestSubMgrClass(BaseMethodsForTests):
             assert subscriptions == subscriptions2
             assert len(sub_mgr.get_owned_destinations(server_id)) == 1
 
-            # Confirm trying to create same filter a second time does
-            # create a filter since each filter has unique guid
-            filter_path2 = self.add_filter(
-                sub_mgr, server_id, owned=True, filter_id='MyFilterID')
-            assert len(sub_mgr.get_owned_filters(server_id)) == 2
-
-            assert filter_path2 != filter_path
+            # Trying to create a second filter with the same name fails
+            with pytest.raises(CIMError) as exc_info:
+                self.add_filter(sub_mgr, server_id, owned=True,
+                                filter_id='MyFilterID')
+            exc = exc_info.value
+            assert exc.status_code == CIM_ERR_ALREADY_EXISTS
+            assert len(sub_mgr.get_owned_filters(server_id)) == 1
 
             sub_mgr.remove_subscriptions(server_id, subscription_paths)
             sub_mgr.remove_filter(server_id, filter_path)
-            sub_mgr.remove_filter(server_id, filter_path2)
 
-            self.confirm_removed(sub_mgr, server_id,
-                                 [filter_path, filter_path2],
-                                 subscription_paths)
+            self.confirm_removed(
+                sub_mgr, server_id, [filter_path], subscription_paths)
 
             assert self.get_object_count(sub_mgr, server_id) == 0
 

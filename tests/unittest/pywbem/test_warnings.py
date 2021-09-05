@@ -13,7 +13,8 @@ import pytest
 # pylint: disable=redefined-builtin
 from ...utils import import_installed
 pywbem = import_installed('pywbem')
-from pywbem import Warning, ToleratedServerIssueWarning  # noqa: E402
+from pywbem import Warning, ToleratedServerIssueWarning, \
+    MissingKeybindingsWarning, OldNameFilterWarning  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 # pylint: enable=redefined-builtin
 
@@ -68,6 +69,8 @@ def _assert_connection(exc, conn_id_kwarg, exp_conn_str):
     # The warning classes for which the simple test should be done:
     Warning,
     ToleratedServerIssueWarning,
+    MissingKeybindingsWarning,
+    OldNameFilterWarning,
 ], scope='module')
 def simple_class(request):
     """

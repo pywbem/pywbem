@@ -56,6 +56,12 @@ Released: not yet
   the MOF compiler and pywbem_mock would build the instance
   (see issue # 2742).
 
+* The new simplified format of the automatically generated 'Name' property of
+  owned indication filters causes existing filters with the old format to
+  be ignored and a Python warning of type 'pywbem.OldNameFilterWarning' will be
+  issued. Such filter instances need to be cleaned up by the user.
+  (related to issue #2765)
+
 **Deprecations:**
 
 **Bug fixes:**
@@ -203,6 +209,18 @@ Released: not yet
 * Pylint: Removed pinning of Pylint to <2.7.0 because the performance issue
   can also be addressed by disabling the similarity checker, and addressed
   Pylint issues reported by Pylint 2.9. (issue #2672)
+
+* Simplified the format of the automatically generated 'Name' property of owned
+  indication filters from:
+  ``"pywbemfilter:" {ownership} ":" {client_host} ":" {submgr_id} ":" {filter_id} ":" {guid}``
+  to:
+  ``"pywbemfilter:" {submgr_id} ":" {filter_id}``.
+  The client host was removed in order to allow different client systems to be
+  used. The ownership was removed because filters with an auto-generated Name
+  are always owned. The GUID was removed to make the name predictable and the
+  uniqueness it attempted to guarantee is now achieved by rejecting the creation
+  of filters with the same name. Overall, this change makes the name much more
+  suitable for use in CLI tools such as pywbemcli. (issue #2765)
 
 **Cleanup:**
 

@@ -25,7 +25,7 @@ from ._exceptions import Error
 # This module is meant to be safe for 'import *'.
 
 __all__ = ['Warning', 'ToleratedServerIssueWarning',
-           'MissingKeybindingsWarning']
+           'MissingKeybindingsWarning', 'OldNameFilterWarning']
 
 
 class Warning(Error, six.moves.builtins.Warning):
@@ -52,5 +52,16 @@ class MissingKeybindingsWarning(Warning):
 
     A local creation of :class:`~pywbem.CIMinstanceName` objects without
     keybindings does not issue this warning.
+    """
+    pass
+
+
+class OldNameFilterWarning(Warning):
+    """
+    This warning indicates that an owned indication filter instance with an old
+    name format (prior to pywbem 1.3) was discovered on the WBEM server.
+
+    Such filters are ignored when discovering owned filters. They should be
+    cleaned up by the user.
     """
     pass
