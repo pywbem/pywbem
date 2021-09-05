@@ -140,6 +140,7 @@ class Test_SNIA_Server_Profile(ProfileTest):
             self.server, 'interop_ns').lower()
         if interop_ns_lower not in inst_names:
             inst_names.append(interop_ns_lower)
+        # pylint: disable=not-an-iterable
         determined_names = [ns.lower()
                             for ns in server_prop_asserted(
                                 self.server, 'namespaces')]
