@@ -25,8 +25,8 @@ from ._exceptions import Error
 # This module is meant to be safe for 'import *'.
 
 __all__ = ['Warning', 'ToleratedServerIssueWarning',
-           'MissingKeybindingsWarning', 'OldNameFilterWarning',
-           'ToleratedSchemaIssueWarning']
+           'ToleratedSchemaIssueWarning', 'MissingKeybindingsWarning',
+           'OldNameFilterWarning', 'OldNameDestinationWarning']
 
 
 class Warning(Error, six.moves.builtins.Warning):
@@ -41,6 +41,14 @@ class ToleratedServerIssueWarning(Warning):
     """
     This warning indicates an issue with the WBEM server that has been
     tolerated by pywbem.
+    """
+    pass
+
+
+class ToleratedSchemaIssueWarning(Warning):
+    """
+    This warning indicates that a component in a DMTF CIM Schema is
+    invalid but the issue is tolerated or corrected by pywbem.
     """
     pass
 
@@ -68,9 +76,12 @@ class OldNameFilterWarning(Warning):
     pass
 
 
-class ToleratedSchemaIssueWarning(Warning):
+class OldNameDestinationWarning(Warning):
     """
-    This warning indicates that a component in a DMTF CIM Schema is
-    invalid but the issue is tolerated or corrected by pywbem.
+    This warning indicates that an owned listener destination instance with an
+    old name format (prior to pywbem 1.3) was discovered on the WBEM server.
+
+    Such destinations are ignored when discovering owned destinations. They
+    should be cleaned up by the user.
     """
     pass
