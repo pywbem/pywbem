@@ -125,6 +125,9 @@ Released: not yet
 * Fixed installation with setup.py on ubuntu for Python 2.7, 3.4, 3.5, by
   pinning yamlloader to <1.0.0. (issue #2745)
 
+* Mitigated Pylint issue 'deprecated-method' when using time.perf_counter()
+  on Python versions 3.6 and 3.7. (issue #2768)
+
 **Enhancements:**
 
 * Improved the running of indication listeners via `WBEMListener.start()`:

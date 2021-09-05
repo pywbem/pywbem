@@ -45,11 +45,14 @@ from nocaselist import NocaseList
 
 # pylint: disable=ungrouped-imports
 try:
-    # time.perf_counter() was added in Python 3.3
-    from time import perf_counter as delta_time
+    from time import perf_counter
 except ImportError:
-    # time.clock() was deprecated in Python 3.3
-    from time import clock as delta_time  # pylint: disable=deprecated-method
+    # For Python <3.3, fall back to time.clock() (deprecated since Python 3.3).
+    # Note: On Python 3.6 and 3.7, Pylint 2.10.2 raises the warning
+    #       'deprecated-method' on the lines where perf_counter() is used.
+    #       Remove disabling that warning once Pylint issue
+    #       https://github.com/PyCQA/pylint/issues/4966 is resolved.
+    from time import clock as perf_counter
 # pylint: enable=ungrouped-imports
 
 from pywbem import CIMClass, CIMClassName, CIMInstanceName, \
@@ -2676,7 +2679,7 @@ class MainProvider(ResolverMixin, BaseProvider):
                 {'pull_type': pull_type,
                  'data': objects,
                  'namespace': namespace,
-                 'time': delta_time(),
+                 'time': perf_counter(),  # pylint: disable=deprecated-method
                  'interoptimeout': timeout,
                  'continueonerror': ContinueOnError}
             rtn_objects = objects[0:max_obj_cnt]
