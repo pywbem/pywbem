@@ -114,7 +114,8 @@ is assumed to exist somewhere and is identified by its URL::
     server_id = sub_mgr.add_server(server)
 
     # Add a listener destination in the server:
-    dest_inst = sub_mgr.add_listener_destinations(server_id, listener_url)
+    dest_inst = sub_mgr.add_destination(
+        server_id, listener_url, owned=True, destination_id='id1')
 
     # Subscribe to a static filter of a given name:
     filter1_name = "DMTF:Indications:GlobalAlertIndicationFilter"
@@ -151,7 +152,6 @@ The :ref:`Tutorial` section contains a tutorial about the subscription manager.
 import re
 import warnings
 from socket import getfqdn
-import uuid
 import six
 from nocasedict import NocaseDict
 
@@ -161,7 +161,7 @@ from ._cim_types import Uint16
 from ._cim_http import parse_url
 from ._cim_constants import CIM_ERR_FAILED, CIM_ERR_ALREADY_EXISTS
 from ._exceptions import CIMError
-from ._warnings import OldNameFilterWarning
+from ._warnings import OldNameFilterWarning, OldNameDestinationWarning
 from ._utils import _format
 
 # CIM model classnames for subscription components
@@ -389,14 +389,26 @@ class WBEMSubscriptionManager(object):
         # Recover owned destination, filter, and subscription instances
         # that exist on the WBEMServer
         dest_name_pattern = re.compile(
+            _format(r'^pywbemdestination:{0}:[^:]*$',
+                    self._subscription_manager_id))
+        dest_name_old_pattern = re.compile(
             _format(r'^pywbemdestination:owned:{0}:{1}:[^:]*$',
                     this_client, self._subscription_manager_id))
+
         dest_insts = server.conn.EnumerateInstances(
             DESTINATION_CLASSNAME, namespace=server.interop_ns)
 
         for inst in dest_insts:
             if re.match(dest_name_pattern, inst.path.keybindings['Name']):
                 self._owned_destinations[server_id].append(inst)
+            if re.match(dest_name_old_pattern, inst.path.keybindings['Name']):
+                warnings.warn(
+                    _format(
+                        "Ignored listener destination instance when detecting "
+                        "owned instances because it has the old name format: "
+                        "{0}",
+                        inst.path),
+                    OldNameDestinationWarning, 2)
 
         filter_name_pattern = re.compile(
             _format(r'^pywbemfilter:{0}:[^:]*$',
@@ -414,8 +426,9 @@ class WBEMSubscriptionManager(object):
             if re.match(filter_name_old_pattern, inst.path.keybindings['Name']):
                 warnings.warn(
                     _format(
-                        "Ignored owned indication filter instance in WBEM "
-                        "server that has the old name format : {0}",
+                        "Ignored indication filter instance when detecting "
+                        "owned instances because it has the old name format: "
+                        "{0}",
                         inst.path),
                     OldNameFilterWarning, 2)
 
@@ -503,37 +516,51 @@ class WBEMSubscriptionManager(object):
         for server_id in list(self._servers.keys()):
             self.remove_server(server_id)
 
-    def add_listener_destinations(self, server_id, listener_urls, owned=True,
-                                  persistence_type=None):
+    def add_destination(self, server_id, listener_url, owned=True,
+                        destination_id=None, name=None,
+                        persistence_type=None):
         """
-        Register WBEM listeners to be the target of indications sent by a
-        WBEM server.
+        Add a listener destination to be the target of indications sent by a
+        WBEM server, by creating an instance of CIM class
+        "CIM_ListenerDestinationCIMXML" in the Interop namespace of the
+        server.
 
-        This function automatically creates a listener destination instance
-        (of CIM class "CIM_ListenerDestinationCIMXML") for each specified
-        listener URL in the Interop namespace of the specified WBEM server.
+        The `Name` property of the created listener destination instance can be
+        set in one of two ways:
 
-        The form of the `Name` property of the created destination instance is:
+        * directly by specifying the `name` parameter.
 
-          ``"pywbemdestination:" {ownership} ":" {client_host_name} ":"
-          {subscription_manager_id} ":" {guid}``
+          In this case, the `Name` property is set directly to the `name`
+          parameter.
 
-        where ``{ownership}`` is ``"owned"`` or ``"permanent"`` dependent on
-        the `owned` argument; ``{client_host_name}`` is the fqdn of the client
-        host; ``{subscription_manager_id}`` is the subscription manager ID;
-        and ``{guid}`` is a globally unique identifier.
+          This should be used in cases where the user needs to have control
+          over the destination name (e.g. because a DMTF management profile
+          requires a particular name).
 
-        Owned listener destinations are added or updated conditionally: If the
-        listener destination instance to be added is already registered with
-        this subscription manager, is an owned destination and has the same
-        `Destination property`, a new listener_destination instance is not
-        created. If an instance with this path does not exist yet (the normal
-        case), it is created.
+          The `name` parameter can only be specified for permanent destinations.
 
-        This method does not modify an existing destination instance.
+        * indirectly by specifying the `destination_id` parameter.
 
-        Permanent listener destinations are created unconditionally, and it is
-        up to the user to ensure that such an instance does not exist yet.
+          In this case, the value of the `Name` property will be:
+
+          ``"pywbemdestination:" {submgr_id} ":" {destination_id}``
+
+          where:
+
+          - ``{submgr_id}`` is the subscription manager ID
+          - ``{destination_id}`` is the value of the `destination_id` parameter
+
+          The `destination_id` parameter can only be specified for owned
+          destinations.
+
+          If an owned listener destination instance for the specified listener
+          URL already exists, it is returned without creating a new instance.
+
+        If a listener destination instance with the specified or generated
+        'Name' property already exists, the method raises
+        CIMError(CIM_ERR_ALREADY_EXISTS). Note that this is a more strict
+        behavior than what a WBEM server would do, because the 'Name' property
+        is only one of four key properties.
 
         Parameters:
 
@@ -541,13 +568,13 @@ class WBEMSubscriptionManager(object):
             The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
-          listener_urls (:term:`string` or list of :term:`string`):
-            The URL or URLs of the WBEM listeners to be registered.
+          listener_url (:term:`string`):
+            The URL of the WBEM listener that should receive the indications.
 
             The WBEM listener may be a :class:`~pywbem.WBEMListener` object or
             any external WBEM listener.
 
-            Each listener URL string must have the format:
+            The listener URL string must have the format:
 
               ``[{scheme}://]{host}:{port}``
 
@@ -565,16 +592,37 @@ class WBEMSubscriptionManager(object):
               :term:`RFC6874`, supporting ``-`` (minus) for the delimiter
               before the zone ID string, as an additional choice to ``%25``.
 
-            Note that the port is required in listener URLs.
+            The port is required in the listener URL.
 
             See :class:`~pywbem.WBEMConnection` for examples of valid URLs,
             with the caveat that the port in server URLs is optional.
 
           owned (:class:`py:bool`):
             Defines the ownership type of the created listener destination
-            instances: If `True`, they will be owned. Otherwise, they will be
+            instance: If `True`, it will be owned. Otherwise, it will be
             permanent. See :ref:`WBEMSubscriptionManager` for details about
             these ownership types.
+
+          destination_id (:term:`string`):
+            A destination ID string that is used as a component in the value of
+            the `Name` property of owned destination instances to help the user
+            identify these instances in a WBEM server, or `None` if the `name`
+            parameter is specified.
+
+            The string must consist of printable characters, and must not
+            contain the character ':' because that is the separator between
+            components within the value of the `Name` property.
+
+            This parameter is required for owned destinations and is rejected
+            for permanent destinations.
+
+          name (:term:`string`):
+            The destination name to be used directly for the `Name` property of
+            permanent destination instances, or `None` if the `destination_id`
+            parameter is specified.
+
+            This parameter is required for permanent destinations and is
+            rejected for owned destinations.
 
           persistence_type (:term:`string`):
             Optional string where the allowed strings are "transient" and
@@ -595,38 +643,46 @@ class WBEMSubscriptionManager(object):
 
         Returns:
 
-            :class:`py:list` of :class:`~pywbem.CIMInstance`: The created
-            listener destination instances for the defined listener URLs.
+            :class:`~pywbem.CIMInstance`: The created listener destination
+            instance for the defined listener URL.
 
         Raises:
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            CIMError(CIM_ERR_ALREADY_EXISTS): A filter with the specified
+              or generated 'Name' property already exists in the server.
+            ValueError: Incorrect input parameter values.
         """
 
         # server_id is validated in _create_...() method.
 
-        # If list, recursively call this function with each list item.
-        if isinstance(listener_urls, list):
-            dest_insts = []
-            for listener_url in listener_urls:
-                new_dest_insts = self.add_listener_destinations(
-                    server_id, listener_url, owned)
-                dest_insts.extend(new_dest_insts)
-            return dest_insts
+        if owned:
+            if destination_id is None:
+                raise ValueError("For owned destinations, the 'destination_id' "
+                                 "parameter must be specified")
+            if name is not None:
+                raise ValueError("For owned destinations, the 'name' "
+                                 "parameter must not be specified")
+        else:  # permanent
+            if name is None:
+                raise ValueError("For permanent destinations, 'name' "
+                                 "parameter must be specified")
+            if destination_id is not None:
+                raise ValueError("For permanent destinations, the "
+                                 "'destination_id' parameter must not be "
+                                 "specified")
 
-        # Here, the variable will be a single list item.
-        listener_url = listener_urls
-
-        # Validate which returns integer for instance PropertyValue or None
-        # and if None and owned, set type 3 (transient).
+        # Validate persistence_type, and default it to 3 (transient) if the
+        # destination is owned.
         persistence_type_value = validate_persistence_type(persistence_type)
         if owned and persistence_type is None:
             persistence_type_value = 3
 
-        dest_inst = self._create_destination(server_id, listener_url, owned,
-                                             persistence_type_value)
+        dest_inst = self._create_destination(
+            server_id, listener_url, owned, destination_id, name,
+            persistence_type_value)
 
-        return [dest_inst]
+        return dest_inst
 
     def get_owned_destinations(self, server_id):
         """
@@ -828,7 +884,8 @@ class WBEMSubscriptionManager(object):
             contain the character ':' because that is the separator between
             components within the value of the `Name` property.
 
-            This parameter can only be specified for owned filters.
+            This parameter is required for owned filters and is rejected for
+            permanent filters.
 
             There is no requirement that the filter ID be unique. This can be
             used to identify groups of filters by using the same value for
@@ -841,7 +898,8 @@ class WBEMSubscriptionManager(object):
             filter instance, or `None` if the `filter_id` parameter is
             specified.
 
-            This parameter can only be specified for permanent filters.
+            This parameter is required for permanent filters and is rejected for
+            owned filters.
 
           source_namespace (:term:`string`):
             Optional source namespace of the indication filter. If the
@@ -870,27 +928,28 @@ class WBEMSubscriptionManager(object):
 
         # server_id is validated in _create_...() method.
 
-        if filter_id is None and name is None:
-            raise ValueError("The filter_id and name parameters are both "
-                             "None, but exactly one of them must be specified")
-        if filter_id is not None:
+        if owned:
+            if filter_id is None:
+                raise ValueError("For owned filters, the 'filter_id' "
+                                 "parameter must be specified")
             if name is not None:
-                raise ValueError("The filter_id and name parameters are both "
-                                 "specified, but only one of them must be "
-                                 "specified")
-            if not owned:
-                raise ValueError("The filter_id parameter cannot be used to "
-                                 "add permanent filters.")
+                raise ValueError("For owned filters, the 'name' "
+                                 "parameter must not be specified")
+        else:  # permanent
+            if name is None:
+                raise ValueError("For permanent filters, 'name' "
+                                 "parameter must be specified")
+            if filter_id is not None:
+                raise ValueError("For permanent filters, the 'filter_id' "
+                                 "parameter must not be specified")
+
+        if filter_id is not None:
             if not isinstance(filter_id, six.string_types):
                 raise TypeError(
                     _format("Invalid type for filter ID: {0!A}", filter_id))
             if ':' in filter_id:
                 raise ValueError(
                     _format("Filter ID contains ':': {0!A}", filter_id))
-
-        if name is not None and owned:
-            raise ValueError("The name parameter cannot be used to add "
-                             "owned filters.")
 
         if source_namespaces is not None:
             if not isinstance(source_namespaces, (six.string_types, list)):
@@ -1231,8 +1290,8 @@ class WBEMSubscriptionManager(object):
                 del inst_list[i]
                 # continue loop to find any possible duplicate entries
 
-    def _create_destination(self, server_id, dest_url, owned,
-                            persistence_type_value):
+    def _create_destination(self, server_id, dest_url, owned, destination_id,
+                            name, persistence_type_value):
         """
         Create a listener destination instance in the Interop namespace of a
         WBEM server and return that instance.
@@ -1259,8 +1318,31 @@ class WBEMSubscriptionManager(object):
             URL specify the target location to be used by the WBEM server.
 
           owned (:class:`py:bool`):
-            Defines whether or not the created instance is *owned* by the
-            subscription manager.
+            Defines the ownership type of the created listener destination
+            instance: If `True`, it will be owned. Otherwise, it will be
+            permanent. See :ref:`WBEMSubscriptionManager` for details about
+            these ownership types.
+
+          destination_id (:term:`string`):
+            A destination ID string that is used as a component in the value of
+            the `Name` property of owned destination instances to help the user
+            identify these instances in a WBEM server, or `None` if the `name`
+            parameter is specified.
+
+            The string must consist of printable characters, and must not
+            contain the character ':' because that is the separator between
+            components within the value of the `Name` property.
+
+            This parameter is required for owned destinations and is rejected
+            for permanent destinations.
+
+          name (:term:`string`):
+            The destination name to be used directly for the `Name` property of
+            permanent destination instances, or `None` if the `destination_id`
+            parameter is specified.
+
+            This parameter is required for permanent destinations and is
+            rejected for owned destinations.
 
           persistence_type_value (:class:`int` or None)
             If integer, it is the value of the PeristenceType property.  If
@@ -1280,12 +1362,8 @@ class WBEMSubscriptionManager(object):
         # Validate server_id
         server = self._get_server(server_id)
 
-        this_client = getfqdn()
-
         # Validate the URL by reconstructing it. Do not allow defaults
         _, _, listener_url = parse_url(dest_url, allow_defaults=False)
-
-        ownership = "owned" if owned else "permanent"
 
         dest_inst = CIMInstance(DESTINATION_CLASSNAME)
         dest_inst['CreationClassName'] = DESTINATION_CLASSNAME
@@ -1294,20 +1372,34 @@ class WBEMSubscriptionManager(object):
         if persistence_type_value is not None:
             dest_inst['PersistenceType'] = Uint16(persistence_type_value)
 
-        dest_inst['Name'] = _format(
-            'pywbemdestination:{0}:{1}:{2}:{3}',
-            ownership, this_client, self._subscription_manager_id, uuid.uuid4())
+        if owned:
+            name = _format(
+                'pywbemdestination:{0}:{1}',
+                self._subscription_manager_id, destination_id)
+        dest_inst['Name'] = name
         dest_inst['Destination'] = listener_url
 
         if owned:
-            # If an instance with the same destination property exists,
-            # do not create a new instance.
+            # If an owned destination instance for the same destination already
+            # exists, reuse it and do not create a new instance.
             for inst in self._owned_destinations[server_id]:
                 if inst['Destination'] == dest_inst['Destination']:
                     return inst  # has path set
-        dest_path = server.conn.CreateInstance(dest_inst,
-                                               namespace=server.interop_ns)
+
+        # Now we need to create a new instance
+        existing_dest_insts = server.conn.EnumerateInstances(
+            DESTINATION_CLASSNAME, namespace=server.interop_ns)
+        for inst in existing_dest_insts:
+            name_prop = inst.properties.get('Name', None)  # CIMProperty
+            if name_prop and name_prop.value == name:
+                raise CIMError(
+                    CIM_ERR_ALREADY_EXISTS,
+                    "Listener destination instance with Name='{0}' already "
+                    "exists: {1}".format(name, inst.path))
+        dest_path = server.conn.CreateInstance(
+            dest_inst, namespace=server.interop_ns)
         dest_inst = server.conn.GetInstance(dest_path)
+
         if owned:
             self._owned_destinations[server_id].append(dest_inst)
 

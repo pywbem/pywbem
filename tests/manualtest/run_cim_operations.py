@@ -6023,7 +6023,8 @@ class TestSubscriptionsClass(PyWBEMServerClass):
         for subscription_path in subscription_paths:
             self.assertTrue(subscription_path in all_sub_paths)
 
-    def add_peg_filter(self, sub_mgr, server_id, filter_id, owned=True):
+    def add_peg_filter(
+            self, sub_mgr, server_id, filter_id=None, name=None, owned=True):
         """
         Create a single filter definition in the sub_mgr and return it.
         This creates a filter specifically for OpenPegasus tests using the
@@ -6042,6 +6043,7 @@ class TestSubscriptionsClass(PyWBEMServerClass):
                                      self.test_query,
                                      query_language="DMTF:CQL",
                                      filter_id=filter_id,
+                                     name=name,
                                      owned=owned)
         return filter_
 
@@ -6175,11 +6177,12 @@ class TestSubscriptionsClass(PyWBEMServerClass):
                 try:
                     server_id = sub_mgr.add_server(server)
 
-                    sub_mgr.add_listener_destinations(server_id,
-                                                      self.listener_url)
+                    sub_mgr.add_destination(
+                        server_id, self.listener_url, owned=True,
+                        destination_id='dest1')
 
-                    filter_ = self.add_peg_filter(sub_mgr, server_id, 'NotUsed',
-                                                  owned=True)
+                    filter_ = self.add_peg_filter(
+                        sub_mgr, server_id, filter_id='filter1', owned=True)
 
                     subscriptions = sub_mgr.add_subscriptions(server_id,
                                                               filter_.path)
@@ -6246,10 +6249,12 @@ class TestSubscriptionsClass(PyWBEMServerClass):
 
                 server_id = sub_mgr.add_server(server)
 
-                sub_mgr.add_listener_destinations(server_id, self.listener_url)
+                sub_mgr.add_destination(
+                    server_id, self.listener_url, owned=True,
+                    destination_id='dest1')
 
-                filter_ = self.add_peg_filter(sub_mgr, server_id, 'MyfilterId',
-                                              owned=True)
+                filter_ = self.add_peg_filter(
+                    sub_mgr, server_id, filter_id='filter1', owned=True)
 
                 # NOTE: The uuid from uuid4 is actually 36 char but not we
                 # made it  30-40 in case the format changes in future.
@@ -6332,10 +6337,12 @@ class TestSubscriptionsClass(PyWBEMServerClass):
             with WBEMSubscriptionManager(subscription_manager_id=sm) as sub_mgr:
 
                 server_id = sub_mgr.add_server(server)
-                sub_mgr.add_listener_destinations(server_id, self.listener_url)
+                sub_mgr.add_destination(
+                    server_id, self.listener_url, owned=True,
+                    destination_id='dest1')
 
-                filter_ = self.add_peg_filter(sub_mgr, server_id, 'fred',
-                                              owned=True)
+                filter_ = self.add_peg_filter(
+                    sub_mgr, server_id, filter_id='filter1', owned=True)
 
                 subscriptions = sub_mgr.add_subscriptions(server_id,
                                                           filter_.path)
@@ -6354,9 +6361,9 @@ class TestSubscriptionsClass(PyWBEMServerClass):
                 self.assertTrue(filter_.path in owned_filter_paths)
 
                 # Confirm format of second dynamic filter name property
-                filter2 = self.add_peg_filter(sub_mgr, server_id,
-                                              'test_id_attributes1',
-                                              owned=True)
+                filter2 = self.add_peg_filter(
+                    sub_mgr, server_id, filter_id='test_id_attributes1',
+                    owned=True)
 
                 self.assert_regexp_matches(
                     filter2.path.keybindings['Name'],
@@ -6437,10 +6444,12 @@ class TestSubscriptionsClass(PyWBEMServerClass):
             with WBEMSubscriptionManager(subscription_manager_id=sm) as sub_mgr:
 
                 server_id = sub_mgr.add_server(server)
-                sub_mgr.add_listener_destinations(server_id, self.listener_url)
+                sub_mgr.add_destination(
+                    server_id, self.listener_url, owned=True,
+                    destination_id='dest1')
 
-                filter_ = self.add_peg_filter(sub_mgr, server_id, 'fred',
-                                              owned=True)
+                filter_ = self.add_peg_filter(
+                    sub_mgr, server_id, filter_id='filter1', owned=True)
 
                 subscriptions = sub_mgr.add_subscriptions(server_id,
                                                           filter_.path)
@@ -6506,13 +6515,12 @@ class TestSubscriptionsClass(PyWBEMServerClass):
             server_id = sub_mgr.add_server(server)
 
             # Create non-owned subscription
-            dests = sub_mgr.add_listener_destinations(server_id,
-                                                      self.listener_url,
-                                                      owned=False)
+            dests = sub_mgr.add_destination(
+                server_id, self.listener_url, owned=False, name='name1')
             dest_paths = [inst.path for inst in dests]
 
-            filter_ = self.add_peg_filter(sub_mgr, server_id, 'notowned',
-                                          owned=False)
+            filter_ = self.add_peg_filter(
+                sub_mgr, server_id, name='name1', owned=False)
 
             subscriptions = sub_mgr.add_subscriptions(
                 server_id,
@@ -6577,13 +6585,12 @@ class TestSubscriptionsClass(PyWBEMServerClass):
                 server_id = sub_mgr.add_server(server)
 
                 # Create non-owned subscription
-                dests = sub_mgr.add_listener_destinations(server_id,
-                                                          self.listener_url,
-                                                          owned=False)
+                dests = sub_mgr.add_destination(
+                    server_id, self.listener_url, owned=False, name='name1')
                 dest_paths = [inst.path for inst in dests]
 
-                filter_ = self.add_peg_filter(sub_mgr, server_id, 'notowned',
-                                              owned=False)
+                filter_ = self.add_peg_filter(
+                    sub_mgr, server_id, name='name1', owned=False)
 
                 subscriptions = sub_mgr.add_subscriptions(
                     server_id,
@@ -6673,10 +6680,12 @@ class TestSubscriptionsClass(PyWBEMServerClass):
                     subscription_manager_id='test_both_indications')
                 server_id = sub_mgr.add_server(server)
 
-                sub_mgr.add_listener_destinations(server_id, self.listener_url)
+                sub_mgr.add_destination(
+                    server_id, self.listener_url, owned=True,
+                    destination_id='dest1')
 
-                filter_owned = self.add_peg_filter(sub_mgr, server_id, 'owned',
-                                                   owned=True)
+                filter_owned = self.add_peg_filter(
+                    sub_mgr, server_id, filter_id='filter1', owned=True)
 
                 subscriptions_owned = sub_mgr.add_subscriptions(
                     server_id, filter_owned.path)
@@ -6688,13 +6697,12 @@ class TestSubscriptionsClass(PyWBEMServerClass):
 
                 # Create non-owned dest, filter, subscription
 
-                n_owned_dests = sub_mgr.add_listener_destinations(
-                    server_id, self.listener_url, owned=False)
+                n_owned_dests = sub_mgr.add_destination(
+                    server_id, self.listener_url, owned=False, name='name1')
                 n_owned_dest_paths = [inst.path for inst in n_owned_dests]
 
-                n_owned_filter = self.add_peg_filter(sub_mgr, server_id,
-                                                     'notowned',
-                                                     owned=False)
+                n_owned_filter = self.add_peg_filter(
+                    sub_mgr, server_id, name='name1', owned=False)
 
                 n_owned_subscriptions = sub_mgr.add_subscriptions(
                     server_id,

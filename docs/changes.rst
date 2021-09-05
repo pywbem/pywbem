@@ -59,8 +59,22 @@ Released: not yet
 * The new simplified format of the automatically generated 'Name' property of
   owned indication filters causes existing filters with the old format to
   be ignored and a Python warning of type 'pywbem.OldNameFilterWarning' will be
-  issued. Such filter instances need to be cleaned up by the user.
-  (related to issue #2765)
+  issued. Such owned filter instances need to be either removed as owned filters
+  with a prior version of pywbem, or as permanent filters with this version of
+  pywbem. (issue #2765)
+
+* Removed the 'pywbem.WBEMSubscriptionManager.add_listener_destinations()'
+  method, because the new naming approach for listener destinations requires
+  either a name or an ID and that does not work well with supporting multiple
+  destinations in one method call. Use the new 'add_destination()' method
+  instead. (issue #2766)
+
+* The new simplified format of the automatically generated 'Name' property of
+  owned listener destinations causes existing destinations with the old format
+  to be ignored and a Python warning of type 'pywbem.OldNameDestinationWarning'
+  will be issued. Such owned destination instances need to be either removed as
+  owned destinations with a prior version of pywbem, or as permanent
+  destinations with this version of pywbem. (issue #2766)
 
 **Deprecations:**
 
@@ -226,6 +240,23 @@ Released: not yet
   The new `ToleratedSchemaIssueWarning` is expected to be used where the
   MOF compiler or code detects issues in the CIM Schema that are either
   tolerated or corrected.
+
+* Added a 'pywbem.WBEMSubscriptionManager.add_destination()' method
+  that makes the way the 'Name' property is created for listener destination
+  intances consistent with how that is now done for indication filters: There is
+  a new parameter 'name' that directly sets the 'Name' property for permanent
+  destinations, and a new parameter 'destination_id' that is used for creating
+  the 'Name' property for owned destinations. The format of the generated 'Name'
+  property has been changed from:
+  ``"pywbemdestination:" {ownership} ":" {client_host} ":" {submgr_id} ":" {guid}``
+  to:
+  ``"pywbemdestination:" {submgr_id} ":" {destination_id}``.
+  The client host was removed in order to allow different client systems to be
+  used. The ownership was removed because destinations with an auto-generated
+  Name are always owned. The GUID was removed to make the name predictable and
+  the uniqueness it attempted to guarantee is now achieved by rejecting the
+  creation of destinations with the same name. Overall, this change makes the
+  name much more suitable for use in CLI tools such as pywbemcli. (issue #2766)
 
 **Cleanup:**
 
@@ -2477,7 +2508,7 @@ This version contains all fixes up to pywbem 0.12.6.
 
 * Add tests for the `WBEMSubscriptionManager` class using the pywbem mock
   support.  This involved
-  changing the tests for the `WBEMServer` class using pywbem_mock because the the
+  changing the tests for the `WBEMServer` class using pywbem_mock because the
   WBEMSubscriptionManager class depends on the existence of the classes and
   instances that support the pywbem WbemServer class existing in the WBEM
   server.  A new file (wbemserver_mock.py) was added to the tests
