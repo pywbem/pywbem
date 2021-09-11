@@ -222,6 +222,11 @@ Released: not yet
   of filters with the same name. Overall, this change makes the name much more
   suitable for use in CLI tools such as pywbemcli. (issue #2765)
 
+* Added a `ToleratedSchemaIssueWarning` class with its base class `Warning`.
+  The new `ToleratedSchemaIssueWarning` is expected to be used where the
+  MOF compiler or code detects issues in the CIM Schema that are either
+  tolerated or corrected.
+
 **Cleanup:**
 
 * Extend tests for SubscriptionManager to utilize pytest and cover error cases.
