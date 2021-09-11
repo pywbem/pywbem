@@ -25,7 +25,8 @@ from ._exceptions import Error
 # This module is meant to be safe for 'import *'.
 
 __all__ = ['Warning', 'ToleratedServerIssueWarning',
-           'MissingKeybindingsWarning', 'OldNameFilterWarning']
+           'MissingKeybindingsWarning', 'OldNameFilterWarning',
+           'ToleratedSchemaIssueWarning']
 
 
 class Warning(Error, six.moves.builtins.Warning):
@@ -63,5 +64,13 @@ class OldNameFilterWarning(Warning):
 
     Such filters are ignored when discovering owned filters. They should be
     cleaned up by the user.
+    """
+    pass
+
+
+class ToleratedSchemaIssueWarning(Warning):
+    """
+    This warning indicates that a component in a DMTF CIM Schema is
+    invalid but the issue is tolerated or corrected by pywbem.
     """
     pass
