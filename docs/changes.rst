@@ -54,6 +54,9 @@ Released: not yet
 * Mitigated new Pylint error 'not-an-iterable' when using 'WBEMServer'
   properties that return lists and use deferred initialization. (issue #2770)
 
+* Disabled new Pylint issue 'consider-using-f-string', since f-strings were
+  introduced only in Python 3.6.
+
 **Enhancements:**
 
 * Added toleration support for WBEM servers that return a CIM status
