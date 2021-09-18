@@ -79,7 +79,7 @@ disable=I0011, bad-option-value,
         locally-enabled, superfluous-parens, useless-object-inheritance,
         consider-using-set-comprehension, unnecessary-pass, useless-return,
         signature-differs, raise-missing-from, super-with-arguments,
-        redundant-u-string-prefix,
+        redundant-u-string-prefix, consider-using-f-string,
         R0801
 
 # Issue #2672: Disabling R0801 is a circumvention for Pylint issue
