@@ -32,6 +32,7 @@ colorama>=0.4.0; python_version >= '3.5'
 easy-vault>=0.7.0
 easy-server>=0.8.0
 pytest-easy-server>=0.8.0
+jsonschema>=2.6.0,!=4.0.0
 
 requests-mock>=1.6.0
 requests-toolbelt>=0.8.0
