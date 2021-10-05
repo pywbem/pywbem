@@ -84,6 +84,9 @@ typed-ast>=1.4.0,<1.5.0; python_version >= '3.6' and python_version < '3.8' and 
 lazy-object-proxy>=1.4.3; python_version == '2.7'
 lazy-object-proxy>=1.4.3,<1.5.0; python_version == '3.4'
 lazy-object-proxy>=1.4.3; python_version >= '3.6'
+wrapt>=1.12,<1.13; python_version == '2.7'
+wrapt>=1.12,<1.13; python_version == '3.4'
+wrapt>=1.12; python_version >= '3.5'
 
 # Flake8 and dependents (no imports, invoked via flake8 script):
 # flake8 3.9.0 has removed support for py34 and pip 19.1.1 on py34 does not deal
