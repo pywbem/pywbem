@@ -258,6 +258,13 @@ Released: not yet
   creation of destinations with the same name. Overall, this change makes the
   name much more suitable for use in CLI tools such as pywbemcli. (issue #2766)
 
+* Fixed install error of PyYAML 6.0b1 on Python 2.7 during installtest, by
+  pinning it to <6.0.
+
+* Fixed install error of wrapt 1.13.0 on Python 2.7/3.4, by pinning it to <1.13.
+
+* Fixed install error of yanked jsonschema 4.0.0 on Python <3.7, by excluding it.
+
 **Cleanup:**
 
 * Extend tests for SubscriptionManager to utilize pytest and cover error cases.

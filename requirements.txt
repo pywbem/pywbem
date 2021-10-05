@@ -15,7 +15,8 @@ ply>=3.10
 # PyYAML 5.3 fixed narrow build error on Python 2.7
 # PyYAML 5.3.1 addressed issue 38100 reported by safety
 # PyYAML 5.2 addressed issue 38639 reported by safety
-PyYAML>=5.3.1; python_version == '2.7'
+# PyYAML 6.0 removed support for Python 2.7, but 6.0b1 installs in installtest
+PyYAML>=5.3.1,<6.0; python_version == '2.7'
 PyYAML>=5.2,<5.3; python_version == '3.4'
 PyYAML>=5.3.1; python_version > '3.4'
 # virtualenv 20.0.0 (required on py3.8+) requires six>=0.12.0
