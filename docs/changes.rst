@@ -77,6 +77,9 @@ Released: not yet
 
 * Fixed install error of yanked jsonschema 4.0.0 on Python <3.7, by excluding it.
 
+* Enhanced test matrix on GitHub Actions to always include Python 2.7 and
+  Python 3.4 on Ubuntu, and Python 2.7 and Python 3.5 on macOS and Windows.
+
 **Cleanup:**
 
 **Known issues:**
