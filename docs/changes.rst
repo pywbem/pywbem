@@ -261,7 +261,8 @@ Released: not yet
 * Fixed install error of PyYAML 6.0b1 on Python 2.7 during installtest, by
   pinning it to <6.0.
 
-* Fixed install error of wrapt 1.13.0 on Python 2.7/3.4, by pinning it to <1.13.
+* Fixed install error of wrapt 1.13.0 on Python 2.7 on Windows due to lack of
+  MS Visual C++ 9.0 on GitHub Actions, by pinning it to <1.13.
 
 * Fixed install error of yanked jsonschema 4.0.0 on Python <3.7, by excluding it.
 
