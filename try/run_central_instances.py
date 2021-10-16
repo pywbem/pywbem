@@ -1658,7 +1658,7 @@ def load_profiles_definitions(filename):
     },
     """
     with open(filename, 'r') as fp:
-        profile_definitions = yaml.load(fp)
+        profile_definitions = yaml.safe_load(fp)
 
     # assume profile definitions are case insensitive
     profiles_dict = NocaseDict()
