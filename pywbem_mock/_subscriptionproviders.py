@@ -19,7 +19,7 @@
 #
 
 """
-This module implements user providerw for the classews required to create and
+This module implements user providerw for the classes required to create and
 manage CIM indications subscriptions including: CIM_ListenerDestinationCIMXML,
 CIM_IndicationFilter, and CIM_IndicationSubscription.  These providers are
 packaged as single file because they are all required together.
@@ -45,7 +45,8 @@ is included in a subscription.
 import six
 
 from pywbem import CIMError, CIM_ERR_NOT_SUPPORTED, \
-    CIM_ERR_INVALID_PARAMETER, CIM_ERR_FAILED, Uint16, CIMDateTime
+    CIM_ERR_INVALID_PARAMETER, CIM_ERR_FAILED, Uint16, CIMDateTime, \
+    CIMProperty
 from pywbem._utils import _format
 
 from ._instancewriteprovider import InstanceWriteProvider
@@ -55,6 +56,19 @@ from .config import SYSTEMNAME, SYSTEMCREATIONCLASSNAME
 SUBSCRIPTION_CLASSNAME = 'CIM_IndicationSubscription'
 FILTER_CLASSNAME = 'CIM_IndicationFilter'
 LISTENERDESTINATION_CLASSNAME = 'CIM_ListenerDestinationCIMXML'
+
+
+def set_property(instance, name, value, conditional=True):
+    """
+    Add a new property and value to instance or modify value if property
+    exists. If conditional is True, only add if property does not exist.
+    Otherwise, always set new value into property.
+    """
+    if conditional:
+        if name not in instance:
+            instance[name] = value
+    else:
+        instance[name] = value
 
 
 class CommonMethodsMixin(object):
@@ -190,9 +204,11 @@ class CommonMethodsMixin(object):
         # pylint: disable=no-self-use
         """
         Fix the key properties that are common to many classes (SystemName,
-        CreationClassName, SystemCreateionClassName) since these may be
-        either not provided with the new instance or incorrect for this
-        enviornment
+        CreationClassName, SystemCreationClassName) since these may be
+        either not provided, None, or incorrect value for this environment with
+        the new instance, they may be overridden. This works only for
+        the filter and destination classes that contain the same set of
+        key properties.
         """
         ccn_pname = 'CreationClassName'
         sys_pname = 'SystemName'
@@ -200,11 +216,17 @@ class CommonMethodsMixin(object):
 
         # Validate  or fix other key values in the new instance
         def _fix_key_prop(pname, test_value, replacement=None):
-            if pname not in new_instance or \
+            """
+            Replace property pname with either replacement if replacement not
+            None or test_value if property does not exist, is None, or not same
+            value as test_value
+            """
+            if pname not in new_instance or new_instance[pname] is None or \
                     new_instance[pname].lower != test_value.lower:
                 new_instance[pname] = replacement or test_value
 
-        # set the keys to default if they don't exist or have invalid value
+        # Set the keys to default if they don't exist  are None,  or have
+        # invalid value
         _fix_key_prop(ccn_pname, new_instance.classname,
                       new_instance.classname)
         _fix_key_prop(sys_pname, SYSTEMNAME)
@@ -388,7 +410,13 @@ class CIMIndicationFilterProvider(CommonMethodsMixin, InstanceWriteProvider):
 
         # Add missing properties that the might come from CIM_IndicationService
         # Issue # 2719, Should the following be set by the server or client
-        new_instance['IndividualSubscriptionSupported'] = True
+        set_property(new_instance, 'IndividualSubscriptionSupported', True)
+
+        set_property(new_instance, 'SourceNamespace',
+                     CIMProperty('SourceNamespace', None, type='string'))
+
+        set_property(new_instance, 'Description',
+                     "Pywbem mock CIMIndicationFilterProvider instance")
 
         # Create the CIM instance for the new namespace in the CIM repository,
         # by delegating to the default provider method.
@@ -568,14 +596,13 @@ class CIMListenerDestinationProvider(CommonMethodsMixin, InstanceWriteProvider):
         _fix_key_prop(sccn_pname, SYSTEMCREATIONCLASSNAME)
 
         # Add missing properties that the might come from CIM_IndicationService
+        # if not already in instance
+        set_property(new_instance, 'Protocol', Uint16(2))
 
-        # ISSUE #2712: should we do PersistenceType in pywbem from the
-        # client since this parameter determines the level of persistence
-        # of the object? If it is not set, the server sets it to 2(permanent).
+        set_property(new_instance, 'PersistenceType', Uint16(2))
 
-        new_instance['Protocol'] = Uint16(2)
-        if 'PersistenceType' not in new_instance:
-            new_instance['PersistenceType'] = Uint16(2)
+        set_property(new_instance, 'Description',
+                     "pywbem mock CIMListenerDestinationProvider instance")
 
         # Create the CIM instance for the new namespace in the CIM repository,
         # by delegating to the default provider method.
@@ -714,8 +741,10 @@ class CIMIndicationSubscriptionProvider(CommonMethodsMixin,
 
           new_instance (:class:`~pywbem.CIMInstance`):
             The following applies regarding its properties:
-            * 'Name' property: This property is required since it defines the
-              name of the new namespace to be created.
+            * The 'Filter' and 'Handler' reference properties must exist.
+
+            * If 'SubscriptionDuration' exists, 'SubscriptionTimeRemaining'
+              will be set.
             * 'CreationClassName' property: This property is required and its
               value must match the class name of the new instance.
 
@@ -737,12 +766,26 @@ class CIMIndicationSubscriptionProvider(CommonMethodsMixin,
 
         new_instance['SubscriptionStartTime'] = CIMDateTime.now()
         new_instance['TimeOfLastStateChange'] = CIMDateTime.now()
-        new_instance['OnFatalErrorPolicy'] = Uint16(2)
-        new_instance['RepeatNotificationPolicy'] = Uint16(2)
-        new_instance['SubscriptionState'] = Uint16(2)
+
+        # Conditionally add the following properties
+        set_property(new_instance, 'OnFatalErrorPolicy', Uint16(2))
+
+        set_property(new_instance, 'RepeatNotificationPolicy', Uint16(2))
+
+        set_property(new_instance, 'SubscriptionState', Uint16(2))
+
         if 'SubscriptionDuration' in new_instance:
             new_instance['SubscriptionTimeRemaining'] = \
                 new_instance['SubscriptionDuration']
+        else:
+            new_instance['SubscriptionDuration'] = CIMProperty(
+                'SubscriptionDuration', None, type='uint64')
+
+        set_property(new_instance, 'SubscriptionInfo',
+                     CIMProperty('SubscriptionInfo', None, type='string'))
+
+        set_property(new_instance, 'Description',
+                     "Pywbem mock CIMIndicationSubscriptionProvider instance")
 
         # Create the CIM instance for the new namespace in the CIM repository,
         # by delegating to the default provider method.
