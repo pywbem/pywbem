@@ -180,8 +180,8 @@ def validate_persistence_type(pt):
     Validate persistence type parameter pt as string possible
     values::transient" or "permanent" and convert to corresponding integer
     value
-    Returns integer value or None for the PersistenceType property based on the
-    input string.
+    Returns integer value or None for the `PersistenceType` property based on
+    the input string.
     """
     if pt is None:
         return None
@@ -554,12 +554,13 @@ class WBEMSubscriptionManager(object):
           destinations.
 
           If an owned listener destination instance for the specified listener
-          URL already exists, it is returned without creating a new instance.
+          URL and `PersistenceType` already exists, it is returned without
+          creating a new instance.
 
         If a listener destination instance with the specified or generated
-        'Name' property already exists, the method raises
+        `Name` property already exists, the method raises
         CIMError(CIM_ERR_ALREADY_EXISTS). Note that this is a more strict
-        behavior than what a WBEM server would do, because the 'Name' property
+        behavior than what a WBEM server would do, because the `Name` property
         is only one of four key properties.
 
         Parameters:
@@ -627,10 +628,10 @@ class WBEMSubscriptionManager(object):
           persistence_type (:term:`string`):
             Optional string where the allowed strings are "transient" and
             "permanent" and the default is None.  The strings are used to
-            set the PersistenceType property, an integer property with the
+            set the `PersistenceType` property, an integer property with the
             values of 2 (Permanent) or 3 (Transient)
 
-            The default value is None so that the PersistenceType
+            The default value is None so that the `PersistenceType`
             property is not created on the destination instance for permanent
             filters. and is created with PersistenceType 3 (Transient) for owned
             destinations.
@@ -650,7 +651,7 @@ class WBEMSubscriptionManager(object):
 
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
             CIMError(CIM_ERR_ALREADY_EXISTS): A filter with the specified
-              or generated 'Name' property already exists in the server.
+              or generated `Name` property already exists in the server.
             ValueError: Incorrect input parameter values.
         """
 
@@ -841,10 +842,10 @@ class WBEMSubscriptionManager(object):
 
           The `filter_id` parameter can only be specified for owned filters.
 
-        If an indication filter instance with the specified or generated 'Name'
+        If an indication filter instance with the specified or generated `Name`
         property already exists, the method raises
         CIMError(CIM_ERR_ALREADY_EXISTS). Note that this is a more strict
-        behavior than what a WBEM server would do, because the 'Name' property
+        behavior than what a WBEM server would do, because the `Name` property
         is only one of four key properties.
 
         Parameters:
@@ -921,7 +922,7 @@ class WBEMSubscriptionManager(object):
         Raises:
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
             CIMError(CIM_ERR_ALREADY_EXISTS): A filter with the specified or
-              generated 'Name' property already exists in the server.
+              generated `Name` property already exists in the server.
             ValueError: Incorrect input parameter values.
             TypeError: Incorrect input parameter types.
         """
@@ -1299,9 +1300,12 @@ class WBEMSubscriptionManager(object):
         In order to catch any changes the server applies, the instance is
         retrieved again using the instance path returned by instance creation.
 
-        If an instance is found in the server with the same value of the
-        `Destination` property, no new instance is created and the existing
-        is returned.
+        If the request is owned and an owned instance is found in the server
+        with the same value of the `Destination` and `PersistenceType`
+        properties, no new instance is created and the existing is returned. A
+        client may detect that an existing instance was returned by comparing
+        the destination_id component of the requested `Name` property with the
+        destination_id of the submitted `Name` property.
 
         Parameters:
 
@@ -1310,8 +1314,8 @@ class WBEMSubscriptionManager(object):
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
           dest_url (:term:`string`):
-            URL of the listener that is used by the WBEM server to send any
-            indications to.
+            URL of the listener that is used by the WBEM server as the
+            destination for indications.
 
             The URL scheme (e.g. http/https) determines whether the WBEM server
             uses HTTP or HTTPS for sending the indication. Host and port in the
@@ -1346,13 +1350,15 @@ class WBEMSubscriptionManager(object):
 
           persistence_type_value (:class:`int` or None)
             If integer, it is the value of the PeristenceType property.  If
-            None, the PersistenceType property is not included in the
+            None, the `PersistenceType` property is not included in the
             created instance.
 
         Returns:
 
             :class:`~pywbem.CIMInstance`: The created instance, as retrieved
-            from the server.
+            from the server or, if the destination is owned and an instance
+            already exists with the same dest_url and persistence_type value,
+            return that instance.
 
         Raises:
 
@@ -1379,14 +1385,7 @@ class WBEMSubscriptionManager(object):
         dest_inst['Name'] = name
         dest_inst['Destination'] = listener_url
 
-        if owned:
-            # If an owned destination instance for the same destination already
-            # exists, reuse it and do not create a new instance.
-            for inst in self._owned_destinations[server_id]:
-                if inst['Destination'] == dest_inst['Destination']:
-                    return inst  # has path set
-
-        # Now we need to create a new instance
+        # Test if instance already exists in the WBEM server
         existing_dest_insts = server.conn.EnumerateInstances(
             DESTINATION_CLASSNAME, namespace=server.interop_ns)
         for inst in existing_dest_insts:
@@ -1396,6 +1395,16 @@ class WBEMSubscriptionManager(object):
                     CIM_ERR_ALREADY_EXISTS,
                     "Listener destination instance with Name='{0}' already "
                     "exists: {1}".format(name, inst.path))
+
+        if owned:
+            # If an owned destination instance for the same destination and
+            # persistence type already exists, reuse it and do not create a
+            # new instance.
+            for inst in self._owned_destinations[server_id]:
+                if inst['Destination'] == dest_inst['Destination'] and \
+                        inst['PersistenceType'] == dest_inst['PersistenceType']:
+                    return inst
+
         dest_path = server.conn.CreateInstance(
             dest_inst, namespace=server.interop_ns)
         dest_inst = server.conn.GetInstance(dest_path)

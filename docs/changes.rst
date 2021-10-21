@@ -125,6 +125,12 @@ Released: not yet
   - Removed use of unittest.Mock in pywbem_mock.FakedWBEMConnection to
     use mock versions of _imethodcall and _methodcall and simply duck typed
     the methods. (see issue #2755)
+  - Fixed issue in pywbem SubscriptionManager where duplicate add_destination()
+    resulted in good return rather than CIMError.  The code where the
+    Name property is different but the URL the same was modified to test for
+    both URL and persistence type equality before returning the existing
+    instance. (See issue $ 2782)
+
 
 * Fixes MOF compiler issue  where the compiler was allowing array properties
   to have corresponding instances instantiated with non-array values and
