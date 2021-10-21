@@ -726,6 +726,27 @@ TESTCASES_SUBMGR = [
         ValueError, None, OK
     ),
     (
+        "Add_filter with filter_id and not owned fails",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            filter_attrs=dict(server_id="http://FakedUrl:5988",
+                              source_namespaces='root/interop',
+                              query="SELECT * from blah",
+                              query_language='WQL',
+                              owned=False,
+                              filter_id='id1', name=None),
+            dest_attrs=None,
+            subscription_attrs=None,
+            remove_destinations=None,
+            remove_filters=None,
+            remove_subscriptions=None,
+            remove_server_attrs=None,
+            exp_result=dict(server_id="http://FakedUrl:5988")
+        ),
+        ValueError, None, OK
+    ),
+    (
         "Add_filter with unknown server_id ",
         dict(
             submgr_id="ValidID",
@@ -994,6 +1015,58 @@ TESTCASES_SUBMGR = [
             exp_result=dict(server_id="http://FakedUrl:5988")
         ),
         ValueError, None, OK
+    ),
+    (
+        "Add duplicate destination. fails because Name property duplicate",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            filter_attrs=None,
+            dest_attrs=[dict(server_id="http://FakedUrl:5988",
+                             listener_url="http://localhost:5000",
+                             owned=True,
+                             destination_id='id1',
+                             persistence_type='transient'),
+                        dict(server_id="http://FakedUrl:5988",
+                             listener_url="http://localhost:5000",
+                             owned=True,
+                             destination_id='id1',
+                             persistence_type='transient')],
+            subscription_attrs=None,
+            remove_destinations=None,
+            remove_filters=None,
+            remove_subscriptions=None,
+            remove_server_attrs=None,
+            exp_result=dict(server_id="http://FakedUrl:5988")
+        ),
+        CIMError, None, OK
+    ),
+    (
+        "Add duplicate destination. new Filter_id returns existing instance",
+        dict(
+            submgr_id="ValidID",
+            connection_attrs=dict(url=None),
+            filter_attrs=None,
+            dest_attrs=[dict(server_id="http://FakedUrl:5988",
+                             listener_url="http://localhost:5000",
+                             owned=True,
+                             destination_id='id1',
+                             persistence_type='transient'),
+                        dict(server_id="http://FakedUrl:5988",
+                             listener_url="http://localhost:5000",
+                             owned=True,
+                             destination_id='id12',
+                             persistence_type='transient')],
+            subscription_attrs=None,
+            remove_destinations=None,
+            remove_filters=None,
+            remove_subscriptions=None,
+            remove_server_attrs=None,
+            # test only one dest exists
+            exp_result=dict(server_id="http://FakedUrl:5988",
+                            listener_count=1, )
+        ),
+        None, None, OK
     ),
     (
         "Add listener_dest with invalid persistence_type value 'blah",
@@ -1477,11 +1550,12 @@ def test_subscriptionmanager(testcase, submgr_id, connection_attrs,
         for attr in filter_attrs:
             added_filters.append(submgr.add_filter(**attr))
 
-    # Test for add destinations. There is no option for a list here since
-    # the tested method includes adding lists
+    # Test for add destinations. Adds one or more destinations
     if dest_attrs:
-        added_destinations.append(
-            submgr.add_destination(**dest_attrs))
+        if isinstance(dest_attrs, dict):
+            dest_attrs = [dest_attrs]
+        for attr in dest_attrs:
+            added_destinations.append(submgr.add_destination(**attr))
 
     # Test for adding subscriptions based on the attributes in the dest
     # definition. Here, the filter and dest components are integers defining
@@ -1517,10 +1591,9 @@ def test_subscriptionmanager(testcase, submgr_id, connection_attrs,
         assert len(all_dests) == exp_result['listener_count']
 
         owned_dests = submgr.get_owned_destinations(server_id)
-        if dest_attrs.get('destination_id', None):
-            assert len(owned_dests) == exp_result['listener_count']
-        else:
-            assert len(owned_dests) == 0
+        dest_prefix = 'pywbemdestination:{0}:'.format(submgr_id,)
+        owned = [d for d in all_dests if d['Name'].startswith(dest_prefix)]
+        assert set(owned) == set(owned_dests)
 
     if 'filter_count' in exp_result:
         all_filters = submgr.get_all_filters(server_id)
@@ -1655,7 +1728,9 @@ TESTCASES_SUBMGR_MODIFY = [
     #     the subscription or to make it simpler to define tests, an integer
     #     for the position in the appropriate list for the required
     #     filter or destination.
-    #   * modify_filter_attrs: defines inst/properties properties to modify.
+    #   * modify_filter_attrs: defines inst/properties properties to modify
+    #     where instances are modified on the server external to
+    #     SubscriptionManager (i.e. directly with conn.ModifyInstance)
     #     The attributes are:
     #       1. The index to the filter_dest to modify
     #       2. dict of properties to modify
@@ -1793,9 +1868,8 @@ TESTCASES_SUBMGR_MODIFY = [
     # 1. Test for missing required_property. This one very difficult because
     #    list of required properties is also properties always set by
     #    SubscriptionManager
-    # 2. IncludeQualifier on ModifyInstance. Again, special test
-    # 3. Invalid Namespace on __init__ of mock subscription providers
-    # 4. __repr__ for each mock subscription providers
+    # 2. Invalid Namespace on __init__ of mock subscription providers
+    # 3. __repr__ for each mock subscription providers
 ]
 
 
@@ -1868,11 +1942,13 @@ def test_submgr_modify(testcase, submgr_id, connection_attrs,
         for attr in filter_attrs:
             added_filters.append(submgr.add_filter(**attr))
 
-    # Test for add destinations. There is no option for a list here since
-    # the tested method includes adding lists
+    # Test for add destinations.
+
     if dest_attrs:
-        added_destinations.append(
-            submgr.add_destination(**dest_attrs))
+        if isinstance(dest_attrs, dict):
+            dest_attrs = [dest_attrs]
+        for attr in dest_attrs:
+            added_destinations.append(submgr.add_destination(**attr))
 
     # Test for adding subscriptions based on the attributes in the dest
     # definition. Here, the filter and dest components are integers defining
@@ -1931,10 +2007,10 @@ def test_submgr_modify(testcase, submgr_id, connection_attrs,
         assert len(all_dests) == exp_result['listener_count']
 
         owned_dests = submgr.get_owned_destinations(server_id)
-        if dest_attrs.get('destination_id', None):
-            assert len(owned_dests) == exp_result['listener_count']
-        else:
-            assert len(owned_dests) == 0
+
+        dest_prefix = 'pywbemdestination:{0}:'.format(submgr_id,)
+        owned = [d for d in all_dests if d['Name'].startswith(dest_prefix)]
+        assert set(owned) == set(owned_dests)
 
     if 'filter_count' in exp_result:
         all_filters = submgr.get_all_filters(server_id)
