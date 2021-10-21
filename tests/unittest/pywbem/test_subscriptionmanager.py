@@ -1406,7 +1406,7 @@ TESTCASES_SUBMGR = [
                             final_filter_count=1,
                             final_listener_count=1)
         ),
-        None, None, RUN
+        None, None, OK
     ),
 
     # Tests that need to be added
@@ -1434,7 +1434,7 @@ def test_subscriptionmanager(testcase, submgr_id, connection_attrs,
     def define_connection(connection_attrs):
         """
         Create a new mock connection with the attributes defined in
-        connection_attrs.
+        connection_attrs. and the subscription providers.
         This method also does an add_server with the created mock server.
         Returns:
             returns the server_id associated with the connection.
@@ -1445,7 +1445,7 @@ def test_subscriptionmanager(testcase, submgr_id, connection_attrs,
             **connection_attrs)
         return submgr.add_server(mock_server.wbem_server)
 
-    # The code to be tested starts here but encompases most of this function
+    # The code to be tested starts here but encompasses most of this function
     # depending on the function parameters  We did not set a specific place
     # above which there should never be an exception. Depending on the tests,
     # exceptions could occur throughout the code below.
@@ -1553,6 +1553,8 @@ def test_subscriptionmanager(testcase, submgr_id, connection_attrs,
                 if prop in created_instance:
                     assert created_instance[prop] == value
             else:
+                if created_instance[prop] != value:
+                    print("THEERROR\n{}".format(created_instance.tomof()))
                 assert created_instance[prop] == value
 
     # The removal methods are executed after all others methods defined for
