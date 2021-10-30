@@ -1876,7 +1876,7 @@ def p_instanceDeclaration(p):
                                                    in allowed_types])
                             raise MOFParseError(
                                 msg=_format(
-                                    "Property {0|A} with value {1|A} embedded "
+                                    "Property {0!A} with value {1!A} embedded "
                                     "object type must be ((1}). Actual type "
                                     "is {2}", cprop.name, cls_names, type(obj)))
                     # If the compile produces no objects there must have
@@ -1885,7 +1885,7 @@ def p_instanceDeclaration(p):
                     if not objs:
                         raise MOFParseError(
                             msg=_format(
-                                "Property {0|A} with value {1|A} embedded"
+                                "Property {0!A} with value {1!A} embedded"
                                 " object compile produced no instances.",
                                 cprop.name, pval))
 
@@ -1893,6 +1893,19 @@ def p_instanceDeclaration(p):
                     pprop.value = objs if cprop.is_array else objs[0]
                     pprop.embedded_object = embedded_object_type
             else:
+                if pval:
+                    ival_is_array = isinstance(pval, list)
+                    if cprop.is_array != ival_is_array:
+                        raise MOFParseError(
+                            msg=_format(
+                                "Property {0!A} value {1!A} in instance of "
+                                "class {2!A} has class and instance array "
+                                "mismatch. The class definition is "
+                                "array={3} instance value type is array={4} "
+                                "for value type {5}",
+                                pname, pval, cc.classname, cprop.is_array,
+                                ival_is_array, type(pval)),
+                            parser_token=p)
                 pprop.value = cimvalue(pval, cprop.type)
             inst.properties[pname] = pprop
         except ValueError as ve:

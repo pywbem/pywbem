@@ -126,6 +126,10 @@ Released: not yet
     use mock versions of _imethodcall and _methodcall and simply duck typed
     the methods. (see issue #2755)
 
+* Fixes MOF compiler issue  where the compiler was allowing array properties
+  to have corresponding instances instantiated with non-array values and
+  vice-versa. This now causes a parse error. (See issue # 2786)
+
 * Docs: Fixed an error with the autodocsumm and Sphinx 4.0.0. (issue #2697)
 
 * Jupyter Notebook: Ignored safety issues 40380..40386 in order to continue
