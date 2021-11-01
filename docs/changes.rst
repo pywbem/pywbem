@@ -64,6 +64,9 @@ Released: not yet
   These were new safety issues 1 Nov 2021. The modules are all in development,
    and Jupyter notebook.
 
+* Fix incompatibility between Sphinx 1.8.5 (version for python <= 3.5) and
+  docutils 0.18.  (See issue # 2787).
+
 **Enhancements:**
 
 * Added toleration support for WBEM servers that return a CIM status
