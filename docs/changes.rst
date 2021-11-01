@@ -60,6 +60,10 @@ Released: not yet
 * Modify dev-requirements.txt to limit version of more-itertools to  < 8.10.1
   for python < 3.6. See issue #2796
 
+* Security - Added 42218 42253 42254 42297 42298 42203 to safety ignore list.
+  These were new safety issues 1 Nov 2021. The modules are all in development,
+   and Jupyter notebook.
+
 **Enhancements:**
 
 * Added toleration support for WBEM servers that return a CIM status
