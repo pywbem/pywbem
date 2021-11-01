@@ -153,7 +153,12 @@ Released: not yet
 
 * Security - Added 42218 42253 42254 42297 42298 42203 to safety ignore list.
   These were new safety issues 1 Nov 2021. The modules are all in development,
-   and Jupyter notebook.
+  and Jupyter notebook.
+
+* Fix incompatibility between Sphinx 1.8.5 (version for python <= 3.5) and
+  docutils 0.18.  (See issue # 2787).
+
+* Modified dev-requirements and rtd-requirements to require Sphinx >= 3.54.
 
 **Enhancements:**
 
