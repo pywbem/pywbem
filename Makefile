@@ -281,6 +281,14 @@ py_test_files := \
 # - 39606: cryptography cannot be upgraded to 3.3.2 on py34+py35
 # - 40291: pip cannot be upgraded to 21.1 py<3.6
 # - 40380..40386: notebook issues fixed in 6.1.5 which would prevent using notebook on py2
+# NOV 2021
+# - 42218 pip <21.1 - unicode separators in git references
+# - 42253 Notebook, before 5.7.1 allows XSS via untrusted notebook
+# - 42254 Notebook before 5.7.2, allows XSS via crafted directory name
+# - 42297 Bleach before 3.11, a mutation XSS afects user calling bleach.clean
+# - 42298 Bleach before 3.12, mutation XSS affects bleach.clean
+# - 42293 babel, before 2.9.1 CVS-2021-42771, Bable.locale issue
+
 
 safety_ignore_opts := \
     -i 38100 \
@@ -310,6 +318,12 @@ safety_ignore_opts := \
 		-i 40384 \
 		-i 40385 \
 		-i 40386 \
+		-i 42218 \
+		-i 42253 \
+		-i 42254 \
+		-i 42297 \
+		-i 42298 \
+		-i 42203 \
 
 # Python source files for test (unit test and function test)
 test_src_files := \
