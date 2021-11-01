@@ -151,6 +151,10 @@ Released: not yet
 * Mitigated new Pylint error 'not-an-iterable' when using 'WBEMServer'
   properties that return lists and use deferred initialization. (issue #2770)
 
+* Security - Added 42218 42253 42254 42297 42298 42203 to safety ignore list.
+  These were new safety issues 1 Nov 2021. The modules are all in development,
+   and Jupyter notebook.
+
 **Enhancements:**
 
 * Improved the running of indication listeners via `WBEMListener.start()`:
