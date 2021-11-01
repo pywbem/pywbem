@@ -286,12 +286,10 @@ py_test_files := \
 # - 40291: pip cannot be upgraded to 21.1 py<3.6
 # - 40380..40386: notebook issues fixed in 6.1.5 which would prevent using notebook on py2
 # NOV 2021
-# - 42218 pip <21.1 - unicode separators in git references
-# - 42253 Notebook, before 5.7.1 allows XSS via untrusted notebook
-# - 42254 Notebook before 5.7.2, allows XSS via crafted directory name
-# - 42297 Bleach before 3.11, a mutation XSS afects user calling bleach.clean
-# - 42298 Bleach before 3.12, mutation XSS affects bleach.clean
-# - 42293 babel, before 2.9.1 CVS-2021-42771, Bable.locale issue
+# - 42218 pip <21.1 - unicode separators in git references. Pip cannot be upgraded to 21.1 py<3.6
+# - 42253,42254 Notebook, before 5.7.1 allows XSS via untrusted notebook. Notebook issues fixed in 6.1.5 prevent using notebook on py2
+# - 42297, 42298 Bleach before 3.12, a mutation XSS affects user calling bleach.clean. bleach cannot be upgraded on py34
+# - 42293 babel, before 2.9.1 CVS-2021-42771, babel.locale issue
 
 
 safety_ignore_opts := \
