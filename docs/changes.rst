@@ -57,6 +57,9 @@ Released: not yet
 * Disabled new Pylint issue 'consider-using-f-string', since f-strings were
   introduced only in Python 3.6.
 
+* Modify dev-requirements.txt to limit version of more-itertools to  < 8.10.1
+  for python < 3.6. See issue #2796
+
 **Enhancements:**
 
 * Added toleration support for WBEM servers that return a CIM status

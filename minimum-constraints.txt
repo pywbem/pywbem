@@ -136,6 +136,8 @@ requests-mock==1.6.0
 requests-toolbelt==0.8.0
 yagot==0.5.0
 
+more-itertools==4.0.0
+
 # Easy-server packages
 easy-vault==0.7.0
 easy-server==0.7.0
