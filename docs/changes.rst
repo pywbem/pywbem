@@ -164,6 +164,9 @@ Released: not yet
 
 * Modified dev-requirements and rtd-requirements to require Sphinx >= 3.54.
 
+* Modify dev-requirements.txt to limit version of more-itertools to  < 8.10.1
+  for python < 3.6. See issue #2796
+
 **Enhancements:**
 
 * Improved the running of indication listeners via `WBEMListener.start()`:
