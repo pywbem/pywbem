@@ -173,6 +173,8 @@ Released: not yet
 * Modify dev-requirements.txt to limit version of more-itertools to  < 8.10.1
   for python < 3.6. See issue #2796
 
+* Fixed new issues raised by Pylint 2.12.1.
+
 **Enhancements:**
 
 * Improved the running of indication listeners via `WBEMListener.start()`:
