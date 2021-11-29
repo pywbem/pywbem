@@ -67,6 +67,8 @@ Released: not yet
 * Fix incompatibility between Sphinx 1.8.5 (version for python <= 3.5) and
   docutils 0.18.  (See issue # 2787).
 
+* Fixed new issues raised by Pylint 2.12.1.
+
 **Enhancements:**
 
 * Added toleration support for WBEM servers that return a CIM status

@@ -87,10 +87,10 @@ class CIMContentHandler(xml.sax.ContentHandler):
         self.element = []
 
     def startDocument(self):
-        assert self.elements == []
+        assert not self.elements
 
     def endDocument(self):
-        assert self.elements == []
+        assert not self.elements
         self.root = self.element
 
     def startElement(self, name, attrs):
