@@ -173,10 +173,12 @@ pyrsistent>=0.14.0; python_version >= '3.5'
 #   to work.
 #   Reported to pywin32 as https://github.com/mhammond/pywin32/issues/1448.
 #   Addressed by increasing the minimum version of pywin32 to >=227 on Python >=3.8.
+# TODO: To circumvent https://github.com/pypa/pip/issues/10701, we exclude
+#       py3.10. Remove the circumvention once fixed.
 pywin32>=222,!=226; sys_platform == 'win32' and python_version == '2.7'
 pywin32>=222,!=226; sys_platform == 'win32' and python_version >= '3.5' and python_version <= '3.6'
 pywin32>=223,!=226; sys_platform == 'win32' and python_version == '3.7'
-pywin32>=227; sys_platform == 'win32' and python_version >= '3.8'
+pywin32>=227; sys_platform == 'win32' and python_version >= '3.8' and python_version != '3.10'
 
 # The tornado package is used by ipykernel which is used by jupyter.
 # Workaround: Tornado 5.0.0 and 5.0.1 rejects installation if the Python ssl module
