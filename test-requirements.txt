@@ -65,6 +65,6 @@ lxml>=4.6.2; python_version >= '3.5'
 
 # Virtualenv
 # Virtualenv 20.0.19 has an issue where it does not install pip on Python 3.4.
-virtualenv>=14.0.0,!=20.0.19; python_version < '3.5'
+virtualenv>=16.1.0,!=20.0.19; python_version < '3.5'
 virtualenv>=16.1.0; python_version >= '3.5' and python_version < '3.8'
 virtualenv>=20.0.0; python_version >= '3.8'

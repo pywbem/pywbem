@@ -175,6 +175,8 @@ Released: not yet
 
 * Fixed new issues raised by Pylint 2.12.1.
 
+* Fixed error when installing virtualenv in install test on Python 2.7.
+
 **Enhancements:**
 
 * Improved the running of indication listeners via `WBEMListener.start()`:
