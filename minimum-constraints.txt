@@ -144,7 +144,7 @@ easy-server==0.7.0
 pytest-easy-server==0.7.0
 
 # Virtualenv
-virtualenv==14.0.0; python_version < '3.5'
+virtualenv==16.1.0; python_version < '3.5'
 virtualenv==16.1.0; python_version >= '3.5' and python_version < '3.8'
 virtualenv==20.0.0; python_version >= '3.8'  # requires six<2,>=1.12.0
 
