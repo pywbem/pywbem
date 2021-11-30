@@ -14,12 +14,12 @@ Change log
       :revisions: 1
 
 
-Version 1.3.0.dev1
-^^^^^^^^^^^^^^^^^^
+pywbem 1.3.0
+------------
 
-This version contains all fixes up to version 1.2.x.
+This version contains all fixes up to version 1.2.1.
 
-Released: not yet
+Released: 2021-12-04
 
 **Incompatible changes:**
 
@@ -76,8 +76,6 @@ Released: not yet
   owned destinations with a prior version of pywbem, or as permanent
   destinations with this version of pywbem. (issue #2766)
 
-**Deprecations:**
-
 **Bug fixes:**
 
 * Fixes bug in compiler where log of ModifyClass request failure was not
@@ -130,7 +128,6 @@ Released: not yet
     Name property is different but the URL the same was modified to test for
     both URL and persistence type equality before returning the existing
     instance. (See issue $ 2782)
-
 
 * Fixes MOF compiler issue  where the compiler was allowing array properties
   to have corresponding instances instantiated with non-array values and
@@ -301,12 +298,6 @@ Released: not yet
 **Cleanup:**
 
 * Extend tests for SubscriptionManager to utilize pytest and cover error cases.
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 1.2.0
