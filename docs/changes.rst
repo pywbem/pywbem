@@ -14,14 +14,10 @@ Change log
       :revisions: 1
 
 
-Version 1.2.1.dev1
-^^^^^^^^^^^^^^^^^^
+pywbem 1.2.1
+------------
 
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
+Released: 2021-11-30
 
 **Bug fixes:**
 
@@ -93,14 +89,6 @@ Released: not yet
 
 * Enhanced test matrix on GitHub Actions to always include Python 2.7 and
   Python 3.4 on Ubuntu, and Python 2.7 and Python 3.5 on macOS and Windows.
-
-**Cleanup:**
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 1.2.0
