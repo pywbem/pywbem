@@ -5,14 +5,14 @@ Git workflow
 ------------
 
 * Long-lived branches:
-  - `master` - for next functional version
-  - `stable_M.N` - for fix stream of released version `M.N`.
+  - ``master`` - for next functional version
+  - ``stable_M.N`` - for fix stream of released version M.N.
 * We use topic branches for everything!
   - Based upon the intended long-lived branch, if no dependencies
   - Based upon an earlier topic branch, in case of dependencies
   - It is valid to rebase topic branches and force-push them.
 * We use pull requests to review the branches.
-  - Use the correct long-lived branch (e.g. `master` or `stable_0.8`) as a
+  - Use the correct long-lived branch (e.g. ``master`` or ``stable_0.8``) as a
     merge target!
   - Review happens as comments on the pull requests.
   - At least two +1 are required for merging.
@@ -34,13 +34,13 @@ It covers all variants of versions that can be released:
 * Releasing a new update version (M.N.Unew) based on the stable branch of its
   minor version
 
-The description assumes that the `pywbem/pywbem` repo and the
-`pywbem/pywbem.github.io` repo are both cloned locally in sibling directories
-named `pywbem` and `pywbem.github.io`.
-Their upstream repos are assumed to have the remote name `origin`.
+The description assumes that the ``pywbem/pywbem`` repo and the
+``pywbem/pywbem.github.io`` repo are both cloned locally in sibling directories
+named ``pywbem`` and ``pywbem.github.io``.
+Their upstream repos are assumed to have the remote name ``origin``.
 
 Any commands in the following steps are executed in the main directory of your
-local clone of the `pywbem/pywbem` Git repo.
+local clone of the ``pywbem/pywbem`` Git repo.
 
 1.  Set shell variables for the version that is being released and the branch
     it is based on:
@@ -53,16 +53,12 @@ local clone of the `pywbem/pywbem` Git repo.
     When releasing a new major version (e.g. ``1.0.0``) based on the master
     branch:
 
-    .. code-block:: sh
-
         MNU=1.0.0
         MN=1.0
         BRANCH=master
 
     When releasing a new minor version (e.g. ``0.9.0``) based on the master
     branch:
-
-    .. code-block:: sh
 
         MNU=0.9.0
         MN=0.9
@@ -71,15 +67,11 @@ local clone of the `pywbem/pywbem` Git repo.
     When releasing a new update version (e.g. ``0.8.1``) based on the stable
     branch of its minor version:
 
-    .. code-block:: sh
-
         MNU=0.8.1
         MN=0.8
         BRANCH=stable_${MN}
 
 2.  Create a topic branch for the version that is being released:
-
-    .. code-block:: sh
 
         git checkout ${BRANCH}
         git pull
@@ -87,19 +79,13 @@ local clone of the `pywbem/pywbem` Git repo.
 
 3.  Edit the version file:
 
-    .. code-block:: sh
-
         vi pywbem/_version.py
 
     and set the ``__version__`` variable to the version that is being released:
 
-    .. code-block:: python
-
         __version__ = 'M.N.U'
 
 4.  Edit the change log:
-
-    .. code-block:: sh
 
         vi docs/changes.rst
 
@@ -117,28 +103,22 @@ local clone of the `pywbem/pywbem` Git repo.
 
 5.  Edit the README file for PyPI:
 
-    - `vi README_PYPI.rst`
+        vi README_PYPI.rst
 
-    and update the constants near the top of the file::
+    and update the constants near the top of the file:
 
-    ```
-    .. |pywbem-version-mn| replace:: M.N
-    .. _Readme file on GitHub: https://github.com/pywbem/pywbem/blob/stable_M.N/README.rst
-    .. _Documentation on RTD: https://pywbem.readthedocs.io/en/stable_M.N/
-    .. _Change log on RTD: https://pywbem.readthedocs.io/en/stable_M.N/changes.html
-    ```
+        .. |pywbem-version-mn| replace:: M.N
+        .. _Readme file on GitHub: https://github.com/pywbem/pywbem/blob/stable_M.N/README.rst
+        .. _Documentation on RTD: https://pywbem.readthedocs.io/en/stable_M.N/
+        .. _Change log on RTD: https://pywbem.readthedocs.io/en/stable_M.N/changes.html
 
 6.  When releasing based on the master branch, edit the GitHub workflow file
     ``test.yml``:
-
-    .. code-block:: sh
 
         vi .github/workflows/test.yml
 
     and in the ``on`` section, increase the version of the ``stable_*`` branch
     to the new stable branch ``stable_M.N`` created earlier:
-
-    .. code-block:: yaml
 
         on:
           schedule:
@@ -149,8 +129,6 @@ local clone of the `pywbem/pywbem` Git repo.
             branches: [ master, stable_M.N ]
 
 7.  Commit your changes and push the topic branch to the remote repo:
-
-    .. code-block:: sh
 
         git status  # Double check the changed files
         git commit -asm "Release ${MNU}"
@@ -172,8 +150,6 @@ local clone of the `pywbem/pywbem` Git repo.
 11. Add a new tag for the version that is being released and push it to
     the remote repo. Clean up the local repo:
 
-    .. code-block:: sh
-
         git checkout ${BRANCH}
         git pull
         git tag -f ${MNU}
@@ -182,8 +158,6 @@ local clone of the `pywbem/pywbem` Git repo.
 
 12. When releasing based on the master branch, create and push a new stable
     branch for the same minor version:
-
-    .. code-block:: sh
 
         git checkout -b stable_${MN}
         git push --set-upstream origin stable_${MN}
@@ -209,8 +183,6 @@ local clone of the `pywbem/pywbem` Git repo.
 
 15. Upload the package to PyPI:
 
-    .. code-block:: sh
-
         make upload
 
     This will show the package version and will ask for confirmation.
@@ -221,21 +193,21 @@ local clone of the `pywbem/pywbem` Git repo.
     Verify that the released version arrived on PyPI at
     https://pypi.python.org/pypi/pywbem/
 
-16. Switch to the directory of the `pywbem.github.io` repo and perform the
+16. Switch to the directory of the ``pywbem.github.io`` repo and perform the
     following steps from that directory:
 
-    - `cd ../pywbem.github.io`
+        cd ../pywbem.github.io
 
-17. Check out the `master` branch and update it from upstream:
+17. Check out the ``master`` branch and update it from upstream:
 
-    - `git checkout master`
-    - `git pull`
+        git checkout master
+        git pull
 
     In this repo, we don´t use a topic branch for these changes.
 
 18. Edit the installation page:
 
-    - `vi pywbem/installation.html`
+        vi pywbem/installation.html
 
     To make the following changes in the installation table:
 
@@ -244,14 +216,14 @@ local clone of the `pywbem/pywbem` Git repo.
       it replaces.
 
     Verify with a web browser on the locally changed file
-    `pywbem/installation.html` that the new release shows up correctly,
+    ``pywbem/installation.html`` that the new release shows up correctly,
     and that all of its links work.
 
 19. Commit the changes and push to the upstream repo:
 
-    - `git status` - to double check which files have been changed
-    - `git commit -asm "Release $MNU"`
-    - `git push`
+        git status   # to double check which files have been changed
+        git commit -asm "Release $MNU"
+        git push
 
 
 Starting a new version
@@ -266,12 +238,12 @@ This section covers all variants of new versions:
 * Starting a new update version (M.N.Unew) based on the stable branch of its
   minor version
 
-The description assumes that the `pywbem/pywbem` repo is cloned locally in a
-directory named `pywbem`. Its upstream repo is assumed to have the remote name
-`origin`.
+The description assumes that the ``pywbem/pywbem`` repo is cloned locally in a
+directory named ``pywbem``. Its upstream repo is assumed to have the remote name
+``origin``.
 
 Any commands in the following steps are executed in the main directory of your
-local clone of the `pywbem/pywbem` Git repo.
+local clone of the ``pywbem/pywbem`` Git repo.
 
 1.  Set shell variables for the version that is being started and the branch it
     is based on:
@@ -284,16 +256,12 @@ local clone of the `pywbem/pywbem` Git repo.
     When starting a new major version (e.g. ``1.0.0``) based on the master
     branch:
 
-    .. code-block:: sh
-
         MNU=1.0.0
         MN=1.0
         BRANCH=master
 
     When starting a new minor version (e.g. ``0.9.0``) based on the master
     branch:
-
-    .. code-block:: sh
 
         MNU=0.9.0
         MN=0.9
@@ -302,15 +270,11 @@ local clone of the `pywbem/pywbem` Git repo.
     When starting a new minor version (e.g. ``0.8.1``) based on the stable
     branch of its minor version:
 
-    .. code-block:: sh
-
         MNU=0.8.1
         MN=0.8
         BRANCH=stable_${MN}
 
 2.  Create a topic branch for the version that is being started:
-
-    .. code-block:: sh
 
         git checkout ${BRANCH}
         git pull
@@ -318,29 +282,21 @@ local clone of the `pywbem/pywbem` Git repo.
 
 3.  Edit the version file:
 
-    .. code-block:: sh
-
         vi pywbem/_version.py
 
     and update the version to a draft version of the version that is being
     started:
 
-    .. code-block:: python
-
         __version__ = 'M.N.U.dev1'
 
 4.  Edit the change log:
-
-    .. code-block:: sh
 
         vi docs/changes.rst
 
     and insert the following section before the top-most section:
 
-    .. code-block:: rst
-
-        Version M.N.U.dev1
-        ^^^^^^^^^^^^^^^^^^
+        pywbem M.N.U.dev1
+        -----------------
 
         This version contains all fixes up to version M.N-1.x.
 
@@ -363,8 +319,6 @@ local clone of the `pywbem/pywbem` Git repo.
         .. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 5.  Commit your changes and push them to the remote repo:
-
-    .. code-block:: sh
 
         git status  # Double check the changed files
         git commit -asm "Start ${MNU}"
@@ -390,8 +344,6 @@ local clone of the `pywbem/pywbem` Git repo.
     automatically deletes the branch on GitHub.
 
 10. Update and clean up the local repo:
-
-    .. code-block:: sh
 
         git checkout ${BRANCH}
         git pull
