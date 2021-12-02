@@ -295,6 +295,9 @@ Released: not yet
 * Enhanced test matrix on GitHub Actions to always include Python 2.7 and
   Python 3.4 on Ubuntu, and Python 2.7 and Python 3.5 on macOS and Windows.
 
+* Support for Python 3.10: Added Python 3.10 in GitHub Actions tests, and in
+  package metadata.
+
 **Cleanup:**
 
 * Extend tests for SubscriptionManager to utilize pytest and cover error cases.
