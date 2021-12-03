@@ -409,7 +409,7 @@ def test_Statistics_measure_avg():
     # Notes:
     # * Windows has only a precision of 1/60 sec.
     # * In CI environments, the tests sometimes run slow.
-    delta = 0.5
+    delta = 0.8
 
     stats = statistics.start_timer('EnumerateInstances')
     time.sleep(duration)
