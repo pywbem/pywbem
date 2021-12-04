@@ -165,21 +165,21 @@ local clone of the ``pywbem/pywbem`` Git repo.
 
     Note that no GitHub Pull Request is created for any ``stable_*`` branch.
 
-13. On GitHub, edit the new tag ``M.N.U``, and create a release description on
-    it. This will cause it to appear in the Release tab.
+13. When releasing based on the master branch, activate the new stable branch
+    ``stable_M.N`` on ReadTheDocs:
 
-    You can see the tags in GitHub via Code -> Releases -> Tags.
+    * Go to https://readthedocs.org/projects/pywbem/versions/ and log in.
 
-14. On ReadTheDocs, activate the new version ``M.N.U``:
-
-    * Go to https://readthedocs.org/projects/pywbem/versions/
-      and log in.
-
-    * Activate the new version ``M.N.U``.
+    * Activate the new version ``stable_M.N``.
 
       This triggers a build of that version. Verify that the build succeeds
       and that new version is shown in the version selection popup at
-      https://pywbem.readthedocs.io/
+      https://pywbem.readthedocs.io/.
+
+14. On GitHub, edit the new tag ``M.N.U``, and create a release description on
+    it. This will cause it to appear in the Release tab.
+
+    You can see the tags in GitHub via Code -> Releases -> Tags.
 
 15. Upload the package to PyPI:
 
