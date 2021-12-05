@@ -110,14 +110,22 @@ wrapt>=1.12; python_version >= '3.4'
 # Flake8 and dependents (no imports, invoked via flake8 script):
 # flake8 3.9.0 has removed support for py34 and pip 19.1.1 on py34 does not deal
 # well with its pinned dependencies, so we need to repeat these for py34.
+# flake8 4.0.0 fixes an AttributeError on Python 3.10.
+flake8>=3.8.0; python_version == '2.7'
 flake8>=3.8.0,<3.9.0; python_version == '3.4'
+flake8>=3.8.0; python_version >= '3.5' and python_version <= '3.9'
+flake8>=4.0.0; python_version >= '3.10'
+mccabe>=0.6.0; python_version == '2.7'
 mccabe>=0.6.0,<0.7.0; python_version == '3.4'
+mccabe>=0.6.0; python_version >= '3.5'
+pycodestyle>=2.6.0,<2.8.0; python_version == '2.7'
 pycodestyle>=2.6.0a1,<2.7.0; python_version == '3.4'
+pycodestyle>=2.6.0; python_version >= '3.5' and python_version <= '3.9'
+pycodestyle>=2.8.0; python_version >= '3.10'
+pyflakes>=2.2.0,<2.4.0; python_version == '2.7'
 pyflakes>=2.2.0,<2.3.0; python_version == '3.4'
-flake8>=3.8.0; python_version != '3.4'
-mccabe>=0.6.0; python_version != '3.4'
-pycodestyle>=2.6.0; python_version != '3.4'
-pyflakes>=2.2.0; python_version != '3.4'
+pyflakes>=2.2.0; python_version >= '3.5' and python_version <= '3.9'
+pyflakes>=2.4.0; python_version >= '3.10'
 entrypoints>=0.3.0
 functools32>=3.2.3.post2; python_version == '2.7'  # technically: python_version < '3.2'
 
