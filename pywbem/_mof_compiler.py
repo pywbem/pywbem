@@ -632,7 +632,8 @@ def p_mp_createClass(p):
                     assert not fixedNS  # Should not happen if we created it
                     if p.parser.verbose:
                         p.parser.log(
-                            _format("Creating namespace {0}", ns))
+                            _format("Creating namespace {0} (in MOF compiler)",
+                                    ns))
                     p.parser.server.create_namespace(ns)
                     fixedNS = True
                     continue  # Try again to create the class
@@ -894,7 +895,7 @@ def p_mp_setQualifier(p):
         if ce.status_code == CIM_ERR_INVALID_NAMESPACE:
             if p.parser.verbose:
                 p.parser.log(
-                    _format("Creating namespace {0}", ns))
+                    _format("Creating namespace {0} (in MOF compiler)", ns))
             p.parser.server.create_namespace(ns)
             if p.parser.verbose:
                 p.parser.log(
@@ -1117,7 +1118,7 @@ def p_qualifier(p):
                     cim_error=ce)
             if p.parser.verbose:
                 p.parser.log(
-                    _format("Creating namespace {0}", ns))
+                    _format("Creating namespace {0} (in MOF compiler)", ns))
             p.parser.server.create_namespace(ns)
             quals = None
 

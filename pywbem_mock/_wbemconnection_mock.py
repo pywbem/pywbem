@@ -406,7 +406,7 @@ class FakedWBEMConnection(WBEMConnection):
     # so they can be access with call to the methods from instance of
     # this class. they are considered part of the external API.
 
-    def add_namespace(self, namespace):
+    def add_namespace(self, namespace, verbose=False):
         """
         Add a CIM namespace to the CIM repository of the faked connection.
 
@@ -419,15 +419,18 @@ class FakedWBEMConnection(WBEMConnection):
             Must not be `None`. Any leading or trailing slash characters are
             removed before the string is used to define the namespace name.
 
+          verbose (:class:`py:bool`):
+            Verbose mode: Print a message about the namespace creation.
+
         Raises:
 
           ValueError: Namespace argument must not be None.
           :exc:`~pywbem.CIMError`: CIM_ERR_ALREADY_EXISTS if the namespace
             already exists in the CIM repository.
         """
-        self._mainprovider.add_namespace(namespace)
+        self._mainprovider.add_namespace(namespace, verbose=verbose)
 
-    def remove_namespace(self, namespace):
+    def remove_namespace(self, namespace, verbose=False):
         """
         Remove a CIM namespace from the CIM repository of the faked connection.
 
@@ -440,6 +443,9 @@ class FakedWBEMConnection(WBEMConnection):
             insensitive). Must not be `None`. Leading or trailing
             slash characters are ignored.
 
+          verbose (:class:`py:bool`):
+            Verbose mode: Print a message about the namespace deletion.
+
         Raises:
 
           ValueError: Namespace argument must not be None
@@ -451,7 +457,7 @@ class FakedWBEMConnection(WBEMConnection):
             to delete the default connection namespace.  This namespace cannot
             be deleted from the CIM repository
         """
-        self._mainprovider.remove_namespace(namespace)
+        self._mainprovider.remove_namespace(namespace, verbose=verbose)
 
     def is_interop_namespace(self, namespace):
         """
