@@ -153,7 +153,7 @@ class BaseProvider(object):
                 _format("Namespace does not exist in CIM repository: {0!A}",
                         namespace))
 
-    def add_namespace(self, namespace):
+    def add_namespace(self, namespace, verbose=False):
         """
         Add a CIM namespace to the CIM repository.
 
@@ -169,6 +169,9 @@ class BaseProvider(object):
             The name of the CIM namespace in the CIM repository. Must not be
             `None`. Any leading or trailing slash characters are removed before
             the string is used to define the namespace name.
+
+          verbose (:class:`py:bool`):
+            Verbose mode: Print a message about the namespace creation.
 
         Raises:
 
@@ -193,6 +196,9 @@ class BaseProvider(object):
                     _format("An Interop namespace {0!A} already exists in the "
                             "CIM repository. {1!A} cannot be added. ",
                             self.find_interop_namespace(), namespace))
+        if verbose:
+            print("Creating namespace {} (in mock support)".
+                  format(namespace))
         try:
             self.cimrepository.add_namespace(namespace)
         except ValueError:
@@ -201,7 +207,7 @@ class BaseProvider(object):
                 _format("Namespace {0!A} already exists in the CIM repository ",
                         namespace))
 
-    def remove_namespace(self, namespace):
+    def remove_namespace(self, namespace, verbose=False):
         """
         Remove a CIM namespace from the CIM repository.
 
@@ -215,6 +221,9 @@ class BaseProvider(object):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing
             slash characters are ignored.
+
+          verbose (:class:`py:bool`):
+            Verbose mode: Print a message about the namespace deletion.
 
         Raises:
 
@@ -246,6 +255,9 @@ class BaseProvider(object):
                 _format("The Interop namespace {0!A} cannot be removed from "
                         "the CIM repository.", namespace))
 
+        if verbose:
+            print("Deleting namespace {} (in mock support)".
+                  format(namespace))
         try:
             self.cimrepository.remove_namespace(namespace)
         # KeyError cannot happen because existence was already verified

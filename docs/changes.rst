@@ -33,6 +33,11 @@ Released: not yet
 
 **Enhancements:**
 
+* Improved verbosity of namespace creation and deletion: Added optional
+  'verbose' parameters to the create_namecpace() and delete_namespace() methods
+  of WBEMServer, and to the add_namecpace() and remove_namespace() methods of
+  FakedWBEMConnection (and subsequently to BaseProvider) in the mock support.
+
 **Cleanup:**
 
 **Known issues:**

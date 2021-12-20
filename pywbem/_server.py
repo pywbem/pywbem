@@ -381,7 +381,7 @@ class WBEMServer(object):
             self._determine_profiles()
         return self._profiles
 
-    def create_namespace(self, namespace):
+    def create_namespace(self, namespace, verbose=False):
         """
         Create the specified CIM namespace in the WBEM server and
         update this WBEMServer object to reflect the new namespace
@@ -420,6 +420,9 @@ class WBEMServer(object):
               The namespace may contain leading and a trailing slash, both of
               which will be ignored.
 
+            verbose (:class:`py:bool`):
+              Verbose mode: Print a message about the namespace creation.
+
         Returns:
 
           :term:`unicode string`: The specified CIM namespace name in its
@@ -432,6 +435,10 @@ class WBEMServer(object):
         """
 
         std_namespace = _ensure_unicode(namespace.strip('/'))
+
+        if verbose:
+            print("Creating namespace {} (in WBEMServer)".
+                  format(std_namespace))
 
         try:
             ws_profiles = self.get_selected_profiles('DMTF', 'WBEM Server')
@@ -525,7 +532,7 @@ class WBEMServer(object):
 
         return std_namespace
 
-    def delete_namespace(self, namespace):
+    def delete_namespace(self, namespace, verbose=False):
         """
         Delete the specified CIM namespace in the WBEM server and
         update this WBEMServer object to reflect the removed namespace
@@ -563,6 +570,9 @@ class WBEMServer(object):
               The namespace may contain leading and a trailing slash, both of
               which will be ignored.
 
+            verbose (:class:`py:bool`):
+              Verbose mode: Print a message about the namespace creation.
+
         Returns:
 
           :term:`unicode string`: The specified CIM namespace name in its
@@ -578,6 +588,10 @@ class WBEMServer(object):
         """
 
         std_namespace = _ensure_unicode(namespace.strip('/'))
+
+        if verbose:
+            print("Deleting namespace {} (in WBEMServer)".
+                  format(std_namespace))
 
         # Use approach 1: DeleteInstance of CIM class for namespaces
 
@@ -1106,8 +1120,8 @@ class WBEMServer(object):
         if interop_ns is None:
             # Exhausted the possible namespaces
             raise ModelError(
-                _format("Interop namespace could not be determined "
-                        "(tried {0!A})", self.INTEROP_NAMESPACES),
+                _format("Interop namespace does not exist (tried {0!A})",
+                        self.INTEROP_NAMESPACES),
                 conn_id=self.conn.conn_id)
         self._interop_ns = interop_ns
 
