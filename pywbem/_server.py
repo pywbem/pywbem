@@ -513,7 +513,8 @@ class WBEMServer(object):
             ns_inst['SystemCreationClassName'] = \
                 self.cimom_inst['SystemCreationClassName']
 
-            self.conn.CreateInstance(ns_inst, namespace=self.interop_ns)
+            interop_ns = self.interop_ns  # Determines the Interop namespace
+            self.conn.CreateInstance(ns_inst, namespace=interop_ns)
 
         # Refresh the list of namespaces in this object to include the one
         # we just created.
@@ -667,7 +668,8 @@ class WBEMServer(object):
               and does not include the required properties.
         """
 
-        org_vm = ValueMapping.for_property(self, self.interop_ns,
+        interop_ns = self.interop_ns  # Determines the Interop namespace
+        org_vm = ValueMapping.for_property(self, interop_ns,
                                            'CIM_RegisteredProfile',
                                            'RegisteredOrganization')
         org_lower = registered_org.lower() \
@@ -686,7 +688,7 @@ class WBEMServer(object):
                     _format("CIM_RegisteredProfile instance in namespace "
                             "{0!A} does not have a property "
                             "'RegisteredOrganization'",
-                            self.interop_ns))
+                            interop_ns))
             inst_org = org_vm.tovalues(inst_org_value)
             try:
                 inst_name = inst['RegisteredName']
@@ -695,7 +697,7 @@ class WBEMServer(object):
                     _format("CIM_RegisteredProfile instance in namespace "
                             "{0!A} does not have a property "
                             "'RegisteredName'",
-                            self.interop_ns))
+                            interop_ns))
             try:
                 inst_version = inst['RegisteredVersion']
             except KeyError:
@@ -703,7 +705,7 @@ class WBEMServer(object):
                     _format("CIM_RegisteredProfile instance in namespace "
                             "{0!A} does not have a property "
                             "'RegisteredVersion'",
-                            self.interop_ns))
+                            interop_ns))
 
             inst_org_lower = inst_org.lower() \
                 if inst_org is not None else None
@@ -1224,8 +1226,9 @@ class WBEMServer(object):
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
             ModelError: An error with the model implemented by the WBEM server.
         """
+        interop_ns = self.interop_ns  # Determines the Interop namespace
         cimom_insts = self._conn.EnumerateInstances(
-            "CIM_ObjectManager", namespace=self.interop_ns)
+            "CIM_ObjectManager", namespace=interop_ns)
         if len(cimom_insts) != 1:
             raise ModelError(
                 _format("Unexpected number of CIM_ObjectManager instances: "
@@ -1299,6 +1302,7 @@ class WBEMServer(object):
             Exceptions raised by :class:`~pywbem.WBEMConnection`.
             ModelError: An error with the model implemented by the WBEM server.
         """
+        interop_ns = self.interop_ns  # Determines the Interop namespace
         mp_insts = self._conn.EnumerateInstances("CIM_RegisteredProfile",
-                                                 namespace=self.interop_ns)
+                                                 namespace=interop_ns)
         self._profiles = mp_insts

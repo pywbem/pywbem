@@ -181,7 +181,7 @@ class InMemoryRepository(BaseRepository):
 
         Parameters:
 
-          initial_namespace:(:term:`string` or None):
+          initial_namespace (:term:`string` or None):
             Optional initial namespace that will be added to
             the CIM repository.
         """
@@ -204,7 +204,7 @@ class InMemoryRepository(BaseRepository):
         return _format(
             "InMemoryRepository(data={s._repository})", s=self)
 
-    def print_repository(self, dest=None, ):
+    def print_repository(self, dest=None):
         """
         Print the CIM repository to a destination. This displays information on
         the items in the data base and is only a diagnostic tool.
@@ -214,6 +214,7 @@ class InMemoryRepository(BaseRepository):
             File path of an output file. If `None`, the output is written to
             stdout.
         """
+
         def objstore_info(objstore_name):
             """
             Display the data for the object store
