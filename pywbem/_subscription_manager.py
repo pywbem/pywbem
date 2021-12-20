@@ -371,6 +371,8 @@ class WBEMSubscriptionManager(object):
                 _format("WBEM server already known by listener: {0!A}",
                         server_id))
 
+        interop_ns = server.interop_ns  # Determines the Interop namespace
+
         # Create dictionary entries for this server
         self._servers[server_id] = server
         self._owned_subscriptions[server_id] = []
@@ -396,7 +398,7 @@ class WBEMSubscriptionManager(object):
                     this_client, self._subscription_manager_id))
 
         dest_insts = server.conn.EnumerateInstances(
-            DESTINATION_CLASSNAME, namespace=server.interop_ns)
+            DESTINATION_CLASSNAME, namespace=interop_ns)
 
         for inst in dest_insts:
             if re.match(dest_name_pattern, inst.path.keybindings['Name']):
@@ -418,7 +420,7 @@ class WBEMSubscriptionManager(object):
                     this_client, self._subscription_manager_id))
 
         filter_insts = server.conn.EnumerateInstances(
-            FILTER_CLASSNAME, namespace=server.interop_ns)
+            FILTER_CLASSNAME, namespace=interop_ns)
 
         for inst in filter_insts:
             if re.match(filter_name_pattern, inst.path.keybindings['Name']):
@@ -433,7 +435,7 @@ class WBEMSubscriptionManager(object):
                     OldNameFilterWarning, 2)
 
         sub_insts = server.conn.EnumerateInstances(
-            SUBSCRIPTION_CLASSNAME, namespace=server.interop_ns)
+            SUBSCRIPTION_CLASSNAME, namespace=interop_ns)
         owned_filter_paths = [inst.path for inst in
                               self._owned_filters[server_id]]
         owned_destination_paths = [inst.path for inst in
@@ -741,8 +743,10 @@ class WBEMSubscriptionManager(object):
         # Validate server_id
         server = self._get_server(server_id)
 
+        interop_ns = server.interop_ns  # Determines the Interop namespace
+
         return server.conn.EnumerateInstances(DESTINATION_CLASSNAME,
-                                              namespace=server.interop_ns)
+                                              namespace=interop_ns)
 
     def remove_destinations(self, server_id, destination_paths):
         # pylint: disable=line-too-long
@@ -1023,8 +1027,10 @@ class WBEMSubscriptionManager(object):
         # Validate server_id
         server = self._get_server(server_id)
 
+        interop_ns = server.interop_ns  # Determines the Interop namespace
+
         return server.conn.EnumerateInstances('CIM_IndicationFilter',
-                                              namespace=server.interop_ns)
+                                              namespace=interop_ns)
 
     def remove_filter(self, server_id, filter_path):
         """
@@ -1242,8 +1248,10 @@ class WBEMSubscriptionManager(object):
         # Validate server_id
         server = self._get_server(server_id)
 
+        interop_ns = server.interop_ns  # Determines the Interop namespace
+
         return server.conn.EnumerateInstances(SUBSCRIPTION_CLASSNAME,
-                                              namespace=server.interop_ns)
+                                              namespace=interop_ns)
 
     def remove_subscriptions(self, server_id, sub_paths):
         # pylint: disable=line-too-long
@@ -1371,6 +1379,8 @@ class WBEMSubscriptionManager(object):
         # Validate the URL by reconstructing it. Do not allow defaults
         _, _, listener_url = parse_url(dest_url, allow_defaults=False)
 
+        interop_ns = server.interop_ns  # Determines the Interop namespace
+
         dest_inst = CIMInstance(DESTINATION_CLASSNAME)
         dest_inst['CreationClassName'] = DESTINATION_CLASSNAME
         dest_inst['SystemCreationClassName'] = SYSTEM_CREATION_CLASSNAME
@@ -1387,7 +1397,7 @@ class WBEMSubscriptionManager(object):
 
         # Test if instance already exists in the WBEM server
         existing_dest_insts = server.conn.EnumerateInstances(
-            DESTINATION_CLASSNAME, namespace=server.interop_ns)
+            DESTINATION_CLASSNAME, namespace=interop_ns)
         for inst in existing_dest_insts:
             name_prop = inst.properties.get('Name', None)  # CIMProperty
             if name_prop and name_prop.value == name:
@@ -1405,8 +1415,7 @@ class WBEMSubscriptionManager(object):
                         inst['PersistenceType'] == dest_inst['PersistenceType']:
                     return inst
 
-        dest_path = server.conn.CreateInstance(
-            dest_inst, namespace=server.interop_ns)
+        dest_path = server.conn.CreateInstance(dest_inst, namespace=interop_ns)
         dest_inst = server.conn.GetInstance(dest_path)
 
         if owned:
@@ -1466,6 +1475,8 @@ class WBEMSubscriptionManager(object):
         # Validate server_id
         server = self._get_server(server_id)
 
+        interop_ns = server.interop_ns  # Determines the Interop namespace
+
         owned = filter_id is not None
 
         filter_inst = CIMInstance(FILTER_CLASSNAME)
@@ -1485,7 +1496,7 @@ class WBEMSubscriptionManager(object):
         filter_inst['QueryLanguage'] = query_language
 
         existing_filter_insts = server.conn.EnumerateInstances(
-            FILTER_CLASSNAME, namespace=server.interop_ns)
+            FILTER_CLASSNAME, namespace=interop_ns)
         for inst in existing_filter_insts:
             name_prop = inst.properties.get('Name', None)  # CIMProperty
             if name_prop and name_prop.value == name:
@@ -1494,7 +1505,7 @@ class WBEMSubscriptionManager(object):
                     "Filter instance with Name='{0}' already exists: {1}".
                     format(name, inst.path))
         filter_path = server.conn.CreateInstance(
-            filter_inst, namespace=server.interop_ns)
+            filter_inst, namespace=interop_ns)
         filter_inst = server.conn.GetInstance(filter_path)
 
         if owned:
@@ -1541,8 +1552,10 @@ class WBEMSubscriptionManager(object):
         # Validate server_id
         server = self._get_server(server_id)
 
+        interop_ns = server.interop_ns  # Determines the Interop namespace
+
         sub_path = CIMInstanceName(SUBSCRIPTION_CLASSNAME,
-                                   namespace=server.interop_ns,
+                                   namespace=interop_ns,
                                    keybindings=[('Filter', filter_path),
                                                 ('Handler', dest_path)])
 
@@ -1561,13 +1574,13 @@ class WBEMSubscriptionManager(object):
                     # exists.
                     return inst
             sub_path = server.conn.CreateInstance(
-                sub_inst, namespace=server.interop_ns)
+                sub_inst, namespace=interop_ns)
             sub_inst = server.conn.GetInstance(sub_path)
             self._owned_subscriptions[server_id].append(sub_inst)
         else:
             # Responsibility to ensure it does not exist yet is with the user
             sub_path = server.conn.CreateInstance(
-                sub_inst, namespace=server.interop_ns)
+                sub_inst, namespace=interop_ns)
             sub_inst = server.conn.GetInstance(sub_path)
 
         return sub_inst
