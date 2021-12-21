@@ -69,12 +69,14 @@
 #   setuptools  41.5.0
 #   wheel       0.33.5
 
-# For the base packages, we use the versions from Ubuntu 18.04 as a general
-# minimum, and then increase it to the first version that introduced support
-# for a particular Python version:
-# The cryptography package requires pip>=21.0 on Windows on GitHub Actions.
-# Pip 20.2 introduced a new resolver whose backtracking had issues that were resolved only in 21.2.2.
-pip==9.0.1; python_version <= '3.5'
+# Additional requirements:
+# * pip>=9.0.0 to support the --upgrade-strategy option
+# * setuptools>=20.5 to support environment markers
+# * pip 10.0.0 introduced the --exclude-editable option.
+# * pip 18.0 is needed on pypy3 (py36) to support constraints like cffi!=1.11.3,>=1.8.
+# * pip 20.2 introduced a new resolver whose backtracking had issues that were resolved only in 21.2.2.
+# * pip>=21.0 is needed for the cryptography package on Windows on GitHub Actions.
+pip==10.0.1; python_version <= '3.5'
 pip==21.2.2; python_version >= '3.6'
 # setuptools before 49.0.0 compares Python versions in requirements based on strings and thus
 #   ignores certain requirements on Python 3.10.
