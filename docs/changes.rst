@@ -27,6 +27,10 @@ Released: not yet
 
 **Bug fixes:**
 
+* Aligned minimum versions of pip,setuptools,wheel with pywbemtools,
+  nocasedict,nocaselist. This increased the minimum version of pip
+  on Python 3.5 to fix an issue.
+
 **Enhancements:**
 
 **Cleanup:**
