@@ -79,6 +79,7 @@ import os
 import io
 import re
 import tempfile
+import warnings
 
 from abc import ABCMeta, abstractmethod
 try:
@@ -103,6 +104,7 @@ from ._cim_constants import CIM_ERR_NOT_FOUND, CIM_ERR_FAILED, \
     CIM_ERR_NOT_SUPPORTED
 from ._exceptions import Error, CIMError
 from ._utils import _format, _ensure_unicode
+from ._warnings import ToleratedSchemaIssueWarning
 
 __all__ = ['MOFCompileError', 'MOFParseError', 'MOFDependencyError',
            'MOFRepositoryError', 'MOFCompiler', 'BaseRepositoryConnection']
@@ -2404,11 +2406,11 @@ class MOFWBEMConnection(BaseRepositoryConnection):
                 cls, inst, namespace=ns)
 
         if "Abstract" in cls.qualifiers:
-            raise CIMError(
-                CIM_ERR_FAILED,
-                _format("CreateInstance failed. Cannot instantiate abstract "
-                        "class {0!A} in Namespace {1!A}.",
-                        inst.classname, ns))
+            warnings.warn(
+                _format("Tolerating instance creation of abstract class {0} "
+                        " in namepace {1} which is forbidden by DMTF DSP0004.",
+                        inst.classname, ns),
+                ToleratedSchemaIssueWarning, 1)
 
         try:
             self.instances[ns].append(inst)
