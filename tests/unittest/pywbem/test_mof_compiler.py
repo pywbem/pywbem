@@ -34,6 +34,8 @@ from pywbem._cim_obj import CIMClass, CIMProperty, CIMQualifier, \
 from pywbem import _mof_compiler, CIMInstance, CIMError  # noqa: E402
 from pywbem._utils import _format  # noqa: E402
 from pywbem._nocasedict import NocaseDict  # noqa: E402
+from pywbem._warnings import ToleratedSchemaIssueWarning  # noqa: E402
+
 pywbem_mock = import_installed('pywbem_mock')
 from pywbem_mock import FakedWBEMConnection  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
@@ -3230,6 +3232,114 @@ def test_embedded_object_property_compile(testcase, iid, pname, pstr, exp_dict):
     else:
         assert isinstance(rtn_property_value, CIMInstance)
         assert rtn_property_value.classname == 'TST_Embedded1'
+
+
+ABSTRACT_INSTANCE_TEST_MOF = """
+
+    Qualifier Abstract : boolean = false,
+        Scope(class, association, indication),
+        Flavor(EnableOverride, Restricted);
+
+    Qualifier Key : boolean = false,
+        Scope(property, reference),
+        Flavor(DisableOverride, ToSubclass);
+
+    Qualifier Description : string = null,
+        Scope(any),
+        Flavor(EnableOverride, ToSubclass, Translatable);
+
+    Qualifier Version : string,
+        Scope(class, association, indication),
+        Flavor(EnableOverride, Restricted, Translatable);
+
+        [Abstract, Version ( "2.6.0" ),
+         Description ("Test class that is abstract")]
+    class TST_AbstractClass {
+            [Key, Description ("Key property")]
+        string InstanceID;
+    };
+        [Description ("Subclass of abstract class")]
+    class TST_AbstractClassSub: TST_AbstractClass {
+    };
+
+"""
+
+TESTCASES_ABSTRACT_MOF_INSTANCE_COMPILE = [
+
+    # Testcases for testing good, warning generating and error mof where
+    # the MOF can be defined for each test.
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * instmof: name of the embedded instance property
+    #   * pstr: String containing mof for property
+    #   * result_inst - Instance retrieved to test creation of instmof
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+    # NOTE: All embedded property mof defintions that are python strings must
+    # define any included EOL with either the python raw (r'<string' or double
+    # \\ (\\n).
+    (
+        "Validate creation single instance of Abstract class",
+        dict(
+            instmof="instance of TST_AbstractClass { " \
+                    'InstanceID = "Inst1"; ' \
+                    "};",
+            result_inst=CIMInstance(
+                "TST_AbstractClass",
+                path=CIMInstanceName("TST_AbstractClass",
+                                     keybindings=dict(InstanceID='Inst1')),
+                properties=[
+                    CIMProperty('InstanceID', value='Inst1')])
+        ),
+        None, ToleratedSchemaIssueWarning, OK
+    ),
+
+    (
+        "Validate creation single instance of not Abstract class",
+        dict(
+            instmof="instance of TST_AbstractClassSub { " \
+                    'InstanceID = "Inst1"; ' \
+                    "};",
+            result_inst=CIMInstance(
+                "TST_AbstractClassSub",
+                path=CIMInstanceName("TST_AbstractClassSub",
+                                     keybindings=dict(InstanceID='Inst1')),
+                properties=[
+                    CIMProperty('InstanceID', value='Inst1')])
+        ),
+        None, None, OK
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_ABSTRACT_MOF_INSTANCE_COMPILE)
+@simplified_test_function
+def test_abstract_mof_instance_compile(testcase, instmof, result_inst):
+    # pylint: disable=unused-argument
+    """
+    Test embedded object instances warning
+    """
+    conn = FakedWBEMConnection()
+    conn.compile_mof_string(ABSTRACT_INSTANCE_TEST_MOF, verbose=False)
+
+    conn.compile_mof_string(instmof)
+
+    # Get created instance and validate instance(s) created
+
+    path = CIMInstanceName(result_inst.classname,
+                           keybindings=dict(InstanceID="Inst1"))
+    rtn_inst = conn.GetInstance(path)
+
+    # Account for differences in namespace, host in paths
+    rtn_inst.path.namespace = None
+    rtn_inst.path.host = None
+
+    assert rtn_inst == result_inst
 
 
 if __name__ == '__main__':
