@@ -32,6 +32,7 @@ provider class defined in the provider registry.
 from __future__ import absolute_import, print_function
 
 from copy import deepcopy
+import warnings
 import six
 try:
     from collections.abc import Mapping, Sequence
@@ -41,7 +42,8 @@ except ImportError:  # py2
 
 from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMParameter, CIMError, CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_PARAMETER, \
-    CIM_ERR_INVALID_CLASS, CIM_ERR_METHOD_NOT_FOUND, cimtype, CIM_ERR_FAILED
+    CIM_ERR_INVALID_CLASS, CIM_ERR_METHOD_NOT_FOUND, cimtype, \
+    ToleratedSchemaIssueWarning
 
 from pywbem._utils import _format
 from pywbem._nocasedict import NocaseDict
@@ -215,11 +217,11 @@ class ProviderDispatcher(BaseProvider):
                         NewInstance.classname, namespace))
 
         if "Abstract" in creation_class.qualifiers:
-            raise CIMError(
-                CIM_ERR_FAILED,
-                _format("CreateInstance failed. Cannot instantiate abstract "
-                        "class {0!A} in Namespace {1!A}.",
-                        NewInstance.classname, namespace))
+            warnings.warn(
+                _format("Tolerating instance creation of abstract class {0} "
+                        " in namepace {1} which is forbidden by DMTF DSP0004.",
+                        NewInstance.classname, namespace),
+                ToleratedSchemaIssueWarning, 1)
 
         # Verify that the properties in the new instance are exposed by the
         # creation class and have the correct type-related attributes.

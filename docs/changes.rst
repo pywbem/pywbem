@@ -33,6 +33,13 @@ Released: not yet
 
 **Cleanup:**
 
+* Modified compiler and pywbem_mock to allow creating instances from
+  abstract classes because SNIA ignored DMTF rule making this illegal and many
+  MOF compilers also ignored it.  Pywbem now issue a warning from the MOF
+  compiler if an instance of an abstract class is compiled but complete
+  the compile and another warning from pywbem_mock.CreateInstance if the
+  instance is for an abstract class. (see issue #2825)
+
 **Known issues:**
 
 * See `list of open issues`_.

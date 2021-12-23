@@ -75,6 +75,8 @@ from pywbem import CIMClass, CIMProperty, CIMInstance, CIMMethod, \
 from pywbem._nocasedict import NocaseDict  # noqa: E402
 from pywbem._utils import _format  # noqa: E402
 from pywbem._cim_operations import pull_path_result_tuple  # noqa: E402
+from pywbem._warnings import ToleratedSchemaIssueWarning  # noqa: E402
+
 pywbem_mock = import_installed('pywbem_mock')
 from pywbem_mock import FakedWBEMConnection, DMTFCIMSchema, \
     InstanceWriteProvider, MethodProvider, BaseProvider, \
@@ -6225,10 +6227,11 @@ class TestInstanceOperations(object):
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
-    def test_createinstance_abstract(self, conn, ns):
+    def test_addinstance_abstract(self, conn, ns):
         # pylint: disable=no-self-use
         """
-        Test createinstance of an abstract class. This test generates exception
+        Test createinstance of an abstract class. Does not generate a
+        warning because the add_objects does not test for abstrace.
         """
 
         # Create the model environment, qualifier decls and class
@@ -6264,24 +6267,82 @@ class TestInstanceOperations(object):
         conn.add_cimobjects([c], namespace=ns)
 
         # create the new instance
-        new_inst = CIMInstance('CIM_AbstractClass',
-                               properties={'InstanceID': "AbstractTestFail"})
+        exp_warn_types = None
+        with pytest.warns(exp_warn_types) as rec_warnings:
+            new_inst = CIMInstance(
+                'CIM_AbstractClass',
+                properties={'InstanceID': "AbstractTestWarn"})
+            new_inst.path = CIMInstanceName(
+                'CIM_AbstractClass', namespace=ns,
+                keybindings={"InstanceID": "AbstractTestWarn"}
+            )
 
-        # test add a second time.  Should generate exception.
-        with pytest.raises(CIMError) as exec_info:
+            # NOTE: add_cimobjects does not test for Abstract
+            conn.add_cimobjects(new_inst, namespace=ns)
 
-            # The code to be tested
+        assert len(rec_warnings) == 0, \
+            "Unexpected warn msg {}".format(exp_warn_types)
+
+    @pytest.mark.parametrize(
+        "ns", INITIAL_NAMESPACES + [None])
+    def test_createinstance_abstract(self, conn, ns):
+        # pylint: disable=no-self-use
+        """
+        Test createinstance of an abstract class. This test generates
+        a warning
+        """
+
+        # Create the model environment, qualifier decls and class
+        scopesc = NocaseDict([('CLASS', True), ('ASSOCIATION', True),
+                              ('INDICATION', True), ('PROPERTY', False),
+                              ('REFERENCE', False), ('METHOD', False),
+                              ('PARAMETER', False), ('ANY', False)])
+
+        scopesp = NocaseDict([('CLASS', False), ('ASSOCIATION', False),
+                              ('INDICATION', True), ('PROPERTY', True),
+                              ('REFERENCE', False), ('METHOD', False),
+                              ('PARAMETER', False), ('ANY', False)])
+
+        q1 = CIMQualifierDeclaration('Abstract', 'boolean', is_array=False,
+                                     scopes=scopesc,
+                                     overridable=False, tosubclass=True,
+                                     toinstance=False, translatable=None)
+        q2 = CIMQualifierDeclaration('key', 'boolean', is_array=False,
+                                     scopes=scopesp,
+                                     overridable=False, tosubclass=True,
+                                     toinstance=False, translatable=None)
+        qdecls = [q1, q2]
+
+        c = CIMClass(
+            'CIM_AbstractClass', qualifiers={'Abstract':
+                                             CIMQualifier('Abstract', True)},
+            properties={'InstanceID':
+                        CIMProperty('InstanceID', None, type='string',
+                                    qualifiers={'Key': CIMQualifier('Key',
+                                                                    True)})})
+
+        conn.add_cimobjects(qdecls, namespace=ns)
+        conn.add_cimobjects([c], namespace=ns)
+
+        # create the new instance
+        exp_warn_types = ToleratedSchemaIssueWarning
+        with pytest.warns(exp_warn_types) as rec_warnings:
+            new_inst = CIMInstance(
+                'CIM_AbstractClass',
+                properties={'InstanceID': "AbstractTestWarn"})
+
+            # NOTE: add_cimobjects does not test for Abstract
             conn.CreateInstance(new_inst)
 
-        exc = exec_info.value
-        assert exc.status_code == CIM_ERR_FAILED
+        assert len(rec_warnings) == 1, \
+            "Expected warning(s) missing: {}".format(exp_warn_types)
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
     def test_compile_inst_abstract(self, conn, ns):
         # pylint: disable=no-self-use
         """
-        Test compile that has an error compiling instance of abstract class
+        Test compile generates warning compiling instance of abstract class
         """
         tst_mof = """
             Qualifier Abstract : boolean = false,
@@ -6293,13 +6354,12 @@ class TestInstanceOperations(object):
         instance of CIM_Abstract {InstanceID="blah";};
         """
         skip_if_moftab_regenerated()
-
-        with pytest.raises(MOFRepositoryError) as exec_info:
-            # The code to be tested
+        exp_warn_types = ToleratedSchemaIssueWarning
+        with pytest.warns(exp_warn_types) as rec_warnings:
             conn.compile_mof_string(tst_mof, namespace=ns)
 
-        exc = exec_info.value
-        assert exc.cim_error.status_code == CIM_ERR_FAILED
+        assert len(rec_warnings) >= 1, \
+            "Expected warning(s) missing: {}".format(exp_warn_types)
 
     @pytest.mark.parametrize(
         "interop_ns",
