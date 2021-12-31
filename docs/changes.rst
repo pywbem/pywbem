@@ -14,16 +14,10 @@ Change log
       :revisions: 1
 
 
-pywbem 1.4.0.dev1
------------------
+pywbem 1.4.0
+------------
 
-This version contains all fixes up to version 1.3.x.
-
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
+Released: 2022-01-01
 
 **Bug fixes:**
 
@@ -37,14 +31,6 @@ Released: not yet
   'verbose' parameters to the create_namecpace() and delete_namespace() methods
   of WBEMServer, and to the add_namecpace() and remove_namespace() methods of
   FakedWBEMConnection (and subsequently to BaseProvider) in the mock support.
-
-**Cleanup:**
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 1.3.0
