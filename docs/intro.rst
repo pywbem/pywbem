@@ -65,14 +65,17 @@ Pywbem also provides a command line utility:
   repository (e.g. on a WBEM server). See :term:`DSP0004` for a definition of
   MOF.
 
-The related `pywbemtools project`_ provides this command line utility:
+The related `pywbemtools project`_ provides the following command line utilities:
 
-* `pywbemcli`_ -
-  A client-side command line interface for a WBEM server, supporting a command
-  line mode and an interactive (repl) mode.
+* `pywbemcli`_ - A client-side command line interface for a WBEM server,
+  supporting a command line mode and an interactive (repl) mode.
+
+* `pywbemlistener`_ - A command that runs and manages WBEM indication listeners
+  that can receive indications from a WBEM server.
 
 .. _pywbemtools project: https://github.com/pywbem/pywbemtools
 .. _pywbemcli: https://pywbemtools.readthedocs.io/en/stable/pywbemcli
+.. _pywbemlistener: https://pywbemtools.readthedocs.io/en/stable/pywbemlistener
 
 
 .. _`Supported environments`:
