@@ -89,10 +89,13 @@ Pywbem provides this command line utility:
 * `mof_compiler`_ - A MOF compiler that takes MOF files as input and compiles
   them into a CIM repository (e.g. on a WBEM server).
 
-The related `pywbemtools project`_ provides this command line utility:
+The related `pywbemtools project`_ provides the following command line utilities:
 
 * `pywbemcli`_ - A client-side command line interface for a WBEM server,
   supporting a command line mode and an interactive (repl) mode.
+
+* `pywbemlistener`_ - A command that runs and manages WBEM indication listeners
+  that can receive indications from a WBEM server.
 
 .. _WBEM Client Library: https://pywbem.readthedocs.io/en/latest/client.html
 .. _WBEM Server Library: https://pywbem.readthedocs.io/en/latest/server.html
@@ -103,6 +106,7 @@ The related `pywbemtools project`_ provides this command line utility:
 .. _mof_compiler: https://pywbem.readthedocs.io/en/latest/utilities.html#mof-compiler
 .. _pywbemtools project: https://github.com/pywbem/pywbemtools
 .. _pywbemcli: https://pywbemtools.readthedocs.io/en/latest/pywbemcli
+.. _pywbemlistener: https://pywbemtools.readthedocs.io/en/latest/pywbemlistener
 
 
 Installation
