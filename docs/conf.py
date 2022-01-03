@@ -86,12 +86,9 @@ source_suffix = '.rst'
 source_encoding = 'utf-8'
 
 # The master toctree document.
-on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-print("Debug: conf.py: CD={}".format(os.getcwd()))
-if on_rtd:
-    master_doc = 'index'
-else:
-    master_doc = 'docs/index'
+# Note: This requires running Sphinx from within the 'docs' directory.
+# RTD does that automatically, local builds switch there in the Makefile.
+master_doc = 'index'
 
 # General information about the project.
 project = u'pywbem'
