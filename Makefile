@@ -215,7 +215,8 @@ doc_paper_format := a4
 
 # Documentation generator command
 doc_cmd := sphinx-build
-doc_opts := -v -d $(doc_build_dir)/doctrees -c $(doc_conf_dir) -D latex_elements.papersize=$(doc_paper_format) .
+# Options as seen from docs directory:
+doc_opts := -v -d ../$(doc_build_dir)/doctrees -c ../$(doc_conf_dir) -D latex_elements.papersize=$(doc_paper_format) .
 
 # File names of automatically generated utility help message text output
 doc_utility_help_files := \
@@ -665,16 +666,16 @@ upload: _check_version $(dist_files)
 	@echo "Makefile: Target $@ done."
 
 .PHONY: html
-html: develop_$(pymn).done $(doc_build_dir)/html/docs/index.html
+html: develop_$(pymn).done $(doc_build_dir)/html/index.html
 	@echo "Makefile: Target $@ done."
 
-$(doc_build_dir)/html/docs/index.html: Makefile $(doc_utility_help_files) $(doc_dependent_files)
+$(doc_build_dir)/html/index.html: Makefile $(doc_utility_help_files) $(doc_dependent_files)
 ifeq ($(python_mn_version),2.6)
 	@echo "Makefile: Warning: Skipping Sphinx doc build for target $@ on Python $(python_version)" >&2
 else
 	@echo "Makefile: Creating the documentation as HTML pages"
 	-$(call RM_FUNC,$@)
-	$(doc_cmd) -b html $(doc_opts) $(doc_build_dir)/html
+	bash -c "pushd docs; $(doc_cmd) -b html $(doc_opts) ../$(doc_build_dir)/html; popd"
 	@echo "Makefile: Done creating the documentation as HTML pages; top level file: $@"
 endif
 
@@ -685,7 +686,7 @@ ifeq ($(python_mn_version),2.6)
 else
 	@echo "Makefile: Creating the documentation as PDF file"
 	-$(call RM_FUNC,$@)
-	$(doc_cmd) -b latex $(doc_opts) $(doc_build_dir)/pdf
+	bash -c "pushd docs; $(doc_cmd) -b latex $(doc_opts) ../$(doc_build_dir)/pdf; popd"
 	@echo "Makefile: Running LaTeX files through pdflatex..."
 	$(MAKE) -C $(doc_build_dir)/pdf all-pdf
 	@echo "Makefile: Done creating the documentation as PDF file in: $(doc_build_dir)/pdf/"
@@ -699,7 +700,7 @@ ifeq ($(python_mn_version),2.6)
 else
 	@echo "Makefile: Creating the documentation as man pages"
 	-$(call RM_FUNC,$@)
-	$(doc_cmd) -b man $(doc_opts) $(doc_build_dir)/man
+	bash -c "pushd docs; $(doc_cmd) -b man $(doc_opts) ../$(doc_build_dir)/man; popd"
 	@echo "Makefile: Done creating the documentation as man pages in: $(doc_build_dir)/man/"
 	@echo "Makefile: Target $@ done."
 endif
@@ -710,7 +711,7 @@ ifeq ($(python_mn_version),2.6)
 	@echo "Makefile: Warning: Skipping Sphinx doc build for target $@ on Python $(python_version)" >&2
 else
 	@echo "Makefile: Creating the doc changes overview file"
-	$(doc_cmd) -b changes $(doc_opts) $(doc_build_dir)/changes
+	bash -c "pushd docs; $(doc_cmd) -b changes $(doc_opts) ../$(doc_build_dir)/changes; popd"
 	@echo
 	@echo "Makefile: Done creating the doc changes overview file in: $(doc_build_dir)/changes/"
 	@echo "Makefile: Target $@ done."
@@ -722,7 +723,7 @@ ifeq ($(python_mn_version),2.6)
 	@echo "Makefile: Warning: Skipping Sphinx doc build for target $@ on Python $(python_version)" >&2
 else
 	@echo "Makefile: Creating the doc link errors file"
-	$(doc_cmd) -b linkcheck $(doc_opts) $(doc_build_dir)/linkcheck
+	bash -c "pushd docs; $(doc_cmd) -b linkcheck $(doc_opts) ../$(doc_build_dir)/linkcheck; popd"
 	@echo
 	@echo "Makefile: Done creating the doc link errors file: $(doc_build_dir)/linkcheck/output.txt"
 	@echo "Makefile: Target $@ done."
@@ -734,7 +735,7 @@ ifeq ($(python_mn_version),2.6)
 	@echo "Makefile: Warning: Skipping Sphinx doc build for target $@ on Python $(python_version)" >&2
 else
 	@echo "Makefile: Creating the doc coverage results file"
-	$(doc_cmd) -b coverage $(doc_opts) $(doc_build_dir)/coverage
+	bash -c "pushd docs; $(doc_cmd) -b coverage $(doc_opts) ../$(doc_build_dir)/coverage; popd"
 	@echo "Makefile: Done creating the doc coverage results file: $(doc_build_dir)/coverage/python.txt"
 	@echo "Makefile: Target $@ done."
 endif
