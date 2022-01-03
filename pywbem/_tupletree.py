@@ -156,15 +156,10 @@ def xml_to_tupletree_sax(xml_string, meaning, conn_id=None):
 
     handler = CIMContentHandler()
 
-    # The following conversion to a byte string is required for two reasons:
-    # 1. xml.sax.parseString() raises UnicodeEncodeError for unicode strings
-    #    that contain any non-ASCII characters (despite its Python 2.7
-    #    documentation which states that would be supported).
-    # 2. The SAX parser in Python 2.6 and 3.4 (pywbem does not support 3.1 -
-    #    3.3) does not accept unicode strings, raising:
-    #      SAXParseException: "<unknown>:1:1: not well-formed (invalid token)"
-    #    or:
-    #      TypeError: 'str' does not support the buffer interface
+    # The following conversion to a byte string is required because:
+    # * xml.sax.parseString() raises UnicodeEncodeError for unicode strings
+    #   that contain any non-ASCII characters (despite its Python 2.7
+    #   documentation which states that would be supported).
     xml_string = _ensure_bytes(xml_string)
 
     try:

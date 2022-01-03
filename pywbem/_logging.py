@@ -58,7 +58,7 @@ This follows best practices recommended in `Configuring logging for a library
 <https://docs.python.org/2/howto/logging.html#configuring-logging-for-a-library>`_
 and in several articles, for example in `this article
 <http://pieces.openpolitics.com/2012/04/python-logging-best-practices/>`_.
-Because this warning is no longer issued on Python 3.4 and higher, pywbem
+Because this warning is no longer issued on Python 3.5 and higher, pywbem
 adds a null handler only on Python 2.7.
 
 Because pywbem logs only at the :attr:`py:logging.DEBUG` logging level, these
