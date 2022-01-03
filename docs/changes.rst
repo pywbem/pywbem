@@ -31,6 +31,9 @@ Released: not yet
 
 **Cleanup:**
 
+* Removed support for Python 3.4. It had been deprecated since pywbem 1.0.0.
+  (issue #2829)
+
 **Known issues:**
 
 * See `list of open issues`_.

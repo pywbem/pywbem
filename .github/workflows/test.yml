@@ -33,52 +33,8 @@ jobs:
         if [[ "${{ github.event_name }}" == "schedule" || "${{ github.head_ref }}" =~ ^release_ ]]; then \
           echo "::set-output name=matrix::{ \
             \"os\": [ \"ubuntu-latest\", \"macos-latest\", \"windows-latest\" ], \
-            \"python-version\": [ \"2.7\", \"3.4\", \"3.5\", \"3.6\", \"3.7\", \"3.8\", \"3.9\", \"3.10\" ], \
-            \"package_level\": [ \"minimum\", \"latest\" ], \
-            \"exclude\": [ \
-              { \
-                \"os\": \"ubuntu-latest\", \
-                \"python-version\": \"3.4\", \
-                \"package_level\": \"minimum\" \
-              }, \
-              { \
-                \"os\": \"ubuntu-latest\", \
-                \"python-version\": \"3.4\", \
-                \"package_level\": \"latest\" \
-              }, \
-              { \
-                \"os\": \"macos-latest\", \
-                \"python-version\": \"3.4\", \
-                \"package_level\": \"minimum\" \
-              }, \
-              { \
-                \"os\": \"macos-latest\", \
-                \"python-version\": \"3.4\", \
-                \"package_level\": \"latest\" \
-              }, \
-              { \
-                \"os\": \"windows-latest\", \
-                \"python-version\": \"3.4\", \
-                \"package_level\": \"minimum\" \
-              }, \
-              { \
-                \"os\": \"windows-latest\", \
-                \"python-version\": \"3.4\", \
-                \"package_level\": \"latest\" \
-              } \
-            ], \
-            \"include\": [ \
-              { \
-                \"os\": \"ubuntu-18.04\", \
-                \"python-version\": \"3.4\", \
-                \"package_level\": \"minimum\" \
-              }, \
-              { \
-                \"os\": \"ubuntu-18.04\", \
-                \"python-version\": \"3.4\", \
-                \"package_level\": \"latest\" \
-              } \
-            ] \
+            \"python-version\": [ \"2.7\", \"3.5\", \"3.6\", \"3.7\", \"3.8\", \"3.9\", \"3.10\" ], \
+            \"package_level\": [ \"minimum\", \"latest\" ] \
           }"; \
         else \
           echo "::set-output name=matrix::{ \
@@ -87,13 +43,13 @@ jobs:
             \"package_level\": [ \"minimum\", \"latest\" ], \
             \"include\": [ \
               { \
-                \"os\": \"ubuntu-18.04\", \
-                \"python-version\": \"3.4\", \
+                \"os\": \"ubuntu-latest\", \
+                \"python-version\": \"3.5\", \
                 \"package_level\": \"minimum\" \
               }, \
               { \
-                \"os\": \"ubuntu-18.04\", \
-                \"python-version\": \"3.4\", \
+                \"os\": \"ubuntu-latest\", \
+                \"python-version\": \"3.5\", \
                 \"package_level\": \"latest\" \
               }, \
               { \
@@ -244,7 +200,7 @@ jobs:
         COVERALLS_PARALLEL: true
         COVERALLS_FLAG_NAME: "${{ matrix.os }},${{ matrix.python-version }},${{ matrix.package_level }}"
       run: |
-        if ! [[ ${{ matrix.python-version }} =~ (3.4) ]]; then coveralls; fi
+        coveralls
     - name: Run installtest
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
@@ -273,16 +229,16 @@ jobs:
       run: |
         make buildc
     - name: Install cythonized archive
-      # Excluded py27 because the abitag in the dist file name is hard to predict
-      # Excluded py27 and py34 because they do not have a __file__ member in a module
-      if: steps.run_cythonized.outcome == 'success' && matrix.python-version != '2.7' && matrix.python-version != '3.4'
+      # Excluded py27 because the abitag in the dist file name is hard to predict,
+      # and because it does not have a __file__ member in a module.
+      if: steps.run_cythonized.outcome == 'success' && matrix.python-version != '2.7'
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
       run: |
         make installc
     - name: Test cythonized archive
-      # Excluded py27 and py34 because they do not have a __file__ member in a module
-      if: steps.run_cythonized.outcome == 'success' && matrix.python-version != '2.7' && matrix.python-version != '3.4'
+      # Excluded py27 because it does not have a __file__ member in a module.
+      if: steps.run_cythonized.outcome == 'success' && matrix.python-version != '2.7'
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
         # TODO: Remove -x option once tests succeed

@@ -11,14 +11,14 @@ import io
 import pytest
 import six
 try:
-    # Python >= 3.4
     import statistics
 except ImportError:
+    # Only on Python 2.7
     from backports import statistics
 try:
-    # Python >= 3.3
     from time import process_time, get_clock_info
 except ImportError:
+    # Only on Python 2.7
     process_time = None
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name

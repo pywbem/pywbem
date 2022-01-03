@@ -76,14 +76,8 @@ if _python_m == 2 and _python_n == 7:
         "Pywbem support for Python 2.7 is deprecated and will be removed in "
         "a future version",
         DeprecationWarning, 2)
-if _python_m == 3 and _python_n < 4:
-    raise RuntimeError('On Python 3, pywbem requires Python 3.4 or higher')
-if _python_m == 3 and _python_n == 4:
-    import warnings
-    warnings.warn(
-        "Pywbem support for Python 3.4 is deprecated and will be removed in "
-        "a future version",
-        DeprecationWarning, 2)
+if _python_m == 3 and _python_n < 5:
+    raise RuntimeError('On Python 3, pywbem requires Python 3.5 or higher')
 
 # On Python 2, add a NullHandler to suppress the warning "No handlers could be
 # found for logger ...".

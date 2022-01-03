@@ -53,9 +53,6 @@ administrator mode.
 
        $ make develop
 
-   On Python 3.4 on native Windows, this may fail during installation of the
-   ``lxml`` Python package. If so, see :ref:`Troubleshooting` for details.
-
 5. This project uses Make to do things in the currently active Python
    environment. The command:
 
