@@ -87,6 +87,7 @@ source_encoding = 'utf-8'
 
 # The master toctree document.
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+print("Debug: conf.py: CD={}".format(os.getcwd()))
 if on_rtd:
     master_doc = 'index'
 else:
