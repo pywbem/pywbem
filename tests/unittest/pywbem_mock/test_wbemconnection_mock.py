@@ -5762,6 +5762,10 @@ class TestInstanceOperations(object):
     # test_enumerateinstances_pl_di
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
+    # Define strings to run test with the three operations. This does not
+    # test the use_pull_operation flag in the connection init.
+    @pytest.mark.parametrize(
+        "operation", ['orig', 'pull', 'iter'])
     @pytest.mark.parametrize(
         "cln, di, pl, exp_pls",
         [
@@ -5823,7 +5827,8 @@ class TestInstanceOperations(object):
         ]
     )
     def test_enumerateinstances_pl_di(self, conn, tst_classeswqualifiers,
-                                      tst_instances, ns, cln, di, pl, exp_pls):
+                                      tst_instances, ns, operation, cln, di,
+                                      pl, exp_pls):
         # pylint: disable=no-self-use
         """
         Test mock EnumerateInstances with namespace as an input
@@ -5836,6 +5841,36 @@ class TestInstanceOperations(object):
         rslt_insts = conn.EnumerateInstances(cln, namespace=ns,
                                              DeepInheritance=di,
                                              PropertyList=pl)
+
+        # The code to be tested
+        if operation == 'pull':
+            # The code to be tested when pull used
+            result_tuple = conn.OpenEnumerateInstances(cln, namespace=ns,
+                                                       DeepInheritance=di,
+                                                       PropertyList=pl,
+                                                       MaxObjectCount=100)
+
+            rslt_insts = result_tuple.instances
+
+            while result_tuple.eos is False:
+                result_tuple = conn.PullInstancesWithPath(
+                    result_tuple.context, MaxObjectCount=100)
+                rslt_insts.extend(result_tuple.instances)
+
+        elif operation == 'iter':
+            rslt_insts = list(conn.IterEnumerateInstances(cln, namespace=ns,
+                                                          DeepInheritance=di,
+                                                          PropertyList=pl,
+                                                          MaxObjectCount=100))
+            # iter returns host name with instances but get_instancce
+            # the compare basis does not.
+            for inst in rslt_insts:
+                inst.path.host = None
+
+        elif operation == 'orig':
+            rslt_insts = conn.EnumerateInstances(cln, namespace=ns,
+                                                 DeepInheritance=di,
+                                                 PropertyList=pl)
 
         # If exp_props is dict, test for returned properties by class in
         # dict.  All returned classes must be in dict
@@ -5851,6 +5886,10 @@ class TestInstanceOperations(object):
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
+    # Define strings to run test with the three operations. This does not
+    # test the use_pull_operation flag in the connection init.
+    @pytest.mark.parametrize(
+        "operation", ['orig', 'pull', 'iter'])
     @pytest.mark.parametrize(
         "cln, di, pl, exp_pl, exp_num_insts",
         [
@@ -5872,18 +5911,44 @@ class TestInstanceOperations(object):
         ]
     )
     def test_enumerateinstances_di(self, conn, tst_classeswqualifiers,
-                                   tst_instances, ns, cln, di, pl, exp_pl,
-                                   exp_num_insts):
+                                   tst_instances, ns, operation, cln, di, pl,
+                                   exp_pl, exp_num_insts):
         # pylint: disable=no-self-use,unused-argument
         """
         Test EnumerateInstances with DeepInheritance and propertylist options.
         """
         add_objects_to_repo(conn, ns, [tst_classeswqualifiers, tst_instances])
-
         # The code to be tested
-        rslt_insts = conn.EnumerateInstances(cln, namespace=ns,
-                                             DeepInheritance=di,
-                                             PropertyList=pl)
+        if operation == 'pull':
+            # The code to be tested when pull used
+            result_tuple = conn.OpenEnumerateInstances(cln, namespace=ns,
+                                                       DeepInheritance=di,
+                                                       PropertyList=pl,
+                                                       MaxObjectCount=100)
+
+            rslt_insts = result_tuple.instances
+
+            while result_tuple.eos is False:
+                result_tuple = conn.PullInstancesWithPath(
+                    result_tuple.context, MaxObjectCount=100)
+                rslt_insts.extend(result_tuple.instances)
+
+        elif operation == 'iter':
+            rslt_insts = list(conn.IterEnumerateInstances(cln, namespace=ns,
+                                                          DeepInheritance=di,
+                                                          PropertyList=pl,
+                                                          MaxObjectCount=100))
+            # iter returns host name with instances but get_instancce
+            # the compare basis does not.
+            for inst in rslt_insts:
+                inst.path.host = None
+
+        elif operation == 'orig':
+            rslt_insts = conn.EnumerateInstances(cln, namespace=ns,
+                                                 DeepInheritance=di,
+                                                 PropertyList=pl)
+        else:
+            assert False, "Invalid operation parameter for test"
 
         assert len(rslt_insts) == exp_num_insts
 
@@ -5924,7 +5989,7 @@ class TestInstanceOperations(object):
             # Test returned inst for equality with instance we built
             assert exp_inst == inst
 
-    # test_enumerateinstances_er
+    # testenumerate instance errors
     @pytest.mark.parametrize(
         "tst_ns, cln, in_ns, exp_exc",
         [

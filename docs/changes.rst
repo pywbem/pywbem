@@ -25,6 +25,10 @@ Released: not yet
 
 **Bug fixes:**
 
+* Fix issue where the DeepInheritance parameter not passed to the mocker
+  OpenEnumerateInstances method so the result is that the mocker always
+  uses the default (DeepInheritance=True). (see issue #2839)
+
 **Enhancements:**
 
 **Cleanup:**

@@ -1771,6 +1771,7 @@ class FakedWBEMConnection(WBEMConnection):
         context_tuple = self._mainprovider.OpenEnumerateInstances(
             namespace=namespace,
             ClassName=_cvt_rqd_classname(params['ClassName']),
+            DeepInheritance=params.get('DeepInheritance', None),
             IncludeClassOrigin=params.get('IncludeClassOrigin', None),
             PropertyList=params.get('PropertyList', None),
             FilterQueryLanguage=params.get('FilterQueryLanguage', None),
