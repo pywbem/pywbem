@@ -30,11 +30,20 @@ def statistics_enable(request):
     return request.param
 
 
-def time_abs_delta(t1, t2):
+def assert_time_range(act_time, exp_time):
     """
-    Return the positive difference between two float values.
+    Assert that the actual time is in a defined range around the expected time
+    (both paramneters are float values in seconds).
+
+    Note that in CI environments, the tests sometimes run slow, so the maximum
+    time gets some more delta allowance than the minimum time.
     """
-    return abs(t1 - t2)
+    assert isinstance(act_time, float)
+    assert isinstance(exp_time, float)
+    exp_mintime = exp_time - 0.2
+    exp_maxtime = exp_time + 1.0
+    assert act_time >= exp_mintime
+    assert act_time <= exp_maxtime
 
 
 TESTCASES_STATISTICS_INIT = [
@@ -233,21 +242,15 @@ def test_Statistics_measure_enabled():
 
     duration = 1.0
 
-    # Allowable delta in seconds between expected and actual duration.
-    # Notes:
-    # * Windows has only a precision of 1/60 sec.
-    # * In CI environments, the tests sometimes run slow.
-    delta = 0.5
-
     stats = statistics.start_timer('EnumerateInstances')
     time.sleep(duration)
     stats.stop_timer(100, 200)
 
     for _, stats in statistics.snapshot():
         assert stats.count == 1
-        assert time_abs_delta(stats.avg_time, duration) < delta
-        assert time_abs_delta(stats.min_time, duration) < delta
-        assert time_abs_delta(stats.max_time, duration) < delta
+        assert_time_range(stats.avg_time, duration)
+        assert_time_range(stats.min_time, duration)
+        assert_time_range(stats.max_time, duration)
         assert stats.max_request_len == 100
         assert stats.min_request_len == 100
         assert stats.avg_request_len == 100
@@ -338,26 +341,18 @@ def test_Statistics_measure_enabled_with_servertime():
 
     duration = 1.0
 
-    # Allowable delta in seconds between expected and actual duration.
-    # Notes:
-    # * Windows has only a precision of 1/60 sec.
-    # * In CI environments, the tests sometimes run slow.
-    delta = 0.5
-
     stats = statistics.start_timer('EnumerateInstances')
     time.sleep(duration)
     stats.stop_timer(1000, 2000, duration)
 
     for _, stats in statistics.snapshot():
         assert stats.count == 1
-        assert time_abs_delta(stats.avg_time, duration) <= delta
-        assert time_abs_delta(stats.min_time, duration) <= delta
-        assert time_abs_delta(stats.max_time, duration) <= delta
-
-        assert time_abs_delta(stats.avg_server_time, duration) <= delta
-        assert time_abs_delta(stats.min_server_time, duration) <= delta
-        assert time_abs_delta(stats.max_server_time, duration) <= delta
-
+        assert_time_range(stats.avg_time, duration)
+        assert_time_range(stats.min_time, duration)
+        assert_time_range(stats.max_time, duration)
+        assert_time_range(stats.avg_server_time, duration)
+        assert_time_range(stats.min_server_time, duration)
+        assert_time_range(stats.max_server_time, duration)
         assert stats.max_request_len == 1000
         assert stats.min_request_len == 1000
         assert stats.avg_request_len == 1000
@@ -405,12 +400,6 @@ def test_Statistics_measure_avg():
 
     duration = 1.0
 
-    # Allowable delta in seconds between expected and actual duration.
-    # Notes:
-    # * Windows has only a precision of 1/60 sec.
-    # * In CI environments, the tests sometimes run slow.
-    delta = 0.8
-
     stats = statistics.start_timer('EnumerateInstances')
     time.sleep(duration)
     stats.stop_timer(100, 200)
@@ -421,9 +410,9 @@ def test_Statistics_measure_avg():
 
     for _, stats in statistics.snapshot():
         assert stats.count == 2
-        assert time_abs_delta(stats.avg_time, duration) < delta
-        assert time_abs_delta(stats.min_time, duration) < delta
-        assert time_abs_delta(stats.max_time, duration) < delta
+        assert_time_range(stats.avg_time, duration)
+        assert_time_range(stats.min_time, duration)
+        assert_time_range(stats.max_time, duration)
         assert stats.max_request_len == 200
         assert stats.min_request_len == 100
         assert stats.avg_request_len == 150
@@ -442,12 +431,6 @@ def test_Statistics_measure_exception():
 
     duration = 1.0
 
-    # Allowable delta in seconds between expected and actual duration.
-    # Notes:
-    # * Windows has only a precision of 1/60 sec.
-    # * In CI environments, the tests sometimes run slow.
-    delta = 0.5
-
     stats = statistics.start_timer('EnumerateInstances')
     time.sleep(duration)
     stats.stop_timer(100, 200)
@@ -458,9 +441,9 @@ def test_Statistics_measure_exception():
 
     for _, stats in statistics.snapshot():
         assert stats.count == 2
-        assert time_abs_delta(stats.avg_time, duration) < delta
-        assert time_abs_delta(stats.min_time, duration) < delta
-        assert time_abs_delta(stats.max_time, duration) < delta
+        assert_time_range(stats.avg_time, duration)
+        assert_time_range(stats.min_time, duration)
+        assert_time_range(stats.max_time, duration)
         assert stats.max_request_len == 200
         assert stats.min_request_len == 100
         assert stats.avg_request_len == 150
@@ -479,12 +462,6 @@ def test_Statistics_snapshot():
 
     duration = 1.0
 
-    # Allowable delta in seconds between expected and actual duration.
-    # Notes:
-    # * Windows has only a precision of 1/60 sec.
-    # * In CI environments, the tests sometimes run slow.
-    delta = 0.5
-
     stats = statistics.start_timer('GetInstance')
     time.sleep(duration)
     stats.stop_timer(100, 200)
@@ -500,9 +477,9 @@ def test_Statistics_snapshot():
     # verify that only the first set of data is in the snapshot
     for _, stats in snapshot:
         assert stats.count == 1
-        assert time_abs_delta(stats.avg_time, duration) < delta
-        assert time_abs_delta(stats.min_time, duration) < delta
-        assert time_abs_delta(stats.max_time, duration) < delta
+        assert_time_range(stats.avg_time, duration)
+        assert_time_range(stats.min_time, duration)
+        assert_time_range(stats.max_time, duration)
 
 
 def test_Statistics_reset():
@@ -514,12 +491,6 @@ def test_Statistics_reset():
     statistics.enable()
 
     duration = 1.0
-
-    # Allowable delta in seconds between expected and actual duration.
-    # Notes:
-    # * Windows has only a precision of 1/60 sec.
-    # * In CI environments, the tests sometimes run slow.
-    delta = 0.5
 
     stats = statistics.start_timer('GetInstance')
     # test reset fails because stat in process
@@ -533,9 +504,9 @@ def test_Statistics_reset():
     # verify that only the first set of data is in the snapshot
     for _, stats in snapshot:
         assert stats.count == 1
-        assert time_abs_delta(stats.avg_time, duration) < delta
-        assert time_abs_delta(stats.min_time, duration) < delta
-        assert time_abs_delta(stats.max_time, duration) < delta
+        assert_time_range(stats.avg_time, duration)
+        assert_time_range(stats.min_time, duration)
+        assert_time_range(stats.max_time, duration)
 
     assert statistics.reset() is True
 
@@ -562,12 +533,6 @@ def test_Statistics_server_time_suspension():
     duration = 1.0
     server_resp_time = 0.8
 
-    # Allowable delta in seconds between expected and actual duration.
-    # Notes:
-    # * Windows has only a precision of 1/60 sec.
-    # * In CI environments, the tests sometimes run slow.
-    delta = 0.5
-
     stats = statistics.start_timer('GetInstance')
     time.sleep(duration)
     stats.stop_timer(100, 200, server_resp_time)
@@ -576,12 +541,12 @@ def test_Statistics_server_time_suspension():
     snapshot = statistics.snapshot()
     for _, stats in snapshot:
         assert stats.count == 1
-        assert time_abs_delta(stats.avg_time, duration) < delta
-        assert time_abs_delta(stats.min_time, duration) < delta
-        assert time_abs_delta(stats.max_time, duration) < delta
-        assert time_abs_delta(stats.avg_server_time, server_resp_time) < delta
-        assert time_abs_delta(stats.min_server_time, server_resp_time) < delta
-        assert time_abs_delta(stats.max_server_time, server_resp_time) < delta
+        assert_time_range(stats.avg_time, duration)
+        assert_time_range(stats.min_time, duration)
+        assert_time_range(stats.max_time, duration)
+        assert_time_range(stats.avg_server_time, server_resp_time)
+        assert_time_range(stats.min_server_time, server_resp_time)
+        assert_time_range(stats.max_server_time, server_resp_time)
 
     stats = statistics.start_timer('GetInstance')
     time.sleep(duration)
@@ -592,9 +557,9 @@ def test_Statistics_server_time_suspension():
     snapshot = statistics.snapshot()
     for _, stats in snapshot:
         assert stats.count == 2
-        assert time_abs_delta(stats.avg_time, duration) < delta
-        assert time_abs_delta(stats.min_time, duration) < delta
-        assert time_abs_delta(stats.max_time, duration) < delta
+        assert_time_range(stats.avg_time, duration)
+        assert_time_range(stats.min_time, duration)
+        assert_time_range(stats.max_time, duration)
         assert stats.avg_server_time == float(0)
         assert stats.min_server_time == float('inf')
         assert stats.max_server_time == float(0)
@@ -608,9 +573,9 @@ def test_Statistics_server_time_suspension():
     snapshot = statistics.snapshot()
     for _, stats in snapshot:
         assert stats.count == 3
-        assert time_abs_delta(stats.avg_time, duration) < delta
-        assert time_abs_delta(stats.min_time, duration) < delta
-        assert time_abs_delta(stats.max_time, duration) < delta
+        assert_time_range(stats.avg_time, duration)
+        assert_time_range(stats.min_time, duration)
+        assert_time_range(stats.max_time, duration)
         assert stats.avg_server_time == float(0)
         assert stats.min_server_time == float('inf')
         assert stats.max_server_time == float(0)
@@ -625,12 +590,12 @@ def test_Statistics_server_time_suspension():
     snapshot = statistics.snapshot()
     for _, stats in snapshot:
         assert stats.count == 1
-        assert time_abs_delta(stats.avg_time, duration) < delta
-        assert time_abs_delta(stats.min_time, duration) < delta
-        assert time_abs_delta(stats.max_time, duration) < delta
-        assert time_abs_delta(stats.avg_server_time, server_resp_time) < delta
-        assert time_abs_delta(stats.min_server_time, server_resp_time) < delta
-        assert time_abs_delta(stats.max_server_time, server_resp_time) < delta
+        assert_time_range(stats.avg_time, duration)
+        assert_time_range(stats.min_time, duration)
+        assert_time_range(stats.max_time, duration)
+        assert_time_range(stats.avg_server_time, server_resp_time)
+        assert_time_range(stats.min_server_time, server_resp_time)
+        assert_time_range(stats.max_server_time, server_resp_time)
 
 
 def test_Statistics_print_statistics():
