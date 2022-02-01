@@ -294,6 +294,8 @@ py_test_files := \
 # - 42293 babel, before 2.9.1 CVS-2021-42771, Bable.locale issue
 # - 42559 pip, before 21.1 CVE-2021-3572
 # - 43366 lxml, before 4.6.5 CVE-2021-43818, code not used
+# - 43975 urllib3, before 1.26.5 CVE-2021-33503, not important
+# - 44634 ipython >=6.0.0a0,<7.16.3 CVE-2022-21699, partly updated, not recognized properly by safety
 
 safety_ignore_opts := \
     -i 38100 \
@@ -331,6 +333,8 @@ safety_ignore_opts := \
 		-i 42203 \
 		-i 42559 \
 		-i 43366 \
+		-i 43975 \
+		-i 44634 \
 
 # Python source files for test (unit test and function test)
 test_src_files := \
