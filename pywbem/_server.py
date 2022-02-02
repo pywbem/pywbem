@@ -153,6 +153,7 @@ class WBEMServer(object):
     #: namespaces on the WBEM server.
     NAMESPACE_CLASSNAMES = [
         'CIM_Namespace',
+        'CIM_WBEMServerNamespace',
         '__Namespace',
     ]
 
@@ -403,8 +404,11 @@ class WBEMServer(object):
            widely implemented yet.
 
         2. Issuing the `CreateInstance` operation using the CIM class
-           representing namespaces ('PG_Namespace' for OpenPegasus,
-           and 'CIM_Namespace' otherwise), against the Interop namespace.
+           representing namespaces in the WBEM server, against the Interop
+           namespace.
+
+           An exception is OpenPegasus, where 'PG_Namespace' is used instead
+           of 'CIM_Namespace'.
 
            This approach is typically supported in WBEM servers that
            support the creation of CIM namespaces. This approach is
@@ -488,13 +492,15 @@ class WBEMServer(object):
 
             # Use approach 2: CreateInstance of CIM class for namespaces
 
+            # For the new namespace, we use the same class name that is used for
+            # already existing namespaces in this particular WBEM server.
+            ns_classname = self.namespace_classname  # Determines if needed
+
             # For OpenPegasus, use 'PG_Namespace' class to account for issue
             # when using 'CIM_Namespace'. See OpenPegasus bug 10112:
             # https://bugzilla.openpegasus.org/show_bug.cgi?id=10112
-            if self.brand == "OpenPegasus":
+            if self.brand == "OpenPegasus" and ns_classname == 'CIM_Namespace':
                 ns_classname = 'PG_Namespace'
-            else:
-                ns_classname = 'CIM_Namespace'
 
             ns_inst = CIMInstance(ns_classname)
 

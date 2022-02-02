@@ -33,6 +33,11 @@ Released: not yet
 
 **Enhancements:**
 
+* Added support for the new 'CIM_WBEMServerNamespace' class used in the
+  DMTF WBEM Server Profile. In addition, the WBEMServer.create_namespace()
+  method now uses the same class name for the new namespace that is already
+  used for existing namespaces. (issue #2845)
+
 **Cleanup:**
 
 * Removed support for Python 3.4. It had been deprecated since pywbem 1.0.0.
