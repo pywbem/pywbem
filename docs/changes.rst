@@ -31,6 +31,9 @@ Released: not yet
   OpenEnumerateInstances method so the result is that the mocker always
   uses the default (DeepInheritance=True). (see issue #2839)
 
+* Test: Mitigated incorrect version of testfixtures package on Python 3.5
+  by pinning it to <6.4.0 on Python 3.5. (issue #2855)
+
 **Enhancements:**
 
 * Added support for the new 'CIM_WBEMServerNamespace' class used in the
