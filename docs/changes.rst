@@ -34,6 +34,9 @@ Released: not yet
 * Test: Mitigated incorrect version of testfixtures package on Python 3.5
   by pinning it to <6.4.0 on Python 3.5. (issue #2855)
 
+* Documented that the pywbem MOF compiler does not support the "EmbeddedObject"
+  qualifier with a class definition. (issue #2340)
+
 **Enhancements:**
 
 * Added support for the new 'CIM_WBEMServerNamespace' class used in the

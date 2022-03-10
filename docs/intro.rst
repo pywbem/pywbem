@@ -390,6 +390,9 @@ to the standards:
   - The ``CORRELATOR`` element introduced in :term:`DSP0201` version 2.4
     is not supported by pywbem.
 
+  - The pywbem MOF compiler does not support the "EmbeddedObject" qualifier
+    with a class definition.
+
   Notes:
 
   - The CIM-XML representation as defined in :term:`DSP0201` supports CIM
