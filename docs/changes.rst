@@ -42,6 +42,10 @@ Released: not yet
 
 * Re-enabled pylint on Python 3.5 (issue #2674)
 
+* Increased pylint to >=2.10 on Python >=3.6 to pick up fixes in similarity
+  checker and enabled similarity checker again on pylint >=2.10
+  (issues #2672, #2673)
+
 **Enhancements:**
 
 * Added support for the new 'CIM_WBEMServerNamespace' class used in the
