@@ -79,13 +79,7 @@ disable=I0011, bad-option-value,
         locally-enabled, superfluous-parens, useless-object-inheritance,
         consider-using-set-comprehension, unnecessary-pass, useless-return,
         signature-differs, raise-missing-from, super-with-arguments,
-        redundant-u-string-prefix, consider-using-f-string,
-        R0801
-
-# Issue #2672: Disabling R0801 is a circumvention for Pylint issue
-#   https://github.com/PyCQA/pylint/issues/4118 that appears in Pylint 2.7.0.
-#   Enable it again once the Pylint issue has been addressed (expected for
-#   Pylint 2.10).
+        redundant-u-string-prefix, consider-using-f-string
 
 # Note: "useless-object-inheritance" is python 3 only. In Python 2,
 #        "new-style" objects must inherit from object, or else

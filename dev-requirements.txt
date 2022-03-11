@@ -76,10 +76,13 @@ Babel>=2.7.0
 # Pylint requires astroid
 # Pylint 1.x / astroid 1.x supports py27 and py34/35/36
 # Pylint 2.0 / astroid 2.0 removed py27, added py37
+# Pylint 2.10 / astroid 2.7 fixes issues in similarity checker (issues #2672, #2673)
 pylint>=1.6.4,<2.0.0; python_version == '2.7'
-pylint>=2.5.2; python_version >= '3.5'
+pylint>=2.5.2; python_version == '3.5'
+pylint>=2.10.0; python_version >= '3.6'
 astroid>=1.4.9,<2.0.0; python_version == '2.7'
-astroid>=2.4.0; python_version >= '3.5'
+astroid>=2.4.0; python_version == '3.5'
+astroid>=2.7.2; python_version >= '3.6'
 typed-ast>=1.4.0,<1.5.0; python_version >= '3.6' and python_version < '3.8' and implementation_name=='cpython'
 # lazy-object-proxy is used by astroid
 lazy-object-proxy>=1.4.3; python_version == '2.7'

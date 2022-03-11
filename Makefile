@@ -238,6 +238,17 @@ pylint_rc_file := pylintrc
 pylint_todo_opts := --disable=fixme
 pylint_no_todo_opts := --enable=fixme
 
+# Disable the similarity checker on pylint <2.10 due to issues #2672, #2673
+ifeq ($(python_mn_version),2.7)
+  pylint_sc_opts := --disable=R801
+else
+  ifeq ($(python_mn_version),3.5)
+    pylint_sc_opts := --disable=R801
+  else
+    pylint_sc_opts :=
+  endif
+endif
+
 # Flake8 config file
 flake8_rc_file := .flake8
 
@@ -822,8 +833,8 @@ else
 	@echo "Makefile: Running Pylint"
 	-$(call RM_FUNC,$@)
 	pylint --version
-	pylint $(pylint_no_todo_opts) --rcfile=$(pylint_rc_file) $(py_src_files)
-	pylint $(pylint_todo_opts) --rcfile=$(pylint_rc_file) $(py_test_files)
+	pylint $(pylint_sc_opts) $(pylint_no_todo_opts) --rcfile=$(pylint_rc_file) $(py_src_files)
+	pylint $(pylint_sc_opts) $(pylint_todo_opts) --rcfile=$(pylint_rc_file) $(py_test_files)
 	echo "done" >$@
 	@echo "Makefile: Done running Pylint"
 endif
