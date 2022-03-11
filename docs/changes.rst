@@ -40,6 +40,8 @@ Released: not yet
 * Docs: Changes in autodocsumm and Sphinx versions to pick up final fix for
   issue #2697.
 
+* Re-enabled pylint on Python 3.5 (issue #2674)
+
 **Enhancements:**
 
 * Added support for the new 'CIM_WBEMServerNamespace' class used in the

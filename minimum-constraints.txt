@@ -201,13 +201,12 @@ Babel==2.7.0
 
 # PyLint (no imports, invoked via pylint script):
 pylint==1.6.4; python_version == '2.7'
-pylint==2.5.2; python_version >= '3.6'
+pylint==2.5.2; python_version >= '3.5'
 astroid==1.4.9; python_version == '2.7'
-astroid==2.4.0; python_version >= '3.6'
+astroid==2.4.0; python_version >= '3.5'
 typed-ast==1.4.0; python_version >= '3.6' and python_version < '3.8' and implementation_name=='cpython'
-# Workaround: lazy-object-proxy is used by astroid
 lazy-object-proxy==1.4.3; python_version == '2.7'
-lazy-object-proxy==1.4.3; python_version >= '3.6'
+lazy-object-proxy==1.4.3; python_version >= '3.5'
 wrapt==1.12
 
 # Flake8 and dependents (no imports, invoked via flake8 script):
