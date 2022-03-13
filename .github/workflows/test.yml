@@ -34,7 +34,21 @@ jobs:
           echo "::set-output name=matrix::{ \
             \"os\": [ \"ubuntu-latest\", \"macos-latest\", \"windows-latest\" ], \
             \"python-version\": [ \"2.7\", \"3.5\", \"3.6\", \"3.7\", \"3.8\", \"3.9\", \"3.10\" ], \
-            \"package_level\": [ \"minimum\", \"latest\" ] \
+            \"package_level\": [ \"minimum\", \"latest\" ], \
+            \"exclude\": [ \
+              { \
+                \"os\": \"windows-latest\", \
+                \"python-version\": \"3.5\", \
+                \"package_level\": \"minimum\" \
+              } \
+            ], \
+            \"include\": [ \
+              { \
+                \"os\": \"windows-2019\", \
+                \"python-version\": \"3.5\", \
+                \"package_level\": \"minimum\" \
+              } \
+            ] \
           }"; \
         else \
           echo "::set-output name=matrix::{ \
@@ -78,7 +92,7 @@ jobs:
                 \"package_level\": \"latest\" \
               }, \
               { \
-                \"os\": \"windows-latest\", \
+                \"os\": \"windows-2019\", \
                 \"python-version\": \"3.5\", \
                 \"package_level\": \"minimum\" \
               }, \
@@ -154,8 +168,6 @@ jobs:
       run: |
         make install
     - name: Display Python packages
-      env:
-        PACKAGE_LEVEL: ${{ matrix.package_level }}
       run: |
         echo "Installed Python packages:"
         pip list
@@ -165,11 +177,18 @@ jobs:
       run: |
         make develop
     - name: Display Python packages
-      env:
-        PACKAGE_LEVEL: ${{ matrix.package_level }}
       run: |
         echo "Installed Python packages:"
         pip list
+    - name: Show package dependency tree
+      run: |
+        echo "Package dependency tree of installed Python packages:"
+        pipdeptree --all
+    - name: Run check_reqs
+      env:
+        PACKAGE_LEVEL: ${{ matrix.package_level }}
+      run: |
+        make check_reqs
     - name: Run build
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
