@@ -76,7 +76,8 @@ Babel>=2.7.0
 # Pylint requires astroid
 # Pylint 1.x / astroid 1.x supports py27 and py34/35/36
 # Pylint 2.0 / astroid 2.0 removed py27, added py37
-# Pylint 2.10 / astroid 2.7 fixes issues in similarity checker (issues #2672, #2673)
+# Pylint 2.7 / astroid 2.5 removed support for py35
+# Pylint 2.10.0 / astroid 2.7.2 fixes issues in similarity checker (issues #2672, #2673)
 pylint>=1.6.4,<2.0.0; python_version == '2.7'
 pylint>=2.5.2; python_version == '3.5'
 pylint>=2.10.0; python_version >= '3.6'
@@ -91,6 +92,10 @@ lazy-object-proxy>=1.4.3; python_version >= '3.5'
 #   which is not available by default on GitHub Actions
 wrapt>=1.12,<1.13; sys_platform == 'win32' and python_version == '2.7'
 wrapt>=1.12; python_version >= '3.5'
+# isort 5.0.0 removed support for py27,py35
+# isort 4.2.8 fixes a pylint issue with false positive on import order of ssl on Windows
+# isort 4.3.8 fixes an issue with py310 and works on py310 (Note that isort 5.10.0 has official support for py310)
+isort>=4.3.8
 
 # Flake8 and dependents (no imports, invoked via flake8 script):
 # flake8 4.0.0 fixes an AttributeError on Python 3.10.
@@ -130,7 +135,9 @@ jupyter_client>=4.4.0
 jupyter_core>=4.2.1
 nbconvert>=5.0.0
 nbformat>=4.2.0
-notebook>=4.3.1
+# Notebook 6.1.0 introduced usage of f-strings (which requires py>=3.6) but still required py>=3.5.
+notebook>=4.3.1,<6.1.0; python_version <= '3.5'
+notebook>=4.3.1; python_version >= '3.6'
 pyrsistent>=0.14.0,<0.16.0; python_version == '2.7'
 pyrsistent>=0.14.0; python_version >= '3.5'
 
@@ -169,10 +176,23 @@ tabulate >= 0.8.3
 
 # Performance profiling tools
 pyinstrument >=3.0.1
+pyinstrument-cext>=0.2.2  # from pyinstrument
 # psutil on PyPy needs to be <=5.6.3 to avoid an installation error,
 #   see https://github.com/giampaolo/psutil/issues/1659.
-psutil>=5.6.0; sys_platform != 'cygwin' and platform_python_implementation != 'PyPy'
+# psutil on macos 11.6 needs to be >=5.8.0 to have support for the compiler.
+# psutil on windows needs to be >=5.9.0 to have support for the MSVC++ 14.0 compiler.
+psutil>=5.9.0; sys_platform != 'cygwin' and platform_python_implementation != 'PyPy'
 psutil>=5.6.0,<=5.6.3; sys_platform != 'cygwin' and platform_python_implementation == 'PyPy'
+
+# Package dependency management tools
+pipdeptree>=2.2.0
+# pip-check-reqs 2.1.1 removed support for Python 2.7 but does not declare that.
+# pip-check-reqs 2.0.4 (last version with Python 2.7 support) still uses
+#   pip._internal.download which was removed in pip 20.0. That pip version does
+#   not yet have proper dependency handling, so we do not install pip-check-reqs
+#   on Python 2.7.
+# pip-check-reqs 2.3.2 is needed to have proper support for pip>=21.3 and below.
+pip-check-reqs>=2.3.2; python_version >= '3.5'
 
 pyzmq>=16.0.4; python_version <= '3.8'
 pyzmq>=20.0.0; python_version >= '3.9'
@@ -190,5 +210,6 @@ bleach>=3.3.0; python_version >= '3.5'
 
 # pywinpty is used by terminado <- notebook <- jupyter
 # pywinpty does not declare supported Pyrthon versions and 1.0 has removed support for py27.
-pywinpty>=0.5,<1.0; os_name == "nt" and python_version == '2.7'
-pywinpty>=0.5; os_name == "nt" and python_version >= '3.5'
+# pywinpty 1.0 requires maturin which requires py>=3.6 and on py>=3.7 it fails installation
+#   with missing winpty.h, see https://stackoverflow.com/q/51260909
+pywinpty>=0.5,<1.0; os_name == "nt"

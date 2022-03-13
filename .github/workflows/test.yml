@@ -154,8 +154,6 @@ jobs:
       run: |
         make install
     - name: Display Python packages
-      env:
-        PACKAGE_LEVEL: ${{ matrix.package_level }}
       run: |
         echo "Installed Python packages:"
         pip list
@@ -165,11 +163,18 @@ jobs:
       run: |
         make develop
     - name: Display Python packages
-      env:
-        PACKAGE_LEVEL: ${{ matrix.package_level }}
       run: |
         echo "Installed Python packages:"
         pip list
+    - name: Show package dependency tree
+      run: |
+        echo "Package dependency tree of installed Python packages:"
+        pipdeptree --all
+    - name: Run check_reqs
+      env:
+        PACKAGE_LEVEL: ${{ matrix.package_level }}
+      run: |
+        make check_reqs
     - name: Run build
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
