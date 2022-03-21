@@ -454,7 +454,7 @@ def test_WBEMListener_port_in_use():
 
     # Don't use this port in other tests, to be on the safe side
     # as far as port reuse is concerned.
-    http_port = '59999'
+    http_port = '50001'
 
     exp_exc_type = ListenerPortError
 
@@ -493,7 +493,7 @@ def test_WBEMListener_context_mgr():
 
     # Don't use this port in other tests, to be on the safe side
     # as far as port reuse is concerned.
-    http_port = '59998'
+    http_port = '50002'
 
     # The code to be tested (is the context manager)
     with WBEMListener(host, http_port) as listener1:
