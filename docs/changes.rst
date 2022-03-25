@@ -46,6 +46,9 @@ Released: not yet
   checker and enabled similarity checker again on pylint >=2.10
   (issues #2672, #2673)
 
+* Excluded setuptools 61.0.0 because it breaks installation via "setup.py install"
+  (issue #2871)
+
 **Enhancements:**
 
 * Added support for the new 'CIM_WBEMServerNamespace' class used in the
