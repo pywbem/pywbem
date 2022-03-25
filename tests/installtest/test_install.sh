@@ -183,7 +183,7 @@ function make_virtualenv()
   fi
 
   run "pip install pip $PIP_OPTS" "Reinstalling pip with PACKAGE_LEVEL=$PACKAGE_LEVEL"
-  run "pip install setuptools $PIP_OPTS" "Reinstalling setuptools with PACKAGE_LEVEL=$PACKAGE_LEVEL"
+  run "pip install setuptools $PIP_OPTS -c $(abspath $ROOT_DIR/requirements.txt)" "Reinstalling setuptools with PACKAGE_LEVEL=$PACKAGE_LEVEL and constraints from requirements.txt"
   run "pip install wheel $PIP_OPTS" "Reinstalling wheel with PACKAGE_LEVEL=$PACKAGE_LEVEL"
 
   verbose "Virtualenv before actual install test:"
