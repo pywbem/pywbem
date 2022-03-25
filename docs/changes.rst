@@ -28,6 +28,9 @@ Released: not yet
 * Test: Mitigated incorrect version of testfixtures package on Python 3.5
   by pinning it to <6.4.0 on Python 3.5. (issue #2855)
 
+* Excluded setuptools 61.0.0 because it breaks installation via "setup.py install"
+  (issue #2871)
+
 **Enhancements:**
 
 **Cleanup:**
