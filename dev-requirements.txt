@@ -77,7 +77,7 @@ Babel>=2.7.0
 # Pylint 1.x / astroid 1.x supports py27 and py34/35/36
 # Pylint 2.0 / astroid 2.0 removed py27, added py37
 # Pylint 2.7 / astroid 2.5 removed support for py35
-# Pylint 2.10.0 / astroid 2.7.2 fixes issues in similarity checker (issues #2672, #2673)
+# Pylint 2.7-2.9 had issue https://github.com/PyCQA/pylint/issues/4118 (issues #2672, #2673)
 pylint>=1.6.4,<2.0.0; python_version == '2.7'
 pylint>=2.5.2; python_version == '3.5'
 pylint>=2.10.0; python_version >= '3.6'
