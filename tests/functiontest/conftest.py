@@ -302,9 +302,8 @@ class YamlItem(pytest.Item):
         """
         runtestcase(self.testcase)
 
-    @staticmethod
-    def repr_failure(excinfo, style=None):
-        # pylint: disable=unused-argument
+    def repr_failure(self, excinfo, style=None):
+        # pylint: disable=unused-argument,no-self-use
         """
         Called by py.test when the runtest() method raised an exception, to
         provide details about the failure.
@@ -891,10 +890,10 @@ def runtestcase(testcase):
         raise ClientTestError("Unknown operation name: %s" % op_name)
 
     # Invoke the PyWBEM operation to be tested
+    raised_exception = None
+    raised_traceback_str = None  # avoid pylint warning used-before-assignment
     try:
         result = op_call(**op_args)
-        raised_exception = None
-
     except Exception as exc:      # pylint: disable=broad-except
         raised_exception = exc
         stringio = six.StringIO()
