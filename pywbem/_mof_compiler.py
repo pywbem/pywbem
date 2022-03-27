@@ -768,11 +768,11 @@ def p_mp_createClass(p):
             p.parser.handle.ModifyClass(cc, ns)
 
         # Handle exceptions from ModifyClass.
-        except CIMError as ce:
+        except CIMError as ce2:
             if p.parser.verbose:
                 p.parser.log(
                     _format("Error modifying class {0}: {1}, {2}",
-                            cc_path, ce.status_code, ce.status_description))
+                            cc_path, ce2.status_code, ce2.status_description))
             raise MOFRepositoryError(
                 msg=_format(
                     "Cannot compile class {0} because the class already "
@@ -780,7 +780,7 @@ def p_mp_createClass(p):
                     "ModifyClass",
                     cc_path),
                 parser_token=p,
-                cim_error=ce)
+                cim_error=ce2)
 
 
 def p_mp_createInstance(p):
