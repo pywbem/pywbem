@@ -31,6 +31,11 @@ Released: not yet
 * Excluded setuptools 61.0.0 because it breaks installation via "setup.py install"
   (issue #2871)
 
+* Resolved new issues reported by Pylint 2.13 (issue #2870)
+
+* Fixed that the added setup.py commands (test, leaktest, installtest) were not
+  displayed. They are now displayed at verbosity level 1 (using '-v').
+
 **Enhancements:**
 
 **Cleanup:**
