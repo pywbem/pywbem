@@ -2990,9 +2990,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 IncludeClassOrigin=IncludeClassOrigin,
                 PropertyList=PropertyList)
 
+        stats = self.statistics.start_timer(method_name)
         try:
 
-            stats = self.statistics.start_timer(method_name)
             if namespace is None and isinstance(ClassName, CIMClassName):
                 namespace = ClassName.namespace
             namespace = self._iparam_namespace_from_namespace(namespace)
@@ -3112,9 +3112,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 namespace=namespace,
                 ClassName=ClassName)
 
+        stats = self.statistics.start_timer(method_name)
         try:
 
-            stats = self.statistics.start_timer(method_name)
             if namespace is None and isinstance(ClassName, CIMClassName):
                 namespace = ClassName.namespace
             namespace = self._iparam_namespace_from_namespace(namespace)
@@ -3266,9 +3266,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 IncludeClassOrigin=IncludeClassOrigin,
                 PropertyList=PropertyList)
 
+        stats = self.statistics.start_timer(method_name)
         try:
 
-            stats = self.statistics.start_timer(method_name)
             # Strip off host and namespace to make this a "local" object
             namespace = self._iparam_namespace_from_objectname(
                 InstanceName, 'InstanceName')
@@ -3469,9 +3469,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 IncludeQualifiers=IncludeQualifiers,
                 PropertyList=PropertyList)
 
+        stats = self.statistics.start_timer('ModifyInstance')
         try:
 
-            stats = self.statistics.start_timer('ModifyInstance')
             # Must pass a named CIMInstance here (i.e path attribute set)
             ModifiedInstance = self._iparam_instance(
                 ModifiedInstance, 'ModifiedInstance', required=True)
@@ -3597,9 +3597,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 namespace=namespace,
                 NewInstance=NewInstance)
 
+        stats = self.statistics.start_timer(method_name)
         try:
 
-            stats = self.statistics.start_timer(method_name)
             if namespace is None and \
                getattr(NewInstance.path, 'namespace', None) is not None:
                 namespace = NewInstance.path.namespace
@@ -3692,9 +3692,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 method=method_name,
                 InstanceName=InstanceName)
 
+        stats = self.statistics.start_timer(method_name)
         try:
 
-            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_objectname(
                 InstanceName, 'InstanceName')
             InstanceName = self._iparam_instancename(
@@ -3890,9 +3890,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 IncludeClassOrigin=IncludeClassOrigin,
                 PropertyList=PropertyList)
 
+        stats = self.statistics.start_timer(method_name)
         try:
 
-            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_objectname(
                 ObjectName, 'ObjectName')
             ObjectName = self._iparam_objectname(
@@ -4054,9 +4054,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 Role=Role,
                 ResultRole=ResultRole)
 
+        stats = self.statistics.start_timer(method_name)
         try:
 
-            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_objectname(
                 ObjectName, 'ObjectName')
             ObjectName = self._iparam_objectname(
@@ -4245,9 +4245,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 IncludeClassOrigin=IncludeClassOrigin,
                 PropertyList=PropertyList)
 
+        stats = self.statistics.start_timer(method_name)
         try:
 
-            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_objectname(
                 ObjectName, 'ObjectName')
             ObjectName = self._iparam_objectname(
@@ -4387,9 +4387,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 ResultClass=ResultClass,
                 Role=Role)
 
+        stats = self.statistics.start_timer(method_name)
         try:
 
-            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_objectname(
                 ObjectName, 'ObjectName')
             ObjectName = self._iparam_objectname(
@@ -4526,9 +4526,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 Params=Params,
                 **params)
 
+        stats = self.statistics.start_timer('InvokeMethod')
         try:
-
-            stats = self.statistics.start_timer('InvokeMethod')
 
             # Make the method call
             result = self._methodcall(MethodName, ObjectName, Params, **params)
@@ -4608,9 +4607,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 QueryLanguage=QueryLanguage,
                 Query=Query)
 
+        stats = self.statistics.start_timer(method_name)
         try:
 
-            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_namespace(namespace)
             QueryLanguage = self._iparam_string(
                 QueryLanguage, 'QueryLanguage', required=True)
@@ -7018,9 +7017,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 ContinueOnError=ContinueOnError,
                 MaxObjectCount=MaxObjectCount)
 
+        stats = self.statistics.start_timer(method_name)
         try:
 
-            stats = self.statistics.start_timer(method_name)
             if namespace is None and isinstance(ClassName, CIMClassName):
                 namespace = ClassName.namespace
             namespace = self._iparam_namespace_from_namespace(namespace)
@@ -7258,9 +7257,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 ContinueOnError=ContinueOnError,
                 MaxObjectCount=MaxObjectCount)
 
+        stats = self.statistics.start_timer(method_name)
         try:
 
-            stats = self.statistics.start_timer(method_name)
             if namespace is None and isinstance(ClassName, CIMClassName):
                 namespace = ClassName.namespace
             namespace = self._iparam_namespace_from_namespace(namespace)
@@ -7529,9 +7528,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 ContinueOnError=ContinueOnError,
                 MaxObjectCount=MaxObjectCount)
 
+        stats = self.statistics.start_timer(method_name)
         try:
 
-            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_objectname(
                 InstanceName, 'InstanceName')
             InstanceName = self._iparam_instancename(
@@ -7787,9 +7786,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 ContinueOnError=ContinueOnError,
                 MaxObjectCount=MaxObjectCount)
 
+        stats = self.statistics.start_timer(method_name)
         try:
 
-            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_objectname(
                 InstanceName, 'InstanceName')
             InstanceName = self._iparam_instancename(
@@ -8049,9 +8048,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 ContinueOnError=ContinueOnError,
                 MaxObjectCount=MaxObjectCount)
 
+        stats = self.statistics.start_timer(method_name)
         try:
 
-            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_objectname(
                 InstanceName, 'InstanceName')
             InstanceName = self._iparam_instancename(
@@ -8282,9 +8281,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 ContinueOnError=ContinueOnError,
                 MaxObjectCount=MaxObjectCount)
 
+        stats = self.statistics.start_timer(method_name)
         try:
 
-            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_objectname(
                 InstanceName, 'InstanceName')
             InstanceName = self._iparam_instancename(
@@ -8517,9 +8516,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 ContinueOnError=ContinueOnError,
                 MaxObjectCount=MaxObjectCount)
 
+        stats = self.statistics.start_timer(method_name)
         try:
 
-            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_namespace(namespace)
             FilterQueryLanguage = self._iparam_string(
                 FilterQueryLanguage, 'FilterQueryLanguage')
@@ -8683,9 +8682,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 context=context,
                 MaxObjectCount=MaxObjectCount)
 
+        stats = self.statistics.start_timer(method_name)
         try:
 
-            stats = self.statistics.start_timer(method_name)
             _validate_MaxObjectCount_OpenPull(MaxObjectCount)
             _validate_context(context)
             namespace = context[1]
@@ -8828,9 +8827,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 context=context,
                 MaxObjectCount=MaxObjectCount)
 
+        stats = self.statistics.start_timer(method_name)
         try:
 
-            stats = self.statistics.start_timer(method_name)
             _validate_MaxObjectCount_OpenPull(MaxObjectCount)
             _validate_context(context)
             namespace = context[1]
@@ -8967,9 +8966,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 context=context,
                 MaxObjectCount=MaxObjectCount)
 
+        stats = self.statistics.start_timer(method_name)
         try:
 
-            stats = self.statistics.start_timer(method_name)
             _validate_MaxObjectCount_OpenPull(MaxObjectCount)
             _validate_context(context)
             namespace = context[1]
@@ -9048,9 +9047,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 method=method_name,
                 context=context)
 
+        stats = self.statistics.start_timer(method_name)
         try:
 
-            stats = self.statistics.start_timer(method_name)
             _validate_context(context)
 
             self._imethodcall(
@@ -9185,9 +9184,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 IncludeQualifiers=IncludeQualifiers,
                 IncludeClassOrigin=IncludeClassOrigin)
 
+        stats = self.statistics.start_timer(method_name)
         try:
 
-            stats = self.statistics.start_timer(method_name)
             if namespace is None and isinstance(ClassName, CIMClassName):
                 namespace = ClassName.namespace
             namespace = self._iparam_namespace_from_namespace(namespace)
@@ -9324,9 +9323,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 ClassName=ClassName,
                 DeepInheritance=DeepInheritance)
 
+        stats = self.statistics.start_timer(method_name)
         try:
 
-            stats = self.statistics.start_timer(method_name)
             if namespace is None and isinstance(ClassName, CIMClassName):
                 namespace = ClassName.namespace
             namespace = self._iparam_namespace_from_namespace(namespace)
@@ -9473,9 +9472,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 IncludeClassOrigin=IncludeClassOrigin,
                 PropertyList=PropertyList)
 
+        stats = self.statistics.start_timer(method_name)
         try:
 
-            stats = self.statistics.start_timer(method_name)
             if namespace is None and isinstance(ClassName, CIMClassName):
                 namespace = ClassName.namespace
             namespace = self._iparam_namespace_from_namespace(namespace)
@@ -9590,9 +9589,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 namespace=namespace,
                 ModifiedClass=ModifiedClass)
 
+        stats = self.statistics.start_timer(method_name)
         try:
 
-            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_namespace(namespace)
             ModifiedClass = self._iparam_class(ModifiedClass, 'ModifiedClass')
 
@@ -9664,9 +9663,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 namespace=namespace,
                 NewClass=NewClass)
 
+        stats = self.statistics.start_timer(method_name)
         try:
 
-            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_namespace(namespace)
             NewClass = self._iparam_class(NewClass, 'NewClass')
 
@@ -9737,9 +9736,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 namespace=namespace,
                 ClassName=ClassName)
 
+        stats = self.statistics.start_timer(method_name)
         try:
 
-            stats = self.statistics.start_timer(method_name)
             if namespace is None and isinstance(ClassName, CIMClassName):
                 namespace = ClassName.namespace
             namespace = self._iparam_namespace_from_namespace(namespace)
@@ -9813,9 +9812,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 method=method_name,
                 namespace=namespace)
 
+        stats = self.statistics.start_timer(method_name)
         try:
 
-            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_namespace(namespace)
 
             result = self._imethodcall(
@@ -9901,9 +9900,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 namespace=namespace,
                 QualifierName=QualifierName)
 
+        stats = self.statistics.start_timer(method_name)
         try:
 
-            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_namespace(namespace)
             QualifierName = self._iparam_string(
                 QualifierName, 'QualifierName', required=True)
@@ -9992,9 +9991,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 namespace=namespace,
                 QualifierDeclaration=QualifierDeclaration)
 
+        stats = self.statistics.start_timer(method_name)
         try:
 
-            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_namespace(namespace)
             QualifierDeclaration = self._iparam_qualifierdeclaration(
                 QualifierDeclaration, 'QualifierDeclaration', required=True)
@@ -10063,9 +10062,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 namespace=namespace,
                 QualifierName=QualifierName)
 
+        stats = self.statistics.start_timer(method_name)
         try:
 
-            stats = self.statistics.start_timer(method_name)
             namespace = self._iparam_namespace_from_namespace(namespace)
             QualifierName = self._iparam_string(
                 QualifierName, 'QualifierName', required=True)
@@ -10123,9 +10122,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 method=method_name,
                 NewIndication=NewIndication)
 
+        stats = self.statistics.start_timer(method_name)
         try:
-
-            stats = self.statistics.start_timer(method_name)
 
             self._iexportcall(
                 method_name,
