@@ -4047,14 +4047,12 @@ class PegasusServerTestBase(ClientTest):
            Returns true if `class_name` exists
         """
         try:
-            my_class = self.cimcall(self.conn.GetClass, class_name,
-                                    namespace=ns)
+            _ = self.cimcall(self.conn.GetClass, class_name, namespace=ns)
             return True
         except CIMError as ce:
             if ce.args[0] != CIM_ERR_NOT_FOUND:
-                print('class get %s failed' % my_class)
+                print('class get %s failed' % class_name)
                 raise
-
             return False
 
     def has_namespace(self, ns):

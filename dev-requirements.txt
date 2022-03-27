@@ -86,8 +86,7 @@ Babel>=2.7.0
 pylint>=1.6.4,<2.0.0; python_version == '2.7'
 pylint>=2.2.2,<2.4; python_version == '3.4'
 pylint>=2.5.2; python_version == '3.5'
-# TODO: Enable 2.13 and address new issues
-pylint>=2.10.0,<2.13; python_version >= '3.6'
+pylint>=2.10.0; python_version >= '3.6'
 astroid>=1.4.9,<2.0.0; python_version == '2.7'
 astroid>=2.1.0,<2.3; python_version == '3.4'
 astroid>=2.7.2; python_version >= '3.6'

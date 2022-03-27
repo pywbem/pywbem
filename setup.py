@@ -27,9 +27,7 @@ import os
 import io
 import re
 import fnmatch
-# setuptools needs to be imported before distutils in order to work.
 import setuptools
-from distutils import log  # pylint: disable=wrong-import-order
 # Just in case, we keep Cython usage conditional on package availability
 try:
     from Cython.Build import cythonize
@@ -176,12 +174,10 @@ class PytestCommand(setuptools.Command):
         args.extend(self.test_dirs)
 
         if self.dry_run:
-            self.announce("Dry-run: pytest {}".format(' '.join(args)),
-                          level=log.INFO)
+            self.announce("Dry-run: pytest {}".format(' '.join(args)), level=1)
             return 0
 
-        self.announce("pytest {}".format(' '.join(args)),
-                      level=log.INFO)
+        self.announce("pytest {}".format(' '.join(args)), level=1)
         rc = pytest.main(args)
         return rc
 
