@@ -618,8 +618,8 @@ class LogOperationRecorder(BaseOperationRecorder):
             # Format the 'summary' and 'paths' detail_levels
             if self.api_detail_level == 'summary':  # pylint: disable=R1705
                 if isinstance(ret, list):
-                    if ret:
-                        ret_type = type(ret[0]).__name__ if ret else ""
+                    if len(ret) > 0:
+                        ret_type = type(ret[0]).__name__
                         return _format("list of {0}; count={1}",
                                        ret_type, len(ret))
                     return "Empty"
