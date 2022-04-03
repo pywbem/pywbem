@@ -355,8 +355,8 @@ class HTTPError(_RequestExceptionMixin, _ResponseExceptionMixin, Error):
 class TimeoutError(Error):
     # pylint: disable=redefined-builtin
     """
-    This exception indicates that the client timed out waiting for the WBEM
-    server.
+    This exception indicates that a CIM operation to a server or a CIM
+    indication delivery to a listener could not be completed.
 
     Derived from :exc:`~pywbem.Error`.
     """

@@ -26,7 +26,8 @@ from ._exceptions import Error
 
 __all__ = ['Warning', 'ToleratedServerIssueWarning',
            'ToleratedSchemaIssueWarning', 'MissingKeybindingsWarning',
-           'OldNameFilterWarning', 'OldNameDestinationWarning']
+           'OldNameFilterWarning', 'OldNameDestinationWarning',
+           'RequestExceptionWarning']
 
 
 class Warning(Error, six.moves.builtins.Warning):
@@ -83,5 +84,13 @@ class OldNameDestinationWarning(Warning):
 
     Such destinations are ignored when discovering owned destinations. They
     should be cleaned up by the user.
+    """
+    pass
+
+
+class RequestExceptionWarning(Warning):
+    """
+    This warning indicates that an unexpected behavior occurred with excptions
+    raised by the "requests" package.
     """
     pass

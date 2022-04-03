@@ -23,7 +23,7 @@ from ...utils import import_installed
 pywbem = import_installed('pywbem')
 from pywbem import WBEMConnection, ParseError, DEFAULT_NAMESPACE, \
     CIMError, CIMInstanceName, CIMClassName, CIMInstance, \
-    CIMClass  # noqa: E402
+    CIMClass, DEFAULT_TIMEOUT  # noqa: E402
 # pylint: disable=redefined-builtin
 from pywbem import ConnectionError  # noqa: E402
 # pylint: enable=redefined-builtin
@@ -65,7 +65,7 @@ TESTCASES_INIT_WBEMCONNECTION = [
             x509=None,
             ca_certs=None,
             no_verification=False,
-            timeout=None,
+            timeout=DEFAULT_TIMEOUT,
             use_pull_operations=False,
             stats_enabled=False,
             proxies=None,
@@ -79,7 +79,7 @@ TESTCASES_INIT_WBEMCONNECTION = [
             creds=('myuser', 'mypw'),
             default_namespace='root/myns',
             no_verification=True,
-            timeout=30,
+            timeout=20,
             use_pull_operations=True,
             stats_enabled=True,
             proxies=None,
@@ -88,7 +88,7 @@ TESTCASES_INIT_WBEMCONNECTION = [
             creds=('myuser', 'mypw'),
             default_namespace='root/myns',
             no_verification=True,
-            timeout=30,
+            timeout=20,
             use_pull_operations=True,
             stats_enabled=True,
             proxies=None,
@@ -1104,7 +1104,7 @@ TESTCASES_COPY_WBEMCONNECTION = [
                 creds=('myuser', 'mypw'),
                 default_namespace='root/myns',
                 no_verification=True,
-                timeout=30,
+                timeout=20,
                 use_pull_operations=True,
                 stats_enabled=True,
                 proxies={
@@ -1168,7 +1168,7 @@ TESTCASES_COPY_WBEMCONNECTION = [
                 creds=('myuser', 'mypw'),
                 default_namespace='root/myns',
                 no_verification=True,
-                timeout=30,
+                timeout=20,
                 use_pull_operations=True,
                 stats_enabled=True,
                 proxies={

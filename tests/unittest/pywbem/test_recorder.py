@@ -46,7 +46,7 @@ from pywbem import CIMInstanceName, CIMInstance, CIMClassName, CIMClass, \
     Uint8, Uint16, Uint32, Uint64, Sint8, Sint16, \
     Sint32, Sint64, Real32, Real64, CIMDateTime, MinutesFromUTC, CIMError, \
     HTTPError, WBEMConnection, LogOperationRecorder, BaseOperationRecorder, \
-    configure_logger  # noqa: E402
+    configure_logger, DEFAULT_TIMEOUT  # noqa: E402
 # Renamed the following import to not have py.test pick it up as a test class:
 from pywbem import TestClientRecorder as _TestClientRecorder  # noqa: E402
 from pywbem._cim_operations import pull_path_result_tuple, \
@@ -1713,11 +1713,11 @@ class Test_LOR_Connections(BaseLogOperationRecorderTests):
             "x509=None, "
             "ca_certs=None, "
             "no_verification=False, "
-            "timeout=None, "
+            "timeout={1}, "
             "use_pull_operations=False, "
             "stats_enabled=False, "
             "recorders=['LogOperationRecorder'])",
-            conn_id)
+            conn_id, DEFAULT_TIMEOUT)
 
         capture.check(
             (api_exp_log_id, 'DEBUG', result_con),
@@ -3064,11 +3064,11 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
             "x509=None, "
             "ca_certs=None, "
             "no_verification=False, "
-            "timeout=None, "
+            "timeout={2}, "
             "use_pull_operations=False, "
             "stats_enabled=False, "
             "recorders=['LogOperationRecorder']))",
-            conn_id, namespace)
+            conn_id, namespace, DEFAULT_TIMEOUT)
 
         capture.check(
             (http_exp_log_id, 'DEBUG', result_con)
@@ -3110,11 +3110,11 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
             "x509=None, "
             "ca_certs=None, "
             "no_verification=False, "
-            "timeout=None, "
+            "timeout={2}, "
             "use_pull_operations=False, "
             "stats_enabled=False, "
             "recorders=['LogOperationRecorder']))",
-            conn_id, namespace)
+            conn_id, namespace, DEFAULT_TIMEOUT)
 
         capture.check(
             (http_exp_log_id, 'DEBUG', result_con)
@@ -3162,11 +3162,11 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
             "x509=None, "
             "ca_certs=None, "
             "no_verification=False, "
-            "timeout=None, "
+            "timeout={2}, "
             "use_pull_operations=False, "
             "stats_enabled=False, "
             "recorders=['LogOperationRecorder']))",
-            conn_id, namespace)
+            conn_id, namespace, DEFAULT_TIMEOUT)
 
         capture.check(
             (http_exp_log_id, 'DEBUG', result_con)
@@ -3208,11 +3208,11 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
             "x509=None, "
             "ca_certs=None, "
             "no_verification=False, "
-            "timeout=None, "
+            "timeout={2}, "
             "use_pull_operations=False, "
             "stats_enabled=False, "
             "recorders=['LogOperationRecorder']))",
-            conn_id, namespace)
+            conn_id, namespace, DEFAULT_TIMEOUT)
 
         capture.check(
             (http_exp_log_id, 'DEBUG', result_con)
@@ -3253,11 +3253,11 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
             "x509=None, "
             "ca_certs=None, "
             "no_verification=False, "
-            "timeout=None, "
+            "timeout={2}, "
             "use_pull_operations=False, "
             "stats_enabled=False, "
             "recorders=['LogOperationRecorder']))",
-            conn_id, namespace)
+            conn_id, namespace, DEFAULT_TIMEOUT)
 
         capture.check(
             (http_exp_log_id, 'DEBUG', result_con)
