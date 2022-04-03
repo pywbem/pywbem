@@ -83,6 +83,7 @@ class ClientTest(unittest.TestCase):
         global args                 # pylint: disable=invalid-name
 
         self.host = args['host']
+        self.port = args['port']
         self.verbose = args['verbose']
         self.debug = args['debug']
         self.maxtimeout = args['maxtimeout']
@@ -106,7 +107,7 @@ class ClientTest(unittest.TestCase):
             no_verification=True,
             ca_certs=None)
 
-        # enable saving of xml for display
+        # enable saving xml for display
         conn.debug = args['debug']
         self.log('Connected {0}'.format(url))
         return conn
@@ -119,7 +120,7 @@ class ClientTest(unittest.TestCase):
 
 class ServerTimeoutTest(ClientTest):
 
-    def execute(self, url_type, timeout, delay):
+    def execute(self, url, timeout, delay):
         """
             Execute a single connect with timeout, followed by invokemethod
             of the method that delays response and test for possible responses.
@@ -130,12 +131,11 @@ class ServerTimeoutTest(ClientTest):
             and timeout are equal since the result could be either timeout
             or good response.
         """
-        url = url_type + '://' + self.host
         conn = self.connect(url, timeout=timeout)
         execution_time = None
 
         if self.debug:
-            print('execute url_type=%s timeout=%s delay=%s' % (url_type,
+            print('execute url_type=%s timeout=%s delay=%s' % (url,
                                                                timeout, delay))
 
         err_flag = ""
@@ -169,7 +169,7 @@ class ServerTimeoutTest(ClientTest):
         # test only if the timeout is not expected
         except TimeoutError:
             execution_time = opttimer.elapsed_sec()
-            err_flag = "TimeoutError"
+            err_flag = "TimeoutError Xcpt"
             execution_time = opttimer.elapsed_sec()
             request_result = 1    # timeout error received
             # error if the operation delay is lt timeout value and we get
@@ -195,8 +195,8 @@ class ServerTimeoutTest(ClientTest):
         if self.verbose:
             request_result_txt = ['Good Rtn', 'Timeout ', 'Failure']
 
-            print('%-5s %-7s %7d %5d %10.2f  %s' % (
-                url_type,
+            print('%-12s %-7s %7d %5d %10.2f  %s' % (
+                url,
                 request_result_txt[request_result],
                 timeout, delay,
                 execution_time,
@@ -210,6 +210,16 @@ class ServerTimeoutTest(ClientTest):
         print('url   result   timeout delay  time(sec)  Comments')
 
         for url_type in ['https', 'http']:
+            if self.port:
+                if url_type == 'http':
+                    port = ":%s" % self.port
+                else:
+                    port = ":%s" % str(self.port + 1)
+            else:
+                port = ""
+
+            url = url_type + '://' + self.host + port
+
             for timeout in range(self.mintimeout, self.maxtimeout):
 
                 # loop while good response received to test range of
@@ -220,7 +230,7 @@ class ServerTimeoutTest(ClientTest):
                 good_rtn_rcvd = False
                 timeout_rcvd = False
                 for delay in range(min_delay, max_delay):
-                    timed_out = self.execute(url_type, timeout, delay)
+                    timed_out = self.execute(url, timeout, delay)
                     if not timed_out:
                         good_rtn_rcvd = True
                     if timed_out:
@@ -270,6 +280,7 @@ def parse_args(argv_):
         print('    PASSWORD            Password used to log into\n'
               '                        WBEM server.\n'
               '                        Requests user input if not supplier')
+
         print('')
         print('General options[GEN_OPTS]:')
         print('    --help, -h          Display this help text.')
@@ -281,7 +292,8 @@ def parse_args(argv_):
               '                        Otherwise errors in timeout are just\n'
               '                        reported. Other errors stop test.')
         print('    -d                  Debug flag for extra displays')
-
+        print('    -p                  Port for http. If not provided, uses')
+        print('                        DMTF default port of 5988')
         print('------------------------')
         print('Unittest arguments[UT_OPTS]:')
         print('')
@@ -297,6 +309,7 @@ def parse_args(argv_):
     args_['username'] = None
     args_['password'] = None
     args_['debug'] = False
+    args_['port'] = None
 
     # options must proceed arguments
     while True:
@@ -309,6 +322,9 @@ def parse_args(argv_):
             del argv[1:3]
         elif argv[1] == '-d':
             args_['delay'] = int(argv[2])
+            del argv[1:3]
+        elif argv[1] == '-p':
+            args_['port'] = int(argv[2])
             del argv[1:3]
         elif argv[1] == '-v':
             args_['verbose'] = True
@@ -354,6 +370,7 @@ if __name__ == '__main__':
         print("  verbose: %s" % args['verbose'])
         print("  stopOnErr: %s" % args['stopOnErr'])
         print("  debug: %s" % args['debug'])
+        print("  port: %s" % args['port'])
 
     # Note: unittest options are defined in separate args after
     # the url argument.
