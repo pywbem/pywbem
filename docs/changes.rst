@@ -23,6 +23,10 @@ Released: not yet
 
 **Incompatible changes:**
 
+* Exceeding the 'WBEMConnection' timeout now results in raising
+  'pywbem.TimeoutError' in some cases where previously 'pywbem.ConnectionError'
+  was raised. (issue #2853)
+
 **Deprecations:**
 
 **Bug fixes:**
@@ -54,12 +58,33 @@ Released: not yet
 * Fixed that the added setup.py commands (test, leaktest, installtest) were not
   displayed. They are now displayed at verbosity level 1 (using '-v').
 
+* Previously, the sending of CIM request messages was retried in case no
+  response was received within the timeout. This could potentially have resulted
+  in executing operations multipe times. That is an issue for non-idempotent
+  operations such as instance creation/deletion or method invocation. Fixed
+  that by retrying now only during connection setup, but not for the sending
+  of CIM request messages. (issue #2853)
+
+* Changed the default timeout of 'WBEMConnection' from 'None' to 30 seconds.
+  This prevents waiting for operation completion forever, by default.
+  (issue #2853)
+
 **Enhancements:**
 
 * Added support for the new 'CIM_WBEMServerNamespace' class used in the
   DMTF WBEM Server Profile. In addition, the WBEMServer.create_namespace()
   method now uses the same class name for the new namespace that is already
   used for existing namespaces. (issue #2845)
+
+* Docs: Clarified that the timeout parameter in 'WBEMConnection' is for
+  completing a CIM operation to a server or a CIM indication delivery to a
+  listener. (issue #2853)
+
+* Improved the handling of exceptions raised by the "requests" and "urllib3"
+  packages in pywbem, so that more meaningful messages are used.
+  Exceeding the 'WBEMConnection' timeout now results in raising
+  'pywbem.TimeoutError' in some cases where previously 'pywbem.ConnectionError'
+  was raised. (issue #2853)
 
 **Cleanup:**
 

@@ -24,6 +24,8 @@ DEFAULT_PORT_HTTP = 5988
 DEFAULT_PORT_HTTPS = 5989
 DEFAULT_SCHEME = 'http'
 
+# Keep in sync with same value in _cim_http.py
+HTTP_CONNECT_TIMEOUT = 9.99
 
 TESTCASES_PARSE_URL = [
 
@@ -623,114 +625,235 @@ DUMMY_CONN_USING_HTTP = pywbem.WBEMConnection('http://dummy')
 DUMMY_POOL = urllib3.connectionpool.HTTPConnectionPool('dummy')
 
 
-TESTCASES_REQUEST_EXC_MESSAGE = [
+TESTCASES_PYWBEM_REQUESTS_EXCEPTION = [
 
-    # Testcases for _cim_http.request_exc_message()
+    # Testcases for _cim_http.pywbem_requests_exception() and
+    # _cim_http.pywbem_urllib3_exception()
 
     # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
     # * kwargs: Keyword arguments for the test function:
     #   * func_kwargs: input arguments to the function that is tested
-    #   * exp_pattern: pattern for the expected message, or None
+    #   * exp_exc_type: Type of the expected returned exception
+    #   * exp_pattern: pattern for the message in the expected returned exc.
     # * exp_exc_types: Expected exception type(s), or None.
     # * exp_warn_types: Expected warning type(s), or None.
     # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
 
     (
-        "Requests exception with no args",
-        dict(
-            func_kwargs=dict(
-                exc=requests.exceptions.RequestException(),
-                conn=DUMMY_CONN_USING_HTTP,
-            ),
-            exp_pattern='^$',
-        ),
-        None, None, True
-    ),
-    (
-        "Requests exception with empty message",
+        "RequestException with empty message",
         dict(
             func_kwargs=dict(
                 exc=requests.exceptions.RequestException(''),
                 conn=DUMMY_CONN_USING_HTTP,
             ),
+            exp_exc_type=pywbem.ConnectionError,
             exp_pattern='^$',
         ),
         None, None, True
     ),
     (
-        "Requests exception with simple message",
+        "RequestException with simple message",
         dict(
             func_kwargs=dict(
                 exc=requests.exceptions.RequestException('bla'),
                 conn=DUMMY_CONN_USING_HTTP,
             ),
+            exp_exc_type=pywbem.ConnectionError,
             exp_pattern='^bla$',
         ),
         None, None, True
     ),
     (
-        "Requests exception with simple message and HTTPS connection",
+        "RequestException with simple message and HTTPS connection",
         dict(
             func_kwargs=dict(
                 exc=requests.exceptions.RequestException('bla'),
                 conn=DUMMY_CONN_USING_HTTPS,
             ),
-            exp_pattern='^bla; OpenSSL version used: ',
+            exp_exc_type=pywbem.ConnectionError,
+            exp_pattern='^bla$',
         ),
         None, None, True
     ),
     (
-        "Requests exception with attached MaxRetryError exception with "
-        "underlying HTTPError exception",
+        "SSLError with simple message and HTTPS connection",
         dict(
             func_kwargs=dict(
-                exc=requests.exceptions.RequestException(
+                exc=requests.exceptions.SSLError('bla'),
+                conn=DUMMY_CONN_USING_HTTPS,
+            ),
+            exp_exc_type=pywbem.ConnectionError,
+            exp_pattern='^bla; OpenSSL version used: .*$',
+        ),
+        None, None, True
+    ),
+    (
+        "ConnectionError with simple message",
+        dict(
+            func_kwargs=dict(
+                exc=requests.exceptions.ConnectionError('bla'),
+                conn=DUMMY_CONN_USING_HTTP,
+            ),
+            exp_exc_type=pywbem.ConnectionError,
+            exp_pattern='^bla$',
+        ),
+        None, None, True
+    ),
+    (
+        "ReadTimeout with simple message",
+        dict(
+            func_kwargs=dict(
+                exc=requests.exceptions.ReadTimeout('bla'),
+                conn=DUMMY_CONN_USING_HTTP,
+            ),
+            exp_exc_type=pywbem.TimeoutError,
+            exp_pattern='^bla$',
+        ),
+        None, None, True
+    ),
+    (
+        "RetryError with simple message",
+        dict(
+            func_kwargs=dict(
+                exc=requests.exceptions.RetryError('bla'),
+                conn=DUMMY_CONN_USING_HTTP,
+            ),
+            exp_exc_type=pywbem.TimeoutError,
+            exp_pattern='^bla$',
+        ),
+        None, None, True
+    ),
+    (
+        "ConnectionError with MaxRetryError with ProtocolError "
+        "with simple message with single quotes",
+        dict(
+            func_kwargs=dict(
+                exc=requests.exceptions.ConnectionError(
                     urllib3.exceptions.MaxRetryError(
                         pool=DUMMY_POOL,
                         url='http://dummy',
-                        reason=urllib3.exceptions.HTTPError('bla'))),
+                        reason=urllib3.exceptions.ProtocolError("foo'bla"))),
                 conn=DUMMY_CONN_USING_HTTP,
             ),
-            exp_pattern='^bla$',
+            exp_exc_type=pywbem.ConnectionError,
+            exp_pattern="^foo'bla$",
         ),
         None, None, True
     ),
     (
-        "Requests exception with attached HTTPError exception",
+        "ConnectionError with MaxRetryError with ProtocolError "
+        "with simple message with double quotes",
         dict(
             func_kwargs=dict(
-                exc=requests.exceptions.RequestException(
-                    urllib3.exceptions.HTTPError('bla')),
+                exc=requests.exceptions.ConnectionError(
+                    urllib3.exceptions.MaxRetryError(
+                        pool=DUMMY_POOL,
+                        url='http://dummy',
+                        reason=urllib3.exceptions.ProtocolError('foo"bla'))),
                 conn=DUMMY_CONN_USING_HTTP,
             ),
-            exp_pattern='^bla$',
+            exp_exc_type=pywbem.ConnectionError,
+            exp_pattern='^foo"bla$',
         ),
         None, None, True
     ),
     (
-        "Requests exception with message type 1 that gets simplified",
+        "ConnectionError with MaxRetryError with ReadTimeoutError "
+        "with simple message",
         dict(
             func_kwargs=dict(
-                exc=requests.exceptions.RequestException(
-                    "(<foo>, 'bla')"
-                ),
+                exc=requests.exceptions.ConnectionError(
+                    urllib3.exceptions.MaxRetryError(
+                        pool=DUMMY_POOL,
+                        url='http://dummy',
+                        reason=urllib3.exceptions.ReadTimeoutError(
+                            pool=DUMMY_POOL,
+                            url='http://dummy',
+                            message="bla"))),
                 conn=DUMMY_CONN_USING_HTTP,
             ),
-            exp_pattern='^bla$',
+            exp_exc_type=pywbem.TimeoutError,
+            exp_pattern="^bla$",
         ),
         None, None, True
     ),
     (
-        "Requests exception with message type 2 that gets simplified",
+        "ConnectionError with MaxRetryError with ReadTimeoutError "
+        "with standard message with the connect timeout",
         dict(
             func_kwargs=dict(
-                exc=requests.exceptions.RequestException(
-                    "<foo>: bla"
-                ),
+                exc=requests.exceptions.ConnectionError(
+                    urllib3.exceptions.MaxRetryError(
+                        pool=DUMMY_POOL,
+                        url='http://dummy',
+                        reason=urllib3.exceptions.ReadTimeoutError(
+                            pool=DUMMY_POOL,
+                            url='http://dummy',
+                            message="Read timed out. (read timeout={})".
+                            format(HTTP_CONNECT_TIMEOUT)))),
                 conn=DUMMY_CONN_USING_HTTP,
             ),
-            exp_pattern='^bla$',
+            exp_exc_type=pywbem.ConnectionError,
+            exp_pattern="^Could not send request to http://dummy:5988 "
+            "within 10 sec$",
+        ),
+        None, None, True
+    ),
+    (
+        "ConnectionError with MaxRetryError with ReadTimeoutError "
+        "with standard message with value other than the connect timeout",
+        dict(
+            func_kwargs=dict(
+                exc=requests.exceptions.ConnectionError(
+                    urllib3.exceptions.MaxRetryError(
+                        pool=DUMMY_POOL,
+                        url='http://dummy',
+                        reason=urllib3.exceptions.ReadTimeoutError(
+                            pool=DUMMY_POOL,
+                            url='http://dummy',
+                            message="Read timed out. (read timeout=30)"))),
+                conn=DUMMY_CONN_USING_HTTP,
+            ),
+            exp_exc_type=pywbem.TimeoutError,
+            exp_pattern="^No response received from http://dummy:5988 "
+            "within 30 sec$",
+        ),
+        None, None, True
+    ),
+    (
+        "ConnectionError with MaxRetryError with NewConnectionError "
+        "with simple message",
+        dict(
+            func_kwargs=dict(
+                exc=requests.exceptions.ConnectionError(
+                    urllib3.exceptions.MaxRetryError(
+                        pool=DUMMY_POOL,
+                        url='http://dummy',
+                        reason=urllib3.exceptions.NewConnectionError(
+                            pool=DUMMY_POOL,
+                            message="bla"))),
+                conn=DUMMY_CONN_USING_HTTP,
+            ),
+            exp_exc_type=pywbem.ConnectionError,
+            exp_pattern="^bla$",
+        ),
+        None, None, True
+    ),
+    (
+        "ConnectionError with MaxRetryError with HTTPError "
+        "with simple message",
+        dict(
+            func_kwargs=dict(
+                exc=requests.exceptions.ConnectionError(
+                    urllib3.exceptions.MaxRetryError(
+                        pool=DUMMY_POOL,
+                        url='http://dummy',
+                        reason=urllib3.exceptions.HTTPError("bla"))),
+                conn=DUMMY_CONN_USING_HTTP,
+            ),
+            exp_exc_type=pywbem.ConnectionError,
+            exp_pattern="^bla$",
         ),
         None, None, True
     ),
@@ -739,22 +862,38 @@ TESTCASES_REQUEST_EXC_MESSAGE = [
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    TESTCASES_REQUEST_EXC_MESSAGE)
+    TESTCASES_PYWBEM_REQUESTS_EXCEPTION)
 @simplified_test_function
-def test_request_exc_message(testcase, func_kwargs, exp_pattern):
+def test_pywbem_requests_exception(
+        testcase, func_kwargs, exp_exc_type, exp_pattern):
     """
-    Test function for _cim_http.request_exc_message()
+    Test function for _cim_http.pywbem_requests_exception() and
+    _cim_http.pywbem_urllib3_exception() (called indirectly)
     """
 
     # The code to be tested
-    act_message = _cim_http.request_exc_message(**func_kwargs)
+    act_exc = _cim_http.pywbem_requests_exception(**func_kwargs)
 
     # Ensure that exceptions raised in the remainder of this function
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
+    act_message = str(act_exc)
+
     # Verify the result
-    assert re.search(exp_pattern, act_message)
+    # pylint: disable=unidiomatic-typecheck
+    assert type(act_exc) == exp_exc_type, \
+        "Unexpected exception type:\n" \
+        "  Actual type: {}\n" \
+        "  Expected type: {}\n" \
+        "  Actual message: {}\n" \
+        "  Expected message pattern: {}\n". \
+        format(type(act_exc), exp_exc_type, act_message, exp_pattern)
+    assert re.search(exp_pattern, act_message), \
+        "Unexpected exception message:\n" \
+        "  Actual: {}\n" \
+        "  Expected pattern: {}\n". \
+        format(act_message, exp_pattern)
 
 
 # TODO: Add unit tests for _cim_http.wbem_request(). It is already tested to

@@ -153,7 +153,7 @@ import six
 from . import _cim_xml
 from .config import DEFAULT_ITER_MAXOBJECTCOUNT, AUTO_GENERATE_SFCB_UEP_HEADER
 from ._cim_constants import DEFAULT_NAMESPACE, CIM_ERR_NOT_SUPPORTED, \
-    CIM_ERR_FAILED
+    CIM_ERR_FAILED, DEFAULT_TIMEOUT
 from ._cim_types import CIMType, CIMDateTime, atomic_to_cim_xml
 from ._nocasedict import NocaseDict
 from ._cim_obj import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
@@ -172,12 +172,17 @@ from ._utils import _ensure_unicode, _format
 
 __all__ = ['WBEMConnection']
 
-# Parameters for HTTP retry
-HTTP_TOTAL_RETRIES = 2           # Max number of total HTTP retries
-HTTP_CONNECT_RETRIES = 2         # Max number of HTTP connect retries
-HTTP_READ_RETRIES = 2            # Max number of HTTP read retries
-HTTP_RETRY_BACKOFF_FACTOR = 0.1  # Backoff factor for retries
-HTTP_MAX_REDIRECTS = 5           # Max number of HTTP redirects
+URLLIB3_VERSION_INFO = tuple(map(int, urllib3.__version__.split('.')[0:3]))
+
+# Parameters for urllib3.Retry, see
+# https://urllib3.readthedocs.io/en/latest/reference/urllib3.util.html
+HTTP_TOTAL_RETRIES = None        # total: Override for total number of HTTP
+HTTP_CONNECT_RETRIES = 2         # connect: Max number of HTTP connect retries
+HTTP_READ_RETRIES = 0            # read: Max number of HTTP read retries
+HTTP_STATUS_RETRIES = 0          # status: Max number of HTTP status retries
+HTTP_OTHER_RETRIES = 0           # other: Max number of other HTTP retries
+HTTP_MAX_REDIRECTS = 5           # redirect: Max number of HTTP redirects
+HTTP_RETRY_BACKOFF_FACTOR = 0.1  # backoff_factor: Backoff factor for retries
 
 # urllib3 1.26.0 started issuing a DeprecationWarning for using the
 # 'method_whitelist' init parameter of Retry and announced its removal in
@@ -196,10 +201,13 @@ RETRY_KWARGS = dict(
     total=HTTP_TOTAL_RETRIES,
     connect=HTTP_CONNECT_RETRIES,
     read=HTTP_READ_RETRIES,
+    status=HTTP_STATUS_RETRIES,
     redirect=HTTP_MAX_REDIRECTS,
     backoff_factor=HTTP_RETRY_BACKOFF_FACTOR
 )
 RETRY_KWARGS[RETRY_METHODS_PARM] = {'POST'}
+if URLLIB3_VERSION_INFO >= (1, 26, 0):
+    RETRY_KWARGS['other'] = HTTP_OTHER_RETRIES
 
 # Global named tuples. Used by the pull operation responses to return
 # (entities, end_of_sequence, and enumeration_context) to the caller.
@@ -497,7 +505,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     def __init__(self, url, creds=None, default_namespace=None,
                  x509=None, ca_certs=None,
-                 no_verification=False, timeout=None, use_pull_operations=False,
+                 no_verification=False, timeout=DEFAULT_TIMEOUT,
+                 use_pull_operations=False,
                  stats_enabled=False, proxies=None):
         # pylint: disable=line-too-long
         """
@@ -659,17 +668,18 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             and should be avoided!
 
           timeout (:term:`number`):
-            Timeout in seconds, for requests sent to the server or listener.
+            Timeout in seconds, for completing a CIM operation to a server or a
+            CIM indication delivery to a listener.
 
             *New in pywbem 0.8.*
 
-            If the server or listener did not respond within the timeout
-            duration, the socket for the connection will be closed, causing a
-            :exc:`~pywbem.TimeoutError` to be raised.
+            If the CIM operation or CIM indication delivery could not be
+            completed within the specified timeout, :exc:`~pywbem.TimeoutError`
+            is raised.
 
             A value of `None` means that the connection uses the standard
             timeout behavior of Python sockets, which can be between several
-            minutes and much longer. Because this is somewhat unpredictable,
+            minutes and forever. Because this is somewhat unpredictable,
             it is recommended to specify a value for the timeout.
 
             A value of ``0`` means the timeout is very short, and does not

@@ -69,6 +69,7 @@ __all__ = [
     'DEFAULT_URL_SCHEME',
     'DEFAULT_URL_PORT_HTTP',
     'DEFAULT_URL_PORT_HTTPS',
+    'DEFAULT_TIMEOUT',
 ]
 
 # CIM status codes
@@ -277,3 +278,6 @@ DEFAULT_URL_PORT_HTTP = 5988
 #: Default port number for https WBEM connection
 #: *New in pywbem 1.0.*
 DEFAULT_URL_PORT_HTTPS = 5989
+
+#: Default operation timeout for WBEM connection, in seconds
+DEFAULT_TIMEOUT = 30

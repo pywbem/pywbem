@@ -37,6 +37,7 @@ import re
 import os
 import base64
 import ssl
+import warnings
 import six
 from six.moves import urllib
 import requests
@@ -48,12 +49,21 @@ from ._cim_constants import DEFAULT_URL_SCHEME, DEFAULT_URL_PORT_HTTP, \
 from ._exceptions import ConnectionError, AuthError, TimeoutError, HTTPError, \
     HeaderParseError  # pylint: disable=redefined-builtin
 from ._utils import _ensure_unicode, _ensure_bytes, _format
+from ._warnings import RequestExceptionWarning
 
 __all__ = []
 
 _ON_RTD = os.environ.get('READTHEDOCS', None) == 'True'
 
-HTTP_CONNECT_TIMEOUT = 10        # HTTP connect timeout in seconds
+# Debug the behavior of requests/urllib3 exceptions. This is only meant to be
+# used by pywbem developers.
+DEBUG_EXCEPTIONS = False
+
+# HTTP connect timeout in seconds as float or int.
+# This value is recognized in exception messages by comparing the value, so it
+# should be a value that is unlikely to be used by users. It is rounded to
+# integer precicion when shown in any messages.
+HTTP_CONNECT_TIMEOUT = 9.99
 
 # Regexp pattern for an entire URL, with parsing items:
 # (1) scheme (optional)
@@ -193,45 +203,198 @@ def parse_url(url, allow_defaults=True):
     return scheme, hostport, url
 
 
-def request_exc_message(exc, conn):
+def pywbem_requests_exception(exc, conn):
     """
-    Return a reasonable exception message from a requests exception.
-
-    The approach is to dig deep to the original reason, if the original
-    exception is present, skipping irrelevant exceptions such as
-    `urllib3.exceptions.MaxRetryError`, and eliminating useless object
-    representations such as the connection pool object in
-    `urllib3.exceptions.NewConnectionError`.
-
-    Parameters:
-      exc (requests.exceptions.RequestException): Exception
-      conn (WBEMConnection): Connection that was used.
-
-    Returns:
-      string: A reasonable exception message from the specified exception.
+    Return the pywbem exception to be used for re-raising a requests exception.
     """
-    if exc.args:
-        if isinstance(exc.args[0], Exception):
-            org_exc = exc.args[0]
-            if isinstance(org_exc, urllib3.exceptions.MaxRetryError):
-                reason_exc = org_exc.reason
-                message = str(reason_exc)
-            else:
-                message = str(org_exc.args[0])
-        else:
-            message = str(exc.args[0])
 
-        # Eliminate useless object repr at begin of the message
-        m = re.match(r'^(\(<[^>]+>, \'(.*)\'\)|<[^>]+>: (.*))$', message)
+    assert isinstance(exc, requests.exceptions.RequestException)
+
+    message = exc.args[0]
+
+    # Handle the case where requests puts an urllib3 exception into the
+    # first argument, instead of a message.
+    if isinstance(message, urllib3.exceptions.HTTPError):
+        return pywbem_urllib3_exception(message, conn)
+
+    if not isinstance(message, six.string_types):
+        warnings.warn(
+            "requests exception {} has a {} object as args[0] - "
+            "converting to string".format(type(exc), type(message)),
+            RequestExceptionWarning, 1)
+        message = str(message)
+
+    if isinstance(exc, requests.exceptions.SSLError):
+        message = exc_message_amended(message, conn)
+        new_exc = ConnectionError(message, conn_id=conn.conn_id)
+        new_exc.__cause__ = None
+        return new_exc
+
+    if isinstance(exc, requests.exceptions.ReadTimeout):
+        new_exc = TimeoutError(message, conn_id=conn.conn_id)
+        new_exc.__cause__ = None
+        return new_exc
+
+    if isinstance(exc, requests.exceptions.RetryError):
+        new_exc = TimeoutError(message, conn_id=conn.conn_id)
+        new_exc.__cause__ = None
+        return new_exc
+
+    new_exc = ConnectionError(message, conn_id=conn.conn_id)
+    new_exc.__cause__ = None
+    return new_exc
+
+
+def pywbem_urllib3_exception(exc, conn):
+    """
+    Return the pywbem exception to be used for re-raising a urllib3 exception.
+
+    The urllib3.exceptions.MaxRetryError needs special treatment. It is
+    used as follows, with the specified messages:
+
+    - no target port:
+
+      HTTPSConnectionPool(host='localhost', port=5989): Max retries exceeded
+      with url: /cimom (Caused by NewConnectionError('<urllib3.connection.
+      HTTPSConnection object at 0x1105eaa30>: Failed to establish a new
+      connection: [Errno 61] Connection refused'))
+
+    - port handled by paused container:
+
+      urllib3.exceptions.MaxRetryError, with message: HTTPSConnectionPool(
+      host='localhost', port=5989): Max retries exceeded with url: /cimom
+      (Caused by ReadTimeoutError("HTTPSConnectionPool(host='localhost',
+      port=5989): Read timed out. (read timeout=9.99)"))
+
+      Note, the read timeout value is HTTP_CONNECT_TIMEOUT.
+
+    - operation exceeded the timeout:
+
+      HTTPSConnectionPool(host='localhost', port=5989): Max retries exceeded
+      with url: /cimom (Caused by ReadTimeoutError("HTTPSConnectionPool(
+      host='localhost', port=5989): Read timed out. (read timeout=15)"))
+
+    - server is stopped during operation and read retry = 0:
+
+      HTTPSConnectionPool(host='localhost', port=5989): Max retries exceeded
+      with url: /cimom (Caused by ProtocolError('Connection aborted.',
+      RemoteDisconnected('Remote end closed connection without response')))
+
+    - server is stopped during operation and read retry > 0:
+
+      HTTPSConnectionPool(host='localhost', port=5989): Max retries exceeded
+      with url: /cimom (Caused by SSLError(SSLEOFError(8, 'EOF occurred in
+      violation of protocol (_ssl.c:1129)')))
+    """
+    assert isinstance(exc, urllib3.exceptions.HTTPError)
+
+    message = exc.args[0]
+    if not isinstance(message, six.string_types):
+        warnings.warn(
+            "urllib3 exception {} has a {} object as args[0] - "
+            "converting to string".format(type(exc), type(message)),
+            RequestExceptionWarning, 1)
+        message = str(message)
+
+    if isinstance(exc, urllib3.exceptions.MaxRetryError):
+
+        # Get back to the "caused by" exception
+        m = re.search(r'\(Caused by ([A-Za-z]+)\((.*)\)\)$', message)
         if m:
-            message = m.group(2) or m.group(3)
-    else:
-        message = ""
+            exc_name = m.group(1)
+            exc_message = m.group(2)
+            if exc_message.endswith(','):
+                # Python <3.6 represents it as tuple with trailing comma
+                exc_message = exc_message.rstrip(',')
+            if exc_message.startswith('"'):
+                exc_message = exc_message.strip('"')
+            elif exc_message.startswith("'"):
+                exc_message = exc_message.strip("'")
 
+            # Remove unnecessary information from the message
+            m = re.search(r'^HTTPS?ConnectionPool\(host=.*, port=.*\): (.*)$',
+                          exc_message)
+            if m:
+                exc_message = m.group(1)
+            else:
+                m = re.search(r'^<[^>]+>[,:] (.*)$', exc_message)
+                if m:
+                    exc_message = m.group(1)
+        else:
+            warnings.warn(
+                "urllib3 exception MaxRetryError does not match the "
+                "'Caused by' pattern: {!r} - re-raising it directly".
+                format(message), RequestExceptionWarning, 1)
+            exc_name = exc.__class__.__name__
+            exc_message = message
+
+        if exc_name == 'ReadTimeoutError':
+            m = re.search(r'\(read timeout=([0-9\.]+)\)', exc_message)
+            if m:
+                read_timeout = float(m.group(1))
+                if read_timeout == HTTP_CONNECT_TIMEOUT:
+                    exc_message = (
+                        "Could not send request to {} within {:.0f} sec".
+                        format(conn.url, read_timeout))
+                    new_exc = ConnectionError(exc_message, conn_id=conn.conn_id)
+                    new_exc.__cause__ = None
+                    return new_exc
+
+            # The operation timed out. We convert the not so meaningful
+            # message "Read timed out. (read timeout=15)" to a message about
+            # the operation.
+            m = re.search(r'^Read timed out', exc_message)
+            if m:
+                exc_message = (
+                    "No response received from {} within {} sec".
+                    format(conn.url, conn.timeout))
+
+            new_exc = TimeoutError(exc_message, conn_id=conn.conn_id)
+            new_exc.__cause__ = None
+            return new_exc
+
+        if exc_name == 'NewConnectionError':
+            new_exc = ConnectionError(exc_message, conn_id=conn.conn_id)
+            new_exc.__cause__ = None
+            return new_exc
+
+        if exc_name == 'ProtocolError':
+            new_exc = ConnectionError(exc_message, conn_id=conn.conn_id)
+            new_exc.__cause__ = None
+            return new_exc
+
+        new_exc = ConnectionError(exc_message, conn_id=conn.conn_id)
+        new_exc.__cause__ = None
+        return new_exc
+
+    new_exc = ConnectionError(message, conn_id=conn.conn_id)
+    new_exc.__cause__ = None
+    return new_exc
+
+
+def exc_message_amended(message, conn):
+    """
+    Return the exception message, amended with additional text:
+
+    * If the connection is HTTPS, the OpenSSL version is added.
+    """
     if conn.scheme == 'https':
         message = message + \
             "; OpenSSL version used: {}".format(ssl.OPENSSL_VERSION)
+    return message
 
+
+def debug_exc(exc):
+    """Debug: Return a debug message for the exception"""
+    arg_strings = [
+        "exception: {}".format(type(exc)),
+        # "dir(exc)={}".format(dir(exc)),
+        # "dir(exc.request)={}".format(dir(exc.request)),
+        # "dir(exc.response)={}".format(dir(exc.response)),
+    ]
+    for i, arg in enumerate(exc.args):
+        arg_strings.append("arg[{}] ({}) = {}".format(i, type(arg), arg))
+    message = "; ".join(arg_strings)
     return message
 
 
@@ -319,22 +482,28 @@ def wbem_request(conn, req_data, cimxml_headers, target_type='server'):
             recorder.stage_http_response2(None)
 
     try:
-        resp = conn.session.post(
-            target_url, data=req_body, headers=req_headers,
-            timeout=(HTTP_CONNECT_TIMEOUT, conn.timeout))
-    except requests.exceptions.SSLError as exc:
-        msg = request_exc_message(exc, conn)
-        raise ConnectionError(msg, conn_id=conn.conn_id)
-    except requests.exceptions.ConnectionError as exc:
-        msg = request_exc_message(exc, conn)
-        raise ConnectionError(msg, conn_id=conn.conn_id)
-    except (requests.exceptions.ReadTimeout, requests.exceptions.RetryError) \
-            as exc:
-        msg = request_exc_message(exc, conn)
-        raise TimeoutError(msg, conn_id=conn.conn_id)
+        try:
+            if DEBUG_EXCEPTIONS:
+                print("Debug: pywbem wbem_request: Calling session.post() with "
+                      "timeout=(connect={}, read={}) for {} on {} with {}".
+                      format(HTTP_CONNECT_TIMEOUT, conn.timeout,
+                             cimxml_headers[1][1], cimxml_headers[2][1],
+                             conn.session.adapters['https://'].max_retries))
+            resp = conn.session.post(
+                target_url, data=req_body, headers=req_headers,
+                timeout=(HTTP_CONNECT_TIMEOUT, conn.timeout))
+        except Exception as _exc:
+            if DEBUG_EXCEPTIONS:
+                print("Debug: pywbem wbem_request: session.post() raised: {}".
+                      format(debug_exc(_exc)))
+            raise
     except requests.exceptions.RequestException as exc:
-        msg = request_exc_message(exc, conn)
-        raise ConnectionError(msg, conn_id=conn.conn_id)
+        raise pywbem_requests_exception(exc, conn)
+    except urllib3.exceptions.HTTPError as exc:
+        warnings.warn(
+            "requests raised an urllib3 exception {} directly".
+            format(type(exc)), RequestExceptionWarning, 1)
+        raise pywbem_urllib3_exception(exc, conn)
 
     if target_type == 'server':
         # Get the optional response time header

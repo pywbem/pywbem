@@ -40,7 +40,8 @@ import six
 
 from pywbem import WBEMConnection, CIMClass, CIMClassName, \
     CIMInstance, CIMInstanceName, CIMParameter, CIMQualifierDeclaration, \
-    cimtype, CIMError, CIM_ERR_FAILED, DEFAULT_NAMESPACE, MOFCompiler
+    cimtype, CIMError, CIM_ERR_FAILED, DEFAULT_NAMESPACE, MOFCompiler, \
+    DEFAULT_TIMEOUT
 from pywbem._nocasedict import NocaseDict
 from pywbem._utils import _format
 from ._mainprovider import MainProvider
@@ -146,7 +147,7 @@ class FakedWBEMConnection(WBEMConnection):
     """
     def __init__(self, default_namespace=DEFAULT_NAMESPACE,
                  use_pull_operations=False, stats_enabled=False,
-                 timeout=None, response_delay=None,
+                 timeout=DEFAULT_TIMEOUT, response_delay=None,
                  disable_pull_operations=None, url=None):
         """
         Parameters:
