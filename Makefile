@@ -296,6 +296,8 @@ py_test_files := \
 # - 43366 lxml, before 4.6.5 CVE-2021-43818, code not used
 # - 43975 urllib3, before 1.26.5 CVE-2021-33503, not important
 # - 44634 ipython >=6.0.0a0,<7.16.3 CVE-2022-21699, partly updated, not recognized properly by safety
+# - 45775 Sphinx 3.0.4 updates jQuery version, cannot upgrade Sphinx on py27
+# - 47833 Click 8.0.0 uses 'mkstemp()', cannot upgrade Click due to incompatibilities
 
 safety_ignore_opts := \
     -i 38100 \
@@ -335,6 +337,8 @@ safety_ignore_opts := \
 		-i 43366 \
 		-i 43975 \
 		-i 44634 \
+		-i 45775 \
+		-i 47833 \
 
 # Python source files for test (unit test and function test)
 test_src_files := \
