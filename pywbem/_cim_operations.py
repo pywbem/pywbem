@@ -4684,8 +4684,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         This method uses the corresponding pull operations if supported by the
         WBEM server or otherwise the corresponding traditional operation.
         This method is an alternative to using the pull operations directly,
-        that frees the user of having to know whether the WBEM server supports
-        pull operations.
+        that frees the user of having to know whether or not the WBEM server
+        supports pull operations.
 
         This method is a generator function that retrieves instances from
         the WBEM server and returns them one by one (using :keyword:`yield`)
@@ -4731,8 +4731,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
           WBEM server must support the pull operations and their filtering
           capability in order for the filtering to work.
 
-        * Setting the `ContinueOnError` parameter to `True` will be rejected if
-          the corresponding traditional operation is used by this method.
+        * Setting the `ContinueOnError` parameter to `True` will cause the
+        request to be rejected if the corresponding traditional operation is
+        used by this method.
 
         The enumeration session that is opened with the WBEM server when using
         pull operations is closed automatically when the returned generator
@@ -4917,8 +4918,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
           :term:`py:generator` iterating :class:`~pywbem.CIMInstance`:
           A generator object that iterates the resulting CIM instances.
-          These instances include an instance path that has its host and
-          namespace components set.
+          These instances include an instance path that always includes host and
+          namespace components. When EnumerateInstances operation is used,
+          host name is from WBEMConnection.host rather than the response.
 
         Example::
 
@@ -5022,7 +5024,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             namespace = ClassName.namespace
         namespace = self._iparam_namespace_from_namespace(namespace)
 
-        # Complete namespace and host components of the path
+        # Complete namespace and host components of the path if they are not
+        # provided from the host. This covers cases where the namespace might
+        # not be provided by the server and the case where EnumerateInstances
+        # is returned since it does not provide a host name (uses xml Element
+        # INSTANCENAME which does not include host)
         for inst in enum_rslt:
             if inst.path.namespace is None:
                 inst.path.namespace = namespace
@@ -5202,7 +5208,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
           :term:`py:generator` iterating :class:`~pywbem.CIMInstanceName`:
           A generator object that iterates the resulting CIM instance paths.
-          These instance paths have their host and namespace components set.
+          These instance paths always include their host and namespace
+          components. When this method uses the
+          EnumerateInstancesNames operation, the host name is inserted into
+          the response from the WBEMConnection.host attribute because DMTF
+          EnumerateInstanceNames does not return host name in the response.
 
         Example::
 
@@ -5292,7 +5302,11 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             namespace = ClassName.namespace
         namespace = self._iparam_namespace_from_namespace(namespace)
 
-        # Complete namespace and host components of the path
+        # Complete namespace and host components of the path if they are not
+        # provided from the host. This covers cases where the namespace might
+        # not be provided by the server and the case where EnumerateInstances
+        # return does not provide a host name (uses xml Element INSTANCENAME
+        # which does not include host).
         for path in enum_rslt:
             if path.namespace is None:
                 path.namespace = namespace
