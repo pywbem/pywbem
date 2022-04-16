@@ -78,6 +78,9 @@ Released: not yet
   Changes included removing tests for extra parameters which now cause
   failure of api.
 
+* Clarify why the iterEnumerateInstances and IterEnumerateInstancePaths
+  always return the host name in the response. (see issue #2841)
+
 **Known issues:**
 
 * See `list of open issues`_.
