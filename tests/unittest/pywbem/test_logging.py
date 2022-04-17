@@ -175,6 +175,10 @@ class TestLoggingConfigure(object):
                              detail_level="all")
 
 
+OK = True
+RUN = True
+FAIL = False
+
 TESTCASES_TEST_LOGGERS_FROM_STRING = [
     # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
@@ -188,7 +192,7 @@ TESTCASES_TEST_LOGGERS_FROM_STRING = [
     # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
 
     (
-        "'Test all' string",
+        "Test 'all' string",
         dict(
             param='all',
             expected_result={'level': (10, 10),
@@ -198,10 +202,10 @@ TESTCASES_TEST_LOGGERS_FROM_STRING = [
             log_file='Blah.log',
             connection_defined=None
         ),
-        None, None, True
+        None, None, OK
     ),
     (
-        "'Test all=' string",
+        "Test 'all=' string",
         dict(
             param='all=',
             expected_result={'level': (10, 10),
@@ -211,10 +215,10 @@ TESTCASES_TEST_LOGGERS_FROM_STRING = [
             log_file='Blah.log',
             connection_defined=None
         ),
-        None, None, True
+        None, None, OK
     ),
     (
-        "'Test all=file' string",
+        "Test 'all=file' string",
         dict(
             param='all=file',
             expected_result={'level': (10, 10),
@@ -224,10 +228,10 @@ TESTCASES_TEST_LOGGERS_FROM_STRING = [
             log_file='Blah.log',
             connection_defined=None
         ),
-        None, None, True
+        None, None, OK
     ),
     (
-        "'Test all=file:summary' string",
+        "Test 'all=file:summary' string",
         dict(
             param='all=file:summary',
             expected_result={'level': (10, 10),
@@ -237,10 +241,10 @@ TESTCASES_TEST_LOGGERS_FROM_STRING = [
             log_file='Blah.log',
             connection_defined=None
         ),
-        None, None, True
+        None, None, OK
     ),
     (
-        "'Test all=file:paths' string",
+        "Test 'all=file:paths' string",
         dict(
             param='all=file:paths',
             expected_result={'level': (10, 10),
@@ -250,10 +254,10 @@ TESTCASES_TEST_LOGGERS_FROM_STRING = [
             log_file='Blah.log',
             connection_defined=None
         ),
-        None, None, True
+        None, None, OK
     ),
     (
-        "'Test all=file;10' string",
+        "Test 'all=file;10' string",
         dict(
             param='all=file:10',
             expected_result={'level': (10, 10),
@@ -263,10 +267,10 @@ TESTCASES_TEST_LOGGERS_FROM_STRING = [
             log_file='Blah.log',
             connection_defined=None
         ),
-        None, None, True
+        None, None, OK
     ),
     (
-        "'Test all=file,http=file:all' string",
+        "Test 'api=file,http=file:all' string",
         dict(
             param='api=file,http=file:all',
             expected_result={'level': (10, 10),
@@ -276,7 +280,7 @@ TESTCASES_TEST_LOGGERS_FROM_STRING = [
             log_file='Blah.log',
             connection_defined=None
         ),
-        None, None, True
+        None, None, OK
     ),
     (
         "'Test api=file,http=stderr",
@@ -289,7 +293,7 @@ TESTCASES_TEST_LOGGERS_FROM_STRING = [
             log_file='Blah.log',
             connection_defined=None
         ),
-        None, None, True
+        None, None, OK
     ),
     # Error tests
     (
@@ -300,7 +304,7 @@ TESTCASES_TEST_LOGGERS_FROM_STRING = [
             log_file='Blah.log',
             connection_defined=None
         ),
-        ValueError, None, True
+        ValueError, None, OK
     ),
     (
         "Test invalid 'api=stderr,https=blah''",
@@ -310,7 +314,7 @@ TESTCASES_TEST_LOGGERS_FROM_STRING = [
             log_file='Blah.log',
             connection_defined=None
         ),
-        ValueError, None, True
+        ValueError, None, OK
     ),
     (
         "Test invalid 'all=file:all:junk'",
@@ -320,7 +324,7 @@ TESTCASES_TEST_LOGGERS_FROM_STRING = [
             log_file='Blah.log',
             connection_defined=None
         ),
-        ValueError, None, True
+        ValueError, None, OK
     ),
     (
         "Test invalid 'all=file' with no log file",
@@ -330,7 +334,7 @@ TESTCASES_TEST_LOGGERS_FROM_STRING = [
             log_file=None,
             connection_defined=None
         ),
-        ValueError, None, True
+        ValueError, None, OK
     ),
     (
         "Test invalid 'all=blah'",
@@ -340,7 +344,7 @@ TESTCASES_TEST_LOGGERS_FROM_STRING = [
             log_file='Blah.log',
             connection_defined=None
         ),
-        ValueError, None, True
+        ValueError, None, OK
     ),
 ]
 
@@ -397,14 +401,11 @@ def test_loggers_from_string(testcase, param, expected_result, log_file,
     if 'detail' in expected_result:
         exp_detail_levels = expected_result['detail']
         if connection_defined:  # pylint: disable=no-else-raise
-            # TODO add test for when connection param exists
-            # need to get to recorder and test detail level
-            raise AssertionError(
-                'TODO: Test with connections not yet implemented')
+            detail_levels = conn._log_detail_levels
         else:
             detail_levels = WBEMConnection._log_detail_levels
-            assert detail_levels['api'], exp_detail_levels[0] is True
-            assert detail_levels['http'], exp_detail_levels[1]
+        assert detail_levels['api'], exp_detail_levels[0] is True
+        assert detail_levels['http'], exp_detail_levels[1]
 
     # remove handlers from our loggers.
     for h in api_logger.handlers:
@@ -463,7 +464,7 @@ class TestLoggerOutput(BaseLoggingExecutionTests):
         a GetQualifier operation that fails.
         """
 
-        url = 'http://dummy:5988'  # File URL to get quick result
+        url = 'http://dummy:5988'
         conn = WBEMConnection(url)
         try:
             conn.GetQualifier('Association')

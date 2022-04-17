@@ -1526,6 +1526,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         """  # noqa: E501
         # pylint: enable=line-too-long
 
+        # If name is all, create individual loggers for each log type
         if simple_name == 'all':
             for name in ['api', 'http']:
                 cls._configure_logger(name, log_dest=log_dest,
@@ -1631,7 +1632,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         The 'handler' parameter controls logger configuration:
         * If None, nothing is done.
         * If a Handler object, the specified logger gets its handlers replaced
-          with the new handler, and logging level DEBUG is set, and the
+          with the new handler, logging level DEBUG is set, and the
           `propagate` attribute of the logger is set according to the
           `propagate` parameter.
 
@@ -1681,14 +1682,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 for recorder in connection._operation_recorders:
                     if isinstance(recorder, LogOperationRecorder):
                         recorder_found = True
+                        assert recorder._conn_id  # validate recorder staged
                         break
 
+                # Create new recorder object if not found in connection
                 if not recorder_found:
                     recorder = LogOperationRecorder(conn_id=connection.conn_id)
 
                 # Add the log detail level for this logger to the log recorder
                 # of this connection
-
                 detail_levels = recorder.detail_levels.copy()
                 detail_levels[simple_name] = detail_level
                 recorder.set_detail_level(detail_levels)
@@ -1698,10 +1700,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     # recorder have been set, because that data is used
                     # for recording the WBEM connection information.
                     connection.add_operation_recorder(recorder)
-
-                # ISSUE #2667 execute stage of wbem connection if not already
-                # executed. How do we know it is already executed since there
-                # multiple paths through the _activate_logger method
 
     def _verify_open(self):
         """
