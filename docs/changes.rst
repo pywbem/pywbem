@@ -73,6 +73,11 @@ Released: not yet
   the compile and another warning from pywbem_mock.CreateInstance if the
   instance is for an abstract class. (see issue #2825)
 
+* Fix issues in manual test run_cimoperations.py that resulted from changes
+  in the pywbem APIs.  Since this was manual test it was not regularly used.
+  Changes included removing tests for extra parameters which now cause
+  failure of api.
+
 **Known issues:**
 
 * See `list of open issues`_.

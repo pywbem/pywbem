@@ -90,7 +90,7 @@ TEST_PEG_STRESS_CLASSNAME = "TST_ResponseStressTestCxx"
 # used.  Any test should first confirm that the primary class exists
 # in the envirnment before using.  There is a defined method in setUp
 # (pywbem_person_class_exists) for this.
-# TODO ks Nov 2016 Create decerators for both this and the OpenPegasus
+# TODO ks Nov 2016 Create decorators for both this and the OpenPegasus
 # limitations on tests.
 PYWBEM_PERSON_CLASS = "PyWBEM_Person"
 PYWBEM_PERSONCOLLECTION = "PyWBEM_PersonCollection"
@@ -929,17 +929,6 @@ class EnumerateInstances(ClientTest):
             if ce.args[0] != CIM_ERR_INVALID_CLASS:
                 raise
 
-    def test_invalid_request_parameter(self):
-        """Should return error if invalid parameter."""
-        try:
-            self.cimcall(self.conn.EnumerateInstances, TEST_CLASS,
-                         blablah=3)
-            self.fail()  # Expecting exception
-
-        except CIMError as ce:
-            if ce.args[0] != CIM_ERR_NOT_SUPPORTED:
-                raise
-
 
 #
 #   Test the Pull Operations
@@ -1000,33 +989,6 @@ class PullEnumerateInstances(ClientTest):
         self.assertInstancesValid(insts_pulled)
 
         insts_enum = self.cimcall(self.conn.EnumerateInstances, TEST_CLASS)
-
-        self.assertInstancesValid(insts_enum)
-
-        self.assertInstancesEqual(insts_pulled, insts_enum, ignore_host=True)
-
-    def test_open_includequalifiers(self):
-        """Simple OpenEnumerateInstances but with IncludeQualifiers set."""
-
-        result = self.cimcall(self.conn.OpenEnumerateInstances,
-                              TEST_CLASS,
-                              MaxObjectCount=100,
-                              IncludeQualifiers=True)
-
-        insts_pulled = result.instances
-
-        while not result.eos:
-            result = self.cimcall(
-                self.conn.PullInstancesWithPath, result.context,
-                MaxObjectCount=1)
-
-            self.assertTrue(len(result.instances) <= 1)
-            insts_pulled.extend(result.instances)
-
-        self.assertInstancesValid(insts_pulled)
-
-        insts_enum = self.cimcall(self.conn.EnumerateInstances, TEST_CLASS,
-                                  IncludeQualifiers=True)
 
         self.assertInstancesValid(insts_enum)
 
@@ -2627,7 +2589,7 @@ class Associators(ClientTest):
         result = self.cimcall(
             self.conn.Associators, PYWBEM_PERSON_CLASS,
             AssocClass=PYWBEM_MEMBEROFPERSONCOLLECTION,
-            role=PYWBEM_SOURCE_ROLE)
+            Role=PYWBEM_SOURCE_ROLE)
 
         self.assertAssocRefClassRtnValid(result)
 
@@ -2951,7 +2913,7 @@ class References(ClientTest):
         result = self.cimcall(
             self.conn.References, PYWBEM_PERSON_CLASS,
             ResultClass=PYWBEM_MEMBEROFPERSONCOLLECTION,
-            role=PYWBEM_SOURCE_ROLE)
+            Role=PYWBEM_SOURCE_ROLE)
 
         self.assertAssocRefClassRtnValid(result)
 
@@ -3043,7 +3005,7 @@ class ReferenceNames(ClientTest):
         names = self.cimcall(
             self.conn.ReferenceNames, PYWBEM_PERSON_CLASS,
             ResultClass=PYWBEM_MEMBEROFPERSONCOLLECTION,
-            role=PYWBEM_SOURCE_ROLE)
+            Role=PYWBEM_SOURCE_ROLE)
 
         self.assertClassNamesValid(names)
 
@@ -4208,7 +4170,7 @@ class PegasusTestEmbeddedInstance(RegexpMixin, PegasusServerTestBase):
 
             instances = self.cimcall(self.conn.EnumerateInstances,
                                      cl1, namespace=ns,
-                                     propertylist=property_list)
+                                     PropertyList=property_list)
             for inst in instances:
                 str_mof = inst.tomof()
                 str_xml = inst.tocimxmlstr(2)
@@ -4610,7 +4572,6 @@ class IterEnumerateInstances(PegasusServerTestBase):
         result = self.cimcall(self.conn.OpenEnumerateInstances, ClassName,
                               namespace=namespace,
                               DeepInheritance=DeepInheritance,
-                              IncludeQualifiers=IncludeQualifiers,
                               IncludeClassOrigin=IncludeClassOrigin,
                               PropertyList=PropertyList,
                               FilterQueryLanguage=FilterQueryLanguage,
@@ -5092,7 +5053,6 @@ class IterReferenceInstances(PegasusServerTestBase):
         # execute pull operation
         result = self.cimcall(self.conn.OpenReferenceInstances,
                               InstanceName, ResultClass=ResultClass, Role=Role,
-                              IncludeQualifiers=IncludeQualifiers,
                               IncludeClassOrigin=IncludeClassOrigin,
                               PropertyList=PropertyList,
                               FilterQueryLanguage=FilterQueryLanguage,
@@ -6853,10 +6813,10 @@ TEST_LIST = [
     # iter operations
     'IterEnumerateInstancePaths',
     'IterEnumerateInstances',
-    'IterAssociators',
-    'IterAssociatorPaths',
-    'IterReferences',
-    'IterReferencePaths',
+    'IterAssociatorInstances',
+    'IterAssociatorInstancePaths',
+    'IterReferenceInstances',
+    'IterReferenceInstancePaths',
     'IterQueryInstances',
 
     # TestServerClass
@@ -6869,7 +6829,6 @@ TEST_LIST = [
     'PEGASUSCLITestClass',
     'PegasusTestEmbeddedInstance',
     'PegasusInteropTest',
-    'PegasusTestEmbeddedInstance'
     ]  # noqa: E123
 
 
@@ -6893,7 +6852,7 @@ def parse_args(argv_):
         print('    GEN_OPTS            General options (see below).')
         print('    URL                 URL of the target WBEM server.\n'
               '                        http:// or https:// prefix\n'
-              '                        defines ssl usage')
+              '                        defines ssl usage. May include port.')
         print('    USERNAME            Userid used to log into WBEM server.\n'
               '                        Requests user input if not supplied')
         print('    PASSWORD            Password used to log into\n'
