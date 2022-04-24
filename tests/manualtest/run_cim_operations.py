@@ -4298,6 +4298,8 @@ class PyWBEMServerClass(RegexpMixin, PegasusServerTestBase):
 
         server = WBEMServer(self.conn)
 
+        breakpoint()
+
         org_vm = ValueMapping.for_property(server, server.interop_ns,
                                            'CIM_RegisteredProfile',
                                            'RegisteredOrganization')
@@ -4312,13 +4314,20 @@ class PyWBEMServerClass(RegexpMixin, PegasusServerTestBase):
             if org == "DMTF" and name == "Indications" and vers == "1.1.0":
                 indications_profile = inst
 
+
+	if not indications_profile
+	    click.echo("Indications Profile DMTF:Indications:1.1.0 not "
+                       found. Check Pegasus build parameters.")
+	return  
+
         try:
             # get central class. Central_class = CIM_IndicationService
             # scoping_class=CIM_System, scoping_path- association class is
             # cim_HostedService
             ci_paths = server.get_central_instances(
                 indications_profile.path,
-                "CIM_IndicationService", "CIM_System", ["CIM_HostedService"])
+                "CIM_IndicationService", "CIM_System", ["CIM_HostedService"],
+                reference_direction='snia')
         except Exception as exc:  # pylint: disable=broad-except
             print("Error: %s" % str(exc))
             ci_paths = []

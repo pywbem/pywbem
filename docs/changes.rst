@@ -106,6 +106,9 @@ Released: not yet
 * Clarify why the iterEnumerateInstances and IterEnumerateInstancePaths
   always return the host name in the response. (see issue #2841)
 
+*Update manual  test run_cimoperations.py to fix issues caused by recent
+  changes to pywbem.
+
 **Known issues:**
 
 * See `list of open issues`_.
