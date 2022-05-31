@@ -298,6 +298,7 @@ py_test_files := \
 # - 44634 ipython >=6.0.0a0,<7.16.3 CVE-2022-21699, partly updated, not recognized properly by safety
 # - 45775 Sphinx 3.0.4 updates jQuery version, cannot upgrade Sphinx on py27
 # - 47833 Click 8.0.0 uses 'mkstemp()', cannot upgrade Click due to incompatibilities
+# - 45185 Pylint cannot be upgraded on py27
 
 safety_ignore_opts := \
     -i 38100 \
@@ -339,6 +340,7 @@ safety_ignore_opts := \
 		-i 44634 \
 		-i 45775 \
 		-i 47833 \
+		-i 45185 \
 
 # Python source files for test (unit test and function test)
 test_src_files := \
