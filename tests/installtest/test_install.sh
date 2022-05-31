@@ -474,7 +474,7 @@ function test1()
 function test2()
 {
   testcase="test2"
-  info "Testcase $testcase: setup.py install from repo root directory: $ROOT_DIR"
+  info "Testcase $testcase: setup.py install from repo root directory: $ROOT_DIR (deprecated by setuptools)"
   make_virtualenv "$testcase"
 
   call "cd $ROOT_DIR; python setup.py install" "Installing with setup.py from repo root directory (latest package levels)"
@@ -519,7 +519,7 @@ function test4()
 function test5()
 {
   testcase="test5"
-  info "Testcase $testcase: setup.py install from unpacked source distribution archive: $SRC_DISTFILE"
+  info "Testcase $testcase: setup.py install from unpacked source distribution archive: $SRC_DISTFILE (deprecated by setuptools)"
   make_virtualenv "$testcase"
   run "tar -x -v -f $SRC_DISTFILE -C $SRC_DISTFILE_UNPACK_DIR" "Unpacking source distribution archive to: $SRC_DISTFILE_UNPACK_DIR"
 
