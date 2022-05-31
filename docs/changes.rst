@@ -69,6 +69,11 @@ Released: not yet
   This prevents waiting for operation completion forever, by default.
   (issue #2853)
 
+* Pinned "certifi" to <2020.6.20 on Python 2.7 because the install test
+  using "setup.py install" started failing because it installed a version
+  of certifi on Python 2.7 that properly declares that it requires
+  Python >=3.6.
+
 **Enhancements:**
 
 * Added support for the new 'CIM_WBEMServerNamespace' class used in the
