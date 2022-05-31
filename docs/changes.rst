@@ -27,6 +27,10 @@ Released: not yet
   'pywbem.TimeoutError' in some cases where previously 'pywbem.ConnectionError'
   was raised. (issue #2853)
 
+* Changed the file permissions of `setup.py` to no longer be executable, in
+  order to encourage transition to use `pip install` instead of executing
+  `setup.py install`, which was deprecated by setuptools.
+
 **Deprecations:**
 
 **Bug fixes:**
@@ -73,6 +77,9 @@ Released: not yet
   using "setup.py install" started failing because it installed a version
   of certifi on Python 2.7 that properly declares that it requires
   Python >=3.6.
+
+* Added a note to the install section of the documentation that installation
+  via `setup.py install` has been deprecated by setuptools.
 
 **Enhancements:**
 

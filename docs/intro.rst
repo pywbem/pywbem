@@ -127,6 +127,10 @@ operating system packages in addition to Python itself.
 
   Starting with version 1.0.0, pywbem has no OS-level prerequisite packages.
 
+Note that installing with ``setup.py install`` has been deprecated by
+setuptools, as explained in
+`Why you shouldn't invoke setup.py directly <https://blog.ganssle.io/articles/2021/10/setup-py-deprecated.html>`_.
+
 If you want to contribute to the pywbem project, you need to set up a
 development and test environment for pywbem. That has a larger set of Python
 package prerequisites and also OS-level prerequisites. Its setup is described
