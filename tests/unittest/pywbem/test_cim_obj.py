@@ -5739,7 +5739,7 @@ def test_CIMInstanceName_str(testcase, obj, exp_uri):
     """
 
     # The code to be tested
-    uri = obj.__str__()
+    uri = obj.__str__()  # pylint: disable=unnecessary-dunder-call
 
     # Ensure that exceptions raised in the remainder of this function
     # are not mistaken as expected exceptions
@@ -24919,7 +24919,7 @@ def test_CIMClassName_str(testcase, obj, exp_uri):
     """
 
     # The code to be tested
-    uri = obj.__str__()
+    uri = obj.__str__()  # pylint: disable=unnecessary-dunder-call
 
     # Ensure that exceptions raised in the remainder of this function
     # are not mistaken as expected exceptions
