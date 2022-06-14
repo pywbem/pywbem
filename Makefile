@@ -370,13 +370,8 @@ ifeq ($(python_m_version),3)
   pytest_warning_opts := -W default -W ignore::PendingDeprecationWarning
   pytest_end2end_warning_opts := $(pytest_warning_opts)
 else
-  ifeq ($(python_mn_version),2.6)
-    pytest_warning_opts := -W default
-    pytest_end2end_warning_opts := $(pytest_warning_opts)
-  else
-    pytest_warning_opts := -W default -W ignore::PendingDeprecationWarning
-    pytest_end2end_warning_opts := $(pytest_warning_opts)
-  endif
+  pytest_warning_opts := -W default -W ignore::PendingDeprecationWarning
+  pytest_end2end_warning_opts := $(pytest_warning_opts)
 endif
 
 # Files to be put into distribution archive.
@@ -416,11 +411,7 @@ dist_dependent_files := \
 # Packages whose dependencies are checked using pip-missing-reqs
 check_reqs_packages := pytest coverage coveralls flake8 pylint safety sphinx twine jupyter notebook
 
-ifeq ($(python_mn_version),2.6)
-  PIP_INSTALL_CMD := $(PIP_CMD) install
-else
-  PIP_INSTALL_CMD := $(PYTHON_CMD) -m pip install
-endif
+PIP_INSTALL_CMD := $(PYTHON_CMD) -m pip install
 
 .PHONY: help
 help:
@@ -683,20 +674,13 @@ html: develop_$(pymn).done $(doc_build_dir)/html/docs/index.html
 	@echo "Makefile: Target $@ done."
 
 $(doc_build_dir)/html/docs/index.html: Makefile $(doc_utility_help_files) $(doc_dependent_files)
-ifeq ($(python_mn_version),2.6)
-	@echo "Makefile: Warning: Skipping Sphinx doc build for target $@ on Python $(python_version)" >&2
-else
 	@echo "Makefile: Creating the documentation as HTML pages"
 	-$(call RM_FUNC,$@)
 	$(doc_cmd) -b html $(doc_opts) $(doc_build_dir)/html
 	@echo "Makefile: Done creating the documentation as HTML pages; top level file: $@"
-endif
 
 .PHONY: pdf
 pdf: develop_$(pymn).done Makefile $(doc_utility_help_files) $(doc_dependent_files)
-ifeq ($(python_mn_version),2.6)
-	@echo "Makefile: Warning: Skipping Sphinx doc build for target $@ on Python $(python_version)" >&2
-else
 	@echo "Makefile: Creating the documentation as PDF file"
 	-$(call RM_FUNC,$@)
 	$(doc_cmd) -b latex $(doc_opts) $(doc_build_dir)/pdf
@@ -704,54 +688,37 @@ else
 	$(MAKE) -C $(doc_build_dir)/pdf all-pdf
 	@echo "Makefile: Done creating the documentation as PDF file in: $(doc_build_dir)/pdf/"
 	@echo "Makefile: Target $@ done."
-endif
 
 .PHONY: man
 man: develop_$(pymn).done Makefile $(doc_utility_help_files) $(doc_dependent_files)
-ifeq ($(python_mn_version),2.6)
-	@echo "Makefile: Warning: Skipping Sphinx doc build for target $@ on Python $(python_version)" >&2
-else
 	@echo "Makefile: Creating the documentation as man pages"
 	-$(call RM_FUNC,$@)
 	$(doc_cmd) -b man $(doc_opts) $(doc_build_dir)/man
 	@echo "Makefile: Done creating the documentation as man pages in: $(doc_build_dir)/man/"
 	@echo "Makefile: Target $@ done."
-endif
 
 .PHONY: docchanges
 docchanges: develop_$(pymn).done
-ifeq ($(python_mn_version),2.6)
-	@echo "Makefile: Warning: Skipping Sphinx doc build for target $@ on Python $(python_version)" >&2
-else
 	@echo "Makefile: Creating the doc changes overview file"
 	$(doc_cmd) -b changes $(doc_opts) $(doc_build_dir)/changes
 	@echo
 	@echo "Makefile: Done creating the doc changes overview file in: $(doc_build_dir)/changes/"
 	@echo "Makefile: Target $@ done."
-endif
 
 .PHONY: doclinkcheck
 doclinkcheck: develop_$(pymn).done
-ifeq ($(python_mn_version),2.6)
-	@echo "Makefile: Warning: Skipping Sphinx doc build for target $@ on Python $(python_version)" >&2
-else
 	@echo "Makefile: Creating the doc link errors file"
 	$(doc_cmd) -b linkcheck $(doc_opts) $(doc_build_dir)/linkcheck
 	@echo
 	@echo "Makefile: Done creating the doc link errors file: $(doc_build_dir)/linkcheck/output.txt"
 	@echo "Makefile: Target $@ done."
-endif
 
 .PHONY: doccoverage
 doccoverage: develop_$(pymn).done
-ifeq ($(python_mn_version),2.6)
-	@echo "Makefile: Warning: Skipping Sphinx doc build for target $@ on Python $(python_version)" >&2
-else
 	@echo "Makefile: Creating the doc coverage results file"
 	$(doc_cmd) -b coverage $(doc_opts) $(doc_build_dir)/coverage
 	@echo "Makefile: Done creating the doc coverage results file: $(doc_build_dir)/coverage/python.txt"
 	@echo "Makefile: Target $@ done."
-endif
 
 # Note: distutils depends on the right files specified in MANIFEST.in, even when
 # they are already specified e.g. in 'package_data' in setup.py.
@@ -828,9 +795,6 @@ else
 ifeq ($(python_mn_version),3.4)
 	@echo "Makefile: Warning: Skipping Pylint on Python $(python_version)" >&2
 else
-ifeq ($(python_mn_version),3.5)
-	@echo "Makefile: Warning: Skipping Pylint on Python $(python_version)" >&2
-else
 	@echo "Makefile: Running Pylint"
 	-$(call RM_FUNC,$@)
 	pylint --version
@@ -840,19 +804,14 @@ else
 	@echo "Makefile: Done running Pylint"
 endif
 endif
-endif
 
 flake8_$(pymn).done: develop_$(pymn).done Makefile $(flake8_rc_file) $(py_src_files) $(py_test_files)
-ifeq ($(python_mn_version),2.6)
-	@echo "Makefile: Warning: Skipping Flake8 on Python $(python_version)" >&2
-else
 	@echo "Makefile: Running Flake8"
 	-$(call RM_FUNC,$@)
 	flake8 --version
 	flake8 --statistics --config=$(flake8_rc_file) --filename='*' $(py_src_files) $(py_test_files)
 	echo "done" >$@
 	@echo "Makefile: Done running Flake8"
-endif
 
 safety_$(pymn).done: develop_$(pymn).done Makefile minimum-constraints.txt
 	@echo "Makefile: Running pyup.io safety check"
