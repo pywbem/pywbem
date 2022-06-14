@@ -471,6 +471,7 @@ function test1()
   cleanup_egg_file
 }
 
+# Install test via setup.py has been disabled
 function test2()
 {
   testcase="test2"
@@ -516,6 +517,7 @@ function test4()
   cleanup_egg_file
 }
 
+# Install test via setup.py has been disabled
 function test5()
 {
   testcase="test5"
@@ -558,7 +560,6 @@ fi
 prep
 
 test1
-test2
 test3
 test4
 
