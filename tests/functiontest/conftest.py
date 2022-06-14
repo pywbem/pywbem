@@ -303,7 +303,7 @@ class YamlItem(pytest.Item):
         runtestcase(self.testcase)
 
     def repr_failure(self, excinfo, style=None):
-        # pylint: disable=unused-argument
+        # pylint: disable=unused-argument,no-self-use
         """
         Called by py.test when the runtest() method raised an exception, to
         provide details about the failure.
