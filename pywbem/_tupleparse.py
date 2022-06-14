@@ -1240,7 +1240,7 @@ class TupleParser(object):
         # init arguments, but this cannot possibly be triggered here.
         inst = CIMInstance(classname, qualifiers=qualifiers)
         for prop in props:
-            inst.__setitem__(prop.name, prop)
+            inst[prop.name] = prop
 
         return inst
 
