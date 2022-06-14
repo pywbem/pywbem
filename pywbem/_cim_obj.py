@@ -2549,7 +2549,7 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
                     raise TypeError(
                         _format("Input object for properties has invalid item "
                                 "in iterable: {0!A}", item))
-                self.__setitem__(key, value)
+                self[key] = value
 
     @property
     def qualifiers(self):

@@ -135,6 +135,7 @@ def test_simple(simple_class, simple_args, conn_info):
     # exc has no len()
     assert len(exc.args) == len(simple_args)
     for i, _ in enumerate(simple_args):
+        # pylint: disable=unnecessary-list-index-lookup
         assert exc.args[i] == simple_args[i]
         assert exc.args[i:] == simple_args[i:]
         assert exc.args[0:i] == simple_args[0:i]

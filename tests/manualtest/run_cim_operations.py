@@ -804,7 +804,7 @@ class EnumerateInstances(ClientTest):
         # now in the class
         # self.assertTrue(property_count == inst_property_count)
 
-    def test_instance_simple_propertylist(self):  # pylint: disable=invalid-name
+    def test_instance_simple_propertylist(self):
         """Test property list with one property as a string."""
 
         property_list = TEST_CLASS_PROPERTY1
@@ -1150,7 +1150,6 @@ class PullEnumerateInstances(ClientTest):
             if ce.args[0] != CIM_ERR_NOT_SUPPORTED:
                 raise
 
-    # pylint: disable=invalid-name
     def test_open_invalid_filterquerylanguage(self):
         """Test invalid FilterQueryLanguage parameter."""
         try:
@@ -2188,7 +2187,7 @@ class CreateInstance(ClientTest):
             if arg == CIM_ERR_NOT_FOUND:
                 pass
 
-    def test_pywbem_AllTypes(self):  # pylint: disable=invalid-name
+    def test_pywbem_AllTypes(self):
         """Test Creation of an instance of PyWBEM_AllTypes."""
         if not self.pywbem_person_class_exists():
             return
@@ -2555,7 +2554,6 @@ class Associators(ClientTest):
             self.assertAssocRefClassRtnValid(cls)
 
     def test_pywbem_person_class_associator(self):
-        # pylint: disable=invalid-name
         """Get Class Associator for PyWBEM_Person source instance."""
         if not self.pywbem_person_class_exists():
             return
@@ -2565,7 +2563,6 @@ class Associators(ClientTest):
         self.assertAssocRefClassRtnValid(result)
 
     def test_pywbem_person_class_associator2(self):
-        # pylint: disable=invalid-name
         """Get a class associator filtered by result role and role"""
         if not self.pywbem_person_class_exists():
             return
@@ -2581,7 +2578,6 @@ class Associators(ClientTest):
         self.assertEqual(result[0][1].classname, 'CIM_Collection')
 
     def test_pywbem_person_class_associator3(self):
-        # pylint: disable=invalid-name
         """Get a class associator filtered by result role and role"""
         if not self.pywbem_person_class_exists():
             return
@@ -2601,7 +2597,6 @@ class Associators(ClientTest):
     # TODO ks dec/16 why do we not get return when we user resultrole
 
     def test_pywbem_person_inst_associator(self):
-        # pylint: disable=invalid-name
         """Get Class Associator for PyWBEM_Person source instance."""
         if not self.pywbem_person_class_exists():
             return
@@ -2621,7 +2616,6 @@ class Associators(ClientTest):
                 self.assertEqual(inst.classname, 'PyWBEM_PersonCollection')
 
     def test_pywbem_person_inst_associator_fail(self):
-        # pylint: disable=invalid-name
         """Fail get of associator instance because namespace fails."""
         if not self.pywbem_person_class_exists():
             return
@@ -2647,7 +2641,6 @@ class Associators(ClientTest):
                 raise
 
     def test_pywbem_person_inst_associatorName2(self):
-        # pylint: disable=invalid-name
         """Get Class associator for PyWBEM_Person source instance.
 
            All parameters included
@@ -2717,7 +2710,6 @@ class AssociatorNames(ClientTest):
             self.assertTrue(n.host is not None)
 
     def test_one_class_associatorname(self):
-        # pylint: disable=invalid-name
         """Test call with classname."""
 
         names = self.cimcall(self.conn.AssociatorNames, TEST_CLASS)
@@ -2725,7 +2717,6 @@ class AssociatorNames(ClientTest):
         self.assertClassNamesValid(names)
 
     def test_pywbem_person_class_associatorname(self):
-        # pylint: disable=invalid-name
         """Get Class associator for PyWBEM_Person source instance."""
         if not self.pywbem_person_class_exists():
             return
@@ -2735,7 +2726,6 @@ class AssociatorNames(ClientTest):
         self.assertClassNamesValid(names)
 
     def test_pywbem_person_class_associatorname2(self):
-        # pylint: disable=invalid-name
         """Get a class associator filtered by assoc class"""
         if not self.pywbem_person_class_exists():
             return
@@ -2749,7 +2739,6 @@ class AssociatorNames(ClientTest):
         self.assertEqual(len(names), 1)
 
     def test_pywbem_person_class_associatorname3(self):
-        # pylint: disable=invalid-name
         """Get a class associator filtered by result role and role"""
         if not self.pywbem_person_class_exists():
             return
@@ -2764,7 +2753,6 @@ class AssociatorNames(ClientTest):
         self.assertEqual(len(names), 1)
 
     def test_pywbem_person_class_associatorname4(self):
-        # pylint: disable=invalid-name
         """Get a class associator filtered by result role and role"""
         if not self.pywbem_person_class_exists():
             return
@@ -2781,7 +2769,6 @@ class AssociatorNames(ClientTest):
         self.assertEqual(len(names), 1)
 
     def test_pywbem_person_inst_associatorName(self):
-        # pylint: disable=invalid-name
         """
         Get associator instances for PyWBEM_Person source instance.
 
@@ -2803,7 +2790,6 @@ class AssociatorNames(ClientTest):
             self.assertInstanceNamesValid(ref_inst_names)
 
     def test_pywbem_person_inst_associatorName2(self):
-        # pylint: disable=invalid-name
         """
         Get associator instances for PyWBEM_Person source instance.
 
@@ -2975,7 +2961,6 @@ class ReferenceNames(ClientTest):
 
         self.assertClassNamesValid(names)
 
-    # pylint: disable=invalid-name
     def test_pywbem_person_class_referencename(self):
         """Get Class Reference for PyWBEM_Person source instance."""
         if not self.pywbem_person_class_exists():
@@ -4531,6 +4516,7 @@ MAX_OBJECT_COUNT = 100
 class IterEnumerateInstances(PegasusServerTestBase):
     """Test IterEnumerateInstances methods"""
 
+    # pylint: disable=invalid-name
     def run_enum_test(self, ClassName, namespace=None, LocalOnly=None,
                       DeepInheritance=None, IncludeQualifiers=None,
                       IncludeClassOrigin=None, PropertyList=None,
@@ -4538,7 +4524,6 @@ class IterEnumerateInstances(PegasusServerTestBase):
                       OperationTimeout=None, ContinueOnError=None,
                       MaxObjectCount=None, ignore_value_diff=False,
                       expected_response_count=None):
-        # pylint: disable=invalid-name
         """
         Run test by executing interEnumInstances, open/pull instance,
         and EnumerateInstance and compare the results.
@@ -4768,7 +4753,7 @@ class IterEnumerateInstances(PegasusServerTestBase):
                            MaxObjectCount=100, PropertyList=property_list,
                            IncludeQualifiers=True)
 
-    def test_IncludeClassOrigin(self):  # pylint: disable=invalid-name
+    def test_IncludeClassOrigin(self):
         """Test with IncludeClassOrigin True"""
         expected_response_count = 200
         self.set_stress_provider_parameters(expected_response_count, 200)
@@ -4779,7 +4764,7 @@ class IterEnumerateInstances(PegasusServerTestBase):
                            MaxObjectCount=100, PropertyList=property_list,
                            IncludeClassOrigin=True)
 
-    def test_minMaxObjectCount(self):  # pylint: disable=invalid-name
+    def test_minMaxObjectCount(self):
         """Test with that svr rtns correct # objects"""
         expected_response_count = 200
         self.set_stress_provider_parameters(expected_response_count, 200)
@@ -4792,7 +4777,7 @@ class IterEnumerateInstances(PegasusServerTestBase):
                            MaxObjectCount=1, PropertyList=property_list,
                            IncludeClassOrigin=True)
 
-    def test_zero_MaxObjectCount(self):  # pylint: disable=invalid-name
+    def test_zero_MaxObjectCount(self):
         """
         Test iter function with dZero MaxObjectCount.
 
@@ -4814,7 +4799,7 @@ class IterEnumerateInstances(PegasusServerTestBase):
     # because print statements are not executed from within iter...
     # The MaxObjectCount=0 is the one difference in this code.
     # The code above works ks Nov 2016)
-    # def test_zero_MaxObjectCount(self):  # pylint: disable=invalid-name
+    # def test_zero_MaxObjectCount(self):
         # print('test_zero_maxobjcnt')
         # pdb.set_trace()
         # try:
@@ -4824,7 +4809,7 @@ class IterEnumerateInstances(PegasusServerTestBase):
         # except ValueError:
             # pass
 
-    def test_no_MaxObjectCount(self):  # pylint: disable=invalid-name
+    def test_no_MaxObjectCount(self):
         """
         Test iter function with default MaxObjectCount.
 
@@ -4862,11 +4847,11 @@ class IterEnumerateInstances(PegasusServerTestBase):
 class IterEnumerateInstancePaths(PegasusServerTestBase):
     """Test IterEnumerateInstancePaths methods"""
 
+    # pylint: disable=invalid-name
     def run_enumpath_test(self, ClassName, namespace=None,
                           FilterQueryLanguage=None, FilterQuery=None,
                           OperationTimeout=None, ContinueOnError=None,
                           MaxObjectCount=None):
-        # pylint: disable=invalid-name,
         """
         Run test by executing interEnumInstances, open/pull instance,
         and EnumerateInstance and compare the results.
@@ -4961,7 +4946,7 @@ class IterEnumerateInstancePaths(PegasusServerTestBase):
         self.assertEqual(self.conn._use_assoc_path_pull_operations, False)
         self.assertEqual(self.conn._use_query_pull_operations, False)
 
-    def test_zero_MaxObjectCount(self):  # pylint: disable=invalid-name
+    def test_zero_MaxObjectCount(self):
         """
         Test iter function with dZero MaxObjectCount.
 
@@ -4975,7 +4960,7 @@ class IterEnumerateInstancePaths(PegasusServerTestBase):
         except ValueError:
             pass
 
-    def test_no_MaxObjectCount(self):  # pylint: disable=invalid-name
+    def test_no_MaxObjectCount(self):
         """
         Test iter function with default MaxObjectCount.
 
@@ -5023,13 +5008,13 @@ class IterReferenceInstances(PegasusServerTestBase):
         self.assertTrue(len(inst_names) >= 1)
         return inst_names[0]  # Pick the first returned instance
 
+    # pylint: disable=invalid-name
     def run_enum_test(self, InstanceName, ResultClass=None, Role=None,
                       IncludeQualifiers=None, IncludeClassOrigin=None,
                       PropertyList=None,
                       FilterQueryLanguage=None, FilterQuery=None,
                       OperationTimeout=None, ContinueOnError=None,
                       MaxObjectCount=None, pull_disabled=False):
-        # pylint: disable=invalid-name,
         """
         Run test by executing interReferenceInstances, open/pull
         References, and References and compare the results.
@@ -5149,7 +5134,7 @@ class IterReferenceInstances(PegasusServerTestBase):
         self.run_enum_test(self.get_source_name(),
                            MaxObjectCount=100, PropertyList=property_list)
 
-    def test_zero_MaxObjectCount(self):  # pylint: disable=invalid-name
+    def test_zero_MaxObjectCount(self):
         """
         Test iter function with dZero MaxObjectCount.
 
@@ -5161,7 +5146,7 @@ class IterReferenceInstances(PegasusServerTestBase):
         except ValueError:
             pass
 
-    def test_no_MaxObjectCount(self):  # pylint: disable=invalid-name
+    def test_no_MaxObjectCount(self):
         """Test without extra request parameters"""
 
         try:
@@ -5201,11 +5186,11 @@ class IterReferenceInstancePaths(PegasusServerTestBase):
         self.assertTrue(len(inst_names) >= 1)
         return inst_names[0]  # Pick the first returned instance
 
+    # pylint: disable=invalid-name
     def run_enumpath_test(self, InstanceName, ResultClass=None, Role=None,
                           FilterQueryLanguage=None, FilterQuery=None,
                           OperationTimeout=None, ContinueOnError=None,
                           MaxObjectCount=None, pull_disabled=False):
-        # pylint: disable=invalid-name,
         """
         Run test by executing interEnumInstances, open/pull instance,
         and EnumerateInstance and compare the results.
@@ -5295,7 +5280,7 @@ class IterReferenceInstancePaths(PegasusServerTestBase):
         self.assertEqual(self.conn._use_assoc_path_pull_operations, False)
         self.assertEqual(self.conn._use_query_pull_operations, False)
 
-    def test_zero_MaxObjectCount(self):  # pylint: disable=invalid-name
+    def test_zero_MaxObjectCount(self):
         """
         Test iter function with dZero MaxObjectCount.
 
@@ -5307,7 +5292,7 @@ class IterReferenceInstancePaths(PegasusServerTestBase):
         except ValueError:
             pass
 
-    def test_no_MaxObjectCount(self):  # pylint: disable=invalid-name
+    def test_no_MaxObjectCount(self):
         """Test without extra request parameters"""
         instance_name = self.get_source_name()
 
@@ -5359,6 +5344,7 @@ class IterAssociatorInstances(PegasusServerTestBase):
         self.assertTrue(len(inst_names) >= 1)
         return inst_names[0]  # Pick the first returned instance
 
+    # pylint: disable=invalid-name
     def run_enum_test(self, InstanceName, AssocClass=None,
                       ResultClass=None, Role=None,
                       ResultRole=None,
@@ -5367,7 +5353,6 @@ class IterAssociatorInstances(PegasusServerTestBase):
                       FilterQueryLanguage=None, FilterQuery=None,
                       OperationTimeout=None, ContinueOnError=None,
                       MaxObjectCount=None, pull_disabled=False):
-        # pylint: disable=invalid-name,
         """
         Run test by executing interAssociatorInstances, open/pull
         Associators, and Associators and compare the results.
@@ -5496,7 +5481,7 @@ class IterAssociatorInstances(PegasusServerTestBase):
                            MaxObjectCount=100, IncludeQualifiers=True,
                            PropertyList=property_list)
 
-    def test_zero_MaxObjectCount(self):  # pylint: disable=invalid-name
+    def test_zero_MaxObjectCount(self):
         """
         Test iter function with dZero MaxObjectCount.
 
@@ -5508,7 +5493,7 @@ class IterAssociatorInstances(PegasusServerTestBase):
         except ValueError:
             pass
 
-    def test_no_MaxObjectCount(self):  # pylint: disable=invalid-name
+    def test_no_MaxObjectCount(self):
         """Test without extra request parameters"""
 
         try:
@@ -5549,13 +5534,13 @@ class IterAssociatorInstancePaths(PegasusServerTestBase):
         self.assertTrue(len(inst_names) >= 1)
         return inst_names[0]  # Pick the first returned instance
 
+    # pylint: disable=invalid-name
     def run_enumpath_test(self, InstanceName, AssocClass=None,
                           ResultClass=None, Role=None,
                           ResultRole=None,
                           FilterQueryLanguage=None, FilterQuery=None,
                           OperationTimeout=None, ContinueOnError=None,
                           MaxObjectCount=None, pull_disabled=False):
-        # pylint: disable=invalid-name,
         """
         Run test by executing interAssociatorInstancePaths, open/pull
         AssociatorPaths, and AssociatorNames and compare the results.
@@ -5650,7 +5635,7 @@ class IterAssociatorInstancePaths(PegasusServerTestBase):
         self.assertEqual(self.conn._use_assoc_path_pull_operations, False)
         self.assertEqual(self.conn._use_query_pull_operations, False)
 
-    def test_zero_MaxObjectCount(self):  # pylint: disable=invalid-name
+    def test_zero_MaxObjectCount(self):
         """
         Test iter function with dZero MaxObjectCount.
 
@@ -5662,7 +5647,7 @@ class IterAssociatorInstancePaths(PegasusServerTestBase):
         except ValueError:
             pass
 
-    def test_no_MaxObjectCount(self):  # pylint: disable=invalid-name
+    def test_no_MaxObjectCount(self):
         """Test without extra request parameters"""
         instance_name = self.get_source_name()
 
@@ -5704,7 +5689,7 @@ class IterAssociatorInstancePaths(PegasusServerTestBase):
 
 class IterQueryInstances(PegasusServerTestBase):
 
-    def test_simple_iter_queryinstances(self):  # pylint: disable=invalid-name
+    def test_simple_iter_queryinstances(self):
         try:
             # Simplest invocation
 
@@ -6111,7 +6096,6 @@ class TestSubscriptionsClass(PyWBEMServerClass):
             for i, dest in enumerate(dests):
                 print('destination %s %s' % (i, dest))
 
-    # pylint: disable=invalid-name
     def test_create_delete_subscription(self):
         """
         Create and delete a server and listener and create an indication.
