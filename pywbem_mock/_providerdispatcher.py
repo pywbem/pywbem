@@ -218,10 +218,11 @@ class ProviderDispatcher(BaseProvider):
                         "exist in namespace {1!A} of the CIM repository.",
                         NewInstance.classname, namespace))
 
-        if "Abstract" in creation_class.qualifiers:
+        if creation_class.qualifiers.get("Abstract", False):
             warnings.warn(
-                _format("Tolerating instance creation of abstract class {0} "
-                        " in namepace {1} which is forbidden by DMTF DSP0004.",
+                _format("Tolerating instance creation of abstract "
+                        "class {0} in namepace {1} which is forbidden "
+                        "by DMTF DSP0004.",
                         NewInstance.classname, namespace),
                 ToleratedSchemaIssueWarning, 1)
 
@@ -350,9 +351,7 @@ class ProviderDispatcher(BaseProvider):
 
             prop_inst = ModifiedInstance.properties[pn]
             prop_cls = creation_class.properties[pn]
-            # See issue #2449. This test never executed since if the key
-            # properties changed, the original instance get would have already
-            # failed.
+
             if prop_cls.qualifiers.get('key', False) and \
                     prop_inst.value != instance[pn]:
                 raise CIMError(

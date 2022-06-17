@@ -2471,7 +2471,6 @@ class MainProvider(ResolverMixin, BaseProvider):
 
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
         """
-
         # Parameter types are already checked by WBEMConnection operation
         assert isinstance(namespace, six.string_types)
         assert isinstance(ObjectName, (six.string_types, CIMInstanceName))
@@ -2488,14 +2487,14 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         if isinstance(ObjectName, CIMInstanceName):
             self._validate_instancename_namespace(namespace, ObjectName)
-            assoc_names = self._get_associated_instancenames(namespace,
-                                                             ObjectName,
-                                                             AssocClass,
-                                                             ResultClass,
-                                                             ResultRole, Role)
+            assoc_names = self._get_associated_instancenames(
+                namespace, ObjectName, AssocClass, ResultClass, ResultRole,
+                Role)
+
             results = []
-            instance_store = self.cimrepository.get_instance_store(namespace)
             for obj_name in assoc_names:
+                ns = obj_name.namespace
+                instance_store = self.cimrepository.get_instance_store(ns)
                 results.append(self._get_instance(
                     obj_name, instance_store,
                     INSTANCE_RETRIEVE_LOCAL_ONLY,

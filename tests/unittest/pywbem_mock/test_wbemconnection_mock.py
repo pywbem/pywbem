@@ -6346,12 +6346,15 @@ class TestInstanceOperations(object):
         Test compile generates warning compiling instance of abstract class
         """
         tst_mof = """
-            Qualifier Abstract : boolean = false,
+            Qualifier Abstract : boolean = true,
                 Scope(class),
                 Flavor(DisableOverride, ToSubclass);
+        Qualifier Key : boolean = false,
+            Scope(property, reference),
+            Flavor(DisableOverride, ToSubclass);
 
              [ Abstract ]
-        class CIM_Abstract {string InstanceID;};
+        class CIM_Abstract {[key] string InstanceID;};
         instance of CIM_Abstract {InstanceID="blah";};
         """
         skip_if_moftab_regenerated()
