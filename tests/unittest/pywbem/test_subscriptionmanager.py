@@ -1733,7 +1733,8 @@ TESTCASES_SUBMGR_MODIFY = [
     #   * modify_filter_attrs: defines inst/properties properties to modify
     #     where instances are modified on the server external to
     #     SubscriptionManager (i.e. directly with conn.ModifyInstance)
-    #     The attributes are:
+    #     It can be either a pair of attributes or a CIMProperty
+    #     If it is a pair of attributes the attributes are:
     #       1. The index to the filter_dest to modify
     #       2. dict of properties to modify
     #   * modify_listener_dest_attrs: defines inst/properties properties to
@@ -1773,7 +1774,7 @@ TESTCASES_SUBMGR_MODIFY = [
             exp_result=dict(server_id="http://FakedUrl:5988",
                             listener_count=1)
         ),
-        CIMError, None, FAIL
+        CIMError, None, OK
     ),
     (
         "Modify OK. Property modified",

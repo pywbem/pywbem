@@ -166,7 +166,7 @@ class _MockMOFWBEMConnection(ResolverMixin, BaseRepositoryConnection):
 
         mod_inst = args[0] if args else kwargs['ModifiedInstance']
 
-        self.conn.ModifyInstance(mod_inst.path)
+        self.conn.ModifyInstance(mod_inst)
 
     def DeleteInstance(self, *args, **kwargs):
         """

@@ -35,6 +35,12 @@ Released: not yet
   cause name errors in your code, if you were using them.
   (related to issue #2888)
 
+* The pywbem_mock default instance writer (pywbem_mock/_instancewriteprovider.py)
+  added checks for creation/modification of instances to validate that the
+  reference properties of associations define existing instances if the
+  property values exist. Previously they validated only the correct value type.
+  (see issue #2908, extension to bidirectional inter-namespace associations)
+
 **Deprecations:**
 
 **Bug fixes:**
@@ -115,6 +121,11 @@ Released: not yet
   Exceeding the 'WBEMConnection' timeout now results in raising
   'pywbem.TimeoutError' in some cases where previously 'pywbem.ConnectionError'
   was raised. (issue #2853)
+
+* Extend pywbem_mock creation of instances of associations to provide for
+  bidirectional inter-namespace associations.  Previously cross-namespace
+  associations created in pywbem_mock were only visible in the namespace
+  in which they were created. (see issue #2908)
 
 **Cleanup:**
 

@@ -1205,9 +1205,9 @@ class FakedWBEMConnection(WBEMConnection):
 
     ########################################################################
     #
-    #   Pywbem functions mocked. WBEMConnection only mocks the WBEMConnection
-    #   _imethodcall and _methodcall methods.  This captures all calls
-    #   to the wbem server.
+    #   Pywbem functions mocked. FakedWBEMConnection only mocks the
+    #   WBEMConnection _imethodcall and _methodcall methods.  This captures
+    #   all calls to the wbem server.
     #
     ########################################################################
 
@@ -1358,6 +1358,10 @@ class FakedWBEMConnection(WBEMConnection):
     #  InstanceWriteProvider. All other methods are rounted to the
     #  MainProvider.
     #
+    #  In general, the namespace that is the target of each operation is
+    #  provided as a separate parameter even if the public API defines
+    #  the namespace as part of the target object definition
+    #
     #####################################################################
 
     # Instance Operations
@@ -1370,6 +1374,10 @@ class FakedWBEMConnection(WBEMConnection):
 
         Parameters:
 
+          namespace (:term:`string_type`):
+            The namespace from which the instance namess are to be retrieved.
+            Must not be None.
+
           params (class:`py:dict`):
             Dictionary of parameters for the method called.
 
@@ -1378,7 +1386,6 @@ class FakedWBEMConnection(WBEMConnection):
           Tuple with instance paths comatible with imethodcall
 
         Raises:
-
           Error: Exceptions from the call
         """
         instance_paths = self._mainprovider.EnumerateInstanceNames(
@@ -1394,15 +1401,17 @@ class FakedWBEMConnection(WBEMConnection):
 
         Parameters:
 
+          namespace (:term:`string_type`):
+            The namespace from which the instance is to be retrieved. Must not
+            be None.
+
           params (class:`py:dict`):
             Dictionary of parameters for the method called.
 
         Returns:
-
           Tuple with instances comatible with imethodcall
 
         Raises:
-
           Error: Exceptions from the call
         """
         instances = self._mainprovider.EnumerateInstances(
@@ -1426,15 +1435,17 @@ class FakedWBEMConnection(WBEMConnection):
 
         Parameters:
 
-          params (class:`py:dict`):
+          namespace (:term:`string_type`):
+            The namespace from which the instance is to be retrieved. Must not
+            be None.
 
+          params (class:`py:dict`):
             Dictionary of parameters for the method called.
 
         Returns:
           Tuple with instance comatible with imethodcall
 
         Raises:
-
           Error: Exceptions from the call
         """
         instance_name = params['InstanceName']
@@ -1459,11 +1470,14 @@ class FakedWBEMConnection(WBEMConnection):
 
         Parameters:
 
+          namespace (:term:`string`):
+            Namespace in which the instance will be created
+            Must not be None.
+
           params (class:`py:dict`):
             Dictionary of parameters for the method called.
 
         Raises:
-
           Error: Exceptions from the call
         """
 
@@ -1478,19 +1492,19 @@ class FakedWBEMConnection(WBEMConnection):
         parameters defined for that method and map response to tuple response
         for imethodcall.
 
-        The method called includes the namespace within the ModifiedInstance
-        rather than as a separate element.
 
         This method allows user providers and therefore is passed to the
         :class:`ProviderDispatcher`.
 
         Parameters:
+          namespace (:term:`string`):
+            Namespace in containing the instance to be modified
+            Must not be None.
 
           params (class:`py:dict`):
             Dictionary of parameters for the method called.
 
         Raises:
-
           Error: Exceptions from the call
         """
         modified_instance = params['ModifiedInstance']
@@ -1508,19 +1522,18 @@ class FakedWBEMConnection(WBEMConnection):
         parameters defined for that method and map response to tuple response
         for imethodcall.
 
-        The method called includes the namespace within the InstanceName
-        rather than as a separate element.
-
         This method allows user providers and therefore is passed to the
         :class:`ProviderDispatcher`.
 
         Parameters:
+          namespace (:term:`string`):
+            Namespace containing the instance to be deleted
+            Must not be None.
 
           params (class:`py:dict`):
             Dictionary of parameters for the method called.
 
         Raises:
-
           Error: Exceptions from the call
         """
         instance_name = params['InstanceName']
@@ -1537,16 +1550,17 @@ class FakedWBEMConnection(WBEMConnection):
         for imethodcall.
 
         Parameters:
+          namespace (:term:`string`):
+            Namespace containing the class and method
+            Must not be None.
 
           params (class:`py:dict`):
             Dictionary of parameters for the method called.
 
         Returns:
-
           Tuple with instances compatible with imethodcall
 
         Raises:
-
           Error: Exceptions from the call
         """
         # pylint: disable=assignment-from-no-return
