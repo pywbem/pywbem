@@ -160,12 +160,10 @@ CIM_ERR_PULL_CANNOT_BE_ABANDONED = 24
 #: Using a a filter query in pulled enumerations is not supported by the WBEM
 #: server.
 #: *New in pywbem 0.9.*
-#pylint: disable=invalid-name
 CIM_ERR_FILTERED_ENUMERATION_NOT_SUPPORTED = 25
 
 #: The WBEM server does not support continuation on error.
 #: *New in pywbem 0.9.*
-#pylint: disable=invalid-name
 CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED = 26
 
 #: The WBEM server has failed the operation based upon exceeding server limits.
@@ -266,6 +264,8 @@ PROVIDERTYPE_QUERY = 7
 
 #: Default CIM namespace for WBEM connection
 DEFAULT_NAMESPACE = 'root/cimv2'
+
+# Keep the above in sync with docs/conf.py
 
 #: Default URL scheme for WBEM connection
 #: *New in pywbem 1.0.*

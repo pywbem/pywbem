@@ -170,7 +170,7 @@ from ._logging import DEFAULT_LOG_DETAIL_LEVEL, LOG_DESTINATIONS, \
     LOGGER_SIMPLE_NAMES
 from ._utils import _ensure_unicode, _format
 
-__all__ = ['WBEMConnection']
+__all__ = ['WBEMConnection', 'IterQueryInstancesReturn']
 
 URLLIB3_VERSION_INFO = tuple(map(int, urllib3.__version__.split('.')[0:3]))
 
@@ -373,6 +373,40 @@ def _validate_context(context):
                     "of size 2)", context))
 
 
+class IterQueryInstancesReturn(object):
+    """
+    The return data for
+    :meth:`~pywbem.WBEMConnection.IterQueryInstances`.
+    """
+
+    def __init__(self, instances, query_result_class=None):
+        """Save any query_result_class and instances returned"""
+        self._query_result_class = query_result_class
+        self.instances = instances
+
+    @property
+    def query_result_class(self):
+        """
+        :class:`~pywbem.CIMClass`: The query result class, if requested
+        via the `ReturnQueryResultClass` parameter of
+        :meth:`~pywbem.WBEMConnection.IterQueryInstances`.
+
+        `None`, if a query result class was not requested.
+        """
+        return self._query_result_class
+
+    @property
+    def generator(self):
+        """
+        :term:`py:generator` iterating :class:`~pywbem.CIMInstance`:
+        A generator object that iterates the CIM instances representing
+        the query result. These instances do not have an instance path
+        set.
+        """
+        for inst in self.instances:
+            yield inst
+
+
 class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     """
     A client's connection to a WBEM server or WBEM listener. This is the main
@@ -478,10 +512,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
     * Exceptions indicating programming errors (in pywbem or by the user):
 
-      - :exc:`~py:exceptions.TypeError`
-      - :exc:`~py:exceptions.KeyError`
-      - :exc:`~py:exceptions.ValueError`
-      - :exc:`~py:exceptions.AttributeError`
+      - :exc:`py:TypeError`
+      - :exc:`py:KeyError`
+      - :exc:`py:ValueError`
+      - :exc:`py:AttributeError`
       - ... possibly others ...
 
       Exceptions indicating programming errors should not happen. If you think
@@ -559,7 +593,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               Use HTTP to port 5988 to host 2001:db8::1234 (a link-local IPv6
               address) using zone identifier eth0
 
-          creds (:func:`py:tuple` of userid, password):
+          creds (:class:`py:tuple` of userid, password):
             Credentials for HTTP authentication with the WBEM server, as a
             tuple(userid, password), with:
 
@@ -608,14 +642,14 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               * ``"cert_file"`` (:term:`string`):
                 The file path of a file containing an :term:`X.509` client
                 certificate. Required. If the file does not exist,
-                :exc:`~py:exceptions.IOError` will be raised.
+                :exc:`py:IOError` will be raised.
 
               * ``"key_file"`` (:term:`string`):
                 The file path of a file containing the private key belonging to
                 the public key that is part of the :term:`X.509` certificate
                 file. Optional; if omitted or `None`, the private key must
                 be in the file specified with ``"cert_file"``. If specified
-                but the file does not exist, :exc:`~py:exceptions.IOError` will
+                but the file does not exist, :exc:`py:IOError` will
                 be raised.
 
             The dictionary is copied.
@@ -636,13 +670,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               certificates in PEM format. See the description of `CAfile` in
               the OpenSSL `SSL_CTX_load_verify_locations`_ function for
               details. If the file does not exist,
-              :exc:`~py:exceptions.IOError` will be raised.
+              :exc:`py:IOError` will be raised.
 
             * :term:`string`: A path to a directory with files each of which
               contains one CA certificate in PEM format. See the description
               of `CApath` in the OpenSSL `SSL_CTX_load_verify_locations`_
               function for details. If the directory does not exist,
-              :exc:`~py:exceptions.IOError` will be raised.
+              :exc:`py:IOError` will be raised.
 
             * `None` (default): Use the certificates provided by the
               `certifi Python package`_. This package provides the certificates
@@ -922,8 +956,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         other internal state (e.g. session, statistics, debug data) is reset.
 
         Any operation recorders on the original object are also deep-copied
-        while resetting their internal state (e.g. staged operations)
-        (see :meth:`~pywbem.BaseOperationRecorder.copy`).
+        while resetting their internal state (e.g. staged operations).
         """
         cpy = WBEMConnection(
             url=self.url,
@@ -995,7 +1028,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
     @property
     def creds(self):
         """
-        :func:`py:tuple`: Credentials for HTTP authentication with the WBEM
+        :class:`py:tuple`: Credentials for HTTP authentication with the WBEM
         server.
 
         For details, see the description of the same-named init
@@ -3857,7 +3890,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 the CIM namespace, or `None` if the server did not return host
                 information.
 
-            * For class-level use: A list of :func:`py:tuple` of
+            * For class-level use: A list of :class:`py:tuple` of
               (classpath, class) objects that are representations of the
               associated classes.
 
@@ -4214,7 +4247,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 the CIM namespace, or `None` if the server did not return host
                 information.
 
-            * For class-level use: A list of :func:`py:tuple` of
+            * For class-level use: A list of :class:`py:tuple` of
               (classpath, class) objects that are representations of the
               referencing association classes.
 
@@ -4503,7 +4536,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Returns:
 
-            A :func:`py:tuple` of (returnvalue, outparams), with these
+            A :class:`py:tuple` of (returnvalue, outparams), with these
             tuple items:
 
             * returnvalue (:term:`CIM data type`):
@@ -4732,8 +4765,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
           capability in order for the filtering to work.
 
         * Setting the `ContinueOnError` parameter to `True` will cause the
-        request to be rejected if the corresponding traditional operation is
-        used by this method.
+          request to be rejected if the corresponding traditional operation is
+          used by this method.
 
         The enumeration session that is opened with the WBEM server when using
         pull operations is closed automatically when the returned generator
@@ -4846,7 +4879,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             :term:`DSP0212`) is specified as "DMTF:FQL".
 
             If this parameter is not `None` and the traditional operation is
-            used by this method, :exc:`~py:exceptions.ValueError` will be
+            used by this method, :exc:`py:ValueError` will be
             raised.
 
           FilterQuery (:term:`string`):
@@ -4854,7 +4887,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             `FilterQueryLanguage` parameter.
 
             If this parameter is not `None` and the traditional operation is
-            used by this method, :exc:`~py:exceptions.ValueError` will be
+            used by this method, :exc:`py:ValueError` will be
             raised.
 
           OperationTimeout (:class:`~pywbem.Uint32`):
@@ -4868,7 +4901,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               indicates that the server is expected to never time out. The
               server may reject the proposed value, causing a
               :class:`~pywbem.CIMError` to be raised with status code
-              :attr:`~pywbem.CIM_ERR_INVALID_OPERATION_TIMEOUT`.
+              :data:`~pywbem._cim_constants.CIM_ERR_INVALID_OPERATION_TIMEOUT`.
             * If `None`, this parameter is not passed to the WBEM server, and
               causes the server-implemented default timeout to be used.
 
@@ -4881,9 +4914,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               on error; a server that does not support it must send an error
               response if `True` was specified, causing
               :class:`~pywbem.CIMError` to be raised with status code
-              :attr:`~pywbem.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
+              :data:`~pywbem._cim_constants.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
               If the corresponding traditional operation is used by this
-              method, :exc:`~py:exceptions.ValueError` will be raised.
+              method, :exc:`py:ValueError` will be raised.
             * If `False`, the server is requested to close the enumeration after
               sending an error response.
             * If `None`, this parameter is not passed to the WBEM server, and
@@ -5042,6 +5075,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                    FilterQueryLanguage=None, FilterQuery=None,
                                    OperationTimeout=None, ContinueOnError=None,
                                    MaxObjectCount=DEFAULT_ITER_MAXOBJECTCOUNT):
+        # pylint: disable=line-too-long
         """
         Enumerate the instance paths of instances of a class (including
         instances of its subclasses) in a namespace, using the
@@ -5134,7 +5168,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             :term:`DSP0212`) is specified as "DMTF:FQL".
 
             If this parameter is not `None` and the traditional operation is
-            used by this method, :exc:`~py:exceptions.ValueError` will be
+            used by this method, :exc:`py:ValueError` will be
             raised.
 
             Not all WBEM servers support filtering for this operation because
@@ -5147,7 +5181,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             `FilterQueryLanguage` parameter.
 
             If this parameter is not `None` and the traditional operation is
-            used by this method, :exc:`~py:exceptions.ValueError` will be
+            used by this method, :exc:`py:ValueError` will be
             raised.
 
           OperationTimeout (:class:`~pywbem.Uint32`):
@@ -5161,7 +5195,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               indicates that the server is expected to never time out. The
               server may reject the proposed value, causing a
               :class:`~pywbem.CIMError` to be raised with status code
-              :attr:`~pywbem.CIM_ERR_INVALID_OPERATION_TIMEOUT`.
+              :data:`~pywbem._cim_constants.CIM_ERR_INVALID_OPERATION_TIMEOUT`.
             * If `None`, this parameter is not passed to the WBEM server, and
               causes the server-implemented default timeout to be used.
 
@@ -5174,9 +5208,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               on error; a server that does not support it must send an error
               response if `True` was specified, causing
               :class:`~pywbem.CIMError` to be raised with status code
-              :attr:`~pywbem.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
+              :data:`~pywbem._cim_constants.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
               If the corresponding traditional operation is used by this
-              method, :exc:`~py:exceptions.ValueError` will be raised.
+              method, :exc:`py:ValueError` will be raised.
             * If `False`, the server is requested to close the enumeration after
               sending an error response.
             * If `None`, this parameter is not passed to the WBEM server, and
@@ -5477,7 +5511,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             :term:`DSP0212`) is specified as "DMTF:FQL".
 
             If this parameter is not `None` and the traditional operation is
-            used by this method, :exc:`~py:exceptions.ValueError` will be
+            used by this method, :exc:`py:ValueError` will be
             raised.
 
           FilterQuery (:term:`string`):
@@ -5485,7 +5519,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             `FilterQueryLanguage` parameter.
 
             If this parameter is not `None` and the traditional operation is
-            used by this method, :exc:`~py:exceptions.ValueError` will be
+            used by this method, :exc:`py:ValueError` will be
             raised.
 
           OperationTimeout (:class:`~pywbem.Uint32`):
@@ -5499,7 +5533,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               indicates that the server is expected to never time out. The
               server may reject the proposed value, causing a
               :class:`~pywbem.CIMError` to be raised with status code
-              :attr:`~pywbem.CIM_ERR_INVALID_OPERATION_TIMEOUT`.
+              :data:`~pywbem._cim_constants.CIM_ERR_INVALID_OPERATION_TIMEOUT`.
             * If `None`, this parameter is not passed to the WBEM server, and
               causes the server-implemented default timeout to be used.
 
@@ -5507,7 +5541,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             setting it to `True` is NOT recommended except in special cases.
 
             If this parameter is `True` and the traditional operation is used
-            by this method, :exc:`~py:exceptions.ValueError` will be raised.
+            by this method, :exc:`py:ValueError` will be raised.
 
           ContinueOnError (:class:`py:bool`):
             Indicates to the WBEM server to continue sending responses
@@ -5518,9 +5552,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               on error; a server that does not support it must send an error
               response if `True` was specified, causing
               :class:`~pywbem.CIMError` to be raised with status code
-              :attr:`~pywbem.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
+              :data:`~pywbem._cim_constants.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
               If the corresponding traditional operation is used by this
-              method, :exc:`~py:exceptions.ValueError` will be raised.
+              method, :exc:`py:ValueError` will be raised.
             * If `False`, the server is requested to close the enumeration after
               sending an error response.
             * If `None`, this parameter is not passed to the WBEM server, and
@@ -5662,7 +5696,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                     FilterQueryLanguage=None, FilterQuery=None,
                                     OperationTimeout=None, ContinueOnError=None,
                                     MaxObjectCount=DEFAULT_ITER_MAXOBJECTCOUNT):
-        # pylint: disable=invalid-name
+        # pylint: disable=invalid-name,line-too-long
         """
         Retrieve the instance paths of the instances associated to a source
         instance, using the Python :term:`py:generator` idiom to return the
@@ -5775,7 +5809,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             :term:`DSP0212`) is specified as "DMTF:FQL".
 
             If this parameter is not `None` and the traditional operation is
-            used by this method, :exc:`~py:exceptions.ValueError` will be
+            used by this method, :exc:`py:ValueError` will be
             raised.
 
             Not all WBEM servers support filtering for this operation because
@@ -5788,7 +5822,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             `FilterQueryLanguage` parameter.
 
             If this parameter is not `None` and the traditional operation is
-            used by this method, :exc:`~py:exceptions.ValueError` will be
+            used by this method, :exc:`py:ValueError` will be
             raised.
 
           OperationTimeout (:class:`~pywbem.Uint32`):
@@ -5802,7 +5836,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               indicates that the server is expected to never time out. The
               server may reject the proposed value, causing a
               :class:`~pywbem.CIMError` to be raised with status code
-              :attr:`~pywbem.CIM_ERR_INVALID_OPERATION_TIMEOUT`.
+              :data:`~pywbem._cim_constants.CIM_ERR_INVALID_OPERATION_TIMEOUT`.
             * If `None`, this parameter is not passed to the WBEM server, and
               causes the server-implemented default timeout to be used.
 
@@ -5815,9 +5849,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               on error; a server that does not support it must send an error
               response if `True` was specified, causing
               :class:`~pywbem.CIMError` to be raised with status code
-              :attr:`~pywbem.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
+              :data:`~pywbem._cim_constants.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
               If the corresponding traditional operation is used by this
-              method, :exc:`~py:exceptions.ValueError` will be raised.
+              method, :exc:`py:ValueError` will be raised.
             * If `False`, the server is requested to close the enumeration
               after sending an error response.
             * If `None`, this parameter is not passed to the WBEM server, and
@@ -6085,7 +6119,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             :term:`DSP0212`) is specified as "DMTF:FQL".
 
             If this parameter is not `None` and the traditional operation is
-            used by this method, :exc:`~py:exceptions.ValueError` will be
+            used by this method, :exc:`py:ValueError` will be
             raised.
 
           FilterQuery (:term:`string`):
@@ -6093,7 +6127,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             `FilterQueryLanguage` parameter.
 
             If this parameter is not `None` and the traditional operation is
-            used by this method, :exc:`~py:exceptions.ValueError` will be
+            used by this method, :exc:`py:ValueError` will be
             raised.
 
           OperationTimeout (:class:`~pywbem.Uint32`):
@@ -6107,7 +6141,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               indicates that the server is expected to never time out. The
               server may reject the proposed value, causing a
               :class:`~pywbem.CIMError` to be raised with status code
-              :attr:`~pywbem.CIM_ERR_INVALID_OPERATION_TIMEOUT`.
+              :data:`~pywbem._cim_constants.CIM_ERR_INVALID_OPERATION_TIMEOUT`.
             * If `None`, this parameter is not passed to the WBEM server, and
               causes the server-implemented default timeout to be used.
 
@@ -6120,9 +6154,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               on error; a server that does not support it must send an error
               response if `True` was specified, causing
               :class:`~pywbem.CIMError` to be raised with status code
-              :attr:`~pywbem.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
+              :data:`~pywbem._cim_constants.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
               If the corresponding traditional operation is used by this
-              method, :exc:`~py:exceptions.ValueError` will be raised.
+              method, :exc:`py:ValueError` will be raised.
             * If `False`, the server is requested to close the enumeration after
               sending an error response.
             * If `None`, this parameter is not passed to the WBEM server, and
@@ -6257,7 +6291,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                    FilterQueryLanguage=None, FilterQuery=None,
                                    OperationTimeout=None, ContinueOnError=None,
                                    MaxObjectCount=DEFAULT_ITER_MAXOBJECTCOUNT):
-        # pylint: disable=invalid-name
+        # pylint: disable=invalid-name,line-too-long
         """
         Retrieve the instance paths of the association instances that reference
         a source instance, using the Python :term:`py:generator` idiom to
@@ -6354,7 +6388,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             :term:`DSP0212`) is specified as "DMTF:FQL".
 
             If this parameter is not `None` and the traditional operation is
-            used by this method, :exc:`~py:exceptions.ValueError` will be
+            used by this method, :exc:`py:ValueError` will be
             raised.
 
             Not all WBEM servers support filtering for this operation because
@@ -6367,7 +6401,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             `FilterQueryLanguage` parameter.
 
             If this parameter is not `None` and the traditional operation is
-            used by this method, :exc:`~py:exceptions.ValueError` will be
+            used by this method, :exc:`py:ValueError` will be
             raised.
 
           OperationTimeout (:class:`~pywbem.Uint32`):
@@ -6381,7 +6415,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               indicates that the server is expected to never time out. The
               server may reject the proposed value, causing a
               :class:`~pywbem.CIMError` to be raised with status code
-              :attr:`~pywbem.CIM_ERR_INVALID_OPERATION_TIMEOUT`.
+              :data:`~pywbem._cim_constants.CIM_ERR_INVALID_OPERATION_TIMEOUT`.
             * If `None`, this parameter is not passed to the WBEM server, and
               causes the server-implemented default timeout to be used.
 
@@ -6394,9 +6428,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               on error; a server that does not support it must send an error
               response if `True` was specified, causing
               :class:`~pywbem.CIMError` to be raised with status code
-              :attr:`~pywbem.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
+              :data:`~pywbem._cim_constants.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
               If the corresponding traditional operation is used by this
-              method, :exc:`~py:exceptions.ValueError` will be raised.
+              method, :exc:`py:ValueError` will be raised.
             * If `False`, the server is requested to close the enumeration
               after sending an error response.
             * If `None`, this parameter is not passed to the WBEM server, and
@@ -6617,7 +6651,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               indicates that the server is expected to never time out. The
               server may reject the proposed value, causing a
               :class:`~pywbem.CIMError` to be raised with status code
-              :attr:`~pywbem.CIM_ERR_INVALID_OPERATION_TIMEOUT`.
+              :data:`~pywbem._cim_constants.CIM_ERR_INVALID_OPERATION_TIMEOUT`.
             * If `None`, this parameter is not passed to the WBEM server, and
               causes the server-implemented default timeout to be used.
 
@@ -6630,9 +6664,9 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               on error; a server that does not support it must send an error
               response if `True` was specified, causing
               :class:`~pywbem.CIMError` to be raised with status code
-              :attr:`~pywbem.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
+              :data:`~pywbem._cim_constants.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
               If the corresponding traditional operation is used by this
-              method, :exc:`~py:exceptions.ValueError` will be raised.
+              method, :exc:`py:ValueError` will be raised.
             * If `False`, the server is requested to close the enumeration after
               sending an error response.
             * If `None`, this parameter is not passed to the WBEM server, and
@@ -6655,8 +6689,8 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Returns:
 
-          :class:`~pywbem.IterQueryInstancesReturn`: An object with the
-          following properties:
+          :class:`~pywbem.IterQueryInstancesReturn`: An
+          object with the following properties:
 
           * **query_result_class** (:class:`~pywbem.CIMClass`):
 
@@ -6683,39 +6717,6 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 print('instance {0}'.format(inst.tomof()))
         """  # noqa: E501
         # pylint: enable=line-too-long
-
-        class IterQueryInstancesReturn(object):
-            """
-            The return data for
-            :meth:`~pywbem.WBEMConnection.IterQueryInstances`.
-            """
-
-            def __init__(self, instances, query_result_class=None):
-                """Save any query_result_class and instances returned"""
-                self._query_result_class = query_result_class
-                self.instances = instances
-
-            @property
-            def query_result_class(self):
-                """
-                :class:`~pywbem.CIMClass`: The query result class, if requested
-                via the `ReturnQueryResultClass` parameter of
-                :meth:`~pywbem.WBEMConnection.IterQueryInstances`.
-
-                `None`, if a query result class was not requested.
-                """
-                return self._query_result_class
-
-            @property
-            def generator(self):
-                """
-                :term:`py:generator` iterating :class:`~pywbem.CIMInstance`:
-                A generator object that iterates the CIM instances representing
-                the query result. These instances do not have an instance path
-                set.
-                """
-                for inst in self.instances:
-                    yield inst
 
         # The other parameters are validated in the operations called
         _validate_OperationTimeout(OperationTimeout)
@@ -6918,7 +6919,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               indicates that the server is expected to never time out. The
               server may reject the proposed value, causing a
               :class:`~pywbem.CIMError` to be raised with status code
-              :attr:`~pywbem.CIM_ERR_INVALID_OPERATION_TIMEOUT`.
+              :data:`~pywbem._cim_constants.CIM_ERR_INVALID_OPERATION_TIMEOUT`.
             * If `None`, this parameter is not passed to the WBEM server, and
               causes the server-implemented default timeout to be used.
 
@@ -6931,7 +6932,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               on error; a server that does not support it must send an error
               response if `True` was specified, causing
               :class:`~pywbem.CIMError` to be raised with status code
-              :attr:`~pywbem.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
+              :data:`~pywbem._cim_constants.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
             * If `False`, the server is requested to close the enumeration after
               sending an error response.
             * If `None`, this parameter is not passed to the WBEM server, and
@@ -6981,7 +6982,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 `context` item is the context object for the next operation on
                 the enumeration session.
 
-            * **context** (:func:`py:tuple` of server_context, namespace):
+            * **context** (:class:`py:tuple` of server_context, namespace):
               A context object identifying the open enumeration session,
               including its current enumeration state, and the namespace. This
               object must be supplied with the next pull or close operation for
@@ -7098,8 +7099,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                    FilterQueryLanguage=None, FilterQuery=None,
                                    OperationTimeout=None, ContinueOnError=None,
                                    MaxObjectCount=None):
-        # pylint: disable=invalid-name
-
+        # pylint: disable=invalid-name,line-too-long
         """
         Open an enumeration session to enumerate the instance paths of
         instances of a class (including instances of its subclasses) in
@@ -7164,7 +7164,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               indicates that the server is expected to never time out. The
               server may reject the proposed value, causing a
               :class:`~pywbem.CIMError` to be raised with status code
-              :attr:`~pywbem.CIM_ERR_INVALID_OPERATION_TIMEOUT`.
+              :data:`~pywbem._cim_constants.CIM_ERR_INVALID_OPERATION_TIMEOUT`.
             * If `None`, this parameter is not passed to the WBEM server, and
               causes the server-implemented default timeout to be used.
 
@@ -7177,7 +7177,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               on error; a server that does not support it must send an error
               response if `True` was specified, causing
               :class:`~pywbem.CIMError` to be raised with status code
-              :attr:`~pywbem.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
+              :data:`~pywbem._cim_constants.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
             * If `False`, the server is requested to close the enumeration after
               sending an error response.
             * If `None`, this parameter is not passed to the WBEM server, and
@@ -7224,7 +7224,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 `context` item is the context object for the next operation on
                 the enumeration session.
 
-            * **context** (:func:`py:tuple` of server_context, namespace):
+            * **context** (:class:`py:tuple` of server_context, namespace):
               A context object identifying the open enumeration session,
               including its current enumeration state, and the namespace. This
               object must be supplied with the next pull or close operation for
@@ -7441,7 +7441,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               indicates that the server is expected to never time out. The
               server may reject the proposed value, causing a
               :class:`~pywbem.CIMError` to be raised with status code
-              :attr:`~pywbem.CIM_ERR_INVALID_OPERATION_TIMEOUT`.
+              :data:`~pywbem._cim_constants.CIM_ERR_INVALID_OPERATION_TIMEOUT`.
             * If `None`, this parameter is not passed to the WBEM server, and
               causes the server-implemented default timeout to be used.
 
@@ -7454,7 +7454,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               on error; a server that does not support it must send an error
               response if `True` was specified, causing
               :class:`~pywbem.CIMError` to be raised with status code
-              :attr:`~pywbem.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
+              :data:`~pywbem._cim_constants.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
             * If `False`, the server is requested to close the enumeration after
               sending an error response.
             * If `None`, this parameter is not passed to the WBEM server, and
@@ -7504,7 +7504,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 `context` item is the context object for the next operation on
                 the enumeration session.
 
-            * **context** (:func:`py:tuple` of server_context, namespace):
+            * **context** (:class:`py:tuple` of server_context, namespace):
               A context object identifying the open enumeration session,
               including its current enumeration state, and the namespace. This
               object must be supplied with the next pull or close operation for
@@ -7615,7 +7615,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                     FilterQueryLanguage=None, FilterQuery=None,
                                     OperationTimeout=None, ContinueOnError=None,
                                     MaxObjectCount=None):
-        # pylint: disable=invalid-name
+        # pylint: disable=invalid-name,line-too-long
         """
         Open an enumeration session to retrieve the instance paths of the
         instances associated to a source instance.
@@ -7702,7 +7702,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               indicates that the server is expected to never time out. The
               server may reject the proposed value, causing a
               :class:`~pywbem.CIMError` to be raised with status code
-              :attr:`~pywbem.CIM_ERR_INVALID_OPERATION_TIMEOUT`.
+              :data:`~pywbem._cim_constants.CIM_ERR_INVALID_OPERATION_TIMEOUT`.
             * If `None`, this parameter is not passed to the WBEM server, and
               causes the server-implemented default timeout to be used.
 
@@ -7715,7 +7715,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               on error; a server that does not support it must send an error
               response if `True` was specified, causing
               :class:`~pywbem.CIMError` to be raised with status code
-              :attr:`~pywbem.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
+              :data:`~pywbem._cim_constants.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
             * If `False`, the server is requested to close the enumeration after
               sending an error response.
             * If `None`, this parameter is not passed to the WBEM server, and
@@ -7763,7 +7763,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 `context` item is the context object for the next operation on
                 the enumeration session.
 
-            * **context** (:func:`py:tuple` of server_context, namespace):
+            * **context** (:class:`py:tuple` of server_context, namespace):
               A context object identifying the open enumeration session,
               including its current enumeration state, and the namespace. This
               object must be supplied with the next pull or close operation for
@@ -7961,7 +7961,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               indicates that the server is expected to never time out. The
               server may reject the proposed value, causing a
               :class:`~pywbem.CIMError` to be raised with status code
-              :attr:`~pywbem.CIM_ERR_INVALID_OPERATION_TIMEOUT`.
+              :data:`~pywbem._cim_constants.CIM_ERR_INVALID_OPERATION_TIMEOUT`.
             * If `None`, this parameter is not passed to the WBEM server, and
               causes the server-implemented default timeout to be used.
 
@@ -7974,7 +7974,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               on error; a server that does not support it must send an error
               response if `True` was specified, causing
               :class:`~pywbem.CIMError` to be raised with status code
-              :attr:`~pywbem.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
+              :data:`~pywbem._cim_constants.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
             * If `False`, the server is requested to close the enumeration after
               sending an error response.
             * If `None`, this parameter is not passed to the WBEM server, and
@@ -8025,7 +8025,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 `context` item is the context object for the next operation on
                 the enumeration session.
 
-            * **context** (:func:`py:tuple` of server_context, namespace):
+            * **context** (:class:`py:tuple` of server_context, namespace):
               A context object identifying the open enumeration session,
               including its current enumeration state, and the namespace. This
               object must be supplied with the next pull or close operation for
@@ -8130,7 +8130,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                                    FilterQueryLanguage=None, FilterQuery=None,
                                    OperationTimeout=None, ContinueOnError=None,
                                    MaxObjectCount=None):
-        # pylint: disable=invalid-name
+        # pylint: disable=invalid-name,line-too-long
         """
         Open an enumeration session to retrieve the instance paths of
         the association instances that reference a source instance.
@@ -8201,7 +8201,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               indicates that the server is expected to never time out. The
               server may reject the proposed value, causing a
               :class:`~pywbem.CIMError` to be raised with status code
-              :attr:`~pywbem.CIM_ERR_INVALID_OPERATION_TIMEOUT`.
+              :data:`~pywbem._cim_constants.CIM_ERR_INVALID_OPERATION_TIMEOUT`.
             * If `None`, this parameter is not passed to the WBEM server, and
               causes the server-implemented default timeout to be used.
 
@@ -8214,7 +8214,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               on error; a server that does not support it must send an error
               response if `True` was specified, causing
               :class:`~pywbem.CIMError` to be raised with status code
-              :attr:`~pywbem.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
+              :data:`~pywbem._cim_constants.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
             * If `False`, the server is requested to close the enumeration after
               sending an error response.
             * If `None`, this parameter is not passed to the WBEM server, and
@@ -8261,7 +8261,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 `context` item is the context object for the next operation on
                 the enumeration session.
 
-            * **context** (:func:`py:tuple` of server_context, namespace):
+            * **context** (:class:`py:tuple` of server_context, namespace):
               A context object identifying the open enumeration session,
               including its current enumeration state, and the namespace. This
               object must be supplied with the next pull or close operation for
@@ -8357,7 +8357,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                            namespace=None, ReturnQueryResultClass=None,
                            OperationTimeout=None, ContinueOnError=None,
                            MaxObjectCount=None):
-        # pylint: disable=invalid-name
+        # pylint: disable=invalid-name,line-too-long
         """
         Open an enumeration session to execute a query in a namespace and to
         retrieve the instances representing the query result.
@@ -8415,7 +8415,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               indicates that the server is expected to never time out. The
               server may reject the proposed value, causing a
               :class:`~pywbem.CIMError` to be raised with status code
-              :attr:`~pywbem.CIM_ERR_INVALID_OPERATION_TIMEOUT`.
+              :data:`~pywbem._cim_constants.CIM_ERR_INVALID_OPERATION_TIMEOUT`.
             * If `None`, this parameter is not passed to the WBEM server, and
               causes the server-implemented default timeout to be used.
 
@@ -8428,7 +8428,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
               on error; a server that does not support it must send an error
               response if `True` was specified, causing
               :class:`~pywbem.CIMError` to be raised with status code
-              :attr:`~pywbem.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
+              :data:`~pywbem._cim_constants.CIM_ERR_CONTINUATION_ON_ERROR_NOT_SUPPORTED`.
             * If `False`, the server is requested to close the enumeration after
               sending an error response.
             * If `None`, this parameter is not passed to the WBEM server, and
@@ -8472,7 +8472,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 `context` item is the context object for the next operation on
                 the enumeration session.
 
-            * **context** (:func:`py:tuple` of server_context, namespace):
+            * **context** (:class:`py:tuple` of server_context, namespace):
               A context object identifying the open enumeration session,
               including its current enumeration state, and the namespace. This
               object must be supplied with the next pull or close operation for
@@ -8614,7 +8614,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Parameters:
 
-          context (:func:`py:tuple` of server_context, namespace):
+          context (:class:`py:tuple` of server_context, namespace):
             A context object identifying the open enumeration session, including
             its current enumeration state, and the namespace. This object must
             have been returned by the previous open or pull operation for this
@@ -8667,7 +8667,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 `context` item is the context object for the next operation on
                 the enumeration session.
 
-            * **context** (:func:`py:tuple` of server_context, namespace):
+            * **context** (:class:`py:tuple` of server_context, namespace):
               A context object identifying the open enumeration session,
               including its current enumeration state, and the namespace. This
               object must be supplied with the next pull or close operation for
@@ -8762,7 +8762,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Parameters:
 
-          context (:func:`py:tuple` of server_context, namespace):
+          context (:class:`py:tuple` of server_context, namespace):
             A context object identifying the open enumeration session, including
             its current enumeration state, and the namespace. This object must
             have been returned by the previous open or pull operation for this
@@ -8812,7 +8812,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 `context` item is the context object for the next operation on
                 the enumeration session.
 
-            * **context** (:func:`py:tuple` of server_context, namespace):
+            * **context** (:class:`py:tuple` of server_context, namespace):
               A context object identifying the open enumeration session,
               including its current enumeration state, and the namespace. This
               object must be supplied with the next pull or close operation for
@@ -8905,7 +8905,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Parameters:
 
-          context (:func:`py:tuple` of server_context, namespace):
+          context (:class:`py:tuple` of server_context, namespace):
             A context object identifying the open enumeration session, including
             its current enumeration state, and the namespace. This object must
             have been returned by the previous open or pull operation for this
@@ -8952,7 +8952,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 `context` item is the context object for the next operation on
                 the enumeration session.
 
-            * **context** (:func:`py:tuple` of server_context, namespace):
+            * **context** (:class:`py:tuple` of server_context, namespace):
               A context object identifying the open enumeration session,
               including its current enumeration state, and the namespace. This
               object must be supplied with the next pull or close operation for
@@ -9041,7 +9041,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         Parameters:
 
-          context (:func:`py:tuple` of server_context, namespace):
+          context (:class:`py:tuple` of server_context, namespace):
             A context object identifying the open enumeration session, including
             its current enumeration state, and the namespace. This object must
             have been returned by the previous open or pull operation for this

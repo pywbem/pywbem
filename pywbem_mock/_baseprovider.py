@@ -61,9 +61,9 @@ class BaseProvider(object):
           cimrepository (:class:`~pywbem_mock.BaseRepository` or subclass):
             Defines the repository to be used by providers.  The
             repository is fully initialized but contains only objects defined
-            by the :class:`~pywbem_mock.FakedWbemConnection` methods that
+            by the :class:`~pywbem_mock.FakedWBEMConnection` methods that
             create objects in the repository
-            (ex. :meth:`~pywbem_mock.FakedWbemConnection.compile_file`)
+            (ex. :meth:`~pywbem_mock.FakedWBEMConnection.compile_mof_file`)
         """
         self._cimrepository = cimrepository
         self._interop_namespace_names = \
@@ -90,10 +90,11 @@ class BaseProvider(object):
         See :class:`~pywbem_mock.BaseRepository` for a description of
         the repository interface.
 
-        The mocker may use subclasses of  :class:`~pywbem_mock.BaseRepository`
-        for specific functionality.  Thus, :class:`~pywbem.InMemoryRepository`
+        The mocker may use subclasses of :class:`~pywbem_mock.BaseRepository`
+        for specific functionality. Thus,
+        :class:`~pywbem_mock.InMemoryRepository`
         implements an InMemory CIM repository that must be initialized for
-        each :class:`~pywbem_mock.FakedWbemConnection` construction.
+        each :class:`~pywbem_mock.FakedWBEMConnection` construction.
         """
         return self._cimrepository
 
@@ -466,7 +467,7 @@ class BaseProvider(object):
 
         Raises:
 
-          Exception if the namespace does not exist
+          KeyError: Namespace does not exist in the CIM repository
         """
         class_store = self.cimrepository.get_class_store(namespace)
         return class_store.object_exists(classname)
@@ -524,8 +525,6 @@ class BaseProvider(object):
             or `None` if the instance defined by `instance_name` is not found
             in the CIM repository. No filtering of properties, qualifiers,
             etc. is executed on the instance.
-
-
         """
 
         if instance_store.object_exists(instance_name):

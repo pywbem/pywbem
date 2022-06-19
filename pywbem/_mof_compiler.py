@@ -107,7 +107,8 @@ from ._utils import _format, _ensure_unicode
 from ._warnings import ToleratedSchemaIssueWarning
 
 __all__ = ['MOFCompileError', 'MOFParseError', 'MOFDependencyError',
-           'MOFRepositoryError', 'MOFCompiler', 'BaseRepositoryConnection']
+           'MOFRepositoryError', 'MOFCompiler', 'BaseRepositoryConnection',
+           'MOFWBEMConnection']
 
 # The following pylint is applied for the complete file because invalid
 # names are used throughout the file and about 200 flags generated if
@@ -369,7 +370,7 @@ class MOFCompileError(Error):
           msg (:term:`string`):
             Message text describing the error.
 
-          parser_token (lex.LexToken or yacc.YaccProduction):
+          parser_token (`lex.LexToken` or `yacc.YaccProduction`):
             PLY lex or yacc parser token (that is, the ``p`` argument of a yacc
             parser function or the ``t`` argument of a lex parser function).
             This token is used to obtain the MOF source text and location
@@ -506,7 +507,7 @@ class MOFRepositoryError(MOFCompileError):
           msg (:term:`string`):
             Message text describing the error.
 
-          parser_token (lex.LexToken or yacc.YaccProduction):
+          parser_token (`lex.LexToken` or `yacc.YaccProduction`):
             PLY lex or yacc parser token (that is, the ``p`` argument of a yacc
             parser function or the ``t`` argument of a lex parser function).
             This token is used to obtain the MOF source text and location

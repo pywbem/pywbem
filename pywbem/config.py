@@ -42,7 +42,7 @@ __all__ = ['ENFORCE_INTEGER_RANGE', 'DEFAULT_ITER_MAXOBJECTCOUNT',
 #: class.
 #:
 #: * True (default): Pywbem enforces the allowable value range; Assigning
-#:   values out of range causes :exc:`~py:exceptions.ValueError` to be raised.
+#:   values out of range causes :exc:`py:ValueError` to be raised.
 #: * False: Pywbem does not enforce the allowable value range; Assigning values
 #:   out of range works in pywbem. Note that a WBEM server may or may not
 #:   reject such out-of-range values.

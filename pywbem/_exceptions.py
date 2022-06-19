@@ -556,9 +556,9 @@ class CIMError(_RequestExceptionMixin, Error):
 
     Accessing the CIM status code of a :class:`CIMError` object:
 
-      In Python 2, any :exc:`~py:exceptions.Exception` object can be accessed
+      In Python 2, any :exc:`py:Exception` object can be accessed
       by index and slice and will delegate such access to its
-      :attr:`~py:exceptions.BaseException.args` instance variable. In Python 3,
+      :attr:`~py:BaseException.args` instance variable. In Python 3,
       that ability has been removed.
 
       In pywbem 0.9, the :attr:`~pywbem.CIMError.status_code` and
