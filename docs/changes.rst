@@ -31,6 +31,10 @@ Released: not yet
   order to encourage transition to use `pip install` instead of executing
   `setup.py install`, which was deprecated by setuptools.
 
+* The removal of internal symbols from the 'pywbem_mock' Python namespace may
+  cause name errors in your code, if you were using them.
+  (related to issue #2888)
+
 **Deprecations:**
 
 **Bug fixes:**
@@ -80,6 +84,16 @@ Released: not yet
 
 * Added a note to the install section of the documentation that installation
   via `setup.py install` has been deprecated by setuptools.
+
+* Removed internal symbols from 'pywbem_mock' Python namespace, and added the
+  'config' submodule to the 'pywbem_mock' Python namespace.
+  (related to issue #2888)
+
+* Fixed invalid references in the documentation. As part of that, added class
+  'MOFWBEMConnection' to the 'pywbem' namespace, moved class
+  'IterQueryInstancesReturn' from the scope of method 'pywbem.IterQueryInstances'
+  to the 'pywbem' namespace.
+  (issue #2888).
 
 **Enhancements:**
 
