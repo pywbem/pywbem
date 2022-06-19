@@ -11,6 +11,9 @@
 
 # Direct dependencies:
 
+# Build distribution archive
+build>=0.5.1
+
 # Cythonize
 Cython>=0.29.22
 

@@ -132,6 +132,8 @@ Released: not yet
 * Clarify why the iterEnumerateInstances and IterEnumerateInstancePaths
   always return the host name in the response. (see issue #2841)
 
+* Changed build process for distribution archives to use the `build` package.
+
 **Known issues:**
 
 * See `list of open issues`_.

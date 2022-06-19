@@ -744,14 +744,14 @@ $(sdist_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
 	@echo "Makefile: Creating the source distribution archive: $(sdist_file)"
 	-$(call RM_FUNC,MANIFEST)
 	-$(call RMDIR_FUNC,build $(package_name).egg-info-INFO .eggs)
-	$(PYTHON_CMD) setup.py sdist -d $(dist_dir)
+	$(PYTHON_CMD) -m build --sdist --outdir $(dist_dir) .
 	@echo "Makefile: Done creating the source distribution archive: $(sdist_file)"
 
 $(bdist_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
 	@echo "Makefile: Creating the normal wheel distribution archive: $(bdist_file)"
 	-$(call RM_FUNC,MANIFEST)
 	-$(call RMDIR_FUNC,build $(package_name).egg-info-INFO .eggs)
-	$(PYTHON_CMD) setup.py bdist_wheel -d $(dist_dir) --universal
+	$(PYTHON_CMD) -m build --wheel --outdir $(dist_dir) -C--universal .
 	@echo "Makefile: Done creating the normal wheel distribution archive: $(bdist_file)"
 
 $(bdistc_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
@@ -759,9 +759,9 @@ $(bdistc_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
 	-$(call RM_FUNC,MANIFEST)
 	-$(call RMDIR_FUNC,build $(package_name).egg-info-INFO .eggs)
 ifeq ($(PLATFORM),Windows_native)
-	cmd /c "set CFLAGS=$(cython_cflags) & $(PYTHON_CMD) setup.py bdist_wheel -d $(dist_dir) --universal --cythonized"
+	cmd /c "set CFLAGS=$(cython_cflags) & $(PYTHON_CMD) -m build --wheel --outdir $(dist_dir) -C--universal -C--cythonized ."
 else
-	CFLAGS='$(cython_cflags)' $(PYTHON_CMD) setup.py bdist_wheel -d $(dist_dir) --universal --cythonized
+	CFLAGS='$(cython_cflags)' $(PYTHON_CMD) -m build --wheel --outdir $(dist_dir) -C--universal -C--cythonized .
 endif
 	@echo "Makefile: Done creating the cythonized wheel distribution archive: $(bdistc_file)"
 
