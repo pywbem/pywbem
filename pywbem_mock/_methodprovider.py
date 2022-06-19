@@ -218,8 +218,9 @@ class MethodProvider(BaseProvider):
                 and trailing slash characters removed.
               - `host`: Will be `None`.
 
-          params (:class:`py:NocaseDict`):
-            The input parameters for the method invocation, with items as
+          params (:class:`pywbem.NocaseDict`):
+            The input parameters for the method invocation, as a
+            :class:`pywbem.NocaseDict` object, with items as
             follows:
 
             - key (:term:`string`): The parameter name, in any lexical case.
@@ -227,13 +228,13 @@ class MethodProvider(BaseProvider):
 
         Returns:
 
-            :func:`py:tuple` (return_value, out_params): The return value and
+            :class:`py:tuple` (return_value, out_params): The return value and
             output parameters of the method invocation:
 
             * return_value (:term:`CIM data type`):
               Return value of the method invocation.
 
-            * out_params (:class:`~py3:colletions.abc.Sequence` or :class:`~py3:colletions.abc.Mapping`):
+            * out_params (:class:`~py:collections.abc.Sequence` or :class:`~py:collections.abc.Mapping`):
               Output parameters of the method invocation.
 
               If ``Sequence``, the items must be :class:`~pywbem.CIMParameter`

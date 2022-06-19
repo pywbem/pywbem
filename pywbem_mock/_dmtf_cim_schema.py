@@ -64,7 +64,7 @@ parameter.
 Because it is usually necessary to compile only a subset of the DMTF CIM
 classes into a CIM repository for any test, the
 :class:`~pywbem_mock.DMTFCIMSchema` class provides a
-:meth:`~pywbem_mock.FakedWBEMConnection.build_schema_mof` method to create a
+:meth:`~pywbem_mock.DMTFCIMSchema.build_schema_mof` method to create a
 list of MOF pragmans that includes only a subset of the classes in the
 downloaded CIM Schema. The task of listing classes to be compiled is futher
 simplified because the pywbem MOF compiler searches the DMTF schema for
@@ -117,7 +117,7 @@ def build_schema_mof(class_names, schema_pragma_file):
 
     Parameters:
 
-      class_names (:term:`py:list` of :term:`string` or :term:`string`):
+      class_names (:term:`string` or list of :term:`string`):
         These must be class names of classes in the DMTF CIM schema represented
         by the instance of :class:`~pywbem_mock.DMTFCIMSchema` object. This
         parameter can be a string if there is only a single class name to be
@@ -213,7 +213,7 @@ class DMTFCIMSchema(object):
 
         Parameters:
 
-          schema_version  (tuple of 3 integers (m, n, u):
+          schema_version (`tuple of m, n, u`):
             Represents the DMTF CIM schema version m.n.u where:
 
             * m is the DMTF CIM schema major version
@@ -296,7 +296,7 @@ class DMTFCIMSchema(object):
     @property
     def schema_version(self):
         """
-        :func:`py:tuple`: The DMTF CIM schema version as a tuple of 3 integers
+        :class:`py:tuple`: The DMTF CIM schema version as a tuple of 3 integers
         with major version, minor version, and update version.
 
         Example: (2, 49, 0) defines DMTF CIM schema version 2.49.0.
@@ -513,7 +513,7 @@ class DMTFCIMSchema(object):
 
         Parameters:
 
-          class_names (:term:`py:list` of :term:`string` or :term:`string`):
+          class_names (:term:`string` or list of :term:`string`):
             These must be class names of classes in the DMTF CIM schema
             represented by this :class:`~pywbem_mock.DMTFCIMSchema` object.
             This parameter can be a string if there is only a single class name

@@ -41,6 +41,8 @@ from .config import OBJECTMANAGERNAME, SYSTEMNAME, SYSTEMCREATIONCLASSNAME, \
     OBJECTMANAGERCREATIONCLASSNAME
 
 
+__all__ = ['CIMNamespaceProvider']
+
 # CIM class name of the namespace class implemented in this provider
 NAMESPACE_CLASSNAME = 'CIM_Namespace'
 
@@ -118,8 +120,10 @@ class CIMNamespaceProvider(InstanceWriteProvider):
 
           new_instance (:class:`~pywbem.CIMInstance`):
             The following applies regarding its properties:
+
             * 'Name' property: This property is required since it defines the
               name of the new namespace to be created.
+
             * 'CreationClassName' property: This property is required and its
               value must match the class name of the new instance.
 
@@ -308,7 +312,7 @@ class CIMNamespaceProvider(InstanceWriteProvider):
           interop_namespace (:term:`string`):
             Interop namespace for this environment.
 
-          klass (:class:`CIM_Namespace`):
+          klass (:class:`~pywbem.CIMClass`):
             The CIM class CIM_Namespace which is used to create the instance.
 
         Raises:

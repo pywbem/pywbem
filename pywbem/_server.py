@@ -256,7 +256,7 @@ class WBEMServer(object):
     @property
     def namespaces(self):
         """
-        :class:`py:list` of :term:`string`: Names of all namespaces of the
+        list of :term:`string`: Names of all namespaces of the
         WBEM server.
 
         Raises:
@@ -271,7 +271,7 @@ class WBEMServer(object):
     @property
     def namespace_paths(self):
         """
-        :class:`py:list` of :class:`~pywbem.CIMInstanceName`: Instance paths
+        list of :class:`~pywbem.CIMInstanceName`: Instance paths
         of the CIM instances in the Interop namespace that represent the
         namespaces of the WBEM server.
 
@@ -368,7 +368,7 @@ class WBEMServer(object):
     @property
     def profiles(self):
         """
-        :class:`py:list` of :class:`~pywbem.CIMInstance`: The
+        list of :class:`~pywbem.CIMInstance`: The
         `CIM_RegisteredProfile` instances representing all management profiles
         advertised by the WBEM server.
 
@@ -675,7 +675,7 @@ class WBEMServer(object):
 
         Returns:
 
-          :class:`py:list` of :class:`~pywbem.CIMInstance`: The
+          list of :class:`~pywbem.CIMInstance`: The
           `CIM_RegisteredProfile` instances representing the filtered
           subset of the management profiles advertised by the WBEM server.
 
@@ -870,7 +870,7 @@ class WBEMServer(object):
 
         Returns:
 
-          :class:`py:list` of :class:`~pywbem.CIMInstanceName`: The instance
+          list of :class:`~pywbem.CIMInstanceName`: The instance
           paths of the central instances of the implementation of the
           management profile.
 

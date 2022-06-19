@@ -31,6 +31,13 @@ Repository connections
     :autosummary:
     :autosummary-inherited-members:
 
+.. autoclass:: pywbem.MOFWBEMConnection
+    :members:
+    :special-members:
+    :exclude-members: __init__,__weakref__
+    :autosummary:
+    :autosummary-inherited-members:
+
 
 .. _`MOF compiler exceptions`:
 

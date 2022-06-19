@@ -1958,7 +1958,7 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
         * :term:`DSP0207` restricts the namespace types (URI schemes) to be one
           of ``http``, ``https``, ``cimxml-wbem``, or ``cimxml-wbems``. Pywbem
           tolerates any namespace type, but issues a
-          :exc:`~py:exceptions.UserWarning` if it is not one of
+          :exc:`py:UserWarning` if it is not one of
           the namespace types defined in :term:`DSP0207`.
 
         * :term:`DSP0207` requires a slash before the namespace name. For local
@@ -1975,7 +1975,7 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
         * :term:`DSP0207` requires datetime values in keybindings to be
           surrounded by double quotes. For historical reasons, pywbem tolerates
           datetime values that are not surrounded by double quotes, but issues
-          a :exc:`~py:exceptions.UserWarning`.
+          a :exc:`py:UserWarning`.
 
         * :term:`DSP0207` does not allow the special float values INF, -INF,
           and NaN in WBEM URIs (according to realValue in :term:`DSP0004`).
@@ -3181,13 +3181,11 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
         Parameters:
 
           klass (:class:`~pywbem.CIMClass`):
-            CIMClass from which the instance will be constructed.  This class
+            CIM class from which the instance will be constructed.  This class
             must include qualifiers and should include properties from any
             superclasses in the model insure it includes all properties that
             are to be built into the instance, in particular any key properties
-            if the `include+path` parameter is `True`. See
-            :meth:`~pywbem.CIMInstanceName.from_class` for further requirements
-            on the class.
+            if the `include_path` parameter is `True`.
 
           namespace (:term:`string`):
             Namespace to be included in the path component of the returned
@@ -3254,12 +3252,11 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
         Raises:
 
            ValueError: Conflicts between the class properties and
-           `property_values` parameter or the instance does
-           not include all key properties defined in the class.
-
+             `property_values` parameter or the instance does
+             not include all key properties defined in the class.
            TypeError: Mismatch between types of the property values in
-           `property_values` parameter and the property type in the
-           corresponding class property
+             `property_values` parameter and the property type in the
+             corresponding class property
         """
         class_name = klass.classname
         inst = CIMInstance(class_name)
@@ -3657,7 +3654,7 @@ class CIMClassName(_CIMComparisonMixin, SlottedPickleMixin):
         * :term:`DSP0207` restricts the namespace types (URI schemes) to be one
           of ``http``, ``https``, ``cimxml-wbem``, or ``cimxml-wbems``. Pywbem
           tolerates any namespace type, but issues a
-          :exc:`~py:exceptions.UserWarning` if it is not one of
+          :exc:`py:UserWarning` if it is not one of
           the namespace types defined in :term:`DSP0207`.
 
         * :term:`DSP0207` requires a slash before the namespace name. For local
@@ -3899,7 +3896,7 @@ class CIMClass(_CIMComparisonMixin, SlottedPickleMixin):
             Name of the superclass for the class.
 
             `None` means that the class is a top-level class, and the
-            :attr:`~pywbem.CIMClassName.superclass` attribute
+            :attr:`~pywbem.CIMClass.superclass` attribute
             will also be `None`.
 
             The lexical case of the string is preserved. Object comparison and
@@ -4509,10 +4506,10 @@ class CIMProperty(_CIMComparisonMixin, SlottedPickleMixin):
             Name of the CIM data type of the property (e.g. ``"uint8"``).
 
             `None` will cause the type to be inferred from the `value`
-            parameter, raising :exc:`~py:exceptions.ValueError` if it cannot be
+            parameter, raising :exc:`py:ValueError` if it cannot be
             inferred (for example when `value` is `None` or a Python integer).
 
-            :exc:`~py:exceptions.ValueError` is raised if the type is not a
+            :exc:`py:ValueError` is raised if the type is not a
             valid CIM data type (see :ref:`CIM data types`).
 
           class_origin (:term:`string`):
@@ -5342,7 +5339,7 @@ class CIMMethod(_CIMComparisonMixin, SlottedPickleMixin):
 
             Must not be `None` or ``"reference"``.
 
-            :exc:`~py:exceptions.ValueError` is raised if the type is `None`,
+            :exc:`py:ValueError` is raised if the type is `None`,
             ``"reference"``, or not a valid CIM data type (see
             :ref:`CIM data types`).
 
@@ -5883,7 +5880,7 @@ class CIMParameter(_CIMComparisonMixin, SlottedPickleMixin):
 
             Must not be `None`.
 
-            :exc:`~py:exceptions.ValueError` is raised if the type is `None` or
+            :exc:`py:ValueError` is raised if the type is `None` or
             not a valid CIM data type (see :ref:`CIM data types`).
 
           reference_class (:term:`string`):
@@ -6613,10 +6610,10 @@ class CIMQualifier(_CIMComparisonMixin, SlottedPickleMixin):
             Name of the CIM data type of the qualifier (e.g. ``"uint8"``).
 
             `None` will cause the type to be inferred from the `value`
-            parameter, raising :exc:`~py:exceptions.ValueError` if it cannot be
+            parameter, raising :exc:`py:ValueError` if it cannot be
             inferred (for example when `value` is `None` or a Python integer).
 
-            :exc:`~py:exceptions.ValueError` is raised if the type is not a
+            :exc:`py:ValueError` is raised if the type is not a
             valid CIM data type (see :ref:`CIM data types`).
 
           propagated (:class:`py:bool`):
@@ -7210,7 +7207,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
 
             Must not be `None`.
 
-            :exc:`~py:exceptions.ValueError` is raised if the type is `None` or
+            :exc:`py:ValueError` is raised if the type is `None` or
             not a valid CIM data type (see :ref:`CIM data types`).
 
           value (:term:`CIM data type` or other suitable types):

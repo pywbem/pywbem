@@ -43,6 +43,7 @@ from __future__ import print_function, absolute_import
 from nocasedict import NocaseDict as _NocaseDict
 from nocasedict import HashableMixin, KeyableByMixin
 
+__all__ = ['NocaseDict']
 
 # Used as default value for parameters to detect that they have not been
 # specified as an argument. Must match the definition in nocasedict package.

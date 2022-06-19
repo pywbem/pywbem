@@ -171,7 +171,7 @@ class ProviderRegistry(object):
             `provider_classnames` that define the type of provider and the CIM
             classes that the provider serves.
 
-          namespaces (:term:`string` or :class:`py:list` of :term:`string`):
+          namespaces (:term:`string` or list of :term:`string`):
             Namespace or namespaces for which the provider is being registered.
 
             If `None`, the default namespace of the connection will be set to
@@ -359,7 +359,7 @@ class ProviderRegistry(object):
         list is case sensitive.
 
         Returns:
-            :class:`py:list` of :term:`string`: namespaces
+            list of :term:`string`: namespaces
             for which providers are registered.
         """
         return list(self._registry.keys())
@@ -375,7 +375,7 @@ class ProviderRegistry(object):
             The namespace in which the request will be executed.
 
         Returns:
-            :class:`py:list` of :term:`string`:
+            list of :term:`string`:
             Names of classes registered for namespace
 
         Raises:
@@ -398,7 +398,7 @@ class ProviderRegistry(object):
             Name of the class defined for the operation.
 
         Returns:
-            :class:`py:list` of :term:`string`: Strings defining provider
+            list of :term:`string`: Strings defining provider
             types for the defined namespace and classname
 
         Raises:
