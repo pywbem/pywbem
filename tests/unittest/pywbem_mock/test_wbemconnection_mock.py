@@ -79,8 +79,9 @@ from pywbem._warnings import ToleratedSchemaIssueWarning  # noqa: E402
 
 pywbem_mock = import_installed('pywbem_mock')
 from pywbem_mock import FakedWBEMConnection, DMTFCIMSchema, \
-    InstanceWriteProvider, MethodProvider, BaseProvider, \
-    IGNORE_INSTANCE_IQ_PARAM, IGNORE_INSTANCE_ICO_PARAM  # noqa: E402
+    InstanceWriteProvider, MethodProvider, BaseProvider  # noqa: E402
+from pywbem_mock.config import IGNORE_INSTANCE_IQ_PARAM, \
+    IGNORE_INSTANCE_ICO_PARAM  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 

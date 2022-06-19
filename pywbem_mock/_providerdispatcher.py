@@ -52,6 +52,8 @@ from ._baseprovider import BaseProvider
 from ._instancewriteprovider import InstanceWriteProvider
 from ._methodprovider import MethodProvider
 
+__all__ = ['ProviderDispatcher']
+
 
 class ProviderDispatcher(BaseProvider):
     """

@@ -16,7 +16,7 @@ from pywbem import WBEMServer, ValueMapping, CIMInstance, CIMQualifier, \
     CIMInstanceName  # noqa: E402
 pywbem_mock = import_installed('pywbem_mock')
 from pywbem_mock import FakedWBEMConnection  # noqa: E402
-from pywbem_mock import OBJECTMANAGERCREATIONCLASSNAME, \
+from pywbem_mock.config import OBJECTMANAGERCREATIONCLASSNAME, \
     SYSTEMCREATIONCLASSNAME, OBJECTMANAGERNAME, \
     SYSTEMNAME  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
