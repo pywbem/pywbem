@@ -45,6 +45,8 @@ from pywbem import CIMError, CIM_ERR_INVALID_PARAMETER, CIM_ERR_NOT_FOUND, \
 
 from pywbem._utils import _format
 
+__all__ = []
+
 
 class ResolverMixin(object):  # pylint: disable=too-few-public-methods
     """

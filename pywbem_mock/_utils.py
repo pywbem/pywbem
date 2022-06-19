@@ -30,6 +30,8 @@ import locale
 
 import six
 
+__all__ = []
+
 STDOUT_ENCODING = getattr(sys.stdout, 'encoding', None)
 if not STDOUT_ENCODING:
     STDOUT_ENCODING = locale.getpreferredencoding()

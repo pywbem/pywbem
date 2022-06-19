@@ -37,7 +37,6 @@ from xml.dom import minidom
 #    from mock import Mock
 import six
 
-
 from pywbem import WBEMConnection, CIMClass, CIMClassName, \
     CIMInstance, CIMInstanceName, CIMParameter, CIMQualifierDeclaration, \
     cimtype, CIMError, CIM_ERR_FAILED, DEFAULT_NAMESPACE, MOFCompiler

@@ -52,6 +52,9 @@ from pywbem._utils import _format
 from ._instancewriteprovider import InstanceWriteProvider
 from .config import SYSTEMNAME, SYSTEMCREATIONCLASSNAME
 
+__all__ = ['CIMIndicationFilterProvider', 'CIMListenerDestinationProvider',
+           'CIMIndicationSubscriptionProvider']
+
 # CIM class name of the classes implemented in these providers
 SUBSCRIPTION_CLASSNAME = 'CIM_IndicationSubscription'
 FILTER_CLASSNAME = 'CIM_IndicationFilter'
