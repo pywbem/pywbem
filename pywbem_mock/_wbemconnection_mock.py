@@ -125,7 +125,7 @@ class FakedWBEMConnection(WBEMConnection):
 
     *New in pywbem 0.12 as experimental and finalized in 1.2.*
 
-    Each :class:`~pywbem.FakedWBEMConnection` object has its own
+    Each :class:`~pywbem_mock.FakedWBEMConnection` object has its own
     CIM repository which contains multiple CIM namespaces, and each namespace
     may contain CIM qualifier types (declarations), CIM classes and
     CIM instances.
@@ -141,8 +141,8 @@ class FakedWBEMConnection(WBEMConnection):
     :ref:`WBEM operation logging`.
 
     Some of the longer running methods of this class add time statistics to the
-    :attr:`WBEMConnection.statistics`. For details on how to get the statistics,
-    see :ref:`WBEM operation statistics`.
+    :attr:`pywbem.WBEMConnection.statistics`. For details on how to get the
+    statistics, see :ref:`WBEM operation statistics`.
     """
     def __init__(self, default_namespace=DEFAULT_NAMESPACE,
                  use_pull_operations=False, stats_enabled=False,
@@ -197,7 +197,7 @@ class FakedWBEMConnection(WBEMConnection):
             mocks are required for testing.
 
         Raises:
-          ValueError for invalid arguments
+          ValueError: Invalid arguments
         """
 
         # Response delay in seconds. Any operation is delayed by this time.
@@ -302,7 +302,7 @@ class FakedWBEMConnection(WBEMConnection):
 
           This attribute is settable. For details, see the description of the
           same-named init parameter of
-          :class:`this class <pywbem.FakedWBEMConnection>`.
+          :class:`this class <pywbem_mock.FakedWBEMConnection>`.
         """
         return self._response_delay
 
@@ -329,7 +329,7 @@ class FakedWBEMConnection(WBEMConnection):
 
           This attribute is settable. For details, see the description of the
           same-named init parameter of
-          :class:`this class <pywbem.FakedWBEMConnection>`.
+          :class:`this class <pywbem_mock.FakedWBEMConnection>`.
         """
         return self._disable_pull_operations
 
@@ -527,8 +527,9 @@ class FakedWBEMConnection(WBEMConnection):
             If True, displays progress information as providers are installed.
 
         Raises:
+
           :exc:`~pywbem.CIMError`: with status code appropriate for any
-          error encountered in the installation of the provider.
+            error encountered in the installation of the provider.
         """
 
         # Determine if an interop namespace already exists and confirm that
@@ -579,8 +580,9 @@ class FakedWBEMConnection(WBEMConnection):
             If True, displays progress information as providers are installed.
 
         Raises:
+
           :exc:`~pywbem.CIMError`: with status code appropriate for any
-          error encountered in the installation of the provider.
+            error encountered in the installation of the provider.
         """
 
         # Determine if an interop namespace already exists and confirm that
@@ -981,7 +983,7 @@ class FakedWBEMConnection(WBEMConnection):
 
         Parameters:
 
-          namespaces (:term:`string` or list of :term:`string`):
+          namespaces (:term:`string` or :class:`py:list` of :term:`string`):
             Limits display output to the specified CIM namespace or namespaces.
             If `None`, all namespaces of the CIM repository are displayed.
 

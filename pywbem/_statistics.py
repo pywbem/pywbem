@@ -92,7 +92,7 @@ during periods of time where the statistics are disabled on a connection, are
 simply ignored in the statistics.
 
 For the Iter methods of WBEMConnection (e.g.
-:meth:`~pywbem.WbemConnection.IterEnumerateInstances`), the WBEM operations
+:meth:`~pywbem.WBEMConnection.IterEnumerateInstances`), the WBEM operations
 performed on behalf of them are subject of the statistics, but the Iter methods
 themselves do not show up in the statistics.
 
@@ -176,7 +176,7 @@ class OperationStatistic(object):
             The statistics container that holds this operation statistic
             object.
 
-          name (string):
+          name (:term:`string`):
             Name of the operation.
         """
         self._container = container
@@ -686,7 +686,7 @@ class Statistics(object):
 
         Parameters:
 
-          name (string):
+          name (:term:`string`):
             Name of the operation.
 
         Returns:
@@ -706,7 +706,7 @@ class Statistics(object):
 
         Parameters:
 
-          name (string):
+          name (:term:`string`):
             Name of the operation.
 
         Returns:

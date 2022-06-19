@@ -13,6 +13,11 @@ NocaseDict
 
 .. automodule:: pywbem._nocasedict
 
+.. autoclass:: pywbem.NocaseDict
+    :members:
+    :special-members:
+    :exclude-members: __init__,__weakref__
+
 CIMInstanceName
 ^^^^^^^^^^^^^^^
 

@@ -1438,7 +1438,7 @@ class WBEMSubscriptionManager(object):
             The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
-          source_namespaces (list of :term:`string` or None):
+          source_namespaces (:class:`py:list` of :term:`string` or `None`):
             List of source namespaces of the indication filter. If None
             the SourceNamespaces property will not be created.
 

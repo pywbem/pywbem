@@ -94,7 +94,7 @@ else:
 __all__ = ['cimtype', 'type_from_name', 'MinutesFromUTC', 'CIMType',
            'CIMDateTime', 'CIMInt', 'Uint8', 'Sint8', 'Uint16', 'Sint16',
            'Uint32', 'Sint32', 'Uint64', 'Sint64', 'CIMFloat', 'Real32',
-           'Real64', 'Char16']
+           'Real64', 'Char16', '_CIMComparisonMixin']
 
 
 class _CIMComparisonMixin(object):  # pylint: disable=too-few-public-methods
@@ -837,7 +837,7 @@ class CIMDateTime(_CIMComparisonMixin, CIMType):
 class CIMInt(CIMType, _Longint):
     """
     Base type for CIM integer data types. Derived from :class:`~pywbem.CIMType`
-    and :class:`py:int` (for Python 3) or :class:`py:long` (for Python 2).
+    and :class:`py3:int` (for Python 3) or :class:`py2:long` (for Python 2).
 
     This class has a concept of a valid range for the represented integer,
     based upon the capability of the CIM data type as defined in
@@ -1155,12 +1155,12 @@ def cimtype(obj):
     For an array, the type is determined from the first array element
     (CIM arrays must be homogeneous w.r.t. the type of their elements).
     If the array is empty, that is not possible and
-    :exc:`~py:exceptions.ValueError` is raised.
+    :exc:`py:ValueError` is raised.
 
     Note that Python :term:`numbers <number>` are not valid input objects
     because determining their CIM data type (e.g. :class:`~pywbem.Uint8`,
     :class:`~pywbem.Real32`) would require knowing the value range. Therefore,
-    :exc:`~py:exceptions.TypeError` is raised in this case.
+    :exc:`py:TypeError` is raised in this case.
 
     Parameters:
 

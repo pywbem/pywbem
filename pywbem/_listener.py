@@ -100,14 +100,15 @@ The :attr:`~pywbem.WBEMListener.logger` property of a
 object, if needed.
 
 The listener will log any indications it receives and any responses it sends
-back to the indication sender, at the :attr:`py:logging.INFO` logging level.
+back to the indication sender, at the ``INFO`` logging level
+(see :ref:`py:levels`).
 
-In addition, it will log errors at the :attr:`py:logging.ERROR` logging level.
+In addition, it will log errors at the ``ERROR`` logging level.
 
 Starting with Python 2.7, the Python root logger will by default (i.e. when not
-being configured) print log records of logging level :attr:`py:logging.WARNING`
+being configured) print log records of logging level ``WARNING``
 or greater to `sys.stderr`. So the indication and response interactions will not
-be printed by default, but any errors logged at the :attr:`py:logging.ERROR`
+be printed by default, but any errors logged at the ``ERROR``
 logging level will be printed by default.
 
 Pywbem adds a null handler to the logger named `'pywbem'`, in order to prevent
@@ -655,7 +656,7 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         # pylint: disable=unused-argument
         """
         This function is called in
-        :meth:`~py3:http.server.BaseHTTPRequestHandler.send_response`.
+        :meth:`~py:http.server.BaseHTTPRequestHandler.send_response`.
 
         We override it to get a little more information logged in a somewhat
         better format at the INFO level.
@@ -669,7 +670,7 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def log_error(self, format, *args):
         # pylint: disable=redefined-builtin
         """
-        The :class:`~py3:http.server.BaseHTTPRequestHandler` methods call this
+        The :class:`~py:http.server.BaseHTTPRequestHandler` methods call this
         method for anything that needs to get logged as an error.
 
         We override it in order to direct that to our own logger at the ERROR
@@ -680,7 +681,7 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def log_message(self, format, *args):
         # pylint: disable=redefined-builtin
         """
-        The :class:`~py3:http.server.BaseHTTPRequestHandler` methods call this
+        The :class:`~py:http.server.BaseHTTPRequestHandler` methods call this
         method for anything that needs to get logged.
 
         We override it in order to direct that to our own logger at the INFO
@@ -960,7 +961,7 @@ class WBEMListener(object):
 
         In case of HTTPS, the private key file and certificate file are used.
         If the private key file is protected with a password, the password
-        will be prompted for using :func:`py3:getpass.getpass`. If the password
+        will be prompted for using :func:`py:getpass.getpass`. If the password
         is invalid, or if the private key file or certificate file are invalid,
         :exc:`pywbem.ListenerCertificateError` is raised.
 
@@ -972,8 +973,8 @@ class WBEMListener(object):
             in use.
           :exc:`pywbem.ListenerPromptError`: Error when prompting for the
             password of the private key file when using HTTPS.
-          :exc:`~py:exceptions.OSError`: Other error
-          :exc:`~py:exceptions.IOError`: Other error (Python 2.7 only)
+          :exc:`py:OSError`: Other error
+          :exc:`py:IOError`: Other error (Python 2.7 only)
         """
 
         if self._http_port:

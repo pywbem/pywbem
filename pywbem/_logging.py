@@ -50,7 +50,7 @@ termed `pywbem loggers`:
   responses between the pywbem client and WBEM server. This logs the HTTP
   request data and response data including HTTP headers and CIM-XML payload.
 
-Pywbem uses the :attr:`py:logging.DEBUG` logging level for both loggers.
+Pywbem uses the ``DEBUG`` logging level (see :ref:`py:levels`) for both loggers.
 
 Pywbem adds a null handler to the logger named `'pywbem'`, in order to prevent
 the "No handlers could be found for logger ..." warning.
@@ -61,8 +61,8 @@ and in several articles, for example in `this article
 Because this warning is no longer issued on Python 3.4 and higher, pywbem
 adds a null handler only on Python 2.7.
 
-Because pywbem logs only at the :attr:`py:logging.DEBUG` logging level, these
-log events will not be printed by the Python root logger by default, and
+Because pywbem logs only at the ``DEBUG`` logging level (see :ref:`py:levels`),
+these log events will not be printed by the Python root logger by default, and
 therefore it is not necessary that pywbem attaches a null handler to any of its
 loggers.
 
@@ -315,7 +315,7 @@ def configure_logger(simple_name, log_dest=None,
         :data:`~pywbem._logging.LOG_DESTINATIONS` and the Python logging
         parameters of the loggers will be configured accordingly for their
         log handler, message format, and with a logging level of
-        :attr:`py:logging.DEBUG`.
+        ``DEBUG`` (see :ref:`py:levels`).
 
         The value `'off'` disables logging for the affected pywbem loggers.
 
