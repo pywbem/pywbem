@@ -21,6 +21,10 @@ Released: not yet
 
 **Incompatible changes:**
 
+* The removal of internal symbols from the 'pywbem_mock' Python namespace may
+  cause name errors in your code, if you were using them.
+  (related to issue #2888)
+
 **Deprecations:**
 
 **Bug fixes:**
@@ -40,6 +44,16 @@ Released: not yet
   using "setup.py install" started failing because it installed a version
   of certifi on Python 2.7 that properly declares that it requires
   Python >=3.6.
+
+* Removed internal symbols from 'pywbem_mock' Python namespace, and added the
+  'config' submodule to the 'pywbem_mock' Python namespace.
+  (related to issue #2888)
+
+* Fixed invalid references in the documentation. As part of that, added class
+  'MOFWBEMConnection' to the 'pywbem' namespace, moved class
+  'IterQueryInstancesReturn' from the scope of method 'pywbem.IterQueryInstances'
+  to the 'pywbem' namespace.
+  (issue #2888).
 
 **Enhancements:**
 
