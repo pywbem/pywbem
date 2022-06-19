@@ -39,7 +39,7 @@ from pywbem import WBEMServer, CIMClassName, WBEMSubscriptionManager, \
     CIMInstance, CIMDateTime, CIMError, CIM_ERR_ALREADY_EXISTS  # noqa: E402
 from pywbem._subscription_manager import SUBSCRIPTION_CLASSNAME, \
     DESTINATION_CLASSNAME, FILTER_CLASSNAME  # noqa: E402
-from pywbem_mock import OBJECTMANAGERNAME, \
+from pywbem_mock.config import OBJECTMANAGERNAME, \
     SYSTEMNAME  # noqa: E402
 pywbem_mock = import_installed('pywbem_mock')
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
