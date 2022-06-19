@@ -48,6 +48,8 @@ Example :
 from abc import abstractmethod, abstractproperty
 from six import PY2
 
+__all__ = ['BaseObjectStore', 'BaseRepository']
+
 
 def compatibleabstractproperty(func):
     """

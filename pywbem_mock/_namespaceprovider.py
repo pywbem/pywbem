@@ -40,7 +40,6 @@ from ._instancewriteprovider import InstanceWriteProvider
 from .config import OBJECTMANAGERNAME, SYSTEMNAME, SYSTEMCREATIONCLASSNAME, \
     OBJECTMANAGERCREATIONCLASSNAME
 
-
 __all__ = ['CIMNamespaceProvider']
 
 # CIM class name of the namespace class implemented in this provider

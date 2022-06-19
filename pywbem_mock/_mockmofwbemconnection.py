@@ -34,6 +34,8 @@ from pywbem._mof_compiler import BaseRepositoryConnection
 from pywbem._utils import _format
 from ._resolvermixin import ResolverMixin
 
+__all__ = []
+
 
 class _MockMOFWBEMConnection(ResolverMixin, BaseRepositoryConnection):
     """

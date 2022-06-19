@@ -46,6 +46,8 @@ from pywbem._utils import _format
 # pywbem_mock implementation configuration variables that are used in
 # request responsders.
 
+__all__ = ['BaseProvider']
+
 
 class BaseProvider(object):
     """

@@ -23,6 +23,13 @@ the implementation of the WBEMConnection calls to WBEM Servers.
 
 from __future__ import absolute_import
 
+# The config namespace is imported as a sub-namespace to make the config
+# variables accessible directly via their defining namespace. Importing
+# them into the pywbem_mock namespace would duplicate their names and thus
+# would cause changes to the config variables not to be visible in their
+# original namespace.
+from . import config  # noqa: F401
+
 from ._wbemconnection_mock import *        # noqa: F403,F401
 from ._dmtf_cim_schema import *            # noqa: F403,F401
 from ._resolvermixin import *              # noqa: F403,F401
@@ -38,5 +45,4 @@ from ._instancewriteprovider import *      # noqa: F403,F401
 from ._methodprovider import *             # noqa: F403,F401
 from ._namespaceprovider import *          # noqa: F403,F401
 from ._subscriptionproviders import *      # noqa: F403,F401
-
 from ._utils import *                      # noqa: F403,F401

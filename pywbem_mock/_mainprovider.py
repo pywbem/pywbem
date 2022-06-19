@@ -73,6 +73,7 @@ from ._resolvermixin import ResolverMixin
 # The following config items only apply to open/pull operations
 from .config import DEFAULT_MAX_OBJECT_COUNT, OPEN_MAX_TIMEOUT
 
+__all__ = ['MainProvider']
 
 # per DSP0200, the default behavior for EnumerateInstance DeepInheritance
 # if not set by in the client request.  Default is True so that the mock server
