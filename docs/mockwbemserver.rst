@@ -1137,6 +1137,21 @@ User-defined method providers
     :autosummary-inherited-members:
 
 
+.. _`CIM_Namespace provider`:
+
+CIM_Namespace provider
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: pywbem_mock._namespaceprovider
+
+.. autoclass:: pywbem_mock.CIMNamespaceProvider
+    :members:
+    :special-members:
+    :exclude-members: __init__,__weakref__
+    :autosummary:
+    :autosummary-inherited-members:
+
+
 .. _`Registry for provider dependent files`:
 
 Registry for provider dependent files

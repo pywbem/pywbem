@@ -391,10 +391,6 @@ class InstanceWriteProvider(BaseProvider):
             * `namespace`: Name of the CIM namespace containing the instance.
               Will not be `None`.
             * `host`: Will be `None`.
-
-        Raises:
-
-            None
         """
 
         namespace = InstanceName.namespace

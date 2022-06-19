@@ -17,7 +17,15 @@ import os
 import io
 import re
 
-from pywbem._cim_constants import DEFAULT_NAMESPACE
+# Add the repo main directory to the Python module search path, so that the
+# pywbem and pywbem_mock modules can be found without having the pywbem
+# package installed.
+sys.path.insert(
+    0, os.path.normpath(os.path.join(os.path.dirname(__file__), '..')))
+
+# Default CIM namespace for WBEM connection
+# Keep in sync with pywbem/_cim_constants.py
+DEFAULT_NAMESPACE = 'root/cimv2'
 
 
 def get_version(version_file):
@@ -46,7 +54,7 @@ rst_prolog = """
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath('..'))
+# sys.path.insert(0, os.path.abspath('..'))
 
 # -- General configuration ------------------------------------------------
 
@@ -485,7 +493,7 @@ autodoc_default_options = {}
 #       parameters are generated.
 #
 intersphinx_mapping = {
-  'py': ('https://docs.python.org/2/', None), # agnostic to Python version
+  'py': ('https://docs.python.org/3/', None), # agnostic to Python version
   'py2': ('https://docs.python.org/2', None), # specific to Python 2
   'py3': ('https://docs.python.org/3', None), # specific to Python 3
 }
