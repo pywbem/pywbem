@@ -291,9 +291,9 @@ instance of TST_A3Sub as $A3Sub511 {
 @pytest.mark.parametrize(
     "ns", INITIAL_NAMESPACES + [None])
 @pytest.mark.parametrize(
-    "target, r, rc, mof, exp_rslt, cond", [
+    "target, ro, rc, mof, exp_rslt, cond", [
         # target: Target Classname (i.e. the association object name)
-        # r: role attribute
+        # ro: role attribute
         # ac: associated class attribute
         # rr: resultrole attribute
         # rc: resultclass attribute
@@ -302,7 +302,7 @@ instance of TST_A3Sub as $A3Sub511 {
         #             or string defining error response
         # cond: True; run test; 'pdb'; start debugger; False; skip test
         # Test TST_EP  and role as initiator
-        # targcln, r, rc
+        # targcln, ro, rc
         # pylint: disable=line-too-long
         ['TST_EP', None, None, None, ['TST_A3'], OK],
         ['TST_EP', None, 'TST_A3', None, ['TST_A3'], OK],
@@ -318,7 +318,7 @@ instance of TST_A3Sub as $A3Sub511 {
          OK],
     ]
 )
-def test_complexref_classnames(conn, ns, target, r, rc, mof, exp_rslt,
+def test_complexref_classnames(conn, ns, target, ro, rc, mof, exp_rslt,
                                complex_assoc_mof, cond):
     # pylint: disable=redefined-outer-name,invalid-name
     """
@@ -340,7 +340,7 @@ def test_complexref_classnames(conn, ns, target, r, rc, mof, exp_rslt,
         import pdb
         pdb.set_trace()  # pylint: disable=forgotten-debug-statement
 
-    rtn_clns = conn.ReferenceNames(target, ResultClass=rc, Role=r)
+    rtn_clns = conn.ReferenceNames(target, ResultClass=rc, Role=ro)
     exp_ns = ns or conn.default_namespace
 
     assert isinstance(rtn_clns, list)
@@ -353,7 +353,7 @@ def test_complexref_classnames(conn, ns, target, r, rc, mof, exp_rslt,
                 for n in exp_rslt]
 
     request = "pywbemcli class references {0} --role {1} --result_class {2}". \
-        format(target, r, rc)
+        format(target, ro, rc)
     response = [c.classname for c in exp_clns]
     exp_response = [c.classname for c in exp_clns]
     save_data(conn, complex_assoc_mof, request, response, exp_response)
@@ -369,9 +369,9 @@ def test_complexref_classnames(conn, ns, target, r, rc, mof, exp_rslt,
 @pytest.mark.parametrize(
     "ns", INITIAL_NAMESPACES + [None])
 @pytest.mark.parametrize(
-    "target, r, rc, mof, exp_rslt, cond", [
+    "target, ro, rc, mof, exp_rslt, cond", [
         # target: Target Classname (i.e. the association object name)
-        # r: role attribute
+        # ro: role attribute
         # ac: associated class attribute
         # rr: resultrole attribute
         # rc: resultclass attribute
@@ -381,7 +381,7 @@ def test_complexref_classnames(conn, ns, target, r, rc, mof, exp_rslt,
         #             definitions for each reference property
         # cond: True; run test; 'pdb'; start debugger; False; skip test
         # Test TST_EP  and role as initiator
-        # targcln, r, rc
+        # targcln, ro, rc
         (
             ('TST_EP', 1), None, None, None,
             [
@@ -471,7 +471,7 @@ def test_complexref_classnames(conn, ns, target, r, rc, mof, exp_rslt,
         ),
     ]
 )
-def test_complexref_instnames(conn, ns, target, r, rc, mof, exp_rslt,
+def test_complexref_instnames(conn, ns, target, ro, rc, mof, exp_rslt,
                               complex_assoc_mof, cond):
     # pylint: disable=redefined-outer-name,invalid-name
     """
@@ -496,7 +496,7 @@ def test_complexref_instnames(conn, ns, target, r, rc, mof, exp_rslt,
                                   keybindings={'InstanceID': target[1]},
                                   namespace=ns)
 
-    rtn_instnames = conn.ReferenceNames(target_inst, ResultClass=rc, Role=r)
+    rtn_instnames = conn.ReferenceNames(target_inst, ResultClass=rc, Role=ro)
     exp_ns = ns or conn.default_namespace
 
     assert isinstance(rtn_instnames, list)
@@ -530,7 +530,7 @@ def test_complexref_instnames(conn, ns, target, r, rc, mof, exp_rslt,
                                         "\n".join(exp_instnames_str)))
 
     request = "pywbemcli class references {0} --role {1} --result_class {2}". \
-        format(target_inst, r, rc)
+        format(target_inst, ro, rc)
     save_data(conn, complex_assoc_mof, request, rtn_instnames_str,
               exp_instnames_str)
 
@@ -540,9 +540,9 @@ def test_complexref_instnames(conn, ns, target, r, rc, mof, exp_rslt,
 @pytest.mark.parametrize(
     "ns", INITIAL_NAMESPACES + [None])
 @pytest.mark.parametrize(
-    "target, r, ac, rr, rc, mof, exp_rslt, cond", [
+    "target, ro, ac, rr, rc, mof, exp_rslt, cond", [
         # targ: Target Classname (i.e. the association object name)
-        # r: role attribute
+        # ro: role attribute
         # ac: associated class attribute
         # rr: resultrole attribute
         # rc: resultclass attribute
@@ -551,7 +551,7 @@ def test_complexref_instnames(conn, ns, target, r, rc, mof, exp_rslt,
         #             or string defining error response
         # cond: True; run test; 'pdb'; start debugger; False; skip test
         # Test TST_EP  and role as initiator
-        # targcln, r, ac, rr, rc
+        # targcln, ro, ac, rr, rc
         # pylint: disable=line-too-long
         ['TST_EP', None, None, None, None, None, ['TST_EP', 'TST_LD'], OK],
         ['TST_EP', None, 'TST_A3', None, None, None, ['TST_EP', 'TST_LD'], OK],
@@ -602,7 +602,7 @@ def test_complexref_instnames(conn, ns, target, r, rc, mof, exp_rslt,
 
     ]
 )
-def test_complexassoc_classnames(conn, ns, target, r, rr, ac,
+def test_complexassoc_classnames(conn, ns, target, ro, rr, ac,
                                  rc, mof, exp_rslt, complex_assoc_mof, cond):
     # pylint: disable=redefined-outer-name,invalid-name
     """
@@ -627,7 +627,7 @@ def test_complexassoc_classnames(conn, ns, target, r, rr, ac,
 
     rtn_clns = conn.AssociatorNames(target,
                                     AssocClass=ac,
-                                    Role=r,
+                                    Role=ro,
                                     ResultRole=rr,
                                     ResultClass=rc)
     exp_ns = ns or conn.default_namespace
@@ -646,7 +646,7 @@ def test_complexassoc_classnames(conn, ns, target, r, rr, ac,
 
     request = "pywbemcli class associators {0} --role {1} --assoc-class {2} " \
         "--result-role {3} --result-class {4}". \
-        format(target, r, ac, rr, rc)
+        format(target, ro, ac, rr, rc)
     save_data(conn, complex_assoc_mof, request, rtn_clns, exp_clns)
 
     assert set(cln.classname.lower() for cln in exp_clns) == \
@@ -656,10 +656,10 @@ def test_complexassoc_classnames(conn, ns, target, r, rr, ac,
 @pytest.mark.parametrize(
     "ns", INITIAL_NAMESPACES + [None])
 @pytest.mark.parametrize(
-    "target, r, ac, rr, rc, , mof, exp_rslt, cond", [
+    "target, ro, ac, rr, rc, , mof, exp_rslt, cond", [
         # target: Tuple or list representing instname with 2 components
         #         (Classname, value for InstanceID key property)
-        # r: role attribute
+        # ro: role attribute
         # ac: associated class attribute
         # rr: resultrole attribute
         # rc: resultclass attribute
@@ -667,7 +667,7 @@ def test_complexassoc_classnames(conn, ns, target, r, rr, ac,
         # exp_result: Either list of names of expected classes returned
         #             or string defining error response
         # cond: True; run test; 'pdb'; start debugger; False; skip test
-        # targ, r, ac, rr, rc, exp_result, cond
+        # targ, ro, ac, rr, rc, exp_result, cond
         # pylint: disable=line-too-long
         [
             ('TST_EP', 1), None, None, None, None, None,
@@ -1135,7 +1135,7 @@ def test_complexassoc_classnames(conn, ns, target, r, rr, ac,
         ],
     ]
 )
-def test_complexassoc_instnames(conn, ns, target, r, rr, ac,
+def test_complexassoc_instnames(conn, ns, target, ro, rr, ac,
                                 rc, mof, exp_rslt, complex_assoc_mof, cond):
     # pylint: disable=redefined-outer-name,invalid-name
     """
@@ -1179,7 +1179,7 @@ def test_complexassoc_instnames(conn, ns, target, r, rr, ac,
 
     rtn_instnames = conn.AssociatorNames(target_inst,
                                          AssocClass=ac,
-                                         Role=r,
+                                         Role=ro,
                                          ResultRole=rr,
                                          ResultClass=rc)
 
@@ -1197,7 +1197,7 @@ def test_complexassoc_instnames(conn, ns, target, r, rr, ac,
 
     request = "pywbemcli class associators {0} --role {1} --assoc-class {2} " \
         "--result-role {3} --result-class {4}". \
-        format(target_inst, r, ac, rr, rc)
+        format(target_inst, ro, ac, rr, rc)
     save_data(conn, complex_assoc_mof, request, rtn_instnames_str,
               exp_instnames_str)
 
