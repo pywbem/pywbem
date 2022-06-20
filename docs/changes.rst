@@ -29,6 +29,8 @@ Released: not yet
 
 **Enhancements:**
 
+* Support for Python 3.11. (issue #2904)
+
 **Cleanup:**
 
 * Ignore new safety issues for wheel, safety, and py packages and update

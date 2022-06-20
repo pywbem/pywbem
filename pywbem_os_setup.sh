@@ -88,6 +88,7 @@ function install_redhat() {
   pkg="$2"
   echo "$myname: Installing package: $pkg"
   run_cmd "sudo $installer -y install $pkg"
+  run_cmd "sudo $installer list installed $pkg"
   echo "$myname: Done installing package: $pkg"
 }
 
@@ -95,6 +96,7 @@ function install_debian() {
   pkg="$1"
   echo "$myname: Installing package: $pkg"
   run_cmd "sudo apt-get --yes install $pkg"
+  run_cmd "sudo apt list --installed | grep $pkg"
   echo "$myname: Done installing package: $pkg"
 }
 
@@ -102,6 +104,7 @@ function install_suse() {
   pkg="$1"
   echo "$myname: Installing package: $pkg"
   run_cmd "sudo zypper install -y $pkg"
+  run_cmd "sudo zypper pa -i | grep $pkg"
   echo "$myname: Done installing package: $pkg"
 }
 
@@ -109,6 +112,7 @@ function install_osx() {
   pkg="$1"
   echo "$myname: Upgrading or installing package: $pkg"
   run_cmd "brew upgrade $pkg || brew install $pkg"
+  run_cmd "brew info $pkg"
   echo "$myname: Done installing package: $pkg"
 }
 
@@ -210,7 +214,9 @@ if [[ "$distro_family" == "redhat" ]]; then
   fi
 
   if [[ "$purpose" == "develop" ]]; then
+    # For lxml:
     install_redhat $installer libxml2
+    install_redhat $installer libxslt
   fi
 
 elif [[ "$distro_family" == "debian" ]]; then
@@ -228,7 +234,9 @@ elif [[ "$distro_family" == "debian" ]]; then
   fi
 
   if [[ "$purpose" == "develop" ]]; then
+    # For lxml:
     install_debian libxml2-utils
+    install_debian libxslt1-dev
   fi
 
 elif [[ "$distro_family" == "suse" ]]; then
@@ -246,7 +254,9 @@ elif [[ "$distro_family" == "suse" ]]; then
   fi
 
   if [[ "$purpose" == "develop" ]]; then
+    # For lxml:
     install_suse libxml2
+    install_suse libxslt
   fi
 
 elif [[ "$distro_family" == "osx" ]]; then
@@ -262,7 +272,9 @@ elif [[ "$distro_family" == "osx" ]]; then
   fi
 
   if [[ "$purpose" == "develop" ]]; then
+    # For lxml:
     install_osx libxml2
+    install_osx libxslt
   fi
 
 elif [[ "$distro_family" == "windows" ]]; then

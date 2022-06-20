@@ -85,22 +85,33 @@ Babel>=2.7.0
 # Pylint 2.0 / astroid 2.0 removed py27, added py37
 # Pylint 2.7 / astroid 2.5 removed support for py35
 # Pylint 2.7-2.9 had issue https://github.com/PyCQA/pylint/issues/4118 (issues #2672, #2673)
+# Pylint 2.14 / astroid 2.11 support wrapt 1.14 which is required for Python 3.11
+# Pylint 2.15 / astroid 2.12 is needed to circumvent issue https://github.com/PyCQA/pylint/issues/7972 on Python 3.11
 pylint>=2.5.2; python_version == '3.5'
-pylint>=2.10.0; python_version >= '3.6'
+pylint>=2.10.0; python_version >= '3.6' and python_version <= '3.10'
+pylint>=2.15.0; python_version >= '3.11'
 astroid>=2.4.0; python_version == '3.5'
-astroid>=2.7.2; python_version >= '3.6'
+astroid>=2.7.2; python_version >= '3.6' and python_version <= '3.10'
+astroid>=2.12.4; python_version >= '3.11'
 typed-ast>=1.4.0,<1.5.0; python_version >= '3.6' and python_version < '3.8' and implementation_name=='cpython'
 # lazy-object-proxy is used by astroid
 lazy-object-proxy>=1.4.3; python_version >= '3.5'
 # wrapt 1.13.0 started depending on MS Visual C++ 9.0 on Python 2.7 on Windows,
 #   which is not available by default on GitHub Actions
-wrapt>=1.12; python_version >= '3.5'
+# wrapt 1.14.0 started supporting Python 3.11 by accomodating the removed inspect.formatargspec
+wrapt>=1.12; python_version >= '3.5' and python_version <= '3.10'
+wrapt>=1.14; python_version >= '3.11'
 # isort 5.0.0 removed support for py27,py35
 # isort 4.2.8 fixes a pylint issue with false positive on import order of ssl on Windows
 # isort 4.3.8 fixes an issue with py310 and works on py310 (Note that isort 5.10.0 has official support for py310)
 isort>=4.3.8
 # Pylint 2.14 uses tomlkit>=0.10.1 and requires py>=3.7
 tomlkit>=0.10.1; python_version >= '3.7'
+# dill is used by pylint >=2.13
+dill>=0.2; python_version >= '3.6' and python_version <= '3.10'
+dill>=0.3.6; python_version >= '3.11'
+# platformdirs is used by pylint starting with its 2.10
+platformdirs>=2.2.0; python_version >= '3.6'
 
 # Flake8 and dependents (no imports, invoked via flake8 script):
 # flake8 4.0.0 fixes an AttributeError on Python 3.10.
@@ -157,12 +168,13 @@ pyrsistent>=0.14.0; python_version >= '3.5'
 #   to work.
 #   Reported to pywin32 as https://github.com/mhammond/pywin32/issues/1448.
 #   Addressed by increasing the minimum version of pywin32 to >=227 on Python >=3.8.
-# TODO: To circumvent https://github.com/pypa/pip/issues/10701, we exclude
-#       py3.10. Remove the circumvention once fixed.
+# pywin32 version 302 added support for Python 3.10
+# pywin32 version 303 added support for Python 3.11
 pywin32>=222,!=226; sys_platform == 'win32' and python_version == '2.7'
 pywin32>=222,!=226; sys_platform == 'win32' and python_version >= '3.5' and python_version <= '3.6'
 pywin32>=223,!=226; sys_platform == 'win32' and python_version == '3.7'
-pywin32>=227; sys_platform == 'win32' and python_version >= '3.8' and python_version != '3.10'
+pywin32>=227; sys_platform == 'win32' and python_version >= '3.8' and python_version <= '3.9'
+pywin32>=303; sys_platform == 'win32' and python_version >= '3.10'
 
 # The tornado package is used by ipykernel which is used by jupyter.
 # Workaround: Tornado 5.0.0 and 5.0.1 rejects installation if the Python ssl module
@@ -201,10 +213,12 @@ pipdeptree>=2.2.0
 #   not yet have proper dependency handling, so we do not install pip-check-reqs
 #   on Python 2.7.
 # pip-check-reqs 2.3.2 is needed to have proper support for pip>=21.3 and below.
-pip-check-reqs>=2.3.2; python_version >= '3.5'
+pip-check-reqs>=2.3.2; python_version >= '3.5' and python_version <= '3.10'
+pip-check-reqs>=2.4.0; python_version >= '3.11'
 
 pyzmq>=16.0.4; python_version <= '3.8'
-pyzmq>=20.0.0; python_version >= '3.9'
+pyzmq>=20.0.0; python_version >= '3.9' and python_version <= '3.10'
+pyzmq>=23.2.1; python_version >= '3.11'
 
 # Indirect dependencies are not specified in this file unless constraints are needed.
 
