@@ -28,8 +28,9 @@ pytest>=6.2.5; python_version >= '3.10'
 testfixtures>=6.9.0; python_version == '2.7'
 testfixtures>=6.3.0,<6.4.0; python_version == '3.5'
 testfixtures>=6.9.0; python_version >= '3.6'
+# pylint>=2.15 requires colorama>=0.4.5
 colorama>=0.3.9,<0.4.0; python_version == '2.7'
-colorama>=0.4.0; python_version >= '3.5'
+colorama>=0.4.5; python_version >= '3.5'
 
 # Easy-server packages
 easy-vault>=0.7.0
@@ -71,9 +72,11 @@ FormEncode>=2.0.0; python_version >= '3.10'
 # lxml 4.6.1 addressed safety issue 38892
 # lxml 4.6.2 addressed safety issue 39194
 # lxml 4.6.3 addressed safety issue 40072
+# lxml 4.9.2 addresses changes in Python 3.11 and 3.12
 lxml>=4.6.2; python_version == '2.7'
 lxml>=4.6.2; python_version >= '3.5' and python_version <= '3.9'
-lxml>=4.6.4; python_version >= '3.10'
+lxml>=4.6.4; python_version == '3.10'
+lxml>=4.9.2; python_version >= '3.11'
 
 # Virtualenv
 # virtualenv 20.0.35 is required by build

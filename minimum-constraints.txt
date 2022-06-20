@@ -77,7 +77,8 @@
 # * pip 21.0 dropped support for Python 3.5.
 # * pip 22.0 dropped support for Python 3.6.
 pip==10.0.1; python_version <= '3.5'
-pip==21.3.1; python_version >= '3.6'
+pip==21.3.1; python_version >= '3.6' and python_version <= '3.10'
+pip==22.2.2; python_version >= '3.11'
 
 # setuptools 41.5.0 fixes build errors with Visual C++ 14.0 on Windows
 # setuptools 41.5.1 fixes a py27 regression introduced by 41.5.0.
@@ -148,7 +149,7 @@ testfixtures==6.9.0; python_version == '2.7'
 testfixtures==6.3.0; python_version == '3.5'
 testfixtures==6.9.0; python_version >= '3.6'
 colorama==0.3.9; python_version == '2.7'
-colorama==0.4.0; python_version >= '3.5'
+colorama==0.4.5; python_version >= '3.5'
 importlib-metadata==0.22; python_version <= '3.7'
 importlib-metadata==1.1.0; python_version >= '3.8'
 pytz==2016.10; python_version <= '3.9'
@@ -178,7 +179,8 @@ FormEncode==2.0.0; python_version >= '3.10'
 # Lxml
 lxml==4.6.2; python_version == '2.7'
 lxml==4.6.2; python_version >= '3.5' and python_version <= '3.9'
-lxml==4.6.4; python_version >= '3.10'
+lxml==4.6.4; python_version == '3.10'
+lxml==4.9.2; python_version >= '3.11'
 
 # Coverage reporting (no imports, invoked via coveralls script):
 coverage==5.0
@@ -230,14 +232,20 @@ Babel==2.7.0
 
 # PyLint (no imports, invoked via pylint script):
 pylint==2.5.2; python_version == '3.5'
-pylint==2.10.0; python_version >= '3.6'
+pylint==2.10.0; python_version >= '3.6' and python_version <= '3.10'
+pylint==2.15.0; python_version >= '3.11'
 astroid==2.4.0; python_version == '3.5'
-astroid==2.7.2; python_version >= '3.6'
+astroid==2.7.2; python_version >= '3.6' and python_version <= '3.10'
+astroid==2.12.4; python_version >= '3.11'
 typed-ast==1.4.0; python_version >= '3.6' and python_version < '3.8' and implementation_name=='cpython'
 lazy-object-proxy==1.4.3; python_version >= '3.5'
-wrapt==1.12; python_version >= '3.5'
+wrapt==1.12; python_version >= '3.5' and python_version <= '3.10'
+wrapt==1.14; python_version >= '3.11'
 isort==4.3.8
 tomlkit==0.10.1; python_version >= '3.7'
+dill==0.2; python_version >= '3.6' and python_version <= '3.10'
+dill==0.3.6; python_version >= '3.11'
+platformdirs==2.2.0; python_version >= '3.6'
 
 # Flake8 and dependents (no imports, invoked via flake8 script):
 flake8==3.8.0; python_version <= '3.9'
@@ -281,7 +289,8 @@ pyrsistent==0.14.0
 pywin32==222; sys_platform == 'win32' and python_version == '2.7'
 pywin32==222; sys_platform == 'win32' and python_version >= '3.5' and python_version <= '3.6'
 pywin32==223; sys_platform == 'win32' and python_version == '3.7'
-pywin32==227; sys_platform == 'win32' and python_version >= '3.8'
+pywin32==227; sys_platform == 'win32' and python_version >= '3.8' and python_version <= '3.9'
+pywin32==303; sys_platform == 'win32' and python_version >= '3.10'
 
 # Table output formatter used by the manual performance tests to display
 # timing results
@@ -295,10 +304,12 @@ psutil==5.6.0; sys_platform != 'cygwin' and platform_python_implementation == 'P
 
 # Package dependency management tools
 pipdeptree==2.2.0
-pip-check-reqs==2.3.2; python_version >= '3.5'
+pip-check-reqs==2.3.2; python_version >= '3.5' and python_version <= '3.10'
+pip-check-reqs==2.4.0; python_version >= '3.11'
 
 pyzmq==16.0.4; python_version <= '3.8'
-pyzmq==20.0.0; python_version >= '3.9'
+pyzmq==20.0.0; python_version >= '3.9' and python_version <= '3.10'
+pyzmq==23.2.1; python_version >= '3.11'
 
 # Indirect dependencies for develop that need constraints
 
@@ -334,7 +345,6 @@ contextlib2==0.6.0.post1; python_version == '2.7'
 dataclasses==0.8; python_version == '3.6'  # used by safety 2.3.1 and argon-cffi
 debugpy==1.5.1; python_version >= '3.5'
 defusedxml==0.7.1
-dill==0.2; python_version >= '3.6'  # used by pylint>=2.13
 distlib==0.3.4
 docopt==0.6.1
 enum34==1.1.10; python_version == '2.7'
@@ -362,7 +372,6 @@ parso==0.7.0; python_version >= '3.5'
 pathlib2==2.3.7.post1
 pexpect==4.2.1
 pickleshare==0.7.4
-platformdirs==2.2.0
 prometheus-client==0.13.1
 prompt-toolkit==2.0.1
 ptyprocess==0.5.1
