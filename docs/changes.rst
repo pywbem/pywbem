@@ -95,6 +95,8 @@ Released: not yet
   to the 'pywbem' namespace.
   (issue #2888).
 
+* Fixed the name of the cythonized distribution archive.
+
 **Enhancements:**
 
 * Added support for the new 'CIM_WBEMServerNamespace' class used in the
