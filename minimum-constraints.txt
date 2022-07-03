@@ -83,7 +83,8 @@ pip==21.3.1; python_version >= '3.6'
 setuptools==41.5.1; python_version <= '3.9'
 setuptools==49.0.0; python_version >= '3.10'
 wheel==0.30.0; python_version == '2.7'
-wheel==0.36.1; python_version >= '3.5'
+# wheel 0.36.2 fixes empty and invalid tag issues in archive file name
+wheel==0.36.2; python_version >= '3.5'
 
 
 # Direct dependencies for installation (must be consistent with requirements.txt)
