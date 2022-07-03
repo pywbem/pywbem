@@ -127,7 +127,6 @@ jobs:
     steps:
     - name: Select whether to run steps for cythonized archive
       id: run_cythonized
-      # TODO: Remove 'andy/cythonize' branch once tests succeed
       if: "! startsWith(matrix.os, 'windows-') && (github.event_name == 'schedule' || startsWith(github.head_ref, 'release_'))"
       run: |
         echo "Running steps for cythonized archive"

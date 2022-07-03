@@ -171,7 +171,7 @@ pymn := py$(python_mn_version)
 # Tags for file name of cythonized wheel archive
 cython_pytag := $(shell $(PYTHON_CMD) -c "import sys; print('cp{}{}'.format(*sys.version_info[0:2]))")
 cython_abitag := $(shell $(PYTHON_CMD) -c "import sys; print('cp{}{}{}'.format(sys.version_info[0],sys.version_info[1],getattr(sys, 'abiflags','mu')))")
-cython_platform := $(shell $(PYTHON_CMD) -c "import distutils.util; print(distutils.util.get_platform().replace('.','_').replace('-','_'))")
+cython_platform := $(shell $(PYTHON_CMD) -c "from wheel.bdist_wheel import get_platform; print(get_platform('.'))")
 
 # OpenSSL version used by Python's ssl
 openssl_version := $(shell $(PYTHON_CMD) -c "import ssl; print(ssl.OPENSSL_VERSION)")
@@ -759,9 +759,9 @@ $(bdistc_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
 	-$(call RM_FUNC,MANIFEST)
 	-$(call RMDIR_FUNC,build $(package_name).egg-info-INFO .eggs)
 ifeq ($(PLATFORM),Windows_native)
-	cmd /c "set CFLAGS=$(cython_cflags) & $(PYTHON_CMD) -m build --wheel --outdir $(dist_dir) -C--universal -C--cythonized ."
+	cmd /c "set CFLAGS=$(cython_cflags) & $(PYTHON_CMD) setup.py bdist_wheel -d $(dist_dir) --universal --cythonized"
 else
-	CFLAGS='$(cython_cflags)' $(PYTHON_CMD) -m build --wheel --outdir $(dist_dir) -C--universal -C--cythonized .
+	CFLAGS='$(cython_cflags)' $(PYTHON_CMD) setup.py bdist_wheel -d $(dist_dir) --universal --cythonized
 endif
 	@echo "Makefile: Done creating the cythonized wheel distribution archive: $(bdistc_file)"
 
