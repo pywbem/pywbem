@@ -760,8 +760,10 @@ $(bdistc_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files)
 	-$(call RMDIR_FUNC,build $(package_name).egg-info-INFO .eggs)
 ifeq ($(PLATFORM),Windows_native)
 	cmd /c "set CFLAGS=$(cython_cflags) & $(PYTHON_CMD) setup.py bdist_wheel -d $(dist_dir) --universal --cythonized"
+	cmd /c dir $(dist_dir)
 else
 	CFLAGS='$(cython_cflags)' $(PYTHON_CMD) setup.py bdist_wheel -d $(dist_dir) --universal --cythonized
+	ls -l $(dist_dir)
 endif
 	@echo "Makefile: Done creating the cythonized wheel distribution archive: $(bdistc_file)"
 
