@@ -171,7 +171,8 @@ pymn := py$(python_mn_version)
 # Tags for file name of cythonized wheel archive
 cython_pytag := $(shell $(PYTHON_CMD) -c "import sys; print('cp{}{}'.format(*sys.version_info[0:2]))")
 cython_abitag := $(shell $(PYTHON_CMD) -c "import sys; print('cp{}{}{}'.format(sys.version_info[0],sys.version_info[1],getattr(sys, 'abiflags','mu')))")
-cython_platform := $(shell $(PYTHON_CMD) -c "from wheel.bdist_wheel import get_platform; print(get_platform('.'))")
+# The setup.py based approach for building the cythonized archive uses this formula, see wheel package code
+cython_platform := $(shell $(PYTHON_CMD) -c "from wheel.bdist_wheel import get_platform; print(get_platform('.').lower().replace('-', '_').replace('.', '_'))")
 
 # OpenSSL version used by Python's ssl
 openssl_version := $(shell $(PYTHON_CMD) -c "import ssl; print(ssl.OPENSSL_VERSION)")
