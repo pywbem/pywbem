@@ -55,6 +55,8 @@ Released: not yet
   to the 'pywbem' namespace.
   (issue #2888).
 
+* Fixed new formatting issues raised by flake8 5.0.
+
 **Enhancements:**
 
 **Cleanup:**
