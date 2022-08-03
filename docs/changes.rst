@@ -97,6 +97,8 @@ Released: not yet
 
 * Fixed the name of the cythonized distribution archive.
 
+* Fixed new formatting issues raised by flake8 5.0.
+
 **Enhancements:**
 
 * Added support for the new 'CIM_WBEMServerNamespace' class used in the

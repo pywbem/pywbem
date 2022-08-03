@@ -133,7 +133,7 @@ def model_path(inst_path):
     model_path = inst_path.copy()
     model_path.host = None
     model_path.namespace = None
-    return(model_path)
+    return model_path
 
 
 def equal_model_path(p1, p2):
