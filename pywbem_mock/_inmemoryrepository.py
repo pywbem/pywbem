@@ -140,16 +140,16 @@ class InMemoryObjectStore(BaseObjectStore):
         for name in six.iterkeys(self._data):
             if self._copy_names:
                 # Using .copy is sufficient for CIMNamespace name.
-                yield(name.copy())
+                yield name.copy()
             else:
-                yield(name)
+                yield name
 
     def iter_values(self, copy=True):
         for value in six.itervalues(self._data):
             if copy:
-                yield(deepcopy(value))
+                yield deepcopy(value)
             else:
-                yield(value)
+                yield value
 
     def len(self):
         return len(self._data)

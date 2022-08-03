@@ -2326,15 +2326,15 @@ class TestPartialSchema(MOFTest):
         """The classes expected to be directly compiled from the schema_mof
            above
         """
-        return('CIM_RegisteredProfile', 'CIM_ObjectManager',
-               'CIM_ElementConformsToProfile', 'CIM_ReferencedProfile',
-               'CIM_LocalFileSystem')
+        return ('CIM_RegisteredProfile', 'CIM_ObjectManager',
+                'CIM_ElementConformsToProfile', 'CIM_ReferencedProfile',
+                'CIM_LocalFileSystem')
 
     @staticmethod
     def expected_dependent_classes():
         """ Return tuple of expected dependent classes from the compile"""
-        return('CIM_ManagedElement', 'CIM_WBEMService', 'CIM_Service',
-               'CIM_RegisteredSpecification')
+        return ('CIM_ManagedElement', 'CIM_WBEMService', 'CIM_Service',
+                'CIM_RegisteredSpecification')
 
     def test_build_from_partial_schema(self):
         """
@@ -2858,7 +2858,7 @@ class TestNamespacePragma(MOFTest):
         test_namespace = 'root/test'
         try:
             self.mofcomp.compile_string(mof_str, test_namespace)
-            assert(False)
+            assert False
         except MOFParseError:
             pass
 
