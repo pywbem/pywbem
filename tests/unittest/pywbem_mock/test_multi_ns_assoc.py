@@ -1566,7 +1566,7 @@ def test_multiple_namespace_assoc_modify(testcase, namespaces, class_mof,
     # test from the repository.  The modify should then fail.
     if delete_assoc_inst_test:
         ns = delete_assoc_inst_test.namespace
-        instance_store = conn.repository.cimrepository.get_instance_store(ns)
+        instance_store = conn.cimrepository.get_instance_store(ns)
         instance_store.delete(delete_assoc_inst_test)
 
     # Modify the association instance defined. Test by getting it from repo and
