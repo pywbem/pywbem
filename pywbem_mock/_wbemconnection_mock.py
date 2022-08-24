@@ -40,7 +40,7 @@ import six
 from pywbem import WBEMConnection, CIMClass, CIMClassName, \
     CIMInstance, CIMInstanceName, CIMParameter, CIMQualifierDeclaration, \
     cimtype, CIMError, CIM_ERR_FAILED, DEFAULT_NAMESPACE, MOFCompiler, \
-    DEFAULT_TIMEOUT
+    DEFAULT_TIMEOUT, WBEMServer, ModelError
 from pywbem._nocasedict import NocaseDict
 from pywbem._utils import _format
 from ._mainprovider import MainProvider
@@ -412,6 +412,10 @@ class FakedWBEMConnection(WBEMConnection):
 
         The namespace must not yet exist in the CIM repository.
 
+        If a namespace provider has already been created, this method must
+        use that provider to create the namespace rather than try to create
+        the namespace directly in the repository
+
         Parameters:
 
           namespace (:term:`string`):
@@ -428,6 +432,18 @@ class FakedWBEMConnection(WBEMConnection):
           :exc:`~pywbem.CIMError`: CIM_ERR_ALREADY_EXISTS if the namespace
             already exists in the CIM repository.
         """
+        if self.find_interop_namespace():
+            try:
+                server = WBEMServer(self)
+                server.create_namespace(namespace)
+                if verbose:
+                    print("Created namespace {} (in mock support)".
+                          format(namespace))
+                return
+            except (ModelError, CIMError):
+                pass
+
+        # No interop namespace or fail to create above.  Use add_namespace
         self._mainprovider.add_namespace(namespace, verbose=verbose)
 
     def remove_namespace(self, namespace, verbose=False):
