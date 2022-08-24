@@ -105,6 +105,12 @@ Released: not yet
 
 * Fixed new formatting issues raised by flake8 5.0.
 
+* Fixed issue in pywbem_mock/_wbemconnection_mock.py add_namespaces where
+  namespaces that are added with add_namespace() after an interop provider is
+  defined do not show up in the list of namespaces. It now uses
+  server.create_namespace() if the interop namespace and namespace provider
+  exist. (see issue #2865)
+
 **Enhancements:**
 
 * Added support for the new 'CIM_WBEMServerNamespace' class used in the
@@ -242,6 +248,9 @@ Released: 2021-12-04
 * Fixes bug in compiler where log of ModifyClass request failure was not
   surrounded by verbose test (if p.parse.verbose:). See pywbemcli issue
   #395,
+
+* Fixes issue where mock add_namespace() fails to correctly add the
+  namespace after a namespace provider has been installed. (see #2865)
 
 * Fixes several issues in WBEMSubscriptionManager:
 

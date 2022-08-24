@@ -36,9 +36,12 @@ from ...utils import skip_if_moftab_regenerated
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
 pywbem = import_installed('pywbem')
-from pywbem import CIMError, WBEMServer  # noqa: E402
+from pywbem import CIMError, WBEMServer, CIMInstance  # noqa: E402
 pywbem_mock = import_installed('pywbem_mock')
+
 from pywbem_mock import FakedWBEMConnection, DMTFCIMSchema  # noqa: E402
+from pywbem_mock.config import OBJECTMANAGERCREATIONCLASSNAME, \
+    SYSTEMCREATIONCLASSNAME, OBJECTMANAGERNAME, SYSTEMNAME  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 # Location of DMTF schema directory used by all tests.
@@ -51,6 +54,25 @@ VERBOSE = False
 OK = True
 RUN = True
 FAIL = False
+
+
+def inst_from_classname(conn, class_name, namespace=None,
+                        property_list=None,
+                        property_values=None,
+                        include_missing_properties=True,
+                        include_path=True):
+    """
+    Build instance from classname using class_name property to get class
+    from a repository.
+    """
+    cls = conn.GetClass(class_name, namespace=namespace, LocalOnly=False,
+                        IncludeQualifiers=True, IncludeClassOrigin=True,
+                        PropertyList=property_list)
+
+    return CIMInstance.from_class(
+        cls, namespace=namespace, property_values=property_values,
+        include_missing_properties=include_missing_properties,
+        include_path=include_path)
 
 
 def test_interop_namespace_names():
@@ -245,5 +267,128 @@ def test_install_namespace_provider(testcase, default_ns, ns):
     for namespace in conn.namespaces:
         if namespace != ns:
             assert len(conn.EnumerateClasses(namespace=namespace)) == 0
+
+
+TESTCASES_CIMNAMESPACE_PROVIDER_AND_ADD_NAMESPACE = [
+
+    # Testcases for dictionary tests
+
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * Pre_ns_to_add: Namespaces to create before namespace provider
+    #     created
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    (
+        "Test with only default and interop",
+        dict(
+            initial_ns=[],
+            final_ns=[],
+            total_exp_ns=['root/cimv2', 'interop']
+        ),
+        None, None, OK
+    ),
+
+    (
+        "Test with namespaces before and after namespace provider added",
+        dict(
+            initial_ns=['ns_before'],
+            final_ns=['ns_after'],
+            total_exp_ns=['root/cimv2', 'interop', 'ns_before', 'ns_after']
+        ),
+        None, None, OK
+    ),
+    (
+        "Test with mutiple added namespaces",
+        dict(
+            initial_ns=['ns_b1', 'ns_b2'],
+            final_ns=['ns_a1', "ns_a2"],
+            total_exp_ns=['root/cimv2', 'interop', 'ns_b1', 'ns_b2', 'ns_a1',
+                          'ns_a2']
+        ),
+        None, None, OK
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_CIMNAMESPACE_PROVIDER_AND_ADD_NAMESPACE)
+@simplified_test_function
+def test_add_namespace_and_namespace_provider(testcase, initial_ns, final_ns,
+                                              total_exp_ns):
+    """
+    Test use of conn.add_namespace and installation of namespace provider.
+    This is because add_namespace must know of existence of namespace
+    provider to allow ussing server.create_namespace() if a namespace
+    provider exists.
+    """
+    # setup the connection and schema
+    conn = FakedWBEMConnection()
+
+    skip_if_moftab_regenerated()
+
+    schema = DMTFCIMSchema(DMTF_TEST_SCHEMA_VER, TESTSUITE_SCHEMA_DIR,
+                           verbose=False)
+
+    # code to be tested
+
+    for ns in initial_ns:
+        conn.add_namespace(ns)
+
+    interop_ns = 'interop'
+
+    conn.add_namespace(interop_ns)
+
+    classnames = ["CIM_Namespace", "CIM_ObjectManager"]
+    conn.compile_schema_classes(classnames,
+                                schema.schema_pragma_file,
+                                namespace=interop_ns,
+                                verbose=False)
+
+    omdict = {"SystemCreationClassName": SYSTEMCREATIONCLASSNAME,
+              "CreationClassName": OBJECTMANAGERCREATIONCLASSNAME,
+              "SystemName": SYSTEMNAME,
+              "Name": OBJECTMANAGERNAME,
+              "ElementName": 'Mock_Test',
+              "Description": "Mock_Test CIM Server"}
+
+    ominst = inst_from_classname(conn, "CIM_ObjectManager",
+                                 namespace=interop_ns,
+                                 property_values=omdict,
+                                 include_missing_properties=False,
+                                 include_path=True)
+
+    conn.add_cimobjects(ominst, namespace=interop_ns)
+
+    conn.install_namespace_provider(interop_ns, schema.schema_pragma_file)
+
+    for ns in final_ns:
+        conn.add_namespace(ns)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    # Assert that the defined interop namespace is installed
+    assert 'interop' in conn.namespaces
+
+    for ns in initial_ns:
+        assert ns in conn.namespaces
+
+    for ns in final_ns:
+        assert ns in conn.namespaces
+
+    assert len(conn.EnumerateInstances("CIM_Namespace", interop_ns)) == \
+        len(conn.namespaces)
+
+    for namespace in conn.namespaces:
+        if namespace != 'interop':
+            assert len(conn.EnumerateClasses(namespace=namespace)) == 0
+
+    assert set(conn.namespaces) == set(total_exp_ns)
 
 # TODO. Test add and remove namespaces with more variations
