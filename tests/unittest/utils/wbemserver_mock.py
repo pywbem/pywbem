@@ -12,7 +12,7 @@ from .dmtf_mof_schema_def import DMTF_TEST_SCHEMA_VER, DMTFCIMSchema
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
 pywbem = import_installed('pywbem')
-from pywbem import WBEMServer, ValueMapping, CIMInstance, CIMQualifier, \
+from pywbem import WBEMServer, ValueMapping, CIMInstance, \
     CIMInstanceName  # noqa: E402
 pywbem_mock = import_installed('pywbem_mock')
 from pywbem_mock import FakedWBEMConnection  # noqa: E402
@@ -333,28 +333,11 @@ class WbemServerMock(object):
         element_conforms_dict = {'ConformantStandard': profile_path,
                                  'ManagedElement': element_path}
 
-        # TODO modify this when issue #1540  (resolve qualifiers)fixed
-        # inst = self.inst_from_classname(conn, class_name,
-        #                                namespace=self.interop_ns,
-        #                                property_values=element_conforms_dict,
-        #                                include_missing_properties=False,
-        #                                include_path=True)
-        cls = conn.GetClass(class_name, namespace=self.interop_ns,
-                            LocalOnly=False, IncludeQualifiers=True,
-                            IncludeClassOrigin=True)
-
-        for pvalue in cls.properties.values():
-            if pvalue.type == 'reference':
-                if "key" not in pvalue.qualifiers:
-                    pvalue.qualifiers['Key'] = \
-                        CIMQualifier('Key', True, propagated=True)
-
-        inst = CIMInstance.from_class(
-            cls, namespace=self.interop_ns,
-            property_values=element_conforms_dict,
-            include_missing_properties=False,
-            include_path=True)
-        # TODO end of temp code
+        inst = self.inst_from_classname(conn, class_name,
+                                        namespace=self.interop_ns,
+                                        property_values=element_conforms_dict,
+                                        include_missing_properties=False,
+                                        include_path=True)
 
         conn.add_cimobjects(inst, namespace=self.interop_ns)
 
@@ -394,32 +377,11 @@ class WbemServerMock(object):
             ref_profile_dict = {'Antecedent': antecedent_inst[0].path,
                                 'Dependent': dependent_inst[0].path}
 
-            # TODO replace the setting of key qualifier with the commented
-            # code with #issue 1540 is fixed, i.e the key qualifier is
-            # included in the class.
-            # inst = self.inst_from_classname(server.conn, class_name,
-            #                                namespace=self.interop_ns,
-            #                                property_values=ref_profile_dict,
-            #                                include_missing_properties=False,
-            #                                include_path=True)
-
-            cls = server.conn.GetClass(class_name, namespace=self.interop_ns,
-                                       LocalOnly=False, IncludeQualifiers=True,
-                                       IncludeClassOrigin=True,
-                                       PropertyList=None)
-
-            for pvalue in cls.properties.values():
-                if pvalue.type == 'reference':
-                    if "key" not in pvalue.qualifiers:
-                        pvalue.qualifiers['Key'] = \
-                            CIMQualifier('Key', True, propagated=True)
-
-            inst = CIMInstance.from_class(
-                cls, namespace=self.interop_ns,
-                property_values=ref_profile_dict,
-                include_missing_properties=False,
-                include_path=True)
-            # TODO end of code to drop for #1540 fix
+            inst = self.inst_from_classname(server.conn, class_name,
+                                            namespace=self.interop_ns,
+                                            property_values=ref_profile_dict,
+                                            include_missing_properties=False,
+                                            include_path=True)
 
             server.conn.add_cimobjects(inst, namespace=self.interop_ns)
 
