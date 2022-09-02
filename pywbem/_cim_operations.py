@@ -6611,6 +6611,14 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         :meth:`~py:generator.close` method (which may also be called before the
         generator is exhausted).
 
+        This operation waits for all of the Open/Pull operations to complete
+        before returning iterated objects (all other iter operations return
+        iterated objects as the Open/Pull operations each complete). That is
+        because of the complexity of having to return the QueryResultClass and
+        an iterator so the real purpose of the operation is just to simplify
+        an operation and not to begin response processing as the Open/Pull
+        results are returned (see pywbem issue #2668).
+
         Parameters:
 
           QueryLanguage (:term:`string`):
@@ -6621,7 +6629,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
           Query (:term:`string`):
             Query string in the query language specified in the `QueryLanguage`
-            parameter.
+            parameter. If the Query parameter is defined and IterQueryInstances
+            uses the traditional operations to execute the request an exception
+            will be generated so it is best to always set
+            use_pull_operations=True for connections that define a Query.
 
           namespace (:term:`string`):
             Name of the CIM namespace to be used (case independent).
