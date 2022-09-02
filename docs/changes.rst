@@ -155,6 +155,10 @@ Released: not yet
 
 * Changed build process for distribution archives to use the `build` package.
 
+* Document a limitation in the IterQueryInstances request method (it delivers
+  instances for Open/Pull after  the request to the server is complete). (see
+  issue #1801)
+
 **Known issues:**
 
 * See `list of open issues`_.
