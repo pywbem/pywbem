@@ -663,7 +663,7 @@ TESTCASES_SUBMGR = [
             remove_server_attrs=None,
             exp_result=dict(server_id="http://FakedUrl:5988")
         ),
-        None, None, OK
+        None, None, RUN
     ),
     (
         "Valid submgr id and multiple server ids",
