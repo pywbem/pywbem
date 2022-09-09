@@ -56,6 +56,21 @@ RUN = True
 FAIL = False
 
 
+def add_objectmgr_instance(conn, ns, omdict):
+    """
+    Create an instance of CIM_ObjectManager from the properties defined
+    in omdict (a dictionary of CIM_ObjectManager properties) in the server
+    defined by conn.
+    """
+    ominst = inst_from_classname(conn, "CIM_ObjectManager",
+                                 namespace=ns,
+                                 property_values=omdict,
+                                 include_missing_properties=False,
+                                 include_path=True)
+
+    conn.add_cimobjects(ominst, namespace=ns)
+
+
 def inst_from_classname(conn, class_name, namespace=None,
                         property_list=None,
                         property_values=None,
@@ -185,15 +200,16 @@ def test_find_interop_namespace(testcase, deflt, nss, exp_ns):
     assert rtnd_ns == exp_ns
 
 
-TESTCASES_CIMNAMESPACE_PROVIDER = [
+TESTCASES_INSTALL_NAMESPACE_PROVIDER = [
 
-    # Testcases for dictionary tests
+    # Testcases for dictionary tests of the mock install_namespace_provider
+    # method with different namespace names and
 
     # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
     # * kwargs: Keyword arguments for the test function:
-    #   * obj: Object that has dictionary behavior, e.g. IMInstanceName.
-    #   * exp_dict: Expected dictionary items, for validation.
+    #   * default_ns: Name of default namespace or None
+    #   * ns: The interop namespace name.
     # * exp_exc_types: Expected exception type(s), or None.
     # * exp_warn_types: Expected warning type(s), or None.
     # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
@@ -235,7 +251,7 @@ TESTCASES_CIMNAMESPACE_PROVIDER = [
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    TESTCASES_CIMNAMESPACE_PROVIDER)
+    TESTCASES_INSTALL_NAMESPACE_PROVIDER)
 @simplified_test_function
 def test_install_namespace_provider(testcase, default_ns, ns):
     """
@@ -269,15 +285,179 @@ def test_install_namespace_provider(testcase, default_ns, ns):
             assert len(conn.EnumerateClasses(namespace=namespace)) == 0
 
 
-TESTCASES_CIMNAMESPACE_PROVIDER_AND_ADD_NAMESPACE = [
+TESTCASES_ADD_NAMESPACE_NAMESPACE_PROVIDER = [
 
-    # Testcases for dictionary tests
+    # Testcases for tests of adding namespaces and namespace provider using
+    # mock add_namespaces as method to insert new namespaces
 
     # Each list item is a testcase tuple with these items:
     # * desc: Short testcase description.
     # * kwargs: Keyword arguments for the test function:
     #   * Pre_ns_to_add: Namespaces to create before namespace provider
     #     created
+    #   * interop_ns: names of interop namespace or None if defined elsewhere
+    #   * final_ns: namespaces added after namespace provider installed
+    #   * total_exp_ns: list of all namespaces added.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+
+    (
+        "Test with only default and interop",
+        dict(
+            initial_ns=[],
+            interop_ns='interop',
+            final_ns=[],
+            total_exp_ns=['root/cimv2', 'interop']
+        ),
+        None, None, OK
+    ),
+
+    (
+        "Test with namespaces before and after namespace provider added",
+        dict(
+            initial_ns=['ns_before'],
+            interop_ns='interop',
+            final_ns=['ns_after'],
+            total_exp_ns=['root/cimv2', 'interop', 'ns_before', 'ns_after']
+        ),
+        None, None, OK
+    ),
+    (
+        "Test with mutiple added namespaces",
+        dict(
+            initial_ns=['ns_b1', 'ns_b2'],
+            interop_ns='interop',
+            final_ns=['ns_a1', "ns_a2"],
+            total_exp_ns=['root/cimv2', 'interop', 'ns_b1', 'ns_b2', 'ns_a1',
+                          'ns_a2']
+        ),
+        None, None, OK
+    ),
+    (
+        "Test with multiple interop; part of initial ns and interop_ns",
+        dict(
+            initial_ns=['ns_b1', 'ns_b2', 'interop'],
+            interop_ns='interop_ns',
+            final_ns=['ns_a1', "ns_a2"],
+            total_exp_ns=['root/cimv2', 'interop', 'ns_b1', 'ns_b2', 'ns_a1',
+                          'ns_a2']
+        ),
+        CIMError, None, OK
+    ),
+    (
+        "Test with interop interop part of initial ns and interop",
+        dict(
+            initial_ns=['ns_b1', 'ns_b2', 'interop'],
+            interop_ns='interop',
+            final_ns=['ns_a1', "ns_a2"],
+            total_exp_ns=['root/cimv2', 'interop', 'ns_b1', 'ns_b2', 'ns_a1',
+                          'ns_a2']
+        ),
+        CIMError, None, OK
+    ),
+    (
+        "Test fails build interop second time in final_ns",
+        dict(
+            initial_ns=['ns_b1', 'ns_b2'],
+            interop_ns='interop',
+            final_ns=['ns_a1', "ns_a2", 'interop'],
+            total_exp_ns=['root/cimv2', 'interop', 'ns_b1', 'ns_b2', 'ns_a1',
+                          'ns_a2']
+        ),
+        CIMError, None, OK
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    TESTCASES_ADD_NAMESPACE_NAMESPACE_PROVIDER)
+@simplified_test_function
+def test_add_namespace_namespace_provider(testcase, initial_ns, interop_ns,
+                                          final_ns, total_exp_ns):
+    """
+    Test use of conn.add_namespace and installation of namespace provider.
+    This is because add_namespace must know of existence of namespace
+    provider to allow ussing server.create_namespace() if a namespace
+    provider exists.
+    """
+    # setup the connection and schema
+    conn = FakedWBEMConnection()
+
+    skip_if_moftab_regenerated()
+
+    schema = DMTFCIMSchema(DMTF_TEST_SCHEMA_VER, TESTSUITE_SCHEMA_DIR,
+                           verbose=False)
+
+    for ns in initial_ns:
+        conn.add_namespace(ns, verbose=VERBOSE)
+
+    # Uses add_namespace before interop namespace created.
+    if interop_ns:
+        conn.add_namespace(interop_ns, verbose=VERBOSE)
+
+    classnames = ["CIM_Namespace", "CIM_ObjectManager"]
+    conn.compile_schema_classes(classnames,
+                                schema.schema_pragma_file,
+                                namespace=interop_ns,
+                                verbose=VERBOSE)
+
+    omdict = {"SystemCreationClassName": SYSTEMCREATIONCLASSNAME,
+              "CreationClassName": OBJECTMANAGERCREATIONCLASSNAME,
+              "SystemName": SYSTEMNAME,
+              "Name": OBJECTMANAGERNAME,
+              "ElementName": 'Mock_Test',
+              "Description": "Mock_Test CIM Server"}
+
+    add_objectmgr_instance(conn, interop_ns, omdict)
+
+    # code to be tested
+    conn.install_namespace_provider(interop_ns, schema.schema_pragma_file)
+
+    # Use mock add_namespace to add namespace after namespace provider installed
+    for ns in final_ns:
+        conn.add_namespace(ns, verbose=VERBOSE)
+
+    # Ensure that exceptions raised in the remainder of this function
+    # are not mistaken as expected exceptions
+    assert testcase.exp_exc_types is None
+
+    # Assert that the defined interop namespace is installed
+    assert interop_ns in conn.namespaces
+
+    for ns in initial_ns:
+        assert ns in conn.namespaces
+
+    for ns in final_ns:
+        assert ns in conn.namespaces
+
+    assert len(conn.EnumerateInstances("CIM_Namespace", interop_ns)) == \
+        len(conn.namespaces)
+
+    for namespace in conn.namespaces:
+        if namespace != 'interop':
+            assert len(conn.EnumerateClasses(namespace=namespace)) == 0
+
+    wbemserver = WBEMServer(conn)
+    assert set(conn.namespaces) == set(wbemserver.namespaces)
+
+    assert set(conn.namespaces) == set(total_exp_ns)
+
+# TODO. Test add and remove namespaces with more variations
+
+
+TESTCASES_ADD_CIMNAMESPACE_WITH_CREATENAMESPACE = [
+
+    # Testcases for adding a namespace using wbemserver create_namespace after
+    # interop namespace created.
+
+    # Each list item is a testcase tuple with these items:
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * obj: Object that has dictionary behavior, e.g. IMInstanceName.
+    #   * exp_dict: Expected dictionary items, for validation.
     # * exp_exc_types: Expected exception type(s), or None.
     # * exp_warn_types: Expected warning type(s), or None.
     # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
@@ -302,7 +482,7 @@ TESTCASES_CIMNAMESPACE_PROVIDER_AND_ADD_NAMESPACE = [
         None, None, OK
     ),
     (
-        "Test with mutiple added namespaces",
+        "Test with multiple added namespaces",
         dict(
             initial_ns=['ns_b1', 'ns_b2'],
             final_ns=['ns_a1', "ns_a2"],
@@ -316,15 +496,12 @@ TESTCASES_CIMNAMESPACE_PROVIDER_AND_ADD_NAMESPACE = [
 
 @pytest.mark.parametrize(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
-    TESTCASES_CIMNAMESPACE_PROVIDER_AND_ADD_NAMESPACE)
+    TESTCASES_ADD_CIMNAMESPACE_WITH_CREATENAMESPACE)
 @simplified_test_function
-def test_add_namespace_and_namespace_provider(testcase, initial_ns, final_ns,
-                                              total_exp_ns):
+def test_add_cimnamespace_with_createnamespace(testcase, initial_ns, final_ns,
+                                               total_exp_ns):
     """
-    Test use of conn.add_namespace and installation of namespace provider.
-    This is because add_namespace must know of existence of namespace
-    provider to allow ussing server.create_namespace() if a namespace
-    provider exists.
+    Test installation of the namespace provider
     """
     # setup the connection and schema
     conn = FakedWBEMConnection()
@@ -334,13 +511,12 @@ def test_add_namespace_and_namespace_provider(testcase, initial_ns, final_ns,
     schema = DMTFCIMSchema(DMTF_TEST_SCHEMA_VER, TESTSUITE_SCHEMA_DIR,
                            verbose=False)
 
-    # code to be tested
-
     for ns in initial_ns:
         conn.add_namespace(ns)
 
     interop_ns = 'interop'
 
+    # Uses add_namespace before interop namespace created.
     conn.add_namespace(interop_ns)
 
     classnames = ["CIM_Namespace", "CIM_ObjectManager"]
@@ -356,18 +532,15 @@ def test_add_namespace_and_namespace_provider(testcase, initial_ns, final_ns,
               "ElementName": 'Mock_Test',
               "Description": "Mock_Test CIM Server"}
 
-    ominst = inst_from_classname(conn, "CIM_ObjectManager",
-                                 namespace=interop_ns,
-                                 property_values=omdict,
-                                 include_missing_properties=False,
-                                 include_path=True)
+    add_objectmgr_instance(conn, interop_ns, omdict)
 
-    conn.add_cimobjects(ominst, namespace=interop_ns)
-
+    # code to be tested, install provider and add remaining namespaces
     conn.install_namespace_provider(interop_ns, schema.schema_pragma_file)
 
+    # Usewbemserver to add namespace after namespace provider installed
+    server = WBEMServer(conn)
     for ns in final_ns:
-        conn.add_namespace(ns)
+        server.create_namespace(ns)
 
     # Ensure that exceptions raised in the remainder of this function
     # are not mistaken as expected exceptions
@@ -390,5 +563,3 @@ def test_add_namespace_and_namespace_provider(testcase, initial_ns, final_ns,
             assert len(conn.EnumerateClasses(namespace=namespace)) == 0
 
     assert set(conn.namespaces) == set(total_exp_ns)
-
-# TODO. Test add and remove namespaces with more variations

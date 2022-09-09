@@ -29,6 +29,9 @@ following functionality:
   * Methods that provide access to specific objects in the CIM repository
     including the processing consistent with filtering the returned objects.
     For example, `get_class(...)` the internal equilavent of the GetClass.
+
+  BaseProvider does not have direct access to the common methods
+  defined in _wbemconnection_mock
 """
 
 from __future__ import absolute_import, print_function
@@ -51,7 +54,7 @@ __all__ = ['BaseProvider']
 
 class BaseProvider(object):
     """
-    BaseProvider is the top level class in the provider hiearchy and includes
+    BaseProvider is the top level class in the provider hierarchy and includes
     methods required by both builtin providers and user-defined providers.
     This class is not intended to be executed directly.
     """
@@ -473,6 +476,30 @@ class BaseProvider(object):
         """
         class_store = self.cimrepository.get_class_store(namespace)
         return class_store.object_exists(classname)
+
+    def _get_instances(self, classname, namespace):
+        """
+        Get instances of classname from the CIMRepository.  It does not
+        get instances of subclasses.
+
+        Parameters:
+
+          classname (:term:`string`):
+            Name of class for which instances will be retrieved.
+
+          namespace (:term:`string`):
+            Repository namespace to search.
+
+        Returns:
+          List of instances in repository that represent classname
+        """
+        classnames = NocaseList(classname)
+        instance_store = self.cimrepository.get_instance_store(namespace)
+
+        insts = [self._get_bare_instance(inst.path, instance_store)
+                 for inst in instance_store.iter_values()
+                 if inst.path.classname in classnames]
+        return insts
 
     @staticmethod
     def filter_properties(obj, property_list):

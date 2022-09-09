@@ -179,8 +179,27 @@ class CIMNamespaceProvider(InstanceWriteProvider):
         # Create the new namespace in the CIM repository, if needed.
         # The add_namespace() method will prevent the creation of a second
         # Interop namespace, raising CIMError(CIM_ERR_ALREADY_EXISTS).
+        # Allows namespace to exist but fails if and instance of
+        # CIMInstanceName exists with this name
+
         if new_namespace not in self.cimrepository.namespaces:
             self.add_namespace(new_namespace)
+        else:
+            # If instance exists of CIM_Namespace for this new_instance.name
+            # generate exception. This accounts for possible differences
+            # in the other key properties of the new_instance to disallow
+            # multiple namespaces with the same namespace name.
+            insts = self._get_instances(NAMESPACE_CLASSNAME, namespace)
+
+            for inst in insts:
+                if inst.path['Name'].lower() == new_namespace.lower():
+                    raise CIMError(
+                        CIM_ERR_INVALID_PARAMETER,
+                        _format(
+                            "Cannot create namespace {0!A}. This namespace "
+                            "already exists and was created with the "
+                            "CIM_Namespace provider.",
+                            namespace))
 
         # Create the CIM instance for the new namespace in the CIM repository,
         # by delegating to the default provider method.
