@@ -57,6 +57,9 @@ Released: not yet
 
 * Fixed new formatting issues raised by flake8 5.0.
 
+* Fixed a RecursionError exception raised by flake8 on Python 3.6 and 3.7.
+  (issue #2922)
+
 **Enhancements:**
 
 **Cleanup:**
