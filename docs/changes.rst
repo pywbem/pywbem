@@ -111,6 +111,9 @@ Released: not yet
   server.create_namespace() if the interop namespace and namespace provider
   exist. (see issue #2865)
 
+* Fixed a RecursionError exception raised by flake8 on Python 3.6 and 3.7.
+  (issue #2922)
+
 **Enhancements:**
 
 * Added support for the new 'CIM_WBEMServerNamespace' class used in the
