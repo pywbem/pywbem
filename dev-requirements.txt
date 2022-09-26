@@ -107,9 +107,12 @@ tomlkit>=0.10.1; python_version >= '3.7'
 # flake8 3.9.0 has removed support for py34 and pip 19.1.1 on py34 does not deal
 # well with its pinned dependencies, so we need to repeat these for py34.
 # flake8 4.0.0 fixes an AttributeError on Python 3.10.
-flake8>=3.8.0; python_version == '2.7'
+# flake8 4.0.0 pins importlib-metadata to <4.3 on Python <3.8. This causes
+#   version conflicts with Sphinx>=4.4.0 and virtualenv>=20.0.35
+flake8>=3.8.0,<4.0.0; python_version == '2.7'
 flake8>=3.8.0,<3.9.0; python_version == '3.4'
-flake8>=3.8.0; python_version >= '3.5' and python_version <= '3.9'
+flake8>=3.8.0,<4.0.0; python_version >= '3.5' and python_version <= '3.7'
+flake8>=3.8.0; python_version >= '3.8' and python_version <= '3.9'
 flake8>=4.0.0; python_version >= '3.10'
 mccabe>=0.6.0; python_version == '2.7'
 mccabe>=0.6.0,<0.7.0; python_version == '3.4'
