@@ -162,6 +162,9 @@ Released: not yet
   instances for Open/Pull after  the request to the server is complete). (see
   issue #1801)
 
+* Added security issues 50748, 50571, 50664, 50663, 50892, 50885, 50886 to
+  Makefile ignore list of new security issue August and September 2022.
+
 **Known issues:**
 
 * See `list of open issues`_.
