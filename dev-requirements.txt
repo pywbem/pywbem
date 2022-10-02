@@ -66,7 +66,7 @@ sphinxcontrib-websupport>=1.1.2
 # Pygments 2.4.0 has removed support for Python 3.4
 Pygments>=2.1.3; python_version == '2.7'
 Pygments>=2.1.3,<2.4.0; python_version == '3.4'
-Pygments>=2.1.3; python_version >= '3.5'
+Pygments>=2.7.4; python_version >= "3.5"
 sphinx-rtd-theme>=0.5.0
 # autodocsumm before 0.2.5 fails on Python 3.10 with TypeError
 autodocsumm>=0.1.13,<0.2.0; python_version == '2.7'
