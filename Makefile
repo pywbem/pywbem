@@ -261,7 +261,8 @@ py_test_files := \
 # - For packages that are direct or indirect development or test requirements,
 #   upgrade the package version only if possible w.r.t. the supported
 #   environments and add to the ignore list otherwise.
-# Current safety ignore list, with reasons:
+# Current safety ignore list, with reasons why marked ignore rather than modify
+# the requirements files:
 # Runtime dependencies:
 # - 38100: PyYAML on py34 cannot be upgraded; no issue since PyYAML FullLoader is not used
 # - 38834: urllib3 on py34 cannot be upgraded -> remains an issue on py34
@@ -299,12 +300,13 @@ py_test_files := \
 # - 45775 Sphinx 3.0.4 updates jQuery version, cannot upgrade Sphinx on py27
 # - 47833 Click 8.0.0 uses 'mkstemp()', cannot upgrade Click due to incompatibilities
 # - 45185 Pylint cannot be upgraded on py27
-# - SEPT 2022
 # - 50748 lxml - NULL pointer dereference min ver 4.6.2 to 4.9.1
 # - 50571 dparse (used by safety). Impacts dparse 0.4.1 and 0.5.1. Null pointer deref & ReDos issue
 # - 50664 ipwidgets - User Jupyter. Min ver 5.2.2 to 8.0.0. Sanitize descriptions
 # - 50463 ipwidgets - from 5.2.2 to 8.0.0.rc2
 # - 50792 nbconvert - from 5.0.0 to 6.5.1
+# - 50885 pygments Pygments 2.7.4 cannot be used on Python 2.7
+# - 50886 pygments Pygments 2.7.4 cannot be used on Python 2.7
 
 safety_ignore_opts := \
     -i 38100 \
@@ -352,6 +354,8 @@ safety_ignore_opts := \
 		-i 50463 \
 		-i 50792 \
 		-i 50748 \
+		-i 50885 \
+		-i 50886 \
 
 # Python source files for test (unit test and function test)
 test_src_files := \
