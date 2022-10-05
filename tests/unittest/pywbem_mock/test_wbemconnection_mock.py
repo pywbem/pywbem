@@ -6512,6 +6512,20 @@ class TestInstanceOperations(object):
              MOFRepositoryError(
                  r"Cannot compile instance .* CreateInstance", None,
                  CIMError(CIM_ERR_INVALID_PARAMETER))],
+
+            # Test assoc with reference property containing host element
+            ['instance of TST_Person as $Sofi { name = "Sofi"; };\n'
+             'instance of TST_FamilyCollection as $Family1 '
+             '{ name = "family1"; };\n'
+             'instance of TST_MemberOfFamilyCollection as $Family1Sofi'
+             '{ family = $Family1; };\n',
+             ('TST_MemberOfFamilyCollection',
+              {'family': CIMInstanceName('TST_FamilyCollection',
+                                         {'name': 'family1'}, host="fred"),
+               'member': CIMInstanceName('TST_Person', {'name': "Sofi"})}),
+             MOFRepositoryError(
+                 r"Cannot compile instance .* CreateInstance", None,
+                 CIMError(CIM_ERR_INVALID_PARAMETER))],
         ]
     )
     def test_compile_instances_path(self, conn, tst_assoc_class_mof, ns,

@@ -114,6 +114,11 @@ Released: not yet
 * Fixed a RecursionError exception raised by flake8 on Python 3.6 and 3.7.
   (issue #2922)
 
+* Fixed issue in pywbem_mock instancewrite providers where Create/Modify of
+  an instance with reference properties fails if host set in reference property
+  (i.e. CIMInstanceName). Now issues a warning and ignores the host value since
+  pywbem_mock does not handle cross-host associations. (see issue #2920)
+
 **Enhancements:**
 
 * Added support for the new 'CIM_WBEMServerNamespace' class used in the

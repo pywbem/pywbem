@@ -86,12 +86,13 @@ method, because no additional init parameters are needed.
 
 from __future__ import absolute_import, print_function
 
+from pywbem._nocasedict import NocaseDict
+
 from pywbem import CIMInstanceName, CIMInstance, CIMError, CIMClass, \
     CIM_ERR_INVALID_PARAMETER, CIM_ERR_ALREADY_EXISTS, CIM_ERR_INVALID_CLASS, \
     CIM_ERR_NOT_FOUND
 
 from pywbem._utils import _format
-from pywbem._nocasedict import NocaseDict
 
 from ._baseprovider import BaseProvider
 
@@ -244,7 +245,7 @@ class InstanceWriteProvider(BaseProvider):
                     if prop.value is None:
                         continue
                     # Exception if end point does not exist
-                    self.validate_reference_property_endpoint_exists(prop)
+                    self.validate_reference_property_endpoint_exists(prop,)
 
         # If association class and references multiple namespaces, add instance
         # to each namespace defined in the reference properties
@@ -407,7 +408,7 @@ class InstanceWriteProvider(BaseProvider):
                                     "end {1!A} with None value not allowed ",
                                     prop.name, prop.value))
                     if prop.value != original_instance[pn]:
-                        self.validate_reference_property_endpoint_exists(prop)
+                        self.validate_reference_property_endpoint_exists(prop,)
 
         # Update the properties in the original instance from properties
         # in the modified instance
@@ -854,9 +855,20 @@ class InstanceWriteProvider(BaseProvider):
         Raises:
             CIMError if value of property is not a valid instance or Null
         """
-        if not self.validate_instance_exists(prop.value):
+        path = prop.value
+
+        if path.host:
+            raise CIMError(
+                CIM_ERR_INVALID_PARAMETER,
+                _format("Reference property {0!A} association "
+                        "end point {1!A} includes host element {2!A}. "
+                        "Pywbem_mock does not allow host element in "
+                        "reference properties of association instances",
+                        prop.name, path, path.host))
+
+        if not self.validate_instance_exists(path):
             raise CIMError(
                 CIM_ERR_INVALID_PARAMETER,
                 _format("Reference property {0!A} association "
                         "end point {1!A} does not exist ",
-                        prop.name, prop.value))
+                        prop.name, path))
