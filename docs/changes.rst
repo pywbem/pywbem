@@ -60,6 +60,10 @@ Released: not yet
 * Fixed a RecursionError exception raised by flake8 on Python 3.6 and 3.7.
   (issue #2922)
 
+* Fixed a flake8 AttributeError when using importlib-metadata 5.0.0 on
+  Python <=3.7, by pinning importlib-metadata to <5.0.0 on these Python
+  versions.
+
 **Enhancements:**
 
 **Cleanup:**
