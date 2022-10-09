@@ -39,7 +39,8 @@ jsonschema>=2.6.0,!=4.0.0
 requests-mock>=1.6.0
 requests-toolbelt>=0.8.0
 yagot>=0.5.0
-importlib-metadata>=0.22; python_version <= '3.7'
+# importlib-metadata 5.0.0 causes AttributeError with flake8 on Python <=3.7
+importlib-metadata>=0.22,<5.0.0; python_version <= '3.7'
 importlib-metadata>=1.1.0; python_version >= '3.8'
 # pytz before 2019.1 fails on Python 3.10 because it uses collections.Mapping
 pytz>=2016.10; python_version <= '3.9'
