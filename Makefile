@@ -307,6 +307,8 @@ py_test_files := \
 # - 50664 ipwidgets - User Jupyter. Min ver 5.2.2 to 8.0.0. Sanitize descriptions
 # - 50463 ipwidgets - from 5.2.2 to 8.0.0.rc2
 # - 50792 nbconvert - from 5.0.0 to 6.5.1
+# - 50885 Pygments 2.7.4 cannot be used on Python 2.7
+# - 50886 Pygments 2.7.4 cannot be used on Python 2.7
 
 safety_ignore_opts := \
     -i 38100 \
@@ -354,6 +356,8 @@ safety_ignore_opts := \
 		-i 50463 \
 		-i 50792 \
 		-i 50748 \
+		-i 50885 \
+		-i 50886 \
 
 # Python source files for test (unit test and function test)
 test_src_files := \
