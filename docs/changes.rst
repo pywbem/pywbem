@@ -14,18 +14,16 @@ Change log
       :revisions: 1
 
 
-pywbem 1.4.2.dev1
------------------
+pywbem 1.4.2
+------------
 
-Released: not yet
+Released: 2022-10-11
 
 **Incompatible changes:**
 
 * The removal of internal symbols from the 'pywbem_mock' Python namespace may
   cause name errors in your code, if you were using them.
   (related to issue #2888)
-
-**Deprecations:**
 
 **Bug fixes:**
 
@@ -62,16 +60,6 @@ Released: not yet
 
 * Added security issues 50748, 50571, 50664, 50663, 50892, 50885, 50886 to
   Makefile ignore list of new security issue August and September 2022.
-
-**Enhancements:**
-
-**Cleanup:**
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 1.4.1
