@@ -380,10 +380,10 @@ pytest_end2end_opts := -v --tb=short $(pytest_opts) --es-file $(test_dir)/end2en
 pytest_cov_opts := --cov $(package_name) --cov $(mock_package_name) $(coverage_report) --cov-config .coveragerc
 
 ifeq ($(python_m_version),3)
-  pytest_warning_opts := -W default -W ignore::PendingDeprecationWarning
+  pytest_warning_opts := -W default
   pytest_end2end_warning_opts := $(pytest_warning_opts)
 else
-  pytest_warning_opts := -W default -W ignore::PendingDeprecationWarning
+  pytest_warning_opts := -W default
   pytest_end2end_warning_opts := $(pytest_warning_opts)
 endif
 
