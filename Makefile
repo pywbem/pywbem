@@ -382,10 +382,10 @@ else
 endif
 
 ifeq ($(python_m_version),3)
-  pytest_warning_opts := -W default -W ignore::PendingDeprecationWarning
+  pytest_warning_opts := -W default
   pytest_end2end_warning_opts := $(pytest_warning_opts)
 else
-  pytest_warning_opts := -W default -W ignore::PendingDeprecationWarning
+  pytest_warning_opts := -W default
   pytest_end2end_warning_opts := $(pytest_warning_opts)
 endif
 
