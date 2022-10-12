@@ -14,12 +14,12 @@ Change log
       :revisions: 1
 
 
-pywbem 1.5.0.dev1
------------------
+pywbem 1.5.0
+------------
 
-This version contains all fixes up to version 1.4.x.
+This version contains all fixes up to version 1.4.2.
 
-Released: not yet
+Released: 2022-10-12
 
 **Incompatible changes:**
 
@@ -40,8 +40,6 @@ Released: not yet
   reference properties of associations define existing instances if the
   property values exist. Previously they validated only the correct value type.
   (see issue #2908, extension to bidirectional inter-namespace associations)
-
-**Deprecations:**
 
 **Bug fixes:**
 
@@ -173,12 +171,6 @@ Released: not yet
 * Fixed issue with mock namespace provider that would acreate the
   same namespace twice under some conditions (i.e. same name property but
   different path on CreateInstance. (see issue #2918)
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 1.4.0
