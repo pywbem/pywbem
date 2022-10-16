@@ -257,6 +257,7 @@ jupyter_client==4.4.0
 jupyter_core==4.2.1
 jupyterlab-pygments==0.1.2; python_version >= '3.5'
 jupyterlab-widgets==1.0.2; python_version >= '3.5'
+nbclassic==0.4.0; python_version >= '3.7'  # notebook 6.5.1 started using nbclassic
 nbclient==0.5.13; python_version >= '3.5'
 nbconvert==5.0.0
 nbformat==4.2.0
