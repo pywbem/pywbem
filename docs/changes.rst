@@ -41,6 +41,12 @@ Released: not yet
   versions 3.5 and 3.6 cannot be installed with setup-python github action for
   CI tests and ubuntu-22.04. (see pywbemtools issue # 1245 for details)
 
+* Update the version of the OpenPegasus server Docker image used in tests to
+  the docker image kschopmeyer/openpegasus-server:0.1.2 which used OpenPegasus
+  2.14.3 located in the github OpenPegasus repository. This image is much
+  smaller (110 mb) but the same set of models and providers as the previous
+  image.
+
 **Known issues:**
 
 * See `list of open issues`_.
