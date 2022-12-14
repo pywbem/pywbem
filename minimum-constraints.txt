@@ -84,7 +84,9 @@ setuptools==41.5.1; python_version <= '3.9'
 setuptools==49.0.0; python_version >= '3.10'
 wheel==0.30.0; python_version == '2.7'
 # wheel 0.36.2 fixes empty and invalid tag issues in archive file name
-wheel==0.36.2; python_version >= '3.5'
+wheel==0.36.2; python_version >= '3.5' and python_version <= '3.7'
+# wheel 0.38.1 fixes CVE issue 51499.  Dropped support python 3.5 at wheel 37
+wheel==0.38.1; python_version >= '3.8'
 
 
 # Direct dependencies for installation (must be consistent with requirements.txt)
@@ -132,7 +134,9 @@ build==0.5.1
 Cython==0.29.22
 
 # Unit test (imports into testcases):
-packaging==19.0
+packaging==19.0; python_version <= '3.6'
+# Packaging 21.0 required by safety 2.2.0
+packaging==21.0; python_version >= '3.7'
 funcsigs==1.0.2; python_version < '3.3'
 pytest==4.3.1; python_version <= '3.6'
 pytest==4.4.0; python_version >= '3.7' and python_version <= '3.9'
@@ -182,9 +186,15 @@ coveralls==2.1.2; python_version >= '3.5'
 
 # Safety CI by pyup.io
 safety==1.8.7; python_version == '2.7'
-safety==1.9.0; python_version >= '3.5'
+# version 2. not compatible with python 3.5
+safety==1.9.0; python_version == '3.5'
+# safety 2.2.0 resolves safety issue #51358
+safety==2.2.0; python_version >= '3.6'
+
 dparse==0.4.1; python_version == '2.7'
-dparse==0.5.1; python_version >= '3.5'
+dparse==0.5.1; python_version == '3.5'
+# dparse version 0.6.2 required by safety 2.2.0
+dparse==0.6.2; python_version >= '3.6'
 
 # Tox
 tox==2.5.0
@@ -311,7 +321,9 @@ backports.shutil-get-terminal-size==1.0.0; python_version == '2.7'
 backports.statistics==0.1.0; python_version == '2.7'
 beautifulsoup4==4.10.0; python_version >= '3.5'
 cffi==1.14.5
-Click==7.1.1
+# Click used by easy-vault (8.0.2) and safety (7.1.1).
+Click==7.1.1; python_version <= '3.5'
+Click==8.0.2; python_version >= '3.6'
 clint==0.5.1
 configparser==4.0.2; python_version == '2.7'
 contextlib2==0.6.0.post1; python_version == '2.7'
@@ -350,7 +362,8 @@ platformdirs==2.2.0
 prometheus-client==0.13.1
 prompt-toolkit==2.0.1
 ptyprocess==0.5.1
-py==1.10.0
+# Safety issue # 51457, min version 1.11.0
+py==1.11.0
 pycparser==2.21
 pyparsing==2.4.7; python_version == '2.7'
 pyparsing==2.4.7; python_version == '3.5'
