@@ -309,15 +309,18 @@ py_test_files := \
 # - 50792 nbconvert - from 5.0.0 to 6.5.1
 # - 50885 pygments Pygments 2.7.4 cannot be used on Python 2.7
 # - 50886 pygments Pygments 2.7.4 cannot be used on Python 2.7
+# - 51499 Wheel CVE fix in version 0.38.0 yanked after release
+# - 51358 Safety, before 2.2.0 uses dparse with issue, python 2.7 max is 1.9.0
+# - 51457 py - Latest release has this safety issue i.e. <=1.11.0
 
 safety_ignore_opts := \
-    -i 38100 \
+		-i 38100 \
 		-i 38834 \
 		-i 38765 \
 		-i 38892 \
 		-i 38224 \
-    -i 37504 \
-    -i 37765 \
+		-i 37504 \
+		-i 37765 \
 		-i 38107 \
 		-i 38330 \
 		-i 39194 \
@@ -358,6 +361,9 @@ safety_ignore_opts := \
 		-i 50748 \
 		-i 50885 \
 		-i 50886 \
+		-i 51499 \
+		-i 51358 \
+		-i 51457 \
 
 # Python source files for test (unit test and function test)
 test_src_files := \

@@ -29,6 +29,9 @@ Released: not yet
 
 **Cleanup:**
 
+* Ignore new safety issues for wheel, safety, and py packages and update
+  values in minimum-requirements.txt.
+
 **Known issues:**
 
 * See `list of open issues`_.
