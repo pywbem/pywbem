@@ -32,6 +32,11 @@ Released: not yet
 * Ignore new safety issues for wheel, safety, and py packages and update
   values in minimum-requirements.txt.
 
+* Update github actions matrix to restore tests to running after github
+  update of ubuntu-latest to v 22.04.  This is because python
+  versions 3.5 and 3.6 cannot be installed with setup-python github action for
+  CI tests and ubuntu-22.04. (see pywbemtools issue # 1245 for details)
+
 **Known issues:**
 
 * See `list of open issues`_.
