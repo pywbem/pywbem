@@ -35,7 +35,7 @@ jobs:
       # TODO: Find a way to define this with fewer escapes.
       run: |
         if [[ "${{ github.event_name }}" == "schedule" || "${{ github.head_ref }}" =~ ^release_ ]]; then \
-          echo "::set-output name=matrix::{ \
+          echo "matrix={ \
             \"os\": [ \"ubuntu-latest\", \"macos-latest\", \"windows-latest\" ], \
             \"python-version\": [ \"2.7\", \"3.5\", \"3.6\", \"3.7\", \"3.8\", \"3.9\", \"3.10\" ], \
             \"package_level\": [ \"minimum\", \"latest\" ], \
@@ -93,9 +93,9 @@ jobs:
                 \"package_level\": \"minimum\" \
               } \
             ] \
-          }"; \
+          }" >> $GITHUB_OUTPUT; \
         else \
-          echo "::set-output name=matrix::{ \
+          echo "matrix={ \
             \"os\": [ \"ubuntu-latest\" ], \
             \"python-version\": [ \"2.7\", \"3.10\" ], \
             \"package_level\": [ \"minimum\", \"latest\" ], \
@@ -156,7 +156,7 @@ jobs:
                 \"package_level\": \"latest\" \
               } \
             ] \
-          }"; \
+          }" >> $GITHUB_OUTPUT; \
         fi
     - name: Show matrix in JSON
       run: echo '${{ steps.select_matrix.outputs.matrix }}'
