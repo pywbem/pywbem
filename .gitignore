@@ -49,3 +49,5 @@ setuptools-*.zip
 /dist/pywbem*.tar.gz
 /dist/pywbem*.whl
 .DS_Store
+/try/
+/issues/
