@@ -199,7 +199,7 @@ jobs:
     - name: Display initial Python packages
       run: |
         echo "Installed Python packages:"
-        pip list
+        make pip_list
     - name: Display platform and env vars
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
@@ -213,7 +213,7 @@ jobs:
     - name: Display Python packages
       run: |
         echo "Installed Python packages:"
-        pip list
+        make pip_list
     - name: Development setup
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
@@ -222,7 +222,7 @@ jobs:
     - name: Display Python packages
       run: |
         echo "Installed Python packages:"
-        pip list
+        make pip_list
     - name: Show package dependency tree
       run: |
         echo "Package dependency tree of installed Python packages:"
