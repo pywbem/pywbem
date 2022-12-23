@@ -168,17 +168,8 @@ python_mn_version := $(shell $(PYTHON_CMD) tools/python_version.py 2)
 python_m_version := $(shell $(PYTHON_CMD) tools/python_version.py 1)
 pymn := py$(python_mn_version)
 
-# pip 20.0 added the --no-python-version-warning option. Keep the following in sync
-# with the pip versions in minimum-constraints.txt.
-ifeq ($(python_mn_version),2.7)
-  pip_version_opts := --disable-pip-version-check
-else
-  ifeq ($(python_mn_version),3.5)
-    pip_version_opts := --disable-pip-version-check
-  else
-    pip_version_opts := --disable-pip-version-check --no-python-version-warning
-	endif
-endif
+# Use of the --no-python-version-warning option requires pip>=20.0.
+pip_version_opts := --disable-pip-version-check --no-python-version-warning
 
 # Tags for file name of cythonized wheel archive
 cython_pytag := $(shell $(PYTHON_CMD) -c "import sys; print('cp{}{}'.format(*sys.version_info[0:2]))")

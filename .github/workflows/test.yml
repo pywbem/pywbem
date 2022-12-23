@@ -193,6 +193,9 @@ jobs:
       with:
         fetch-depth: 0
     - name: Set up Python ${{ matrix.python-version }}
+      env:
+        PIP_DISABLE_PIP_VERSION_CHECK: 1
+        PIP_NO_PYTHON_VERSION_WARNING: 1
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
