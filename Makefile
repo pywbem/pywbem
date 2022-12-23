@@ -168,6 +168,18 @@ python_mn_version := $(shell $(PYTHON_CMD) tools/python_version.py 2)
 python_m_version := $(shell $(PYTHON_CMD) tools/python_version.py 1)
 pymn := py$(python_mn_version)
 
+# pip 20.0 added the --no-python-version-warning option. Keep the following in sync
+# with the pip versions in minimum-constraints.txt.
+ifeq ($(python_mn_version),2.7)
+  pip_version_opts := --disable-pip-version-check
+else
+  ifeq ($(python_mn_version),3.5)
+    pip_version_opts := --disable-pip-version-check
+  else
+    pip_version_opts := --disable-pip-version-check --no-python-version-warning
+	endif
+endif
+
 # Tags for file name of cythonized wheel archive
 cython_pytag := $(shell $(PYTHON_CMD) -c "import sys; print('cp{}{}'.format(*sys.version_info[0:2]))")
 cython_abitag := $(shell $(PYTHON_CMD) -c "import sys; print('cp{}{}{}'.format(sys.version_info[0],sys.version_info[1],getattr(sys, 'abiflags','mu')))")
@@ -520,7 +532,7 @@ platform:
 .PHONY: pip_list
 pip_list:
 	@echo "Makefile: Python packages as seen by make:"
-	$(PIP_CMD) list
+	$(PIP_CMD) $(pip_version_opts) list
 
 .PHONY: env
 env:
@@ -537,17 +549,17 @@ pip_upgrade_$(pymn).done: Makefile
 	-$(call RM_FUNC,$@)
 ifeq ($(PLATFORM),Windows_native)
 	@echo "Makefile: On Windows, there is no automatic upgrade of Pip to a minimum version of 9.x. Current Pip version:"
-	$(PIP_CMD) --version
+	$(PIP_CMD) $(pip_version_opts) --version
 else
 	bash -c 'pv=$$($(PIP_CMD) --version); if [[ $$pv =~ (^pip [1-8]\..*) ]]; then $(PIP_INSTALL_CMD) pip==9.0.1; fi'
 endif
-	$(PIP_INSTALL_CMD) $(pip_level_opts) pip
+	$(PIP_INSTALL_CMD) $(pip_version_opts) $(pip_level_opts) pip
 	echo "done" >$@
 
 install_basic_$(pymn).done: Makefile pip_upgrade_$(pymn).done
 	@echo "Makefile: Installing/upgrading basic Python packages with PACKAGE_LEVEL=$(PACKAGE_LEVEL)"
 	-$(call RM_FUNC,$@)
-	$(PIP_INSTALL_CMD) $(pip_level_opts) setuptools wheel
+	$(PIP_INSTALL_CMD) $(pip_version_opts) $(pip_level_opts) setuptools wheel
 	echo "done" >$@
 	@echo "Makefile: Done installing/upgrading basic Python packages"
 
@@ -556,12 +568,12 @@ install_pywbem_$(pymn).done: Makefile pip_upgrade_$(pymn).done requirements.txt 
 ifdef TEST_INSTALLED
 	@echo "Makefile: Skipping installation of pywbem and its Python runtime prerequisites because TEST_INSTALLED is set"
 	@echo "Makefile: Checking whether pywbem is actually installed:"
-	$(PIP_CMD) show $(package_name)
+	$(PIP_CMD) $(pip_version_opts) show $(package_name)
 else
 	@echo "Makefile: Installing pywbem (as editable) and its Python installation prerequisites (with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
 	-$(call RMDIR_FUNC,build $(package_name).egg-info .eggs)
-	$(PIP_INSTALL_CMD) $(pip_level_opts) -r requirements.txt
-	$(PIP_INSTALL_CMD) $(pip_level_opts) -e .
+	$(PIP_INSTALL_CMD) $(pip_version_opts) $(pip_level_opts) -r requirements.txt
+	$(PIP_INSTALL_CMD) $(pip_version_opts) $(pip_level_opts) -e .
 	@echo "Makefile: Done installing pywbem and its Python runtime prerequisites"
 endif
 	echo "done" >$@
@@ -571,11 +583,11 @@ installc_pywbem_$(pymn).done: Makefile pip_upgrade_$(pymn).done $(bdistc_file)
 ifdef TEST_INSTALLED
 	@echo "Makefile: Skipping installation of pywbem and its Python runtime prerequisites because TEST_INSTALLED is set"
 	@echo "Makefile: Checking whether pywbem is actually installed:"
-	$(PIP_CMD) show $(package_name)
+	$(PIP_CMD) $(pip_version_opts) show $(package_name)
 else
 	@echo "Makefile: Installing cythonized wheel archive"
-	$(PIP_CMD) uninstall -y $(package_name)
-	$(PIP_INSTALL_CMD) $(bdistc_file)
+	$(PIP_CMD) $(pip_version_opts) uninstall -y $(package_name)
+	$(PIP_INSTALL_CMD) $(pip_version_opts) $(bdistc_file)
 	@echo "Makefile: Done installing cythonized wheel archive"
 endif
 	echo "done" >$@
@@ -625,7 +637,7 @@ develop: develop_$(pymn).done
 develop_$(pymn).done: pip_upgrade_$(pymn).done install_$(pymn).done develop_os_$(pymn).done install_basic_$(pymn).done dev-requirements.txt test-requirements.txt
 	@echo "Makefile: Installing Python development requirements (with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
 	-$(call RM_FUNC,$@)
-	$(PIP_INSTALL_CMD) $(pip_level_opts) -r dev-requirements.txt
+	$(PIP_INSTALL_CMD) $(pip_version_opts) $(pip_level_opts) -r dev-requirements.txt
 	echo "done" >$@
 	@echo "Makefile: Done installing Python development requirements"
 
