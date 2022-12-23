@@ -34,7 +34,12 @@ try:
     from Cython.Compiler.Errors import CompileError
 except ImportError:
     cythonize = None
-from wheel.bdist_wheel import bdist_wheel as bdist_wheel_base
+# When run to determine the package version, the 'wheel' package may not yet be
+# installed, e.g. on GitHub Actions.
+try:
+    from wheel.bdist_wheel import bdist_wheel as bdist_wheel_base
+except ImportError:
+    bdist_wheel_base = object  # pylint: disable=invalid-name
 
 
 def get_version(version_file):
@@ -225,6 +230,10 @@ class bdist_wheel(bdist_wheel_base):
     The handling of the option is in the module level code because it needs
     to change the setuptools.setup() arguments.
     """
+    if bdist_wheel_base is object:
+        raise ImportError("wheel package is not installed and bdist_wheel "
+                          "command is used")
+
     user_options = bdist_wheel_base.user_options + [
         # (long option, short option, description)
         ('cythonized', None,
