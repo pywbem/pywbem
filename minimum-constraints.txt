@@ -66,6 +66,7 @@
 #   wheel       0.33.5
 
 # Additional requirements:
+
 # * pip>=9.0.0 to support the --upgrade-strategy option
 # * setuptools>=20.5 to support environment markers
 # * pip 10.0.0 introduced the --exclude-editable option.
@@ -75,18 +76,19 @@
 # * pip>=21.0 is needed for the cryptography package on Windows on GitHub Actions.
 # * pip 21.0 dropped support for Python 3.5.
 # * pip 22.0 dropped support for Python 3.6.
-pip==20.1.1; python_version <= '3.5'
+pip==10.0.1; python_version <= '3.5'
 pip==21.3.1; python_version >= '3.6'
+
 # setuptools 41.5.0 fixes build errors with Visual C++ 14.0 on Windows
 # setuptools 41.5.1 fixes a py27 regression introduced by 41.5.0.
 # setuptools 49.0.0 fixes the comparison of Python versions in requirements that was
 #   based on strings and thus ignored certain requirements on Python 3.10.
 setuptools==41.5.1; python_version <= '3.9'
 setuptools==49.0.0; python_version >= '3.10'
-wheel==0.30.0; python_version == '2.7'
-# wheel 0.36.2 fixes empty and invalid tag issues in archive file name
-wheel==0.36.2; python_version >= '3.5' and python_version <= '3.7'
-# wheel 0.38.1 fixes CVE issue 51499.  Dropped support python 3.5 at wheel 37
+
+# wheel 0.36.2 fixes empty and invalid tag issues in archive file name, and supports get_platform() with args
+# wheel 0.38.1 fixes CVE issue 51499, and dropped support for Python <=3.6
+wheel==0.36.2; python_version <= '3.7'
 wheel==0.38.1; python_version >= '3.8'
 
 
