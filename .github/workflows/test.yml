@@ -168,6 +168,9 @@ jobs:
       max-parallel: 20
       matrix: ${{ fromJson(needs.set_matrix.outputs.matrix) }}
     runs-on: ${{ matrix.os }}
+    env:
+      PIP_DISABLE_PIP_VERSION_CHECK: 1
+      PIP_NO_PYTHON_VERSION_WARNING: 1
     steps:
     - name: Select whether to run steps for cythonized archive
       id: run_cythonized
@@ -193,9 +196,6 @@ jobs:
       with:
         fetch-depth: 0
     - name: Set up Python ${{ matrix.python-version }}
-      env:
-        PIP_DISABLE_PIP_VERSION_CHECK: 1
-        PIP_NO_PYTHON_VERSION_WARNING: 1
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
