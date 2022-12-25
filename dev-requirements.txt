@@ -176,7 +176,8 @@ pywin32>=227; sys_platform == 'win32' and python_version >= '3.8' and python_ver
 #   since it only appears on Python 2.
 #   This issue has been circumvented by pinning the Tornado version to <5.0 on
 #   Python 2.
-tornado<5.0; python_version <= '2.7'
+tornado>=4.4.2,<5.0; python_version <= '2.7'
+tornado>=4.4.2; python_version >= '3.5'
 
 # Table output formatter used by the manual performance tests to display
 # timing results
