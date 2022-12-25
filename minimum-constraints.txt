@@ -135,9 +135,9 @@ build==0.5.1
 Cython==0.29.22
 
 # Unit test (imports into testcases):
-packaging==19.0; python_version <= '3.6'
+packaging==19.0; python_version <= '3.5'
 # Packaging 21.0 required by safety 2.2.0
-packaging==21.0; python_version >= '3.7'
+packaging==21.0; python_version >= '3.6'
 funcsigs==1.0.2; python_version < '3.3'
 pytest==4.3.1; python_version <= '3.6'
 pytest==4.4.0; python_version >= '3.7' and python_version <= '3.9'
