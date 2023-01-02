@@ -27,6 +27,12 @@ Released: not yet
 
 **Bug fixes:**
 
+* Fix issue where we could get HTTP retries upon HTTP read timeouts from
+  the server.  Changed to not allow urllib3 to do retries on post 
+  operations (the CIM/XML operations all use post and duplicates of 
+  some operations (invoke, update) could cause data integrity issues).  
+  (see issue #2951)
+
 **Enhancements:**
 
 * Support for Python 3.11. (issue #2904)
