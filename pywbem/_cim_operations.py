@@ -205,7 +205,13 @@ RETRY_KWARGS = dict(
     redirect=HTTP_MAX_REDIRECTS,
     backoff_factor=HTTP_RETRY_BACKOFF_FACTOR
 )
-RETRY_KWARGS[RETRY_METHODS_PARM] = {'POST'}
+# The urllib3 default does not allow retries on POST operations. This definition
+# is urllib3 version dependent
+try:
+    RETRY_KWARGS[RETRY_METHODS_PARM] = urllib3.Retry.DEFAULT_ALLOWED_METHODS
+except (DeprecationWarning, AttributeError):
+    RETRY_KWARGS[RETRY_METHODS_PARM] = urllib3.Retry.DEFAULT_METHOD_WHITELIST
+
 if URLLIB3_VERSION_INFO >= (1, 26, 0):
     RETRY_KWARGS['other'] = HTTP_OTHER_RETRIES
 
