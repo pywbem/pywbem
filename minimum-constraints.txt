@@ -82,10 +82,12 @@ pip==22.2.2; python_version >= '3.11'
 
 # setuptools 41.5.0 fixes build errors with Visual C++ 14.0 on Windows
 # setuptools 41.5.1 fixes a py27 regression introduced by 41.5.0.
+# setuptools 44.0.0, last version that states py 2.7 requirement
 # setuptools 49.0.0 fixes the comparison of Python versions in requirements that was
 #   based on strings and thus ignored certain requirements on Python 3.10.
+# setuptools 65.5.1 fixes safety issue 52495
 setuptools==41.5.1; python_version <= '3.9'
-setuptools==49.0.0; python_version >= '3.10'
+setuptools==65.1.1; python_version >= '3.10'
 
 # wheel 0.36.2 fixes empty and invalid tag issues in archive file name, and supports get_platform() with args
 # wheel 0.38.1 fixes CVE issue 51499, and dropped support for Python <=3.6
@@ -212,7 +214,10 @@ docutils==0.13.1; python_version == '2.7'
 docutils==0.13.1; python_version >= '3.5' and python_version <= '3.9'
 docutils==0.14; python_version >= '3.10'
 sphinx-git==10.1.1
-GitPython==2.1.1
+# GitPython version 3.0.0 and newer does not support python 2.7
+# GitPython version 3.1.27 fixes safety issue #52518
+GitPython==2.1.1; python_version <= '3.5'
+GitPython==3.1.27; python_version >= '3.6'
 sphinxcontrib-fulltoc==1.2.0
 sphinxcontrib-websupport==1.1.2
 sphinxcontrib-applehelp==1.0.2; python_version >= '3.5'
@@ -393,8 +398,8 @@ Send2Trash==1.8.0
 sh==1.12.14
 simplegeneric==0.8.1
 singledispatch==3.7.0; python_version == '2.7'
-smmap==3.0.5; python_version == '2.7'
-smmap==5.0.0; python_version >= '3.5'
+# KS: issue with smmap 5.0.0 requiring gitdb >= 4 and gitdb 4.0.1
+smmap==3.0.5
 smmap2==2.0.1
 snowballstemmer==1.2.1
 soupsieve==2.3.1; python_version >= '3.5'
