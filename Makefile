@@ -312,6 +312,10 @@ py_test_files := \
 # - 51499 Wheel CVE fix in version 0.38.0 yanked after release
 # - 51358 Safety, before 2.2.0 uses dparse with issue, python 2.7 max is 1.9.0
 # - 51457 py - Latest release has this safety issue i.e. <=1.11.0
+# - 52495 setuptools - 41.5.1 max version python <= 3.9
+# - 52365 certifi - 2020.6.20 max version for certifi
+# - 52518 GitPython - python 2.7 only supported by v < 3.0.0
+# - 52322 GitPython - All released versions affected
 
 safety_ignore_opts := \
 		-i 38100 \
@@ -364,6 +368,10 @@ safety_ignore_opts := \
 		-i 51499 \
 		-i 51358 \
 		-i 51457 \
+		-i 52365 \
+		-i 52495 \
+		-i 52518 \
+		-i 52322 \
 
 # Python source files for test (unit test and function test)
 test_src_files := \
