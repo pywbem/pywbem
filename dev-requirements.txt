@@ -93,6 +93,8 @@ pylint>=2.15.0; python_version >= '3.11'
 astroid>=2.4.0; python_version == '3.5'
 astroid>=2.7.2; python_version >= '3.6' and python_version <= '3.10'
 astroid>=2.12.4; python_version >= '3.11'
+# astroid 2.13.0 uses typing-extensions on Python<3.11 but misses to require it on 3.10. See https://github.com/PyCQA/astroid/issues/1942
+typing-extensions>=3.10; python_version <= '3.10'
 typed-ast>=1.4.0,<1.5.0; python_version >= '3.6' and python_version < '3.8' and implementation_name=='cpython'
 # lazy-object-proxy is used by astroid
 lazy-object-proxy>=1.4.3; python_version >= '3.5'
