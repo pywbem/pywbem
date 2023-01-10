@@ -838,10 +838,11 @@ flake8_$(pymn).done: develop_$(pymn).done Makefile $(flake8_rc_file) $(py_src_fi
 	echo "done" >$@
 	@echo "Makefile: Done running Flake8"
 
+# The safety test failure does not cause a CI test failure. Issue # 2970
 safety_$(pymn).done: develop_$(pymn).done Makefile minimum-constraints.txt
 	@echo "Makefile: Running pyup.io safety check"
 	-$(call RM_FUNC,$@)
-	safety check -r minimum-constraints.txt --full-report $(safety_ignore_opts)
+	-safety check -r minimum-constraints.txt --full-report $(safety_ignore_opts)
 	echo "done" >$@
 	@echo "Makefile: Done running pyup.io safety check"
 

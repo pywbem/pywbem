@@ -45,7 +45,10 @@ Released: not yet
 * Update github actions matrix to restore tests to running after github
   update of ubuntu-latest to v 22.04.  This is because python
   versions 3.5 and 3.6 cannot be installed with setup-python github action for
-  CI tests and ubuntu-22.04. (see pywbemtools issue # 1245 for details)
+  CI tests and ubuntu-22.04. (see pywbemtools issue # 1245 for details).
+
+* Modify Makefile so safety check does not cause fatal github test failure.
+  (see issue #2970)
 
 * Update the version of the OpenPegasus server Docker image used in tests to
   the docker image kschopmeyer/openpegasus-server:0.1.2 which used OpenPegasus
