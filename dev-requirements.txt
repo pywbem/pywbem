@@ -15,7 +15,7 @@
 build>=0.5.1
 
 # Cythonize
-Cython>=0.29.22
+Cython>=0.29.33
 
 # Coverage reporting (no imports, invoked via coveralls script):
 coverage>=5.0
@@ -223,8 +223,7 @@ pip-check-reqs>=2.3.2; python_version >= '3.5' and python_version <= '3.10'
 pip-check-reqs>=2.4.3; python_version >= '3.11'
 
 pyzmq>=16.0.4; python_version <= '3.8'
-pyzmq>=20.0.0; python_version >= '3.9' and python_version <= '3.10'
-pyzmq>=23.2.1; python_version >= '3.11'
+pyzmq>=23.2.1; python_version >= '3.9'
 
 # Indirect dependencies are not specified in this file unless constraints are needed.
 
