@@ -14,16 +14,10 @@ Change log
       :revisions: 1
 
 
-pywbem 1.6.0.dev1
------------------
+pywbem 1.6.0
+------------
 
-This version contains all fixes up to version 1.5.x.
-
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
+Released: 2023-01-14
 
 **Bug fixes:**
 
@@ -55,12 +49,6 @@ Released: not yet
   2.14.3 located in the github OpenPegasus repository. This image is much
   smaller (110 mb) but the same set of models and providers as the previous
   image.
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 1.5.0
