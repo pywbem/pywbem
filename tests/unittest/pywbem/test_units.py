@@ -15,6 +15,8 @@ from pywbem import CIMProperty, CIMMethod, CIMParameter, CIMQualifier, \
     siunit_obj, siunit  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
+# Literal form {"blah: 0} faster than dict(blah=0) but same functionality
+# pylint: disable=use-dict-literal
 
 # Some qualifier objects used for test cases
 TEST_QUAL_PUNIT1_BYTE = CIMQualifier('PUnit', value='byte')

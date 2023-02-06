@@ -40,6 +40,9 @@ pywbem_mock = import_installed('pywbem_mock')
 from pywbem_mock import FakedWBEMConnection  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
+# Literal form {"blah: 0} faster than dict(blah=0) but same functionality
+# pylint: disable=use-dict-literal
+
 # Location of the schema for use by test_mof_compiler.
 # This should not change unless you intend to use another schema directory
 TEST_DIR = os.path.dirname(__file__)

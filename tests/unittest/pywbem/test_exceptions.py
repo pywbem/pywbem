@@ -21,6 +21,10 @@ from pywbem import Error, ConnectionError, AuthError, HTTPError, TimeoutError, \
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 # pylint: enable=redefined-builtin
 
+# pylint: disable=enable=wrong-import-position, wrong-import-order, invalid-name
+
+# {"blah: 0} instead of dict(blah=0)  would be faster but same functionality
+# pylint: disable=use-dict-literal
 
 # Test connection ID used for showing connection information in exception
 # messages

@@ -25,6 +25,9 @@ from pywbem._utils import _ascii2, _format, _integerValue_to_int  # noqa: E402
 from pywbem._cim_obj import NocaseDict  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
+# Literal form {"blah: 0} faster than dict(blah=0) but same functionality
+# pylint: disable=use-dict-literal
+
 # Indicates whether binary strings are supported for the format string of
 # _ascii2()
 BYTE_FORMAT_SUPPORTED = six.PY2 or platform.python_implementation() == 'PyPy'

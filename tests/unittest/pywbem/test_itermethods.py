@@ -40,6 +40,9 @@ from pywbem._cim_operations import pull_inst_result_tuple, \
     pull_path_result_tuple, pull_query_result_tuple  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
+# Literal form {"blah: 0} faster than dict(blah=0) but same functionality
+# pylint: disable=use-dict-literal
+
 
 @pytest.fixture
 def tst_class():

@@ -108,7 +108,7 @@ def test_leaks_CIMInstanceName_minimal():
         'CIM_Foo',
         namespace='root',
         host='woot.com',
-        keybindings=dict(P1='a', P2=42),
+        keybindings={'P1': 'a', 'P2': 42},
     )
 
 

@@ -267,7 +267,7 @@ def wbem_connection(request, es_server):
     ca_certs = es_server.secrets.get('ca_certs', None)
     cert_file = es_server.secrets.get('cert_file', None)
     key_file = es_server.secrets.get('key_file', None)
-    x509 = dict(cert_file=cert_file, key_file=key_file) \
+    x509 = {'cert_file': cert_file, 'key_file': key_file} \
         if cert_file and key_file else None
 
     image_port = None
