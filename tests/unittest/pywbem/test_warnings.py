@@ -19,6 +19,9 @@ from pywbem import Warning, ToleratedServerIssueWarning, \
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 # pylint: enable=redefined-builtin
 
+# Literal form {"blah: 0} faster than dict(blah=0) but same functionality
+# pylint: disable=use-dict-literal
+
 
 # Test connection ID used for showing connection information in exception
 # messages

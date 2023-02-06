@@ -24,6 +24,7 @@ pywbem = import_installed('pywbem')
 from pywbem import _tupletree, __version__  # noqa: E402
 from pywbem._cliutils import SmartFormatter as _SmartFormatter  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
+# pylint: disable=use-dict-literal
 
 # In pywbem 0.13, parse_cim() changed from a function to a method:
 try:

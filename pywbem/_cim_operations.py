@@ -197,14 +197,14 @@ with warnings.catch_warnings():
     else:
         RETRY_METHODS_PARM = 'method_whitelist'
 
-RETRY_KWARGS = dict(
-    total=HTTP_TOTAL_RETRIES,
-    connect=HTTP_CONNECT_RETRIES,
-    read=HTTP_READ_RETRIES,
-    status=HTTP_STATUS_RETRIES,
-    redirect=HTTP_MAX_REDIRECTS,
-    backoff_factor=HTTP_RETRY_BACKOFF_FACTOR
-)
+RETRY_KWARGS = {
+    'total': HTTP_TOTAL_RETRIES,
+    'connect': HTTP_CONNECT_RETRIES,
+    'read': HTTP_READ_RETRIES,
+    'status': HTTP_STATUS_RETRIES,
+    'redirect': HTTP_MAX_REDIRECTS,
+    'backoff_factor': HTTP_RETRY_BACKOFF_FACTOR
+}
 # The urllib3 default does not allow retries on POST operations. This definition
 # is urllib3 version dependent
 try:

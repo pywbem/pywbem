@@ -44,9 +44,9 @@ Released: 2023-01-14
 **Bug fixes:**
 
 * Fix issue where we could get HTTP retries upon HTTP read timeouts from
-  the server.  Changed to not allow urllib3 to do retries on post 
-  operations (the CIM/XML operations all use post and duplicates of 
-  some operations (invoke, update) could cause data integrity issues).  
+  the server.  Changed to not allow urllib3 to do retries on post
+  operations (the CIM/XML operations all use post and duplicates of
+  some operations (invoke, update) could cause data integrity issues).
   (see issue #2951)
 
 **Enhancements:**
@@ -71,6 +71,16 @@ Released: 2023-01-14
   2.14.3 located in the github OpenPegasus repository. This image is much
   smaller (110 mb) but the same set of models and providers as the previous
   image.
+
+* Modifications and pylint ignore statements for new pylint test for
+  dict form dict(a=1) which is slower than {'a':1} and other new tests in
+  pylint 2.16.0
+
+**Known issues:**
+
+* See `list of open issues`_.
+
+.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 1.5.0

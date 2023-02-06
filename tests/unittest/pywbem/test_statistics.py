@@ -18,6 +18,9 @@ pywbem = import_installed('pywbem')
 from pywbem import Statistics  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
+# {"blah: 0} instead of dict(blah=0)  would be faster but same functionality
+# pylint: disable=use-dict-literal
+
 
 @pytest.fixture(params=[
     True,

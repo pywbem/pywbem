@@ -23,6 +23,9 @@ from pywbem import WBEMListener, ListenerPortError  # noqa: E402
 from pywbem._utils import _format  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
+# Literal form {"blah: 0} faster than dict(blah=0) but same functionality
+# pylint: disable=use-dict-literal
+
 # Log level to be used. To enable logging, change this constant to the desired
 # log level, and add code to set or unset the log level of the root logger
 # globally or specifically in each test case.

@@ -23,6 +23,9 @@ from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     __version__  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
+# Literal form {"blah: 0} faster than dict(blah=0) but same functionality
+# pylint: disable=use-dict-literal
+
 # Tuple with pywbem version info (M, N, P), without any dev version.
 # Can be used in testcase conditions for version specific tests.
 # Note for dev versions (e.g. '0.15.0.dev12'):
