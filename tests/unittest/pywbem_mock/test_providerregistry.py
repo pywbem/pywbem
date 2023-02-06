@@ -29,6 +29,9 @@ from pywbem_mock import FakedWBEMConnection, MethodProvider, \
     InstanceWriteProvider, BaseProvider  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
+# Literal form {"blah: 0} faster than dict(blah=0) but same functionality
+# pylint: disable=use-dict-literal
+
 
 def assert_provreg_equal(provreg1, provreg2):
     """

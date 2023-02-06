@@ -52,6 +52,8 @@ from pywbem._logging import configure_loggers_from_string, configure_logger, \
     LOGGER_API_CALLS_NAME, LOGGER_HTTP_NAME  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
+# Literal form {"blah: 0} faster than dict(blah=0) but same functionality
+# pylint: disable=use-dict-literal
 
 VERBOSE = False
 

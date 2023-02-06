@@ -44,6 +44,8 @@ from pywbem_mock.config import OBJECTMANAGERNAME, \
 pywbem_mock = import_installed('pywbem_mock')
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
+# Literal form {"blah: 0} faster than dict(blah=0) but same functionality
+# pylint: disable=use-dict-literal
 
 # Location of DMTF schema directory used by all tests.
 # This directory is permanent and should not be removed.

@@ -34,6 +34,9 @@ from pywbem_mock import InMemoryRepository  # noqa: E402
 from pywbem_mock._inmemoryrepository import InMemoryObjectStore  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
+# The literal {'a': 1} would be faster than dict(a=1) but same funtionality
+# pylint: disable=use-dict-literal
+
 
 def assert_equal(repo1, repo2):
     """

@@ -14,6 +14,9 @@ from ..utils.pytest_extensions import simplified_test_function
 from ...resourcetest import memory_utils
 from ...resourcetest.memory_utils import total_sizeof
 
+# Literal form {"blah: 0} faster than dict(blah=0) but same functionality
+# pylint: disable=use-dict-literal
+
 # pypy's implementation of sys.getsizeof() raises TypeError
 try:
     sys.getsizeof(None)

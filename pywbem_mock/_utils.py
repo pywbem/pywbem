@@ -72,9 +72,9 @@ def _uprint(dest, text):
         sys.stdout.write(text)
     elif isinstance(dest, (six.text_type, six.binary_type)):
         if isinstance(text, six.text_type):
-            kw = dict(mode='a', encoding='utf-8')
+            kw = {'mode': 'a', 'encoding': 'utf-8'}
         else:
-            kw = dict(mode='ab')
+            kw = {'mode': 'ab'}
         with io.open(dest, **kw) as f:  # pylint: disable=unspecified-encoding
             f.write(text)
     else:

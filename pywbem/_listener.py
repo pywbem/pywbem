@@ -230,7 +230,7 @@ def saved_term_attrs():
         term_fd = None
 
     if term_fd is not None:
-        count_dict = dict(count=0)  # Must be mutable
+        count_dict = {'count': 0}  # must be mutable
         saved_attrs = termios.tcgetattr(term_fd)
         atexit.register(restore_term_attrs, term_fd, saved_attrs, count_dict)
 

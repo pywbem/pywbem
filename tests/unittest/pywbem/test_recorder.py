@@ -56,6 +56,10 @@ pywbem_mock = import_installed('pywbem_mock')
 from pywbem_mock import FakedWBEMConnection  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
+# Literal form {"blah: 0} faster than dict(blah=0) but same functionality
+# pylint: disable=use-dict-literal
+
+
 # Ordered dict type created by yamlloader.ordereddict loaders
 if sys.version_info[0:2] >= (3, 7):
     yaml_ordereddict = dict  # pylint: disable=invalid-name
