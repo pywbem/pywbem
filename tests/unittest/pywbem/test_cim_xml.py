@@ -20,7 +20,11 @@ from ..utils.pytest_extensions import simplified_test_function
 from ...utils import import_installed
 pywbem = import_installed('pywbem')
 from pywbem import _cim_xml  # noqa: E402
-# pylint: enable=wrong-import-position, wrong-import-order, invalid-name
+
+# pylint: disable=enable=wrong-import-position, wrong-import-order, invalid-name
+
+# {"blah: 0} instead of dict(blah=0)  would be faster but same functionality
+# pylint: disable=use-dict-literal
 
 
 def iter_flattened(lst):

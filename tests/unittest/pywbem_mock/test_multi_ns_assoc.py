@@ -49,6 +49,9 @@ from pywbem_mock import FakedWBEMConnection  # noqa:E402
 # List of initially existing namespaces in the CIM repository
 INITIAL_NAMESPACES = [DEFAULT_NAMESPACE]
 
+# Literal form {"blah: 0} faster than dict(blah=0) but same functionality
+# pylint: disable=use-dict-literal
+
 #
 # Class mof for associations and endpoints. This is created in all namespaces.
 #

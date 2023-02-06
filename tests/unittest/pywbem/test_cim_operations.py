@@ -34,6 +34,9 @@ pywbem_mock = import_installed('pywbem_mock')
 from pywbem_mock import FakedWBEMConnection  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
+# Literal form {"blah: 0} faster than dict(blah=0) but same functionality
+# pylint: disable=use-dict-literal
+
 # Name of null device
 DEV_NULL = 'nul' if sys.platform == 'win32' else '/dev/null'
 

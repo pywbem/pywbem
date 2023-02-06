@@ -257,6 +257,7 @@ package_version = get_version(os.path.join('pywbem', '_version.py'))
 #   highlight=setup#distutils.core.setup
 # * https://setuptools.readthedocs.io/en/latest/setuptools.html#
 #   new-and-changed-setup-keywords
+# pylint: disable=use-dict-literal
 setup_options = dict(
     name='pywbem',
     version=package_version,
