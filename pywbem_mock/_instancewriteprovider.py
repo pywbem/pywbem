@@ -104,9 +104,9 @@ __all__ = ['InstanceWriteProvider']
 
 class InstanceWriteProvider(BaseProvider):
     """
-    This class defines those instance provider methods that may have user-
-    defined providers that override the default provider implementation in this
-    class.
+    This class defines those instance provider methods that may have
+    user-defined providers that override the default provider implementation
+    in this class.
 
     *New in pywbem 1.0 as experimental and finalized in 1.2.*
 
@@ -538,7 +538,8 @@ class InstanceWriteProvider(BaseProvider):
         is not a multi-namespace association.
 
         Parameters:
-          cim_object (:class:`CIMInstance` or :class:`CIMInstanceName)
+
+          cim_object (:class:`CIMInstance` or :class:`CIMInstanceName`):
             object from which references/keybindings searched to determine
             if multinamespace object. Must be an association.
 

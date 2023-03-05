@@ -27,6 +27,9 @@ Released: not yet
 
 **Bug fixes:**
 
+* Fixed a doc build issue with Sphinx 6.x (issue #2983) and addressed
+  some of the Sphinx warnings during doc build.
+
 **Enhancements:**
 
 **Cleanup:**
