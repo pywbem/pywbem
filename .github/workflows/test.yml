@@ -7,11 +7,11 @@ on:
   schedule:
     # The schedule event always (and only) runs on the master branch.
     - # cron (in UTC): minute hour day_of_month month day_of_week
-      cron: '00 00 * * SUN'
+      cron: '00 22 * * SAT'
   push:
-    branches: [ master, stable_1.6 ]
+    branches: [ master, stable_* ]
   pull_request:
-    branches: [ master, stable_1.6 ]
+    branches: [ master, stable_* ]
 
 env:
   # Local Docker image cache directory
@@ -118,6 +118,11 @@ jobs:
               { \
                 \"os\": \"ubuntu-latest\", \
                 \"python-version\": \"3.7\", \
+                \"package_level\": \"latest\" \
+              }, \
+              { \
+                \"os\": \"ubuntu-latest\", \
+                \"python-version\": \"3.8\", \
                 \"package_level\": \"latest\" \
               }, \
               { \
