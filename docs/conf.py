@@ -122,7 +122,7 @@ release = version
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'en'
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -538,6 +538,6 @@ intersphinx_cache_limit = 5
 # results in the link caption "this issue".
 
 extlinks = {
-  'nbview': ('https://nbviewer.jupyter.org/github/pywbem/pywbem/blob/master/docs/notebooks/%s', ''),
-  'nbdown': ('https://github.com/pywbem/pywbem/raw/master/docs/notebooks/%s', '')
+  'nbview': ('https://nbviewer.jupyter.org/github/pywbem/pywbem/blob/master/docs/notebooks/%s', '%s'),
+  'nbdown': ('https://github.com/pywbem/pywbem/raw/master/docs/notebooks/%s', '%s')
 }

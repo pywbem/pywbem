@@ -703,14 +703,14 @@ html: develop_$(pymn).done $(doc_build_dir)/html/index.html
 $(doc_build_dir)/html/index.html: Makefile $(doc_utility_help_files) $(doc_dependent_files)
 	@echo "Makefile: Creating the documentation as HTML pages"
 	-$(call RM_FUNC,$@)
-	bash -c "pushd docs; $(doc_cmd) -b html $(doc_opts) ../$(doc_build_dir)/html; popd"
+	bash -c "pushd docs; $(doc_cmd) -b html $(doc_opts) ../$(doc_build_dir)/html"
 	@echo "Makefile: Done creating the documentation as HTML pages; top level file: $@"
 
 .PHONY: pdf
 pdf: develop_$(pymn).done Makefile $(doc_utility_help_files) $(doc_dependent_files)
 	@echo "Makefile: Creating the documentation as PDF file"
 	-$(call RM_FUNC,$@)
-	bash -c "pushd docs; $(doc_cmd) -b latex $(doc_opts) ../$(doc_build_dir)/pdf; popd"
+	bash -c "pushd docs; $(doc_cmd) -b latex $(doc_opts) ../$(doc_build_dir)/pdf"
 	@echo "Makefile: Running LaTeX files through pdflatex..."
 	$(MAKE) -C $(doc_build_dir)/pdf all-pdf
 	@echo "Makefile: Done creating the documentation as PDF file in: $(doc_build_dir)/pdf/"
@@ -720,14 +720,14 @@ pdf: develop_$(pymn).done Makefile $(doc_utility_help_files) $(doc_dependent_fil
 man: develop_$(pymn).done Makefile $(doc_utility_help_files) $(doc_dependent_files)
 	@echo "Makefile: Creating the documentation as man pages"
 	-$(call RM_FUNC,$@)
-	bash -c "pushd docs; $(doc_cmd) -b man $(doc_opts) ../$(doc_build_dir)/man; popd"
-	@echo "Makefile: Done creating the documentation as man pages in: $(doc_build_dir)/man/"
+	bash -c "pushd docs; $(doc_cmd) -b man $(doc_opts) ../$(doc_build_dir)/man/man1"
+	@echo "Makefile: Done creating the documentation as man pages in: $(doc_build_dir)/man/man1"
 	@echo "Makefile: Target $@ done."
 
 .PHONY: docchanges
 docchanges: develop_$(pymn).done
 	@echo "Makefile: Creating the doc changes overview file"
-	bash -c "pushd docs; $(doc_cmd) -b changes $(doc_opts) ../$(doc_build_dir)/changes; popd"
+	bash -c "pushd docs; $(doc_cmd) -b changes $(doc_opts) ../$(doc_build_dir)/changes"
 	@echo
 	@echo "Makefile: Done creating the doc changes overview file in: $(doc_build_dir)/changes/"
 	@echo "Makefile: Target $@ done."
@@ -735,7 +735,7 @@ docchanges: develop_$(pymn).done
 .PHONY: doclinkcheck
 doclinkcheck: develop_$(pymn).done
 	@echo "Makefile: Creating the doc link errors file"
-	bash -c "pushd docs; $(doc_cmd) -b linkcheck $(doc_opts) ../$(doc_build_dir)/linkcheck; popd"
+	bash -c "pushd docs; $(doc_cmd) -b linkcheck $(doc_opts) ../$(doc_build_dir)/linkcheck"
 	@echo
 	@echo "Makefile: Done creating the doc link errors file: $(doc_build_dir)/linkcheck/output.txt"
 	@echo "Makefile: Target $@ done."
@@ -743,7 +743,7 @@ doclinkcheck: develop_$(pymn).done
 .PHONY: doccoverage
 doccoverage: develop_$(pymn).done
 	@echo "Makefile: Creating the doc coverage results file"
-	bash -c "pushd docs; $(doc_cmd) -b coverage $(doc_opts) ../$(doc_build_dir)/coverage; popd"
+	bash -c "pushd docs; $(doc_cmd) -b coverage $(doc_opts) ../$(doc_build_dir)/coverage"
 	@echo "Makefile: Done creating the doc coverage results file: $(doc_build_dir)/coverage/python.txt"
 	@echo "Makefile: Target $@ done."
 
