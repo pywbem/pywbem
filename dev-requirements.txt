@@ -45,7 +45,6 @@ tox>=2.5.0
 
 # Sphinx (no imports, invoked via sphinx-build script):
 # Keep in sync with rtd-requirements.txt
-
 # Sphinx 2.0.0 removed support for Python 2.7
 # Sphinx >=4.0.0 breaks autodocsumm <0.2.4 (issue #2697)
 # Sphinx <4.2.0 fails on Python 3.10 because it tries to import non-existing
@@ -59,7 +58,8 @@ Sphinx>=3.5.4; python_version >= '3.6' and python_version <= '3.9'
 Sphinx>=4.2.0; python_version >= '3.10'
 docutils>=0.13.1,<0.17; python_version == '2.7'
 docutils>=0.13.1; python_version >= '3.5' and python_version <= '3.9'
-docutils>=0.14; python_version >= '3.10'
+docutils>=0.14; python_version == '3.10'
+docutils>=0.16; python_version >= '3.11'
 sphinx-git>=10.1.1
 # GitPython version 3.0.0 and newer does not support Python 2.7
 # GitPython version 3.1.24 requires Python >=3.7
