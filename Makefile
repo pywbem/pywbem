@@ -239,6 +239,9 @@ pylint_rc_file := pylintrc
 pylint_todo_opts := --disable=fixme
 pylint_no_todo_opts := --enable=fixme
 
+# Safety policy file
+safety_policy_file := .safety-policy.yml
+
 # Flake8 config file
 flake8_rc_file := .flake8
 
@@ -254,124 +257,6 @@ py_test_files := \
     $(wildcard $(test_dir)/*/*.py) \
     $(wildcard $(test_dir)/*/*/*.py) \
     $(wildcard $(test_dir)/*/*/*/*.py) \
-
-# Issues reported by safety command that are ignored.
-# Package upgrade strategy due to reported safety issues:
-# - For packages that are direct or indirect runtime requirements, upgrade
-#   the package version only if possible w.r.t. the supported environments and
-#   if the issue affects pywbem, and add to the ignore list otherwise.
-# - For packages that are direct or indirect development or test requirements,
-#   upgrade the package version only if possible w.r.t. the supported
-#   environments and add to the ignore list otherwise.
-# Current safety ignore list, with reasons why marked ignore rather than modify
-# the requirements files:
-# Runtime dependencies:
-# - 38100: PyYAML on py34 cannot be upgraded; no issue since PyYAML FullLoader is not used
-# - 38834: urllib3 on py34 cannot be upgraded -> remains an issue on py34
-# Development and test dependencies:
-# - 38765: We want to test install with minimum pip versions.
-# - 38892: lxml cannot be upgraded on py34; no issue since HTML Cleaner of lxml is not used
-# - 38224: pylint cannot be upgraded on py27+py34
-# - 37504: twine cannot be upgraded on py34
-# - 37765: psutil cannot be upgraded on PyPy
-# - 38107: bleach cannot be upgraded on py34
-# - 38330: Sphinx cannot be upgraded on py27+py34
-# - 39194: lxml cannot be upgraded on py34; no issue since HTML Cleaner of lxml is not used
-# - 39195: lxml cannot be upgraded on py34; no issue since output file paths do not come from untrusted sources
-# - 39462: The CVE for tornado will be replaced by a CVE for Python, see https://github.com/tornadoweb/tornado/issues/2981
-# - 39611: PyYAML cannot be upgraded on py34+py35; We are not using the FullLoader.
-# - 39621: Pylint cannot be upgraded on py27+py34
-# - 39525: Jinja2 cannot be upgraded on py34
-# - 40072: lxml HTML cleaner in lxml 4.6.3 no longer includes the HTML5 'formaction'
-# - 38932: cryptography cannot be upgraded to 3.2 on py34
-# - 39252: cryptography cannot be upgraded to 3.3 on py34+py35
-# - 39606: cryptography cannot be upgraded to 3.3.2 on py34+py35
-# - 40291: pip cannot be upgraded to 21.1 py<3.6
-# - 40380..40386: notebook issues fixed in 6.1.5 which would prevent using notebook on py2
-# NOV 2021
-# - 42218 pip <21.1 - unicode separators in git references
-# - 42253 Notebook, before 5.7.1 allows XSS via untrusted notebook
-# - 42254 Notebook before 5.7.2, allows XSS via crafted directory name
-# - 42297 Bleach before 3.11, a mutation XSS afects user calling bleach.clean
-# - 42298 Bleach before 3.12, mutation XSS affects bleach.clean
-# - 42293 babel, before 2.9.1 CVS-2021-42771, Bable.locale issue
-# - 42559 pip, before 21.1 CVE-2021-3572
-# - 43366 lxml, before 4.6.5 CVE-2021-43818, code not used
-# - 43975 urllib3, before 1.26.5 CVE-2021-33503, not important
-# - 44634 ipython >=6.0.0a0,<7.16.3 CVE-2022-21699, partly updated, not recognized properly by safety
-# - 45775 Sphinx 3.0.4 updates jQuery version, cannot upgrade Sphinx on py27
-# - 47833 Click 8.0.0 uses 'mkstemp()', cannot upgrade Click due to incompatibilities
-# - 45185 Pylint cannot be upgraded on py27
-# - 50748 lxml - NULL pointer dereference min ver 4.6.2 to 4.9.1
-# - 50571 dparse (used by safety). Impacts dparse 0.4.1 and 0.5.1. Null pointer deref & ReDos issue
-# - 50664 ipwidgets - User Jupyter. Min ver 5.2.2 to 8.0.0. Sanitize descriptions
-# - 50463 ipwidgets - from 5.2.2 to 8.0.0.rc2
-# - 50792 nbconvert - from 5.0.0 to 6.5.1
-# - 50885 pygments Pygments 2.7.4 cannot be used on Python 2.7
-# - 50886 pygments Pygments 2.7.4 cannot be used on Python 2.7
-# - 51499 Wheel CVE fix in version 0.38.0 yanked after release
-# - 51358 Safety, before 2.2.0 uses dparse with issue, python 2.7 max is 1.9.0
-# - 51457 py - Latest release has this safety issue i.e. <=1.11.0
-# - 52495 setuptools - 41.5.1 max version python <= 3.9
-# - 52365 certifi - 2020.6.20 max version for certifi
-# - 52518 GitPython - python 2.7 only supported by v < 3.0.0
-# - 52322 GitPython - All released versions affected
-
-safety_ignore_opts := \
-		-i 38100 \
-		-i 38834 \
-		-i 38765 \
-		-i 38892 \
-		-i 38224 \
-		-i 37504 \
-		-i 37765 \
-		-i 38107 \
-		-i 38330 \
-		-i 39194 \
-		-i 39195 \
-		-i 39462 \
-		-i 39611 \
-		-i 39621 \
-		-i 39525 \
-		-i 40072 \
-		-i 38932 \
-		-i 39252 \
-		-i 39606 \
-		-i 40291 \
-		-i 40380 \
-		-i 40381 \
-		-i 40382 \
-		-i 40383 \
-		-i 40384 \
-		-i 40385 \
-		-i 40386 \
-		-i 42218 \
-		-i 42253 \
-		-i 42254 \
-		-i 42297 \
-		-i 42298 \
-		-i 42203 \
-		-i 42559 \
-		-i 43366 \
-		-i 43975 \
-		-i 44634 \
-		-i 45775 \
-		-i 47833 \
-		-i 45185 \
-		-i 50571 \
-		-i 50664 \
-		-i 50463 \
-		-i 50792 \
-		-i 50748 \
-		-i 50885 \
-		-i 50886 \
-		-i 51499 \
-		-i 51358 \
-		-i 51457 \
-		-i 52365 \
-		-i 52495 \
-		-i 52518 \
-		-i 52322 \
 
 # Python source files for test (unit test and function test)
 test_src_files := \
@@ -451,7 +336,7 @@ help:
 	@echo "  check_reqs - Perform missing dependency checks"
 	@echo "  build      - Build the source and wheel distribution archives in: $(dist_dir)"
 	@echo "  builddoc   - Build documentation in: $(doc_build_dir)"
-	@echo "  check      - Run Flake8 on sources"
+	@echo "  check      - Run Flake8 on sources and safety on minimum_constraints.txt"
 	@echo "  pylint     - Run PyLint on sources"
 	@echo "  installtest - Run install tests"
 	@echo "  test       - Run unit and function tests (in tests/unittest and tests/functiontest)"
@@ -839,12 +724,30 @@ flake8_$(pymn).done: develop_$(pymn).done Makefile $(flake8_rc_file) $(py_src_fi
 	@echo "Makefile: Done running Flake8"
 
 # The safety test failure does not cause a CI test failure. Issue # 2970
-safety_$(pymn).done: develop_$(pymn).done Makefile minimum-constraints.txt
-	@echo "Makefile: Running pyup.io safety check"
+#safety_$(pymn).done: develop_$(pymn).done Makefile minimum-constraints.txt
+#	@echo "Makefile: Running pyup.io safety check"
+#	-$(call RM_FUNC,$@)
+#	-safety check -r minimum-constraints.txt --full-report $(safety_ignore_opts)
+#	echo "done" >$@
+#	@echo "Makefile: Done running pyup.io safety check"
+
+# NEW safety -----------------
+safety_$(pymn).done: develop_$(pymn).done Makefile $(safety_policy_file) minimum-constraints.txt
+ifeq ($(python_m_version),2)
+	@echo "Makefile: Warning: Skipping Safety on Python $(python_version)" >&2
+else
+ifeq ($(python_mn_version),3.5)
+	@echo "Makefile: Warning: Skipping Safety on Python $(python_version)" >&2
+else
+	@echo "Makefile: Running Safety"
 	-$(call RM_FUNC,$@)
-	-safety check -r minimum-constraints.txt --full-report $(safety_ignore_opts)
+	safety check --policy-file $(safety_policy_file) -r minimum-constraints.txt --full-report
 	echo "done" >$@
-	@echo "Makefile: Done running pyup.io safety check"
+	@echo "Makefile: Done running Safety"
+endif
+endif
+
+# END ---------------------
 
 ifdef TEST_INSTALLED
   test_deps =

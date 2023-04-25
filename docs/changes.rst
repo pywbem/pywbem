@@ -31,6 +31,13 @@ Released: not yet
 
 **Cleanup:**
 
+* Replaced the safety_ignore_opts in Makefile that is used as the basis for
+  ignoring safety issues with the use of a .safety_policy_file defined by
+  the safety utility.
+
+* Add a number of new ignores for additions to the safety issues lise May
+  2003
+
 **Known issues:**
 
 * See `list of open issues`_.

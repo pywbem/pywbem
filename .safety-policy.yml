@@ -1,0 +1,162 @@
+# Safety policy file
+# For documentation, see https://docs.pyup.io/docs/safety-20-policy-file
+#
+# Generally package vulnerabilites listed in the ignore-vulnerabilities
+# list below are there because:
+# 1. There is no release that resolves the vulnerability.  In this case, there
+#    should also be an expire entry to remind the pywbem team to recheck
+# 2. The required version of a package to resolve the issue is not available
+#    for all of the python version supported by pywbem. In that case, the
+#    vulnerability will remain ignored until such time as the versions of
+#    python that cannot support the required version of the package are no
+#    longer supported by pywbem.
+#
+# The way to see python version limitations for package versions
+#    as defined for pywbem is to filter the file minimum-constraints.txt
+#    for the package name. Multiple entries for same package name imply
+#    different minimum versions for different python releases.
+
+# Configuration for the 'safety check' command
+security:
+
+    # Ignore certain severities.
+    # A number between 0 and 10, with the following significant values:
+    # - 9: ignore all vulnerabilities except CRITICAL severity
+    # - 7: ignore all vulnerabilities except CRITICAL & HIGH severity
+    # - 4: ignore all vulnerabilities except CRITICAL, HIGH & MEDIUM severity
+    ignore-cvss-severity-below: 0
+
+    # Ignore unknown severities.
+    # Should be set to False.
+    ignore-cvss-unknown-severity: False
+
+    # List of specific vulnerabilities to ignore.
+    # {id}:                 # vulnerability ID
+    #     reason: {text}    # optional: Reason for ignoring it. Will be reported in the Safety reports
+    #     expires: {date}   # optional: Date when this ignore will expire
+    ignore-vulnerabilities:
+        37504:
+            reason: Fixed Twine version requires Python>=3.6 and is used there
+        38330:
+            reason: Fixed Sphinx version requires Python>=3.5 and is used there
+        39611:
+            reason: PyYAML full_load method or FullLoader is not used
+        39621:
+            reason: Fixed Pylint version requires Python>=3.6 and is used there
+        40291:
+            reason: Fixed Pip version requires Python>=3.6 and is used there
+        42559:
+            reason: Fixed Pip version requires Python>=3.6 and is used there; Pip is not shipped with this package
+        43975:
+            reason: Fixed Urllib3 versions are excluded by requests
+        45185:
+            reason: Fixed Pylint version requires Python>=3.6.2 and is used there
+        45775:
+            reason: Fixed Sphinx version requires Python>=3.5 and is used there
+        47833:
+            reason: Fixed Click version requires Python>=3.6 and is used there
+        50885:
+            reason: Fixed Pygments version requires Python>=3.5 and is used there
+        50886:
+            reason: Fixed Pygments version requires Python>=3.5 and is used there
+        51457:
+            reason: Py package, affected <=1.11.0, not yet fixed (latest version 1.11.0)
+            expires: 2023-06-30
+        51499:
+            reason: Fixed Wheel version requires Python>=3.7 and is used there; Risk is on Pypi side
+        52322:
+            reason: Fixed GitPython version requires Python>=3.7 and is used there
+        52365:
+            reason: Fixed Certifi version requires Python>=3.6 and is used there
+        52495:
+            reason: Fixed Setuptools version requires Python>=3.7 and is used there; Risk is on Pypi side
+        52518:
+            reason: Fixed GitPython version requires Python>=3.7 and is used there
+        38765:
+            reason: pip v 10.0.1l We want to test install with minimum pip versions.
+        39606:
+            reason: Cryptography < 3.3.2,cryptography cannot be upgraded to 3.3.2 on < py35
+        53305:
+            reason: Cryptography, affected <39.0.1, python 2.7/3.5 do not support rqd. 39.0.1
+        53306:
+            reason: Cryptography, affected <39.0.1, python 2.7/3.5 do not support rqd. 39.0.1
+        53298:
+            reason: Cryptography, affected <39.0.1, python 2.7/3.5 do not support rqd. 39.0.1
+        53299:
+            reason: Cryptography, affected <39.0.1, python 2.7/3.5 do not support rqd. 39.0.1
+        53301:
+            reason: Cryptography, affected <39.0.1, python 2.7/3.5 do not support rqd. 39.0.1
+        53302:
+            reason: Cryptography, affected <39.0.1, python 2.7/3.5 do not support rqd. 39.0.1
+        53303:
+            reason: Cryptography, affected <39.0.1, python 2.7/3.5 do not support rqd. 39.0.1
+        53304:
+            reason: Cryptography, affected <39.0.1, python 2.7/3.5 do not support rqd. 39.0.1
+        53307:
+            reason: Cryptography, affected <39.0.1, python 2.7/3.5 do not support rqd. 39.0.1
+        53048:
+            reason: Cryptography, affected <39.0.1, python 2.7/3.5 do not support rqd. 39.0.1
+        43366:
+            reason: Lxml, affected <4.6.5, Only python 3.11 allows version 4.6.5
+        40072:
+            reason: Lxml, affected <4.6.3, Only python 3.10+ allows version 4.6.3
+        50748:
+            reason: Lxml, affected <4.9.1, Only python 3.11 allows version 4.9.1
+        44072:
+            reason: Lxml, affected <4.6.3, Only python 3.10+ allows version 4.6.5
+        51358:
+            reason: safety, affected <2.2.0, Python 2.7 and 3.5 limited to older versions
+        50571:
+            reason: dparse, affected <0.5.2, Python 2.7 and 3.5 limited to older versions
+        42203:
+            reason: Babel, affected <2.9.1, python 2.7 supports only to 2.9.0
+        53269:
+            reason: IPython, affected <8.10.0, python 2.7, 3.5, 3.6 limited to older versions
+        44634:
+            reason: IPython, affected <5.11, python 2.7, 3.5, 3.6 limited to older versions
+        50463:
+            reason: ipywidgets, affected <8.0.0rc2, python 2.7-3.6 limited to older versions
+        50664:
+            reason: ipywidgets, affected <8.0.0, python 2.7-3.6 limited to older versions
+        54717:
+            reason: Jupyter Core, affected <4.11.2
+        50792:
+            reason: Nbconvert, affected <6.5.1
+        42253:
+            reason: Jupyter Notebook, affected <5.7.1, python 2.7-3.5 limited to older versions
+        54713:
+            reason: Jupyter Notebook, affected <6.4.10, python 2.7-3.5 limited to older versions
+        40383:
+            reason: Jupyter Notebook, affected <5.7.6, python 2.7-3.5 limited to older versions
+        40384:
+            reason: Jupyter Notebook, affected <5.7.6, python 2.7-3.5 limited to older versions
+        40385:
+            reason: Jupyter Notebook, affected <5.7.3, python 2.7-3.5 limited to older versions
+        40380:
+            reason: Jupyter Notebook, affected <6.1.5, python 2.7-3.5 limited to older versions
+        40381:
+            reason: Jupyter Notebook, affected <6.0.2, python 2.7-3.5 limited to older versions
+        40386:
+            reason: Jupyter Notebook, affected <5.4.1, python 2.7-3.5 limited to older versions
+        54682:
+            reason: Jupyter Notebook, affected <5.5.0, python 2.7-3.5 limited to older versions
+        54689:
+            reason: Jupyter Notebook, affected <5.7.11, python 2.7-3.5 limited to older versions
+        54684:
+            reason: Jupyter Notebook, affected <6.4.12, python 2.7-3.5 limited to older versions
+        54678:
+            reason: Jupyter Notebook, affected <5.7.8, python 2.7-3.5 limited to older versions
+        42254:
+            reason: Jupyter Notebook, affected <5.7.2, python 2.7-3.5 limited to older versions
+        54687:
+            reason: pywin32, affected <301, python 2.7-3.9 limited to older versions
+        37765:
+            reason: psutil, affected <=5.6.5
+        39525:
+            reason: jinja2, affected <2.11.3
+        54679:
+            reason: jinja2, affected <2.10.1
+
+
+    # Continue with exit code 0 when vulnerabilities are found.
+    continue-on-vulnerability-error: False
