@@ -43,6 +43,9 @@ Released: not yet
 * Add a number of new ignores for additions to the safety issues lise May
   2003
 
+* Clarified the use of the host parameter on the WBEMListener class.  (see
+  issue #2995)
+
 **Known issues:**
 
 * See `list of open issues`_.
