@@ -719,11 +719,15 @@ class WBEMListener(object):
         Parameters:
 
           host (:term:`string`):
-            IP address or host name at which this listener can be reached.
+            IP address or host name to which this listener is bound (i.e.
+            at which this listener can be reached). Setting the host
+            address to IP address 0.0.0.0 defines a listener that binds to
+            all network interfaces.
 
-          http_port (:term:`string` or :term:`integer`):
+           http_port (:term:`string` or :term:`integer`):
             HTTP port at which this listener can be reached. Note that at
-            least one port (HTTP or HTTPS) must be set.
+            least one port (HTTP or HTTPS) must be set. Both the http and
+            https ports can be set.
 
             `None` means not to set up a port for HTTP.
 
@@ -853,8 +857,9 @@ class WBEMListener(object):
     @property
     def host(self):
         """
-        :term:`string`: IP address or host name at which this listener can be
-        reached.
+        :term:`string`: IP address or host name to which this listener is
+        bound. If IP adress 0.0.0.0, this listener is not bound to a particular
+        IP address and accepts requests from any host on any network.
         """
         return self._host
 
