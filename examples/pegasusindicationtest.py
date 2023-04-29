@@ -1,14 +1,17 @@
 #!/usr/bin/env python
 
 """
-Example of handling subscriptions and indications from a particular
-provider in OpenPegasus. This example depends on a test class and
-method in OpenPegasus.  It creates a server and a listener, starts
-the listener and then requests the indications from the server.
-It waits for a defined time for all indications to be received and
-then terminates either normally if all are received or in error if
-not all were received.
+Example of handling subscriptions and indications and receiving indications
+from a particular provider in OpenPegasus . This example depends on a test
+class and method in OpenPegasus.  It creates a server and a listener, starts
+the listener and then requests the indications from the server. It waits for a
+defined time for all indications to be received and then terminates either
+normally if all are received or in error if not all were received.
 
+This example:
+
+1. Only handles http WBEM server and listener because parameters do not allow
+   certificates.
 """
 from __future__ import print_function, absolute_import
 
@@ -18,259 +21,507 @@ import time
 import threading
 import logging
 import datetime
-from socket import getfqdn
-from six.moves import urllib
+import argparse
+
+# pylint: disable=consider-using-f-string
+
+
 from pywbem import WBEMConnection, WBEMServer, WBEMListener, CIMClassName, \
-                   Error, ConnectionError, Uint32, WBEMSubscriptionManager
+    Error, ConnectionError, Uint32, WBEMSubscriptionManager
 
-# definition of the filter.  This is openpegasus specific and uses
-# a class that generates one indication for each call of a method
-TEST_CLASS = 'Test_IndicationProviderClass'
-TEST_CLASS_NAMESPACE = 'test/TestProvider'
-TEST_QUERY = 'SELECT * from %s' % TEST_CLASS
-
-# global count of indications recived by the local indication processor
-RECEIVED_INDICATION_COUNT = 0
-COUNTER_LOCK = threading.Lock()
-LISTENER = None
-
-INDICATION_START_TIME = None
-LAST_INDICATION_TIME = None
-MAX_TIME_BETWEEN_INDICATIONS = None
-LAST_SEQ_NUM = None
-
-LOGFILE = 'pegasusindicationtest.log'
+from pywbem import configure_logger
 
 
-def consume_indication(indication, host):
-    """This function gets called when an indication is received.
-       Depends on logger inside listener for output
+class RunIndicationTest(object):  # pylint: disable=too-many-instance-attributes
+    """
+    Runs a test that:
+    1. Creates a server
+    2. Creates a dynamic listener and starts it.
+    3. Creates a filter and subscription
+    4. Calls the server to execute a method that creates an indication
+    5. waits for indications to be received.
+    6. Removes the filter and subscription and stops the listener
     """
 
-    #pylint: disable=global-variable-not-assigned
-    global RECEIVED_INDICATION_COUNT, LISTENER, INDICATION_START_TIME, \
-           LAST_INDICATION_TIME, MAX_TIME_BETWEEN_INDICATIONS, LAST_SEQ_NUM
-    # increment count.
-    COUNTER_LOCK.acquire()
-    if INDICATION_START_TIME is None:
-        INDICATION_START_TIME = datetime.datetime.now()
+    # Definition of the indicationfilter.  This is openpegasus specific and uses
+    # a class that generates one indication for each call of a method
+    indication_test_class = 'Test_IndicationProviderClass'
+    test_class_namespace = 'test/TestProvider'
+    test_query = 'SELECT * from %s' % indication_test_class
 
-    if LAST_INDICATION_TIME is not None:
-        time_diff = datetime.datetime.now() - LAST_INDICATION_TIME
-        if MAX_TIME_BETWEEN_INDICATIONS is None:
-            MAX_TIME_BETWEEN_INDICATIONS = time_diff
-        elif time_diff > MAX_TIME_BETWEEN_INDICATIONS:
-            MAX_TIME_BETWEEN_INDICATIONS = time_diff
-    seq_num = indication['SequenceNumber']
-    if LAST_SEQ_NUM is None:
-        LAST_SEQ_NUM = seq_num
-    else:
-        if seq_num != (LAST_SEQ_NUM + 1):
-            print('Missed %s indications at %s' % (((seq_num - 1) - LAST_SEQ_NUM),
-                                                   LAST_SEQ_NUM))
-        LAST_SEQ_NUM = seq_num
+    # If set, outputs all of the requests (apis and html) and responses to
+    # pywbem log file. This is not same log as the listener output.
+    output_pywbem_log = False
 
-    LAST_INDICATION_TIME = datetime.datetime.now()
+    def __init__(self, svr_url, indication_destination_host, listener_host,
+                 http_listener_port, user, password,
+                 requested_indications, repeat_loop, output_log, verbose):
+        # pylint: disable=too-many-locals
+        # pylint: disable=too-many-arguments
+        """
+        Sets up and runs the indication test and removes subscriptions at the
+        completion of the test.  There no return from this instance, it
+        closes with the test complete or with an exception if the setup
+        or test fails.
 
-    RECEIVED_INDICATION_COUNT += 1
-    #sys.stdout.write('.')
-    #sys.stdout.flush()
-    LISTENER.logger.info("Consumed CIM indication #%s: host=%s\n%s",
-                         RECEIVED_INDICATION_COUNT, host, indication.tomof())
-    COUNTER_LOCK.release()
+        Parameters:
 
+            svr_url (:term:`string`):
+                url of the target WBEM server. This must be an OpenPegasus
+                server because the indication generator is defined as part
+                of that server
 
-def wait_for_indications(requested_indications):
-    """
-    Wait for indications to be received Time depends on indication count
-    assume 20 per sec. Loop looks once per sec for all indications
-    received but terminates after wait_time seconds.
-    In addition it looks for idle indication count.  If the count has not
-    moved in 10 seconds, it breaks the wait loop.
-    Returns True if wait successful and counts match
-    """
+            indication_destination_host ():
+                host name/ip address where containing the listener.  This is
+                the address to where indications are sent by the WBEM server.
 
-    last_indication_count = 0
-    counter = 0
-    try:
-        success = False
-        wait_time = int(requested_indications / 20) + 3
-        stall_ct = 40           # max time period with no reception.
-        for _ in range(wait_time):
-            time.sleep(1)
-            if last_indication_count != RECEIVED_INDICATION_COUNT:
-                last_indication_count = RECEIVED_INDICATION_COUNT
-                counter = 0
+            http_listener_port (:term:`number`):
+                listener port for indications sent with http.
 
-            # exit loop if all indications recieved.
-            if RECEIVED_INDICATION_COUNT >= requested_indications:
-                elapsed_time = LAST_INDICATION_TIME - INDICATION_START_TIME
-                ind_per_sec = 0
-                if elapsed_time.total_seconds() != 0:
-                    ind_per_sec = \
-                        RECEIVED_INDICATION_COUNT / elapsed_time.total_seconds()
-                print('Rcvd %s indications, time=%s; %02.f per sec. '
-                      'Exit wait loop' %
-                      (RECEIVED_INDICATION_COUNT, elapsed_time, ind_per_sec))
-                success = True
-                break
-            counter += 1
-            if counter > stall_ct:
-                elapsed_time = LAST_INDICATION_TIME - INDICATION_START_TIME
-                ind_per_sec = 0
-                if elapsed_time.total_seconds() != 0:
-                    ind_per_sec = \
-                        RECEIVED_INDICATION_COUNT / elapsed_time.total_seconds()
-                print('Nothing received for %s sec: received=%s time=%s' \
-                      ' %02.f per sec' % \
-                      (stall_ct, RECEIVED_INDICATION_COUNT,
-                       elapsed_time.total_seconds(), ind_per_sec))
-                break
+            user (:term:`string`)
+                Name of WBEM server user if required by WBEM server
 
-    # because this can be a long loop, catch cntrl-c
-    except KeyboardInterrupt:
-        print('Ctrl-C terminating wait loop early')
+            password (:term:`string`)
+                Name of WBEM server password if required by WBEM server
 
-    # If success, wait and recheck to be sure no extras received.
-    if success:
-        time.sleep(2)
-        if RECEIVED_INDICATION_COUNT != requested_indications:
-            print('ERROR. Extra indications received')
-    return success
+            request_indications (:term:`number`):
+                Number of indications requested from server for. The default
+                is 1 indication.
 
-def send_request_for_indications(conn, class_name, requested_indications):
-    """
-    Send an invokemethod to the WBEM server to initiate the indication
-    output.  This is a pegasus specific operation. Note also that the
-    way Pegasus works today, often the response for this request does not
-    get returned until well after the indication flow has started because
-    it operates on the same thread as the response.
-    """
-    try:
-        # Send method to pegasus server to create  required number of
-        # indications. This is a pegasus specific class and method
+            repeat_loop (:term:`number`):
+                The number of times the request indications method is to
+                be sent to the server.  It is sent to request that the
+                server generate the number of indications defined by the
+                request_indications parameter and when that number of
+                indications has been received
 
-        result = conn.InvokeMethod("SendTestIndicationsCount", class_name,
-                                   [('indicationSendCount',
-                                     Uint32(requested_indications))])
+            output_log (:class:`py:bool`):
+                Flag to indicate whether the server should generate a log.
 
-        if result[0] != 0:
-            print('SendTestIndicationCount Method error. Nonzero return=%s' \
-                  % result[0])
-            return False
-        return True
+            verbose (:class:`py:bool`):
+                Flag that when set generates diagnostic displays as the
+                test proceedes.
+        """
 
-    except Error as er:
-        print('Error: Indication Method exception %s' % er)
-        return False
+        # Test config parameters
+        self.svr_url = svr_url
+        self.indication_destination_host = indication_destination_host
+        self.listener_host = listener_host
+        self.http_listener_port = http_listener_port
+        self.requested_indications = requested_indications
+        self.repeat_loop = repeat_loop
+        self.verbose = verbose
+        self.logfile = 'pegasusindicationtest.log'
 
+        # Define WBEM server CIMClassName for test indication class
+        self.indication_test_class_name = \
+            CIMClassName(self.indication_test_class,
+                         namespace=self.test_class_namespace)
 
-def run_test(svr_url, listener_host, user, password, http_listener_port, \
-             https_listener_port, requested_indications, repeat_loop):
-    """
-        Runs a test that:
-        1. Creates a server
-        2. Creates a dynamic listener and starts ti
-        3. Creates a filter and subscription
-        4. Calls the server to execute a method that creates an indication
-        5. waits for indications to be received.
-        6. Removes the filter and subscription and stops the listener
-    """
-    if os.path.exists(LOGFILE):
-        os.remove(LOGFILE)
-    try:
-        conn = WBEMConnection(svr_url, (user, password), no_verification=True)
-        server = WBEMServer(conn)
+        # subscription server_id
+        self.server_id = None
 
-        # Create subscription_manager here to be sure we can communicate with
-        # server before Creating listener, etc.
-        sub_mgr = WBEMSubscriptionManager(
-            subscription_manager_id='pegasusIndicationTest')
+        # Test status parameters
+        self.listener = None
+        self.received_indication_count = 0
+        self. counter_lock = threading.Lock()
 
-        # Add server to subscription manager
-        server_id = sub_mgr.add_server(server)
-        old_filters = sub_mgr.get_all_filters(server_id)
-        old_subs = sub_mgr.get_all_subscriptions(server_id)
-        # TODO filter for our sub mgr
-        if len(old_subs) != 0 or len(old_filters) != 0:
-            sub_mgr.remove_subscriptions(server_id,
-                                         [inst.path for inst in old_subs])
-            for filter_ in old_filters:
-                sub_mgr.remove_filter(server_id, filter_.path)
+        # Test indication timers, and sequence number
+        self.indication_start_time = None
+        self.last_indication_time = None
+        self.max_time_between_indications = None
+        self.last_seq_num = None
 
-    except ConnectionError as ce:
-        print('Connection Error %s with %s' % (ce, svr_url))
-        sys.exit(2)
+        # Setup test
+        if output_log:
+            if self.verbose:
+                print("Configure pywbem logger to a file.")
+            configure_logger('all', log_dest='file', detail_level='all',
+                             connection=True)
 
-    except Error as er:
-        print('Error communicationg with WBEMServer %s' % er)
-        sys.exit(1)
+        # Define the ids of the subscription manager, destination and listener
+        sub_mgr_id = 'pywbempegasusIndicationTest'
+        self.subscription_destination_id = "dest1"
+        self.subscription_filter_id = "filter1"
 
-    # Create the listener and listener call back and start the listener
-    #pylint: disable=global-statement
-    global LISTENER
-    ####stream=sys.stderr,
-    logging.basicConfig(filename='pegasusindicationtest.log',
-                        level=logging.INFO,
-                        format='%(asctime)s %(levelname)s: %(message)s')
-    # Create and start local listener
-    LISTENER = WBEMListener(listener_host, http_port=http_listener_port,
-                            https_port=https_listener_port)
+        if os.path.exists(self.logfile):
+            if verbose:
+                print("Removing old indication logfile {}".format(self.logfile))
+            os.remove(self.logfile)
 
-    # Start connect and start listener.
-    LISTENER.add_callback(consume_indication)
-    LISTENER.start()
+        logging.basicConfig(filename='pegasusindicationtest.log',
+                            level=logging.INFO,
+                            format='%(asctime)s %(levelname)s: %(message)s')
 
-    listener_url = '%s://%s:%s' % ('http', 'localhost', http_listener_port)
-    sub_mgr.add_listener_destinations(server_id, listener_url)
+        try:
+            # Setup wbem server and WBEMServer instance
+            self.conn = WBEMConnection(svr_url, (user, password),
+                                       no_verification=True)
+            server = WBEMServer(self.conn)
 
-    # Create a dynamic alert indication filter and subscribe for it
-    filter_ = sub_mgr.add_filter(
-        server_id, TEST_CLASS_NAMESPACE,
-        TEST_QUERY,
-        query_language="DMTF:CQL")
-    subscriptions = sub_mgr.add_subscriptions(server_id, filter_.path)
+            # Create subscription_manager here to be sure we can communicate
+            # with server before Creating listener, etc.
+            sub_mgr = WBEMSubscriptionManager(
+                subscription_manager_id=sub_mgr_id)
+            self.server_id = sub_mgr.add_server(server)
 
-    # Request server to create indications by invoking method
-    # This is pegasus specific
-    class_name = CIMClassName(TEST_CLASS, namespace=TEST_CLASS_NAMESPACE)
+            # Remove existing subscriptions, destinations and filters
+            # for this server_id since we want to rebuild from
+            # scratch. This example uses only owned subscriptions, filters, and
+            # destinations.  This only does anything in the odd case where
+            # we fail during test and do not clean up at end of test.
+            self.remove_existing_subscriptions(sub_mgr, self.server_id)
 
-    while repeat_loop > 0:
-        repeat_loop += -1
-        global RECEIVED_INDICATION_COUNT, INDICATION_START_TIME
-        RECEIVED_INDICATION_COUNT = 0
-        INDICATION_START_TIME = None
-        if send_request_for_indications(conn, class_name,
-                                        requested_indications):
-            # Wait for indications to be received.
-            success = wait_for_indications(requested_indications)
+        except ConnectionError as ce:  # pylint: disable=invalid-name
+            print('Connection Error {} with {}'.format(ce, svr_url))
+            sys.exit(2)
+
+        except Error as er:  # pylint: disable=invalid-name
+            print('Error communicationg with WBEMServer {}'.format(er))
+            sys.exit(1)
+
+        self.create_listener()
+
+        self.create_subscription(self.server_id, sub_mgr)
+
+        # Run the test the number of times defined by repeat_loop
+        success = self.repeat_test_loop(self.repeat_loop)
+
+        # Remove server_id which removes owned subscriptions for this server_id
+        sub_mgr.remove_server(self.server_id)
+
+        self.listener.stop()
+
+        completion_status = "Success" if success else "Failed"
+        print("Indication test completed: {}".format(completion_status))
+
+        # FUTURE/KS: This code is misplaced and should be removed or a better
+        # summary result built.  I.e. This should be summary of complete test.
+        # Test for all expected indications received.
+        # if self.received_indication_count != self.requested_indications:
+        #    print('Incorrect count of indications received expected={}, '
+        #          'received={}'.format(self.requested_indications,
+        #                               self.received_indication_count))
+        #    sys.exit(1)
+        # else:
+        #    print('Test Success, {} indications received'.
+        #          format(self.requested_indications))
+        # print('Max time between indications {}'.
+        #      format(self.max_time_between_indications))
+
+    def create_listener(self):
+        """
+        Create the listener and listener call back and start the listener
+        pylint: disable=global-statement
+        """
+
+        self.listener = WBEMListener(self.listener_host,
+                                     http_port=self.http_listener_port,
+                                     https_port=None)
+
+        # Start connect and start listener.
+        self.listener.add_callback(self.consume_indication)
+
+        if self.verbose:
+            print("Starting listener\n {}".format(self.listener))
+        self.listener.start()
+
+    def create_subscription(self, server_id, sub_mgr):
+        """
+        Create the indication filter, indication destination and indication
+        subscription from the instance variables. Displays the created objects
+        if verbose set.
+        """
+
+        # Create the destination instance
+        indication_dest_url = \
+            "http://{0}:{1}".format(self.indication_destination_host,
+                                    self.http_listener_port)
+
+        destination = sub_mgr.add_destination(
+            server_id, indication_dest_url,
+            destination_id=self.subscription_destination_id)
+
+        # Create a dynamic alert indication filter
+        filter_ = sub_mgr.add_filter(server_id, self.test_class_namespace,
+                                     self.test_query,
+                                     query_language="DMTF:CQL",
+                                     filter_id=self.subscription_filter_id)
+
+        # Create the subscription
+        subscriptions = sub_mgr.add_subscriptions(
+            server_id, filter_.path, destination_paths=destination.path)
+
+        if self.verbose:
+            print("Subscription instances\n {0}\n{1}\n{2}".
+                  format(filter_.tomof(), destination.tomof(),
+                         subscriptions[0].tomof()))
+
+    def repeat_test_loop(self, repeat_loop):
+        """
+        Send indication request to server repeatedly and wait for the
+        expected number of indications. Returns only when all repeats completed.
+        """
+
+        while repeat_loop > 0:
+            repeat_loop += -1
+            self.received_indication_count = 0
+            self.indication_start_time = None
+
+            # pylint: disable=too-many-function-args
+            self.send_request_for_indications(self.indication_test_class_name,
+                                              self.requested_indications)
+
+            success = self.receive_expected_indications()
+
+            # test for success of receive indications. and possibly terminate
             if not success:
-                insts = conn.EnumerateInstances('PG_ListenerDestinationQueue',
-                                                namespace='root/PG_Internal')
-                for inst in insts:
-                    print('%s queueFullDropped %s, maxretry %s, InQueue %s' % \
-                          (inst['ListenerDestinationName'],
-                           inst['QueueFullDroppedIndications'],
-                           inst['RetryAttemptsExceededIndications'],
-                           inst['CurrentIndications']))
-        if repeat_loop > 0:
-            time.sleep(requested_indications/150)
+                print("Test failed. Terminating repeat loop.")
+                return False
+
+            # Sleep between each run of the test.
+            if repeat_loop > 0:
+                time.sleep(self.requested_indications / 150)
+
+        return success
+
+    def consume_indication(self, indication, host):
+        """
+        Consume a single indication. This is a callback and may be on another
+        thead
+        """
+        # increment count.
+        self.counter_lock.acquire()
+        if self.indication_start_time is None:
+            self.indication_start_time = datetime.datetime.now()
+
+        if self.last_indication_time is not None:
+            time_diff = datetime.datetime.now() - self.last_indication_time
+            if self.max_time_between_indications is None:
+                self.max_time_between_indications = time_diff
+            elif time_diff > self.max_time_between_indications:
+                self.max_time_between_indications = time_diff
+        seq_num = indication['SequenceNumber']
+        if self.last_seq_num is None:
+            self.last_seq_num = seq_num
+        else:
+            if seq_num != (self.last_seq_num + 1):
+                print('Missed {0} indications at {1}'.
+                      format(((seq_num - 1) - self.last_seq_num),
+                             self.last_seq_num))
+            self.last_seq_num = seq_num
+
+        self.last_indication_time = datetime.datetime.now()
+
+        self.received_indication_count += 1
+
+        self.listener.logger.info("Consumed CIM indication #{}: host={}\n{}".
+                                  format(self.received_indication_count, host,
+                                         indication.tomof()))
+        self.counter_lock.release()
+
+    def receive_expected_indications(self):
+        """
+        Wait forexpected indications to be received.  If there is an
+        error in the indications received, try to get more information from
+        OpenPegasus.
+        Returns True if successful reception, else False
+        """
+        # Wait for indications to be received.
+        success = self.wait_for_indications()
+        if not success:
+            print("Wait for expected indications failed.\n"
+                  "Attempting to display pegasus Indication dest queue.")
+            insts = self.conn.EnumerateInstances('PG_ListenerDestinationQueue',
+                                                 namespace='root/PG_Internal')
+            for inst in insts:
+                print('ListenerDestinationName={}\nQueueFullDropped={} , '
+                      'RetryAttemptsExceeded={}, InQueue={}'
+                      .format(inst['ListenerDestinationName'],
+                              inst['QueueFullDroppedIndications'],
+                              inst['RetryAttemptsExceededIndications'],
+                              inst['CurrentIndications']))
+
+                if self.verbose:
+                    print("Full instnace of OpenPegasus dest queue:\n{}".
+                          format(inst.tomof()))
+        return success
+
+    def wait_for_indications(self):
+        """
+        Wait for indications to be received. This waits for the expected number
+        of indications to be received to match the request to the server and
+        includes indication timers and  stall mechanism that will time out if
+        no indication has been received in a reasonable amount of time.
+
+        This method will also catch a terminal control-C and terminate this
+        method early.
+
+        Finally it waits for a couple of seconds after the receipt of the
+        number of expected indications to see if there are any extra unexpected
+        indications, flags that in a message but returns successful completion.
+        """
+        last_indication_count = 0
+        counter = 0
+        try:
+            return_flag = False
+            wait_time = int(self.requested_indications / 20) + 3
+            stall_ct = 40           # max count in loop with no reception.
+            for _ in range(wait_time):
+                time.sleep(1)
+                if last_indication_count != self.received_indication_count:
+                    last_indication_count = self.received_indication_count
+                    counter = 0
+
+                # exit loop if all indications recieved.
+                if self.received_indication_count >= self.requested_indications:
+                    elapsed_time = \
+                        self.last_indication_time - self.indication_start_time
+                    ind_per_sec = 0
+                    if elapsed_time.total_seconds() != 0:
+                        ind_per_sec = self.received_indication_count / \
+                            elapsed_time.total_seconds()
+                    print('Rcvd {} indications, time={} sec, {:.2f} per sec. '
+                          'Exit indication wait loop'.format
+                          (self.received_indication_count,
+                           elapsed_time.total_seconds(),
+                           ind_per_sec))
+                    return_flag = True
+                    break
+                counter += 1
+                if counter > stall_ct:
+                    elapsed_time = \
+                        self.last_indication_time - self.indication_start_time
+                    ind_per_sec = 0
+                    if elapsed_time.total_seconds() != 0:
+                        ind_per_sec = self.received_indication_count / \
+                            elapsed_time.total_seconds()
+                    print('Nothing received for {} sec: received={} time={} '
+                          'sec: {:.2f} per sec'.
+                          format(stall_ct, self.received_indication_count,
+                                 elapsed_time.total_seconds(), ind_per_sec))
+                    break
+
+        # because this can be a long loop, catch cntrl-c
+        except KeyboardInterrupt:
+            print('Ctrl-C terminating wait loop early')
+
+        # If sif return_flag True, wait and recheck to be sure no extras
+        # received.
+        if return_flag:
+            time.sleep(2)
+            if self.received_indication_count != self.requested_indications:
+                print('ERROR. Extra indications received')
+        return return_flag
+
+    def remove_existing_subscriptions(self, sub_mgr, server_id):
+        """
+        Remove any existing filters, destinations, and filters for the
+        this server_id.
+        """
+        sub_mgr.remove_subscriptions(
+            server_id,
+            [inst.path for inst in sub_mgr.get_owned_subscriptions(server_id)])
+
+        for filter_inst in sub_mgr.get_owned_filters(server_id):
+            sub_mgr.remove_filter(server_id, filter_inst.path)
+
+        sub_mgr.remove_destinations(
+            server_id,
+            [inst.path for inst in sub_mgr.get_owned_destinations(server_id)])
+
+    def send_request_for_indications(self, class_name, indication_count):
+        """
+        Send an invokemethod to the WBEM server to initiate the indication
+        output.  This is a pegasus specific invokemethod. Note also that the
+        way Pegasus works today, often the response for this request does not
+        get returned until well after the indication flow has started because
+        it operates on the same thread as the response.
+
+        Returns True if invokemethod accepted by server or False if not
+        """
+        try:
+            # Send method to pegasus server to create  required number of
+            # indications. This is a pegasus specific class and method
+            send_indication_method = "SendTestIndicationsCount"
+            send_count_param = 'indicationSendCount'
+
+            if self.verbose:
+                print("Send InvokeMethod to WBEM Server:")
+                print("class_name {0} method {1} for {2} indications".
+                      format(class_name, send_indication_method,
+                             indication_count))
+
+            result = self.conn.InvokeMethod(
+                send_indication_method, class_name,
+                [(send_count_param, Uint32(indication_count))])
+
+            if result[0] != 0:
+                print('Error: SendTestIndicationCount Method error. '
+                      'Nonzero return from InvokeMethod={}'
+                      .format(result[0]))
+                return False
+            return True
+
+        except Error as er:  # pylint: disable=invalid-name
+            print('Error: Indication Method exception {}'.format(er))
+            return False
 
 
-    sub_mgr.remove_subscriptions(server_id,
-                                 [inst.path for inst in subscriptions])
-    sub_mgr.remove_filter(server_id, filter_.path)
-    sub_mgr.remove_server(server_id)
-    LISTENER.stop()
+def usage(script_name):  # pylint: disable=missing-function-docstring
+    return """
+This example tests pywbem capability to create subscriptions in a WBEM server
+and send indications from that server to a WBEM indication listener in
+multiple environments.
 
-    # Test for all expected indications received.
-    if RECEIVED_INDICATION_COUNT != requested_indications:
-        print('Incorrect count of indications received expected=%s, received'
-              '=%s' % (requested_indications, RECEIVED_INDICATION_COUNT))
-        sys.exit(1)
-    else:
-        print('Success, %s indications' % requested_indications)
-    print('Max time between indications %s' % MAX_TIME_BETWEEN_INDICATIONS)
+{} creates a pywbem indication listener using the host name/IP address defined
+by <dest_host> argument, <--port> and an indication subscription to the server
+defined by <server-url> with listener destination address defined by
+<--dest_host> and <--port> options.
+
+It then sends a method to a OpenPegasus specific provider in the WBEM Server to
+request that the server generate the number of indications defined by
+<--indication-cnt>.
+
+The listener monitors the received indications expecting the number
+of indications defined by <indication-cnt> and displays whether the result was
+correct or in error.
+
+Finally, the test is repeated the number of times defined by <--repeat-loop>
+option and then the indication subscription is removed from the host and
+the listener closed.
+
+This example handles only http connections since there are no parameters
+for certificates.
+
+This test only works with OpenPegasus because it uses an OpenPegasus
+specific CIM class (Test_IndicationProviderClass) and provider to send
+the indications.
+
+""".format(script_name)
+
+
+def examples(script_name):  # pylint: disable=missing-function-docstring
+    examples_txt = """
+EXAMPLES:
+Simple wbem server in same network as client:
+    {0} http://localhost
+    Tests with localhost as WBEM server on same host as pywbem using default
+    listener port, etc.
+
+  Network on another network (ex. Docker container)
+    {0} localhost:15988 -d 192.168.4.44
+    Tests with localhost:15988 as WBEM server (ex. in Docker container)
+    and 192.4.44 as IP address of listener that is availiable to WBEM
+    server in the container.
+
+  Network on network and listener IP address constrained
+    {0} localhost:15988 -d 192.168.4.44 -l 192.168.4.44
+    Tests with localhost:15988 as WBEM server (ex. in Docker container)
+    and 192.4.44 as IP address of listener that is availiable to WBEM
+    server in the container and listener IP bound to IP 192.168.4.44
+""".format(script_name)
+    return examples_txt
 
 
 def main():
@@ -279,46 +530,71 @@ def main():
         are no arguments it defaults to a standard internal set of
         arguments
     """
+    prog = "pegasusindicationtest.py"
+    parser = argparse.ArgumentParser(
+        prog=prog,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=usage(prog),
+        epilog=examples(prog))
 
-    if len(sys.argv) < 7:
-        print("Requires fixed set of arguments or defaults to internally\n "
-              "defined arguments.\n"
-              "Usage: %s <url> <username> <password> <indication-count>" \
-              "Where: <url> server url, ex. http://localhost\n" \
-              "       <port> http listener port, ex. 5000\n" \
-              "       <username> username for authentication\n" \
-              "       <password> password for authentication\n" \
-              "       <indication-count> Number of indications to request.\n" \
-              "       <repeat_loop>   Repeat the send test repeat_loop times.\n"
-              "Ex: %s http://fred 5000 blah blah 1000 10 " \
-              % (sys.argv[0], sys.argv[0]))
-        server_url = 'http://localhost'
-        username = 'blah'
-        password = 'blah'
-        http_listener_port = 5000
-        requested_indications = 1000
-        repeat_loop = 1
+    parser.add_argument(
+        "server_url",
+        help="Url of server including port if required.  Does not include "
+        "scheme since this is http only.")
+    parser.add_argument(
+        '-d', "--dest_host",
+        help="Listener destination host name or IP address to be set into the "
+             "subscription destination instance. This must be an IP or "
+             "hostname available to to the system containing the listener "
+             "and the system containing the WBEM server.")
 
-    else:
-        server_url = sys.argv[1]
-        http_listener_port = int(sys.argv[2])
-        username = sys.argv[3]
-        password = sys.argv[4]
-        requested_indications = int(sys.argv[5])
-        repeat_loop = int(sys.argv[6])
+    parser.add_argument(
+        '-l', "--listener_host", default="0.0.0.0",
+        help="Optional host name for indication listener.  This must be host "
+        "system name or IP address public to both system containing listener "
+        "and WBEM Server.  Listener will refuse indications on any "
+        "other network address if this is set. Default is IP 0.0.0.0 "
+        "which causes listener to receive on any defined network.")
 
-    listener_addr = urllib.parse(server_url).netloc
+    parser.add_argument(
+        '-p', "--port", type=int, default=5000,
+        help="Optional listener port used in both the subscription destination "
+        "definition and the listener definition. Default is 5000")
 
-    print('url=%s listener=%s port=%s usr=%s pw=%s cnt=%s repeat=%s' % \
-          (server_url, listener_addr, http_listener_port, \
-           username, password, requested_indications, repeat_loop))
+    parser.add_argument(
+        '-u', "--username", default="",
+        help="Optional username for target server. Only used if server "
+        "requires as user name.")
 
-    #https_listener_port = http_listener_port + 1
-    https_listener_port = None
+    parser.add_argument(
+        '-w', "--password", default="",
+        help="Optional password for target server. Required if --username "
+        "defined")
 
-    run_test(server_url, listener_addr, username, password,
-             http_listener_port, https_listener_port,
-             requested_indications, repeat_loop)
+    parser.add_argument(
+        '-i', "--indication-count", type=int, default=1,
+        help="Count of indications to be requested from WBEM Server.")
+
+    parser.add_argument(
+        '-r', "--repeat-loop", type=int, default=1,
+        help="Count of times to repeat the test.")
+
+    parser.add_argument(
+        "--log", action='store_true',
+        help="Generate pywbem log with details of all api calls requests "
+        "to the server and responses.  File name is pywbem.log")
+
+    parser.add_argument("-v", "--verbose", help="increase output verbosity",
+                        action="store_true")
+    args = parser.parse_args()
+
+    if args.verbose:
+        print(args)
+
+    RunIndicationTest(args.server_url, args.dest_host, args.listener_host,
+                      args.port, args.username, args.password,
+                      args.indication_count, args.repeat_loop, args.log,
+                      args.verbose)
 
     return 0
 

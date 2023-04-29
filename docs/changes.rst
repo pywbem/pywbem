@@ -46,6 +46,9 @@ Released: not yet
 * Clarified the use of the host parameter on the WBEMListener class.  (see
   issue #2995)
 
+* Bring example pegasusindicationtest.py up to date and extend to be used
+  with WBEM server in a container. (see issue #2993)
+
 **Known issues:**
 
 * See `list of open issues`_.
