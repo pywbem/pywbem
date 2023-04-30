@@ -25,6 +25,8 @@ Released: not yet
 
 **Bug fixes:**
 
+* Fixed coveralls issues with KeyError and HTTP 422 Unprocessable Entity.
+
 **Enhancements:**
 
 **Cleanup:**
