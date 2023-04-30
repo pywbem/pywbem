@@ -30,6 +30,8 @@ Released: not yet
 * Fixed a doc build issue with Sphinx 6.x (issue #2983) and addressed
   some of the Sphinx warnings during doc build.
 
+* Fixed coveralls issues with KeyError and HTTP 422 Unprocessable Entity.
+
 **Enhancements:**
 
 **Cleanup:**
