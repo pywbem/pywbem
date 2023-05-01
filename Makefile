@@ -316,6 +316,19 @@ py_test_files := \
 # - 52365 certifi - 2020.6.20 max version for certifi
 # - 52518 GitPython - python 2.7 only supported by v < 3.0.0
 # - 52322 GitPython - All released versions affected
+# - 53305, 53306, 53298, 53299, 53301, 53302, 53303, 53304, 53307, 53048, 53305,
+#   53306, 53298, 53299, 53301, 53302, 53303, 53304, 53307, 53048, 53305, 53306,
+#   53298, 53299, 53301, 53302, 53303, 53304, 53307,
+#   53048, Cryptography - python 2.7/3.5 do not support rqd 39.0.1
+# - 53269 IPython - command injection vulnerability in all prev versions
+# - 54717 jupyter-core - prior to version 4.11.2 contains an arbitrary code execution vulnerability
+# - 54713 notebook - Server log issue rior to version 6.4.9
+# - 54682 notebook - before 5.5.0 does not use a CSP header
+# - 54684 notebook - befoe xxx notebook configurations allowing authenticated access to files
+# - 54678 notebook - before 5.7.8, an open redirect can occur
+# - 54689 notebook - before x.x.x untrusted notebook can execute code on load
+# - 54687 pywin32 - Attacker could crash process because integer oveflow
+# - 54679 jinja2 - 2.10.1, str.format_map allows a sandbox escape
 
 safety_ignore_opts := \
 		-i 38100 \
@@ -372,6 +385,45 @@ safety_ignore_opts := \
 		-i 52495 \
 		-i 52518 \
 		-i 52322 \
+		-i 53305 \
+		-i 53306 \
+		-i 53298 \
+		-i 53299 \
+		-i 53301 \
+		-i 53302 \
+		-i 53303 \
+		-i 53304 \
+		-i 53307 \
+		-i 53048 \
+		-i 53305 \
+		-i 53306 \
+		-i 53298 \
+		-i 53299 \
+		-i 53301 \
+		-i 53302 \
+		-i 53303 \
+		-i 53304 \
+		-i 53307 \
+		-i 53048 \
+		-i 53305 \
+		-i 53306 \
+		-i 53298 \
+		-i 53299 \
+		-i 53301 \
+		-i 53302 \
+		-i 53303 \
+		-i 53304 \
+		-i 53307 \
+		-i 53048 \
+		-i 53269 \
+		-i 54717 \
+		-i 54713 \
+		-i 54682 \
+		-i 54684 \
+		-i 54678 \
+		-i 54689 \
+		-i 54687 \
+		-i 54679
 
 # Python source files for test (unit test and function test)
 test_src_files := \

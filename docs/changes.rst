@@ -34,6 +34,9 @@ Released: not yet
 
 **Cleanup:**
 
+* Add more safety issue ignores to Makefile and more version limitations to
+  minimum_constraints.txt and dev-requirements.txt
+
 **Known issues:**
 
 * See `list of open issues`_.
