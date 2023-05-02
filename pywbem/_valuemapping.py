@@ -70,6 +70,12 @@ class ValueMapping(object):
     supported (decimal, binary, octal, hexadecimal), consistent with the
     definition of the `ValueMap` qualifier in :term:`DSP0004`.
 
+    If the sizes of the `Values` and `ValueMap` arrays differ, the default
+    behavior is that a :exc:`~pywbem.ModelError` exception will be raised.
+    Alternatively, the behavior can be changed to have the `Values` array
+    adjusted to the size of the `ValueMap` array, by filling in any missing
+    items at the end with a default value, or by truncating any extra items.
+
     Example:
 
       Given the following definition of a property in MOF:
@@ -193,6 +199,7 @@ class ValueMapping(object):
         self._propname = None
         self._methodname = None
         self._parametername = None
+        self._values_default = None
 
         self._element_obj = None
 
@@ -205,7 +212,8 @@ class ValueMapping(object):
         self._v2b_dict = {}  # values: bin (int or tuple)
 
     @classmethod
-    def for_property(cls, server, namespace, classname, propname):
+    def for_property(cls, server, namespace, classname, propname,
+                     values_default=None):
         # pylint: disable=line-too-long
         """
         Factory method that returns a new :class:`~pywbem.ValueMapping`
@@ -235,6 +243,17 @@ class ValueMapping(object):
             Name of the CIM property that defines the `Values` / `ValueMap`
             qualifiers.
 
+          values_default (`None` or :term:`string`):
+            Controls the handling of different sizes of the `Values` and
+            `ValueMap` arrays:
+
+            - If `None` (default), a :exc:`~pywbem.ModelError` exception will be
+              raised for different sizes of the `Values` and `ValueMap` arrays.
+            - If a string value is specified, the `Values` array will be
+              adjusted to the size of the `ValueMap` array, by filling in any
+              missing items with the specified default value at the end, or by
+              removing any extra items.
+
         Returns:
 
             The new :class:`~pywbem.ValueMapping` instance.
@@ -247,6 +266,7 @@ class ValueMapping(object):
             ValueError: No `Values` qualifier defined on the CIM property.
             ModelError: Invalid integer representation in `ValueMap` qualifier
               defined on the CIM property.
+            ModelError: `Values` and `ValueMap` arrays differ in size.
         """  # noqa: E501
 
         conn = server
@@ -268,12 +288,14 @@ class ValueMapping(object):
                         "{2!A}", classname, namespace, propname))
 
         new_vm = cls._create_for_element(property_obj, conn, namespace,
-                                         classname, propname=propname)
+                                         classname, propname=propname,
+                                         values_default=values_default)
 
         return new_vm
 
     @classmethod
-    def for_method(cls, server, namespace, classname, methodname):
+    def for_method(cls, server, namespace, classname, methodname,
+                   values_default=None):
         # pylint: disable=line-too-long
         """
         Factory method that returns a new :class:`~pywbem.ValueMapping`
@@ -300,6 +322,17 @@ class ValueMapping(object):
             Name of the CIM method that defines the `Values` / `ValueMap`
             qualifiers.
 
+          values_default (`None` or :term:`string`):
+            Controls the handling of different sizes of the `Values` and
+            `ValueMap` arrays:
+
+            - If `None` (default), a :exc:`~pywbem.ModelError` exception will be
+              raised for different sizes of the `Values` and `ValueMap` arrays.
+            - If a string value is specified, the `Values` array will be
+              adjusted to the size of the `ValueMap` array, by filling in any
+              missing items with the specified default value at the end, or by
+              removing any extra items.
+
         Returns:
 
             The new :class:`~pywbem.ValueMapping` instance.
@@ -312,6 +345,7 @@ class ValueMapping(object):
             ValueError: No `Values` qualifier defined on the CIM method.
             ModelError: Invalid integer representation in `ValueMap` qualifier
               defined on the CIM method.
+            ModelError: `Values` and `ValueMap` arrays differ in size.
         """  # noqa: E501
 
         conn = server
@@ -333,13 +367,14 @@ class ValueMapping(object):
                         classname, namespace, methodname))
 
         new_vm = cls._create_for_element(method_obj, conn, namespace,
-                                         classname, methodname=methodname)
+                                         classname, methodname=methodname,
+                                         values_default=values_default)
 
         return new_vm
 
     @classmethod
     def for_parameter(cls, server, namespace, classname, methodname,
-                      parametername):
+                      parametername, values_default=None):
         # pylint: disable=line-too-long
         """
         Factory method that returns a new :class:`~pywbem.ValueMapping`
@@ -371,6 +406,17 @@ class ValueMapping(object):
             Name of the CIM parameter that defines the `Values` / `ValueMap`
             qualifiers.
 
+          values_default (`None` or :term:`string`):
+            Controls the handling of different sizes of the `Values` and
+            `ValueMap` arrays:
+
+            - If `None` (default), a :exc:`~pywbem.ModelError` exception will be
+              raised for different sizes of the `Values` and `ValueMap` arrays.
+            - If a string value is specified, the `Values` array will be
+              adjusted to the size of the `ValueMap` array, by filling in any
+              missing items with the specified default value at the end, or by
+              removing any extra items.
+
         Returns:
 
             The new :class:`~pywbem.ValueMapping` instance.
@@ -384,6 +430,7 @@ class ValueMapping(object):
             ValueError: No `Values` qualifier defined on the CIM parameter.
             ModelError: Invalid integer representation in `ValueMap` qualifier
               defined on the CIM parameter.
+            ModelError: `Values` and `ValueMap` arrays differ in size.
         """  # noqa: E501
 
         conn = server
@@ -413,7 +460,8 @@ class ValueMapping(object):
 
         new_vm = cls._create_for_element(parameter_obj, conn, namespace,
                                          classname, methodname=methodname,
-                                         parametername=parametername)
+                                         parametername=parametername,
+                                         values_default=values_default)
 
         return new_vm
 
@@ -486,7 +534,8 @@ class ValueMapping(object):
 
     @classmethod
     def _create_for_element(cls, element_obj, conn, namespace, classname,
-                            propname=None, methodname=None, parametername=None):
+                            propname=None, methodname=None, parametername=None,
+                            values_default=None):
         # pylint: disable=line-too-long
         """
         Return a new :class:`~pywbem.ValueMapping` instance for the specified
@@ -525,6 +574,17 @@ class ValueMapping(object):
             Name of the CIM parameter that defines the `Values` / `ValueMap`
             qualifiers.
 
+          values_default (`None` or :term:`string`):
+            Controls the handling of different sizes of the `Values` and
+            `ValueMap` arrays:
+
+            - If `None` (default), a :exc:`~pywbem.ModelError` exception will be
+              raised for different sizes of the `Values` and `ValueMap` arrays.
+            - If a string value is specified, the `Values` array will be
+              adjusted to the size of the `ValueMap` array, by filling in any
+              missing items with the specified default value at the end, or by
+              removing any extra items.
+
         Returns:
 
             The created :class:`~pywbem.ValueMapping` instance for the specified
@@ -536,6 +596,7 @@ class ValueMapping(object):
             ValueError: No `Values` qualifier defined on the CIM element.
             ModelError: Invalid integer representation in `ValueMap` qualifier
               defined on the CIM element.
+            ModelError: `Values` and `ValueMap` arrays differ in size.
         """  # noqa: E501
         # pylint: enable=line-too-long
 
@@ -549,6 +610,7 @@ class ValueMapping(object):
         vm._propname = propname
         vm._methodname = methodname
         vm._parametername = parametername
+        vm._values_default = values_default
 
         try:
             typename = element_obj.type  # Property, Parameter
@@ -569,39 +631,60 @@ class ValueMapping(object):
             raise ValueError(
                 _format("The value-mapped {0} has no Values qualifier "
                         "defined", vm._element_str()))
-        values_list = values_qual.value
+        values_list = list(values_qual.value)  # may be modified
 
         valuemap_qual = element_obj.qualifiers.get('ValueMap', None)
         if valuemap_qual is None:
             # DSP0004 defines a default of consecutive index numbers
-            vm._b2v_single_dict = dict(zip(range(0, len(values_list)),
-                                           values_list))
-            vm._b2v_range_tuple_list = []
-            vm._b2v_unclaimed = None
-            vm._v2b_dict = OrderedDict(zip(values_list,
-                                           range(0, len(values_list))))
+            valuemap_list = ["{}".format(v) for v in range(0, len(values_list))]
         else:
-            vm._b2v_single_dict = {}
-            vm._b2v_range_tuple_list = []
-            vm._b2v_unclaimed = None
-            vm._v2b_dict = OrderedDict()
             valuemap_list = valuemap_qual.value
-            for i, valuemap_str in enumerate(valuemap_list):
-                values_str = values_list[i]
-                if valuemap_str == '..':
-                    vm._b2v_unclaimed = values_str
-                    vm._v2b_dict[values_str] = None
+
+        # Verify and adjust the valuemap and values arrays
+        values_size = len(values_list)
+        valuemap_size = len(valuemap_list)
+        if valuemap_size > values_size:
+            valuemap_extra = valuemap_list[values_size:]
+            if values_default is None:
+                raise ModelError(
+                    _format("The value-mapped {0} has a ValueMap "
+                            "qualifier that specifies more items than "
+                            "its Values qualifier: {1}",
+                            vm._element_str(), valuemap_extra))
+            # Fill the missing Values items with the default value
+            values_list.extend([values_default] * len(valuemap_extra))
+        if valuemap_size < values_size:
+            values_extra = values_list[valuemap_size:]
+            if values_default is None:
+                raise ModelError(
+                    _format("The value-mapped {0} has a Values "
+                            "qualifier that specifies more items than "
+                            "its ValueMap qualifier: {1}",
+                            vm._element_str(), values_extra))
+            # Truncate the extra Values items
+            del values_list[len(values_extra):]
+
+        # Perform data initialization of the ValueMapping object
+        vm._b2v_single_dict = {}
+        vm._b2v_range_tuple_list = []
+        vm._b2v_unclaimed = None
+        vm._v2b_dict = OrderedDict()
+        for i, valuemap_str in enumerate(valuemap_list):
+            values_str = values_list[i]
+            if valuemap_str == '..':
+                vm._b2v_unclaimed = values_str
+                vm._v2b_dict[values_str] = None
+            else:
+                lo, hi, values_str = vm._values_tuple(
+                    i, valuemap_list, values_list, cimtype)
+                if lo == hi:
+                    # single value
+                    vm._b2v_single_dict[lo] = values_str
+                    vm._v2b_dict[values_str] = lo
                 else:
-                    lo, hi, values_str = vm._values_tuple(
-                        i, valuemap_list, values_list, cimtype)
-                    if lo == hi:
-                        # single value
-                        vm._b2v_single_dict[lo] = values_str
-                        vm._v2b_dict[values_str] = lo
-                    else:
-                        # value range
-                        vm._b2v_range_tuple_list.append((lo, hi, values_str))
-                        vm._v2b_dict[values_str] = (lo, hi)
+                    # value range
+                    vm._b2v_range_tuple_list.append((lo, hi, values_str))
+                    vm._v2b_dict[values_str] = (lo, hi)
 
         return vm
 
@@ -635,6 +718,7 @@ class ValueMapping(object):
             "_propname={s._propname!A}, "
             "_methodname={s._methodname!A}, "
             "_parametername={s._parametername!A}, "
+            "_values_default={s._values_default!A}, "
             "_element_obj={s._element_obj!A}, "
             "_b2v_single_dict={s._b2v_single_dict!A}, "
             "_b2v_range_tuple_list={s._b2v_range_tuple_list!A}, "
@@ -690,6 +774,20 @@ class ValueMapping(object):
         no parameter is mapped.
         """
         return self._parametername
+
+    @property
+    def values_default(self):
+        """
+        `None` or :term:`string`: Controls the handling of different sizes of
+        the `Values` and `ValueMap` arrays:
+
+        - If `None`, a :exc:`~pywbem.ModelError` exception will be raised for
+          different sizes of the `Values` and `ValueMap` arrays.
+        - If a string value, the `Values` array will be adjusted to the size of
+          the `ValueMap` array, by filling in any missing items with that
+          string value at the end, or by removing any extra items.
+        """
+        return self._values_default
 
     @property
     def element(self):

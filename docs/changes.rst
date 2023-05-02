@@ -21,6 +21,10 @@ Released: not yet
 
 **Incompatible changes:**
 
+* The 'pywbem.ValueMapping' class will now raise a 'pywbem.ModelError' for any
+  missing or extra items in the 'Values' qualifier, compared to the 'ValueMap'
+  qualifier. Previously, 'IndexError' was raised. (issue #2991)
+
 **Deprecations:**
 
 **Bug fixes:**
@@ -28,6 +32,15 @@ Released: not yet
 * Fixed coveralls issues with KeyError and HTTP 422 Unprocessable Entity.
 
 **Enhancements:**
+
+* The 'pywbem.ValueMapping' class now allows controlling what should happen
+  when the 'Values' qualifier has missing or extra items compared to the
+  'ValueMap' qualifier, by means of a new 'values_default' parameter of
+  the respective factory methods. If 'values_default' is None (default), a
+  'pywbem.ModelError' is raised for missing or extra 'Values' items. If it
+  specifies a string value, missing items in the 'Values' qualifier are
+  filled up with that value, and extra items in the 'Values' qualifier are
+  truncated. (issue #2991)
 
 **Cleanup:**
 
