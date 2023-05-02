@@ -86,7 +86,7 @@ class Test_ValueMapping(object):
         self.server = WBEMServer(self.conn)
 
     def setup_for_property(self, server, integer_type, is_array,
-                           valuemap, values):
+                           valuemap, values, values_default=None):
         # pylint: disable=redefined-outer-name
         """
         Return a new ValueMapping object that is set up for a CIM property
@@ -104,11 +104,12 @@ class Test_ValueMapping(object):
         test_class.properties[PROPNAME] = test_prop
         self.conn.GetClass = Mock(return_value=test_class)
 
-        vm = ValueMapping.for_property(server, NAMESPACE, CLASSNAME, PROPNAME)
+        vm = ValueMapping.for_property(
+            server, NAMESPACE, CLASSNAME, PROPNAME, values_default)
         return vm
 
     def setup_for_method(self, server, integer_type, is_array,
-                         valuemap, values):
+                         valuemap, values, values_default=None):
         # pylint: disable=redefined-outer-name
         """
         Return a new ValueMapping object that is set up for a CIM method
@@ -127,11 +128,12 @@ class Test_ValueMapping(object):
         test_class.methods[METHNAME] = test_meth
         self.conn.GetClass = Mock(return_value=test_class)
 
-        vm = ValueMapping.for_method(server, NAMESPACE, CLASSNAME, METHNAME)
+        vm = ValueMapping.for_method(
+            server, NAMESPACE, CLASSNAME, METHNAME, values_default)
         return vm
 
     def setup_for_parameter(self, server, integer_type, is_array,
-                            valuemap, values):
+                            valuemap, values, values_default=None):
         # pylint: disable=redefined-outer-name
         """
         Return a new ValueMapping object that is set up for a CIM parameter
@@ -151,11 +153,11 @@ class Test_ValueMapping(object):
         self.conn.GetClass = Mock(return_value=test_class)
 
         vm = ValueMapping.for_parameter(server, NAMESPACE, CLASSNAME, METHNAME,
-                                        PARMNAME)
+                                        PARMNAME, values_default)
         return vm
 
     def setup_for_element(self, element_kind, server_arg, integer_type,
-                          is_array, valuemap, values):
+                          is_array, valuemap, values, values_default=None):
         # pylint: disable=redefined-outer-name
         """
         Return a new ValueMapping object that is set up for a CVIM element of
@@ -166,7 +168,8 @@ class Test_ValueMapping(object):
         setup_func_name = 'setup_for_%s' % element_kind
         setup_func = getattr(self, setup_func_name)
 
-        vm = setup_func(server, integer_type, is_array, valuemap, values)
+        vm = setup_func(server, integer_type, is_array, valuemap, values,
+                        values_default)
 
         return vm
 
@@ -960,3 +963,84 @@ class Test_ValueMapping(object):
                                     is_array, valuemap, values)
         result = vm.tovalues(None)
         assert result is None
+
+    @pytest.mark.parametrize(
+        "valuemap, values, values_default, exp_exc, exp_values",
+        [
+            (
+                ['1'],
+                ['one', 'two'],
+                None,
+                ModelError,
+                None,
+            ),
+            (
+                ['1'],
+                ['one', 'two'],
+                'foo',
+                None,
+                ['one'],
+            ),
+            (
+                ['1', '2'],
+                ['one'],
+                None,
+                ModelError,
+                None,
+            ),
+            (
+                ['1', '2'],
+                ['one'],
+                'foo',
+                None,
+                ['one', 'foo'],
+            ),
+            (
+                [],
+                ['one'],
+                None,
+                ModelError,
+                None,
+            ),
+            (
+                [],
+                ['one'],
+                'foo',
+                None,
+                [],
+            ),
+            (
+                ['1'],
+                [],
+                None,
+                ModelError,
+                None,
+            ),
+            (
+                ['1'],
+                [],
+                'foo',
+                None,
+                ['foo'],
+            ),
+        ]
+    )
+    def test_tovalues_different_sizes(
+            self, valuemap, values, values_default, exp_exc, exp_values,
+            element_kind, server_arg, integer_type, is_array):
+        # pylint: disable=redefined-outer-name
+        """Test tovalues() with differently sized ValueMap/Values"""
+        if exp_exc:
+            with pytest.raises(exp_exc):
+                vm = self.setup_for_element(
+                    element_kind, server_arg, integer_type, is_array, valuemap,
+                    values, values_default)
+        else:
+            vm = self.setup_for_element(
+                element_kind, server_arg, integer_type, is_array, valuemap,
+                values, values_default)
+            defaulted_values = []
+            for v in valuemap:
+                value = vm.tovalues(int(v))
+                defaulted_values.append(value)
+            assert defaulted_values == exp_values
