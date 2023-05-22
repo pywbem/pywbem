@@ -49,6 +49,11 @@ Released: not yet
   filled up with that value, and extra items in the 'Values' qualifier are
   truncated. (issue #2991)
 
+* Add end-end test for indications where an OpenPegasus server in Docker
+  container is the WBEM Server and pywbem is both the client that creates
+  indication subscriptions the indication listener. This test uses the
+  OpenPegasus container used for other end-end tests.
+
 **Cleanup:**
 
 * Replaced the safety_ignore_opts in Makefile that is used as the basis for
