@@ -23,6 +23,8 @@ Released: not yet
 
 **Incompatible changes:**
 
+* Dropped support for Python 3.5. (issue #2867)
+
 **Deprecations:**
 
 **Bug fixes:**

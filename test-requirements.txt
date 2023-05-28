@@ -13,24 +13,23 @@
 
 
 # Unit test (imports into testcases):
-packaging>=19.0; python_version <= '3.6'
+packaging>=19.0; python_version == '3.6'
 packaging>=21.0; python_version >= '3.7'
-funcsigs>=1.0.2; python_version < '3.3'
+funcsigs>=1.0.2; python_version == '2.7'
 # pytest 5.0.0 has removed support for Python < 3.5
 # pytest 4.3.1 solves an issue on Python 3 with minimum package levels
 # pytest==6.0.0 causes pylint to report "not-callable" issues
 # pytest>=6.0.0 causes pylint to report "abstract-method" issues
 # For both, see https://github.com/pytest-dev/pytest/issues/7591
 pytest>=4.3.1,<5.0.0; python_version == '2.7'
-pytest>=4.3.1,!=6.0; python_version >= '3.5' and python_version <= '3.6'
+pytest>=4.3.1,!=6.0; python_version == '3.6'
 pytest>=4.4.0,!=6.0; python_version >= '3.7' and python_version <= '3.9'
 pytest>=6.2.5; python_version >= '3.10'
 testfixtures>=6.9.0; python_version == '2.7'
-testfixtures>=6.3.0,<6.4.0; python_version == '3.5'
 testfixtures>=6.9.0; python_version >= '3.6'
 # pylint>=2.15 requires colorama>=0.4.5
 colorama>=0.3.9,<0.4.0; python_version == '2.7'
-colorama>=0.4.5; python_version >= '3.5'
+colorama>=0.4.5; python_version >= '3.6'
 
 # Easy-server packages
 easy-vault>=0.7.0
@@ -44,7 +43,7 @@ yagot>=0.5.0
 
 #  flake8 fails with python 3.7. in importlib-metadata. See issue #2931
 #  Issue with importlib-metadata 5.0.0
-importlib-metadata>=0.22,<5.0.0; python_version < '3.7'
+importlib-metadata>=0.22,<5.0.0; python_version <= '3.6'
 importlib-metadata>=0.22,<5.0.0; python_version == '3.7'
 importlib-metadata>=1.1.0; python_version >= '3.8'
 
@@ -55,12 +54,12 @@ pytz>=2019.1; python_version >= '3.10'
 # Unit test (indirect dependencies):
 # Pluggy 0.12.0 has a bug causing pytest plugins to fail loading on py38
 pluggy>=0.7.1; python_version == '2.7'
-pluggy>=0.7.1; python_version >= '3.5' and python_version <= '3.6'
+pluggy>=0.7.1; python_version == '3.6'
 pluggy>=0.13.0; python_version >= '3.7'
 
 # Decorator version 5.0 no longer supports python < 3.5
-decorator>=4.0.11,<5.0.0; python_version < '3.5'
-decorator>=4.0.11; python_version >= '3.5'
+decorator>=4.0.11,<5.0.0; python_version == '2.7'
+decorator>=4.0.11; python_version >= '3.6'
 
 backports.statistics>=0.1.0; python_version == '2.7'
 # FormEncode is used for xml comparisons in unit test
@@ -75,7 +74,7 @@ FormEncode>=2.0.0; python_version >= '3.10'
 # lxml 4.6.3 addressed safety issue 40072
 # lxml 4.9.2 addresses changes in Python 3.11 and 3.12
 lxml>=4.6.2; python_version == '2.7'
-lxml>=4.6.2; python_version >= '3.5' and python_version <= '3.9'
+lxml>=4.6.2; python_version >= '3.6' and python_version <= '3.9'
 lxml>=4.6.4; python_version == '3.10'
 lxml>=4.9.2; python_version >= '3.11'
 
