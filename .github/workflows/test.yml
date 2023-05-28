@@ -111,12 +111,12 @@ jobs:
                 \"package_level\": \"latest\" \
               }, \
               { \
-                \"os\": \"ubuntu-latest\", \
+                \"os\": \"ubuntu-20.04\", \
                 \"python-version\": \"3.6\", \
                 \"package_level\": \"minimum\" \
               }, \
               { \
-                \"os\": \"ubuntu-latest\", \
+                \"os\": \"ubuntu-20.04\", \
                 \"python-version\": \"3.6\", \
                 \"package_level\": \"latest\" \
               }, \
