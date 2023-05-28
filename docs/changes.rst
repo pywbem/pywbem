@@ -36,6 +36,10 @@ Released: not yet
 
 **Enhancements:**
 
+* Add end2end test for subscription in a container and for receiving
+  indications from a container to a WBEMListener in the system containing
+  the test environment.
+
 **Cleanup:**
 
 * Replaced the safety_ignore_opts in Makefile that is used as the basis for
