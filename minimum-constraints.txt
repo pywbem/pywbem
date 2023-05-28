@@ -48,10 +48,6 @@
 #   pip         ?
 #   setuptools  ? / 45.0.0
 #   wheel       ?
-# * Python 3.5 support:
-#   pip         8.0
-#   setuptools  18.3
-#   wheel       0.30.0
 # * Python 3.6 support:
 #   pip         10.0.0
 #   setuptools  34.0.0
@@ -74,9 +70,8 @@
 # * pip 20.0 introduced the  --no-python-version-warning option
 # * pip 20.2 introduced a new resolver whose backtracking had issues that were resolved only in 21.2.2.
 # * pip>=21.0 is needed for the cryptography package on Windows on GitHub Actions.
-# * pip 21.0 dropped support for Python 3.5.
 # * pip 22.0 dropped support for Python 3.6.
-pip==10.0.1; python_version <= '3.5'
+pip==10.0.1; python_version == '2.7'
 pip==21.3.1; python_version >= '3.6' and python_version <= '3.10'
 pip==22.2.2; python_version >= '3.11'
 
@@ -101,11 +96,11 @@ mock==2.0.0; python_version == '2.7'
 ordereddict==1.1
 ply==3.10
 PyYAML==5.3.1; python_version == '2.7'
-PyYAML==5.3.1; python_version >= '3.5'
+PyYAML==5.3.1; python_version >= '3.6'
 six==1.14.0; python_version <= '3.9'
 six==1.16.0; python_version >= '3.10'
 requests==2.22.0; python_version == '2.7'
-requests==2.22.0; python_version >= '3.5' and python_version <= '3.9'
+requests==2.22.0; python_version >= '3.6' and python_version <= '3.9'
 requests==2.25.0; python_version >= '3.10'
 yamlloader==0.5.5
 nocaselist==1.0.3
@@ -120,7 +115,6 @@ chardet==3.0.2; python_version <= '3.9'
 charset-normalizer==2.0.0; python_version >= '3.10'
 # urllib3 >= 2.0.0 minimum python == '3.7'
 urllib3==1.25.9; python_version == '2.7'
-urllib3==1.25.9; python_version == '3.5'
 urllib3==1.25.9; python_version == '3.6'
 # TODO issue #3006. Update the following to include urllib3 version 2
 # for python version >= 3.7 when issue #3006 resolved.
@@ -133,7 +127,6 @@ urllib3==1.26.5; python_version >= '3.10'
 
 # From easy-vault:
 cryptography==3.3; python_version == '2.7'
-cryptography==3.2.1; python_version == '3.5'
 cryptography==3.4.7; python_version >= '3.6'
 keyring==18.0.0
 
@@ -147,18 +140,18 @@ build==0.5.1
 Cython==0.29.33
 
 # Unit test (imports into testcases):
-packaging==19.0; python_version <= '3.5'
+packaging==19.0; python_version == '2.7'
 # Packaging 21.0 required by safety 2.2.0
 packaging==21.0; python_version >= '3.6'
-funcsigs==1.0.2; python_version < '3.3'
-pytest==4.3.1; python_version <= '3.6'
+funcsigs==1.0.2; python_version == '2.7'
+pytest==4.3.1; python_version == '2.7'
+pytest==4.3.1; python_version == '3.6'
 pytest==4.4.0; python_version >= '3.7' and python_version <= '3.9'
 pytest==6.2.5; python_version >= '3.10'
 testfixtures==6.9.0; python_version == '2.7'
-testfixtures==6.3.0; python_version == '3.5'
 testfixtures==6.9.0; python_version >= '3.6'
 colorama==0.3.9; python_version == '2.7'
-colorama==0.4.5; python_version >= '3.5'
+colorama==0.4.5; python_version >= '3.6'
 # Using 0.22 caused failure where at least argcompete requires 0.23
 importlib-metadata==0.23; python_version <= '3.7'
 importlib-metadata==1.1.0; python_version >= '3.8'
@@ -180,7 +173,7 @@ virtualenv==20.0.35
 
 # Unit test (indirect dependencies):
 pluggy==0.7.1; python_version == '2.7'
-pluggy==0.7.1; python_version >= '3.5' and python_version <= '3.6'
+pluggy==0.7.1; python_version == '3.6'
 pluggy==0.13.0; python_version >= '3.7'
 decorator==4.0.11
 # FormEncode is used for xml comparisons in unit test
@@ -189,7 +182,7 @@ FormEncode==2.0.0; python_version >= '3.10'
 
 # Lxml
 lxml==4.6.2; python_version == '2.7'
-lxml==4.6.2; python_version >= '3.5' and python_version <= '3.9'
+lxml==4.6.2; python_version >= '3.6' and python_version <= '3.9'
 lxml==4.6.4; python_version == '3.10'
 lxml==4.9.2; python_version >= '3.11'
 
@@ -198,17 +191,14 @@ coverage==5.0
 pytest-cov==2.7.0
 # Links are not allowed in constraint files - minimum ensured by dev-requirements.txt:
 # git+https://github.com/andy-maier/coveralls-python.git@andy/add-py27#egg=coveralls; python_version == '2.7'
-coveralls==3.3.0; python_version >= '3.5'
+coveralls==3.3.0; python_version >= '3.6'
 
 # Safety CI by pyup.io
 safety==1.8.7; python_version == '2.7'
-# version 2. not compatible with python 3.5
-safety==1.9.0; python_version == '3.5'
 # safety 2.2.0 resolves safety issue #51358
 safety==2.2.0; python_version >= '3.6'
 
 dparse==0.4.1; python_version == '2.7'
-dparse==0.5.1; python_version == '3.5'
 # dparse version 0.6.2 required by safety 2.2.0
 dparse==0.6.2; python_version >= '3.6'
 
@@ -217,54 +207,49 @@ tox==2.5.0
 
 # Sphinx (no imports, invoked via sphinx-build script):
 Sphinx==1.7.6; python_version == '2.7'
-Sphinx==3.5.4; python_version >= '3.5' and python_version <= '3.9'
+Sphinx==3.5.4; python_version >= '3.6' and python_version <= '3.9'
 # See dev-requirements.txt for reason to use 4.2.0 as minimum for py 3.10
 Sphinx==4.2.0; python_version >= '3.10'
 docutils==0.13.1; python_version == '2.7'
-docutils==0.13.1; python_version >= '3.5' and python_version <= '3.9'
+docutils==0.13.1; python_version >= '3.6' and python_version <= '3.9'
 docutils==0.14; python_version == '3.10'
 docutils==0.16; python_version >= '3.11'
 sphinx-git==10.1.1
 GitPython==2.1.1; python_version == '2.7'
-GitPython==2.1.1; python_version >= '3.5' and python_version <= '3.6'
+GitPython==2.1.1; python_version == '3.6'
 GitPython==3.1.27; python_version >= '3.7'
 sphinxcontrib-fulltoc==1.2.0
 sphinxcontrib-websupport==1.1.2
-sphinxcontrib-applehelp==1.0.2; python_version >= '3.5'
-sphinxcontrib-devhelp==1.0.2; python_version >= '3.5'
-sphinxcontrib-htmlhelp==1.0.3; python_version >= '3.5' and python_version <= '3.9'
+sphinxcontrib-applehelp==1.0.2; python_version >= '3.6'
+sphinxcontrib-devhelp==1.0.2; python_version >= '3.6'
+sphinxcontrib-htmlhelp==1.0.3; python_version >= '3.6' and python_version <= '3.9'
 sphinxcontrib-htmlhelp==2.0.0; python_version >= '3.10'
-sphinxcontrib-jsmath==1.0.1; python_version >= '3.5'
-sphinxcontrib-qthelp==1.0.3; python_version >= '3.5'
-sphinxcontrib-serializinghtml==1.1.5; python_version >= '3.5'
+sphinxcontrib-jsmath==1.0.1; python_version >= '3.6'
+sphinxcontrib-qthelp==1.0.3; python_version >= '3.6'
+sphinxcontrib-serializinghtml==1.1.5; python_version >= '3.6'
 Pygments==2.1.3; python_version == "2.7"
-Pygments==2.7.4; python_version == "3.5"
 Pygments>=2.13.0,<3.0.0; python_version >= '3.6'
 sphinx-rtd-theme==0.5.0
 autodocsumm==0.1.13; python_version == '2.7'
-autodocsumm==0.1.13; python_version == '3.5'
 autodocsumm==0.2.5; python_version >= '3.6'
 Babel==2.7.0; python_version == '2.7'
 # Safety issue #42203  affected < 2.9.1
-Babel==2.9.1; python_version >= '3.5'
+Babel==2.9.1; python_version >= '3.6'
 
 
 # PyLint (no imports, invoked via pylint script):
-pylint==2.5.2; python_version == '3.5'
 pylint==2.10.0; python_version >= '3.6' and python_version <= '3.10'
 pylint==2.15.0; python_version >= '3.11'
-astroid==2.4.0; python_version == '3.5'
 astroid==2.7.2; python_version >= '3.6' and python_version <= '3.10'
 astroid==2.12.4; python_version >= '3.11'
 
 # rich 13.3.5 requires typing-extensions>=4.0.0,<5.0
 # typing-extensions 4.0.0 removed support for Python < 3.6
 typing-extensions==3.10.0; python_version == '2.7'
-typing-extensions==3.10.0; python_version == '3.5'
 typing-extensions==4.0.0; python_version >= '3.6' and python_version <= '3.10'
 typed-ast==1.4.0; python_version >= '3.6' and python_version < '3.8' and implementation_name=='cpython'
-lazy-object-proxy==1.4.3; python_version >= '3.5'
-wrapt==1.12; python_version >= '3.5' and python_version <= '3.10'
+lazy-object-proxy==1.4.3; python_version >= '3.6'
+wrapt==1.12; python_version >= '3.6' and python_version <= '3.10'
 wrapt==1.14; python_version >= '3.11'
 isort==4.3.8
 tomlkit==0.10.1; python_version >= '3.7'
@@ -284,7 +269,7 @@ entrypoints==0.3.0
 functools32==3.2.3.post2; python_version == '2.7'  # technically: python_version < '3.2'
 
 # Twine (no imports, invoked via twine script):
-twine==1.8.1; python_version <= '3.5'
+twine==1.8.1; python_version == '2.7'
 twine==3.0.0; python_version >= '3.6'
 readme-renderer==23.0
 pkginfo==1.4.2
@@ -293,36 +278,32 @@ pkginfo==1.4.2
 jupyter==1.0.0
 
 ipython==5.1.0; python_version == '2.7'
-ipython==7.0; python_version == '3.5'
 ipython==7.16.3; python_version == '3.6'
 ipython==7.23.1; python_version >= '3.7'
 
 ipykernel==4.5.2; python_version == '2.7'
-ipykernel==4.5.2; python_version >= '3.5' and python_version <= '3.6'
+ipykernel==4.5.2; python_version == '3.6'
 ipykernel==6.1.0; python_version >= '3.7'
 
 ipython_genutils==0.1.0
 
 ipywidgets==5.2.2; python_version == '2.7'
-ipywidgets==5.2.2; python_version >= '3.5' and python_version <= '3.6'
+ipywidgets==5.2.2; python_version == '3.6'
 ipywidgets==8.0.0; python_version >= '3.7'
 
 jupyter_console==5.0.0; python_version == '2.7'
-jupyter_console==6.0.0; python_version >= '3.5'
+jupyter_console==6.0.0; python_version >= '3.6'
 
 jupyter_client==4.4.0; python_version == '2.7'
-jupyter_client==4.4.0; python_version == '3.5'
 jupyter-client==6.1.12; python_version >= '3.6'
 
 jupyter_core==4.2.1; python_version == '2.7'
-jupyter_core==4.2.1; python_version == '3.5'
 jupyter_core==4.6.1; python_version == '3.6'
 jupyter_core==4.11.2; python_version >= '3.7'
 
 jupyterlab-pygments==0.1.2
 
 jupyterlab-widgets==0.6.5; python_version == '2.7'
-jupyterlab-widgets==0.6.5; python_version == '3.5'
 jupyterlab-widgets==1.0.2; python_version == '3.6'
 jupyterlab-widgets==3.0.0; python_version >= '3.7'
 
@@ -334,17 +315,14 @@ nbclient==0.5.9; python_version == '3.6'
 nbclient==0.5.13; python_version >= '3.7'
 
 nbconvert==5.0.0; python_version == '2.7'
-nbconvert==5.0.0; python_version == '3.5'
 nbconvert==5.0.0; python_version == '3.6'
 nbconvert==6.5.1; python_version >= '3.7'
 
 nbformat==4.2.0; python_version == '2.7'
-nbformat==4.2.0; python_version == '3.5'
 nbformat==5.1.3; python_version == '3.6'
 nbformat==5.2.0; python_version >= '3.7'
 
 notebook==4.3.1; python_version == '2.7'
-notebook==4.3.1; python_version == '3.5'
 notebook==6.4.10; python_version == '3.6'
 notebook==6.5.4; python_version >= '3.7'
 
@@ -353,7 +331,7 @@ pyrsistent==0.14.0; python_version >= '3.6'
 
 # Pywin32 is used (at least?) by jupyter.
 pywin32==222; sys_platform == 'win32' and python_version == '2.7'
-pywin32==222; sys_platform == 'win32' and python_version >= '3.5' and python_version <= '3.6'
+pywin32==222; sys_platform == 'win32' and python_version == '3.6'
 pywin32==223; sys_platform == 'win32' and python_version == '3.7'
 pywin32==227; sys_platform == 'win32' and python_version >= '3.8' and python_version <= '3.9'
 pywin32==303; sys_platform == 'win32' and python_version >= '3.10'
@@ -370,7 +348,7 @@ psutil==5.6.0; sys_platform != 'cygwin' and platform_python_implementation == 'P
 
 # Package dependency management tools
 pipdeptree==2.2.0
-pip-check-reqs==2.3.2; python_version >= '3.5' and python_version <= '3.10'
+pip-check-reqs==2.3.2; python_version >= '3.6' and python_version <= '3.10'
 pip-check-reqs==2.4.3; python_version >= '3.11'
 
 # notebook 6.4.10 depends on pyzmq>=17
@@ -380,7 +358,7 @@ pyzmq==23.2.1; python_version >= '3.9'
 # Indirect dependencies for develop that need constraints
 
 bleach==3.3.0; python_version == '2.7'
-bleach==3.3.0; python_version >= '3.5'
+bleach==3.3.0; python_version >= '3.6'
 
 pywinpty==0.5; os_name == "nt"
 
@@ -396,22 +374,22 @@ argon2-cffi-bindings==21.2.0; python_version >= '3.6'
 args==0.1.0
 asttokens==2.0.4; python_version >= '3.6'
 atomicwrites==1.4.0; python_version == '2.7'
-attrs==19.2.0; python_version >= '3.5'
-backcall==0.2.0; python_version >= '3.5'
+attrs==19.2.0; python_version >= '3.6'
+backcall==0.2.0; python_version >= '3.6'
 backports-abc==0.5; python_version == '2.7'
 backports.functools-lru-cache==1.6.4; python_version == '2.7'
 backports.shutil-get-terminal-size==1.0.0; python_version == '2.7'
 backports.statistics==0.1.0; python_version == '2.7'
-beautifulsoup4==4.10.0; python_version >= '3.5'
+beautifulsoup4==4.10.0; python_version >= '3.6'
 cffi==1.14.5
 # Click used by easy-vault (8.0.2) and safety (7.1.1).
-Click==7.1.1; python_version <= '3.5'
+Click==7.1.1; python_version == '2.7'
 Click==8.0.2; python_version >= '3.6'
 clint==0.5.1
 configparser==4.0.2; python_version == '2.7'
 contextlib2==0.6.0.post1; python_version == '2.7'
 dataclasses==0.8; python_version == '3.6'  # used by safety 2.3.1 and argon-cffi
-debugpy==1.5.1; python_version >= '3.5'
+debugpy==1.5.1; python_version >= '3.6'
 defusedxml==0.7.1
 distlib==0.3.4
 docopt==0.6.1
@@ -422,17 +400,17 @@ future==0.18.3
 futures==3.3.0; python_version == '2.7'
 # gitdb2 is a mirror Pypi name for certain gitdb versions.
 gitdb2==2.0.6; python_version == '2.7'
-gitdb2==2.0.6; python_version >= '3.5' and python_version <= '3.6'
+gitdb2==2.0.6; python_version == '3.6'
 gitdb==4.0.8; python_version >= '3.7'
 html5lib==0.999999999
 # anyio 3.1.0 depends on idna>=2.8
 idna==2.8
 imagesize==0.7.1
 importlib-resources==3.2.1; python_version <= '3.8'  # used by virtualenv 20.0.35
-iniconfig==1.1.1; python_version >= '3.5'
+iniconfig==1.1.1; python_version >= '3.6'
 ipaddress==1.0.23; python_version == '2.7'
-jedi==0.17.2; python_version >= '3.5'
-Jinja2==2.8.1; python_version <= '3.5'
+jedi==0.17.2; python_version >= '3.6'
+Jinja2==2.8.1; python_version == '2.7'
 # Jinja2 version for python 3.6 is 3.0.0 because nbconvert 6.5.1 requirment
 # that changes at python 36
 # Safety issues #39525 affects <2.11.3 and #54679 affects <2.10.1
@@ -442,23 +420,21 @@ linecache2==1.0.0
 
 # MarkupSafe version depends on nbconvert min version 6.5.1 requirement
 # Jinja2 3.0.0 depends on MarkupSafe>=2.0.0rc2
-MarkupSafe==1.1.0; python_version <= '3.5'
+MarkupSafe==1.1.0; python_version == '2.7'
 MarkupSafe==2.0.0; python_version >= '3.6'
-matplotlib-inline==0.1.3; python_version >= '3.5'
+matplotlib-inline==0.1.3; python_version >= '3.6'
 mistune==0.8.1
-nest-asyncio==1.5.4; python_version >= '3.5'
+nest-asyncio==1.5.4; python_version >= '3.6'
 pandocfilters==1.4.1
-parso==0.7.0; python_version >= '3.5'
+parso==0.7.0; python_version >= '3.6'
 pathlib2==2.3.7.post1
 
 pexpect==4.2.1; python_version == '2.7'
-pexpect==4.2.1; python_version == '3.5'
 # ipython 7.23.1 depends on pexpect>4.3, sys_platform != "win32"
 # pexpect==4.3.1; python_version >= '3.6' and sys_platform != "win32"
 pexpect==4.4.0; python_version >= '3.6'
 pickleshare==0.7.4
 prometheus-client==0.12.0; python_version == '2.7'
-prometheus-client==0.12.0; python_version == '3.5'
 prometheus-client==0.13.1; python_version >= '3.6'
 prompt-toolkit==2.0.1
 ptyprocess==0.5.1
@@ -466,12 +442,11 @@ ptyprocess==0.5.1
 py==1.11.0
 pycparser==2.21
 pyparsing==2.4.7; python_version == '2.7'
-pyparsing==2.4.7; python_version == '3.5'
 pyparsing==3.0.7; python_version >= '3.6'
 python-dateutil==2.8.2
 qtconsole==4.2.1
 QtPy==1.11.3; python_version == '2.7'
-QtPy==2.0.1; python_version >= '3.5'
+QtPy==2.0.1; python_version >= '3.6'
 rfc3986==1.4.0
 rich==12.0.0; python_version >= '3.6'
 scandir==1.10.0; python_version == '2.7'
@@ -482,22 +457,20 @@ singledispatch==3.7.0; python_version == '2.7'
 # smmap2 is used by gitdb2
 # smmap is used by gitdb
 smmap2==2.0.1; python_version == '2.7'
-smmap2==2.0.1; python_version >= '3.5' and python_version <= '3.6'
+smmap2==2.0.1; python_version == '3.6'
 smmap==5.0.0; python_version >= '3.7'
 snowballstemmer==1.2.1
-soupsieve==2.3.1; python_version >= '3.5'
+soupsieve==2.3.1; python_version >= '3.6'
 stack-data==0.2.0; python_version >= '3.6'
 
 terminado==0.6; python_version == '2.7'
-terminado==0.6; python_version == '3.5'
 # This version caused by notebook 6.4.10 depends on terminado>=0.8.3
 terminado==0.8.3; python_version >= '3.6'
 testpath==0.3
 toml==0.10.0
-tomli==2.0.1; python_version >= '3.5'
+tomli==2.0.1; python_version >= '3.6'
 
 tornado==4.4.2; python_version == '2.7'
-tornado==4.4.2; python_version == '3.5'
 # ipykernel 4.5.2 depends on tornado>=4.0 notebook 6.4.10 depends on tornado>=6.1
 tornado==6.1; python_version >= '3.6'
 
@@ -508,14 +481,14 @@ traceback2==1.4.0
 # traitlets 5.0.0 removed support for Python 3.6
 # jupyter-server 1.17.0 depends on traitlets>=5.1
 traitlets==4.3.1; python_version == '2.7'
-traitlets==4.3.1; python_version == '3.5'
 traitlets==4.3.1; python_version == '3.6'
 traitlets==5.1.0; python_version >= '3.7'
 
 typing==3.10.0.0; python_version == '2.7'
 wcwidth==0.1.7
 webencodings==0.5.1
-widgetsnbextension==1.2.6; python_version <= '3.6'
+widgetsnbextension==1.2.6; python_version == '2.7'
+widgetsnbextension==1.2.6; python_version == '3.6'
 # multiple versions because of version issues with ipywidgets
 widgetsnbextension==4.0.0; python_version >= '3.7'
 zipp==1.2.0

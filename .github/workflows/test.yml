@@ -31,27 +31,17 @@ jobs:
       # This technique documented in:
       #    https://stackoverflow.com/questions/65384420/how-to-make-a-github-action-matrix-element-conditional
       # NOTE: Ubuntu 20.04 used because in some tests Ubuntu:latest fails with
-      # Python 3.5 and 3.6. See pywbemtools issue 1245 for explanation.
+      # Python 3.6. See pywbemtools issue 1245 for explanation.
       # TODO: Find a way to define this with fewer escapes.
       run: |
         if [[ "${{ github.event_name }}" == "schedule" || "${{ github.head_ref }}" =~ ^release_ ]]; then \
           echo "matrix={ \
             \"os\": [ \"ubuntu-latest\", \"macos-latest\", \"windows-latest\" ], \
-            \"python-version\": [ \"2.7\", \"3.5\", \"3.6\", \"3.7\", \"3.8\", \"3.9\", \"3.10\", \"3.11\" ], \
+            \"python-version\": [ \"2.7\", \"3.6\", \"3.7\", \"3.8\", \"3.9\", \"3.10\", \"3.11\" ], \
             \"package_level\": [ \"minimum\", \"latest\" ], \
             \"exclude\": [ \
               { \
                 \"os\": \"ubuntu-latest\", \
-                \"python-version\": \"3.5\", \
-                \"package_level\": \"minimum\" \
-              }, \
-              { \
-                \"os\": \"ubuntu-latest\", \
-                \"python-version\": \"3.5\", \
-                \"package_level\": \"latest\" \
-              }, \
-              { \
-                \"os\": \"ubuntu-latest\", \
                 \"python-version\": \"3.6\", \
                 \"package_level\": \"minimum\" \
               }, \
@@ -59,26 +49,11 @@ jobs:
                 \"os\": \"ubuntu-latest\", \
                 \"python-version\": \"3.6\", \
                 \"package_level\": \"latest\" \
-              }, \
-              { \
-                \"os\": \"windows-latest\", \
-                \"python-version\": \"3.5\", \
-                \"package_level\": \"minimum\" \
               } \
             ], \
             \"include\": [ \
               { \
                 \"os\": \"ubuntu-20.04\", \
-                \"python-version\": \"3.5\", \
-                \"package_level\": \"minimum\" \
-              }, \
-              { \
-                \"os\": \"ubuntu-20.04\", \
-                \"python-version\": \"3.5\", \
-                \"package_level\": \"latest\" \
-              }, \
-              { \
-                \"os\": \"ubuntu-20.04\", \
                 \"python-version\": \"3.6\", \
                 \"package_level\": \"minimum\" \
               }, \
@@ -86,11 +61,6 @@ jobs:
                 \"os\": \"ubuntu-20.04\", \
                 \"python-version\": \"3.6\", \
                 \"package_level\": \"latest\" \
-              }, \
-              { \
-                \"os\": \"windows-2019\", \
-                \"python-version\": \"3.5\", \
-                \"package_level\": \"minimum\" \
               } \
             ] \
           }" >> $GITHUB_OUTPUT; \
@@ -102,12 +72,12 @@ jobs:
             \"include\": [ \
               { \
                 \"os\": \"ubuntu-20.04\", \
-                \"python-version\": \"3.5\", \
+                \"python-version\": \"3.6\", \
                 \"package_level\": \"minimum\" \
               }, \
               { \
                 \"os\": \"ubuntu-20.04\", \
-                \"python-version\": \"3.5\", \
+                \"python-version\": \"3.6\", \
                 \"package_level\": \"latest\" \
               }, \
               { \
@@ -152,7 +122,7 @@ jobs:
               }, \
               { \
                 \"os\": \"macos-latest\", \
-                \"python-version\": \"3.5\", \
+                \"python-version\": \"3.6\", \
                 \"package_level\": \"latest\" \
               }, \
               { \
@@ -166,13 +136,8 @@ jobs:
                 \"package_level\": \"latest\" \
               }, \
               { \
-                \"os\": \"windows-2019\", \
-                \"python-version\": \"3.5\", \
-                \"package_level\": \"minimum\" \
-              }, \
-              { \
                 \"os\": \"windows-latest\", \
-                \"python-version\": \"3.5\", \
+                \"python-version\": \"3.6\", \
                 \"package_level\": \"latest\" \
               }, \
               { \

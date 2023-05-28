@@ -736,15 +736,11 @@ safety_$(pymn)_$(PACKAGE_LEVEL).done: develop_$(pymn)_$(PACKAGE_LEVEL).done Make
 ifeq ($(python_m_version),2)
 	@echo "Makefile: Warning: Skipping Safety on Python $(python_version)" >&2
 else
-ifeq ($(python_mn_version),3.5)
-	@echo "Makefile: Warning: Skipping Safety on Python $(python_version)" >&2
-else
 	@echo "Makefile: Running Safety"
 	-$(call RM_FUNC,$@)
 	safety check --policy-file $(safety_policy_file) -r minimum-constraints.txt --full-report
 	echo "done" >$@
 	@echo "Makefile: Done running Safety"
-endif
 endif
 
 # END ---------------------
