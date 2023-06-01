@@ -719,10 +719,15 @@ class WBEMListener(object):
         Parameters:
 
           host (:term:`string`):
-            IP address or host name to which this listener is bound (i.e.
-            at which this listener can be reached). Setting the host
-            address to IP address 0.0.0.0 defines a listener that binds to
-            all network interfaces.
+            IP address or host name to which this listener is bound (i.e. at
+            which this listener can be reached).  If a listener is bound to a
+            particular IP address it will only receive indications addressed to
+            that IP address (or to any IP address network interface containing
+            that address depending on the OS).  The IP address 0.0.0.0 will
+            bind the listener to any configured IPV4 address on the local
+            machine, Setting the host address to an empty string (i.e. "")
+            defines a listener that binds to the listener to all configured
+            network interfaces on the local machine.
 
            http_port (:term:`string` or :term:`integer`):
             HTTP port at which this listener can be reached. Note that at
