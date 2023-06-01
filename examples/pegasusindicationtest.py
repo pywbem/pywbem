@@ -18,7 +18,6 @@ from __future__ import print_function, absolute_import
 import sys
 import os
 import time
-import threading
 import logging
 import datetime
 import argparse
@@ -30,6 +29,10 @@ from pywbem import WBEMConnection, WBEMServer, WBEMListener, CIMClassName, \
     Error, ConnectionError, Uint32, WBEMSubscriptionManager
 
 from pywbem import configure_logger
+
+
+def current_time():
+    return time.strftime("%H:%M:%S", time.localtime())
 
 
 class RunIndicationTest(object):  # pylint: disable=too-many-instance-attributes
@@ -74,6 +77,20 @@ class RunIndicationTest(object):  # pylint: disable=too-many-instance-attributes
             indication_destination_host ():
                 host name/ip address where containing the listener.  This is
                 the address to where indications are sent by the WBEM server.
+                If the WBEM server is on a different system or in a container
+                this must be an address usable by that system/container.
+                Localhost is not a valid host name in that case.
+
+            listener_host (:term:`string`):
+                host name/ip address that will be used by the listener as
+                its bind address or None. If this parameter contains
+                a string that will be passed to WBEMListener as the host
+                parameter. That name/IP address is used by the the socket
+                services to only accept indications addressed to that
+                network interface or IP address (depening on the OS, network,
+                etc.)
+                If None the listener will be forwarded indications addressed
+                to any IP address in the containing computer system.
 
             http_listener_port (:term:`number`):
                 listener port for indications sent with http.
@@ -124,7 +141,6 @@ class RunIndicationTest(object):  # pylint: disable=too-many-instance-attributes
         # Test status parameters
         self.listener = None
         self.received_indication_count = 0
-        self. counter_lock = threading.Lock()
 
         # Test indication timers, and sequence number
         self.indication_start_time = None
@@ -215,6 +231,12 @@ class RunIndicationTest(object):  # pylint: disable=too-many-instance-attributes
         pylint: disable=global-statement
         """
 
+        # Set the host to empty string if None to indicate no bind address
+        # meaning that the listener will receive from any network interface.
+
+        if self.listener_host is None:
+            self.listener_host = ""
+
         self.listener = WBEMListener(self.listener_host,
                                      http_port=self.http_listener_port,
                                      https_port=None)
@@ -288,22 +310,25 @@ class RunIndicationTest(object):  # pylint: disable=too-many-instance-attributes
     def consume_indication(self, indication, host):
         """
         Consume a single indication. This is a callback and may be on another
-        thead
+        thead. It is called each time an indication is received.
         """
-        # increment count.
-        self.counter_lock.acquire()
+        # Count received indications and save received time.
         if self.indication_start_time is None:
             self.indication_start_time = datetime.datetime.now()
 
+        # time for this indication
         if self.last_indication_time is not None:
             time_diff = datetime.datetime.now() - self.last_indication_time
             if self.max_time_between_indications is None:
                 self.max_time_between_indications = time_diff
             elif time_diff > self.max_time_between_indications:
                 self.max_time_between_indications = time_diff
+
         seq_num = indication['SequenceNumber']
+
         if self.last_seq_num is None:
             self.last_seq_num = seq_num
+            self.received_indication_count = 1
         else:
             if seq_num != (self.last_seq_num + 1):
                 print('Missed {0} indications at {1}'.
@@ -311,31 +336,34 @@ class RunIndicationTest(object):  # pylint: disable=too-many-instance-attributes
                              self.last_seq_num))
             self.last_seq_num = seq_num
 
-        self.last_indication_time = datetime.datetime.now()
+            self.last_indication_time = datetime.datetime.now()
 
-        self.received_indication_count += 1
+            self.received_indication_count += 1
 
-        self.listener.logger.info("Consumed CIM indication #{}: host={}\n{}".
-                                  format(self.received_indication_count, host,
-                                         indication.tomof()))
-        self.counter_lock.release()
+        # pylint: disable=logging-format-interpolation
+        self.listener.logger.info(
+            "Consumed CIM indication #{}: host={}\n{}".
+            format(self.received_indication_count, host,
+                   indication.tomof()))
 
     def receive_expected_indications(self):
         """
-        Wait forexpected indications to be received.  If there is an
+        Wait for expected indications to be received.  If there is an
         error in the indications received, try to get more information from
         OpenPegasus.
         Returns True if successful reception, else False
         """
         # Wait for indications to be received.
         success = self.wait_for_indications()
+
         if not success:
             print("Wait for expected indications failed.\n"
-                  "Attempting to display pegasus Indication dest queue.")
+                  "Attempting to display pegasus Indication dest queue.\n")
+
             insts = self.conn.EnumerateInstances('PG_ListenerDestinationQueue',
                                                  namespace='root/PG_Internal')
             for inst in insts:
-                print('ListenerDestinationName={}\nQueueFullDropped={} , '
+                print('ListenerDestinationName={}:\n   QueueFullDropped={} , '
                       'RetryAttemptsExceeded={}, InQueue={}'
                       .format(inst['ListenerDestinationName'],
                               inst['QueueFullDroppedIndications'],
@@ -362,18 +390,21 @@ class RunIndicationTest(object):  # pylint: disable=too-many-instance-attributes
         indications, flags that in a message but returns successful completion.
         """
         last_indication_count = 0
-        counter = 0
+        return_flag = False
+        stall_ctr = 0
+
+        # Wait loop for reception of all of the indications for indication
+        # request to the wbem server.  Try block allows ctrl-C exception
         try:
             return_flag = False
-            wait_time = int(self.requested_indications / 20) + 3
-            stall_ct = 40           # max count in loop with no reception.
-            for _ in range(wait_time):
-                time.sleep(1)
-                if last_indication_count != self.received_indication_count:
-                    last_indication_count = self.received_indication_count
-                    counter = 0
+            #max_loop_ct = int(self.requested_indications / 20) + 3
 
-                # exit loop if all indications recieved.
+            # Loop to wait for indications and exit if all received or
+            # exceeds stall count.
+            while True:
+                time.sleep(1)
+
+                # Finish processing if all requested indications received
                 if self.received_indication_count >= self.requested_indications:
                     elapsed_time = \
                         self.last_indication_time - self.indication_start_time
@@ -381,37 +412,68 @@ class RunIndicationTest(object):  # pylint: disable=too-many-instance-attributes
                     if elapsed_time.total_seconds() != 0:
                         ind_per_sec = self.received_indication_count / \
                             elapsed_time.total_seconds()
-                    print('Rcvd {} indications, time={} sec, {:.2f} per sec. '
-                          'Exit indication wait loop'.format
-                          (self.received_indication_count,
-                           elapsed_time.total_seconds(),
-                           ind_per_sec))
+                    print('Rcvd {} indications, time={} sec, {:.2f} per sec'
+                          .format(self.received_indication_count,
+                                  elapsed_time.total_seconds(),
+                                  ind_per_sec))
                     return_flag = True
                     break
-                counter += 1
-                if counter > stall_ct:
-                    elapsed_time = \
-                        self.last_indication_time - self.indication_start_time
-                    ind_per_sec = 0
-                    if elapsed_time.total_seconds() != 0:
-                        ind_per_sec = self.received_indication_count / \
-                            elapsed_time.total_seconds()
-                    print('Nothing received for {} sec: received={} time={} '
-                          'sec: {:.2f} per sec'.
-                          format(stall_ct, self.received_indication_count,
-                                 elapsed_time.total_seconds(), ind_per_sec))
-                    break
 
-        # because this can be a long loop, catch cntrl-c
+                # If something received,  reloop, reset stall_ctr
+                elif last_indication_count != self.received_indication_count:
+                    last_indication_count = self.received_indication_count
+                    stall_ctr = 0
+
+                    print("Rcvd {} indications.".format(last_indication_count))
+                    continue
+
+                # Nothing received in last loop and requested number not rcvd.
+                else:
+                    stall_ctr += 1
+                    if self.last_indication_time:
+                        stalled_time = datetime.datetime.now() - \
+                            self.last_indication_time
+                    else:
+                        stalled_time = datetime.datetime.now() - \
+                            self.indication_start_time
+
+                    if stall_ctr > 5:
+                        if self.last_indication_time:
+                            elapsed_time = \
+                                self.last_indication_time - \
+                                    self.indication_start_time
+                        else:
+                            elapsed_time = 0
+                        if elapsed_time != 0:
+                            ind_per_sec = self.received_indication_count / \
+                                elapsed_time.total_seconds()
+                        else:
+                            ind_per_sec = 0
+
+                        print('Nothing received for {} sec: received={} '
+                              'time={} sec: {:.2f} per sec. stall ctr={}'.
+                              format(stalled_time.total_seconds(),
+                                     self.received_indication_count,
+                                     elapsed_time.total_seconds(),
+                                     ind_per_sec,
+                                     stall_ctr))
+                        break
+                    else:
+                        print("waiting {:.2f} sec. with no indications ct {}".
+                              format(stalled_time.total_seconds(), stall_ctr))
+
+        # Because this can be a long loop, catch CTRL-C
         except KeyboardInterrupt:
             print('Ctrl-C terminating wait loop early')
 
-        # If sif return_flag True, wait and recheck to be sure no extras
+        # If return_flag True, wait and recheck to be sure no extras
         # received.
         if return_flag:
             time.sleep(2)
             if self.received_indication_count != self.requested_indications:
-                print('ERROR. Extra indications received')
+                print('ERROR. Extra indications received {}, requested {}'.
+                      format(self.received_indication_count,
+                             self.requested_indications))
         return return_flag
 
     def remove_existing_subscriptions(self, sub_mgr, server_id):
@@ -504,10 +566,10 @@ the indications.
 def examples(script_name):  # pylint: disable=missing-function-docstring
     examples_txt = """
 EXAMPLES:
-Simple wbem server in same network as client:
-    {0} http://localhost
+Simple wbem server in same network as client and using loopback:
+    {0} localhost
     Tests with localhost as WBEM server on same host as pywbem using default
-    listener port, etc.
+    listener port, etc. and listener port 5000
 
   Network on another network (ex. Docker container)
     {0} localhost:15988 -d 192.168.4.44
@@ -525,10 +587,11 @@ Simple wbem server in same network as client:
 
 
 def main():
-    """Setup parameters for the test and call the test function
-        This is a very simple interface with fixed cli arguments. If there
-        are no arguments it defaults to a standard internal set of
-        arguments
+    """Setup parameters for the test and call the test function. This example
+       includes parameters to allow the user to set the server url, indication
+       destination host, listener port, and users/password. Note that it does
+       not include parameters for certificates and only creates HTTP
+       listeners.
     """
     prog = "pegasusindicationtest.py"
     parser = argparse.ArgumentParser(
@@ -538,23 +601,24 @@ def main():
         epilog=examples(prog))
 
     parser.add_argument(
-        "server_url",
+        "wbem_server_url",
         help="Url of server including port if required.  Does not include "
         "scheme since this is http only.")
+
     parser.add_argument(
         '-d', "--dest_host",
         help="Listener destination host name or IP address to be set into the "
-             "subscription destination instance. This must be an IP or "
+             "subscription destination instance. This must be an IP address or "
              "hostname available to to the system containing the listener "
              "and the system containing the WBEM server.")
 
     parser.add_argument(
-        '-l', "--listener_host", default="0.0.0.0",
-        help="Optional host name for indication listener.  This must be host "
-        "system name or IP address public to both system containing listener "
-        "and WBEM Server.  Listener will refuse indications on any "
-        "other network address if this is set. Default is IP 0.0.0.0 "
-        "which causes listener to receive on any defined network.")
+        '-l', "--listener_host", default=None,
+        help="Optional host name or IP address for the indication listener.  "
+        "This must be host system name or IP address available to both system "
+        "containing listener and WBEM Server.  Listener will refuse "
+        "indications on any other network address if this is set. Default is "
+        "None which allows listener to receive on any defined network.")
 
     parser.add_argument(
         '-p', "--port", type=int, default=5000,
@@ -591,7 +655,7 @@ def main():
     if args.verbose:
         print(args)
 
-    RunIndicationTest(args.server_url, args.dest_host, args.listener_host,
+    RunIndicationTest(args.wbem_server_url, args.dest_host, args.listener_host,
                       args.port, args.username, args.password,
                       args.indication_count, args.repeat_loop, args.log,
                       args.verbose)
