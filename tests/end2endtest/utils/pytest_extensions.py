@@ -245,7 +245,8 @@ def wbem_connection(request, es_server):
     """
 
     # Display messages about server that is used
-    verbose = False
+    # TODO: Reset this to false
+    verbose = True
 
     # Skip this server if we had a skip reason in an earlier attempt.
     # Note: We add an attribute to the es_server object to store this info.
@@ -299,7 +300,7 @@ def wbem_connection(request, es_server):
         # Check that the server can be reached and authenticated with, by
         # issuing some quick operation. Operation failures are tolerated
         # (e.g. GetQualifier is not supported on SFCB), and the connection and
-        # authgentication errors can still be detected because they will be
+        # authentication errors can still be detected because they will be
         # detected before the operation fails.
         try:
             conn.GetQualifier(
