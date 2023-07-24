@@ -262,19 +262,23 @@ jobs:
       run: |
         make pylint
     - name: Run test
+      # xmllint not in py27 container
+      if: matrix.python-version != '2.7'
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
         # TESTCASES: test_cim_obj.py
       run: |
         make test
     - name: Run end2endtest
-      # GitHub Actions has Docker only on Ubuntu
-      if: startsWith(matrix.os, 'ubuntu-')
+      # GitHub Actions has Docker only on Ubuntu, but not in py27 container
+      if: startsWith(matrix.os, 'ubuntu-') && matrix.python-version != '2.7'
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
       run: |
         make end2endtest
     - name: Send coverage result to coveralls.io
+      # no coverage in py27 container because no test is run
+      if: matrix.python-version != '2.7'
       shell: bash -l {0}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
