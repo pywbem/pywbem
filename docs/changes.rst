@@ -41,6 +41,8 @@ Released: not yet
 * Circumvented the removal of Python 2.7 from the Github Actions plugin
   setup-python, by using the Docker container python:2.7.18-buster instead.
 
+* Fixed missing dependencies in minimum-constraints.txt.
+
 **Enhancements:**
 
 * The 'pywbem.ValueMapping' class now allows controlling what should happen
