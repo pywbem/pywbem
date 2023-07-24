@@ -84,7 +84,7 @@ autodocsumm>=0.2.5; python_version >= '3.6'
 # Babel 2.7.0 fixes an ImportError for MutableMapping which starts failing on Python 3.10
 Babel==2.7.0; python_version == '2.7'
 # Safety issue #42203
-Babel>=2.9.1; python_version >= '3.5'
+Babel>=2.10.0; python_version >= '3.6'
 
 # PyLint (no imports, invoked via pylint script)
 # Pylint requires astroid
@@ -170,8 +170,8 @@ ipython>=7.23.1; python_version >= '3.7'
 # ipykernel 6.0.0 removed support for Python 3.5 and 3.6
 # Using ipkernel 6.2.0 gets us ipython 8.0 compatibility
 ipykernel>=4.5.2; python_version == '2.7'
-ipykernel>=4.5.2; python_version >= '3.5' and python_version <= '3.6'
-ipykernel>=6.1.0; python_version >= '3.7'
+ipykernel>=4.5.2; python_version == '3.6'
+ipykernel>=6.2.0; python_version >= '3.7'
 
 ipython_genutils>=0.1.0
 
@@ -191,17 +191,17 @@ jupyter_console>=6.0.0; python_version >= '3.5'
 # jupyter-server 1.17.0 depends on jupyter-client>=6.1.12
 jupyter_client>=4.4.0; python_version == '2.7'
 jupyter_client>=4.4.0; python_version == '3.5'
-jupyter-client>=6.1.12; python_version >= '3.6'
+jupyter-client>=6.1.12; python_version == '3.6'
+jupyter-client>=7.4.4; python_version >= '3.7'
 
-# Safety issue 54717 affected jupyter_core <4.11.2
-# NOTE: Jupyter_core does not exist for version 4.11.2 and python 3.5
-# jupyter_core 4.10 removed support for Pythton < 3.7
+# Safety issue 54717 affected jupyter-core<4.11.2
+# jupyter-core 4.10 removed support for Pythton < 3.7
 # jupyter-client 6.1.5 depends on jupyter-core>=4.6.0
 # notebook 6.4.10 depends on jupyter-core>=4.6.1
-jupyter_core>=4.2.1; python_version == '2.7'
+jupyter-core>=4.2.1; python_version == '2.7'
 jupyter_core>=4.2.1; python_version == '3.5'
-jupyter_core>=4.6.1; python_version == '3.6'
-jupyter_core>=4.11.2; python_version >= '3.7'
+jupyter-core>=4.6.1; python_version == '3.6'
+jupyter-core>=4.12.0; python_version >= '3.7'
 
 jupyterlab-pygments>=0.1.2
 
@@ -215,7 +215,8 @@ jupyterlab-widgets>=3.0.0; python_version >= '3.7'
 
 # nbclassic 0.4.7 depends on jupyter-server>=1.8
 # jupyter-server 1.17.1 solves several safety issues
-jupyter-server>=1.17.1; python_version >= '3.7'
+jupyter-server>=1.24.0; python_version == '3.7'
+jupyter-server>=2.4.0; python_version >= '3.8'
 
 # jupyter-client 6.1.5 depends on jupyter-core>=4.6.0
 # jupyter-server 1.24.0 depends on jupyter-core!=5.0.* and >=4.12
@@ -245,7 +246,7 @@ nbconvert>=6.5.1; python_version >= '3.7'
 nbformat>=4.2.0; python_version == '2.7'
 nbformat>=4.2.0; python_version == '3.5'
 nbformat>=5.1.3; python_version == '3.6'
-nbformat>=5.2.0; python_version >= '3.7'
+nbformat>=5.3.0; python_version >= '3.7'
 
 # Notebook 6.1.0 introduced usage of f-strings (which requires py>=3.6) but still required py>=3.5.
 # Safety issue 54713 and others affected <6.4.10
@@ -253,6 +254,16 @@ notebook>=4.3.1,<6.1.0; python_version == '2.7'
 notebook>=4.3.1,<6.1.0; python_version == '3.5'
 notebook>=6.4.10; python_version == '3.6'
 notebook>=6.5.4; python_version >= '3.7'
+
+notebook-shim>=0.2.0; python_version >= '3.7'
+
+jupyterlab-server>=2.22.1,<3; python_version >= '3.8'
+
+jupyterlab>=4.0.2,<5; python_version >= '3.8'
+
+jupyterlab-server>=2.22.1,<3; python_version >= '3.8'
+
+jupyterlab>=4.0.2,<5; python_version >= '3.8'
 
 pyrsistent>=0.14.0,<0.16.0; python_version == '2.7'
 pyrsistent>=0.14.0; python_version >= '3.5'
@@ -285,8 +296,9 @@ pywin32>=303; sys_platform == 'win32' and python_version >= '3.10'
 #   since it only appears on Python 2.
 #   This issue has been circumvented by pinning the Tornado version to <5.0 on
 #   Python 2.
-tornado>=4.4.2,<5.0; python_version <= '2.7'
-tornado>=4.4.2; python_version >= '3.5'
+tornado>=4.4.2,<5.0; python_version == '2.7'
+tornado>=6.1; python_version == '3.6'
+tornado>=6.2; python_version >= '3.7'
 
 # Table output formatter used by the manual performance tests to display
 # timing results
@@ -314,8 +326,8 @@ pipdeptree>=2.2.0
 pip-check-reqs>=2.3.2; python_version >= '3.5' and python_version <= '3.10'
 pip-check-reqs>=2.4.3; python_version >= '3.11'
 
-pyzmq>=16.0.4; python_version <= '3.8'
-pyzmq>=23.2.1; python_version >= '3.9'
+pyzmq>=17.0.0; python_version <= '3.6'
+pyzmq>=24.0.0; python_version >= '3.7'
 
 # Indirect dependencies are not specified in this file unless constraints are needed.
 
@@ -350,7 +362,7 @@ idna>=2.8
 traitlets>=4.3.1; python_version == '2.7'
 traitlets>=4.3.1; python_version == '3.5'
 traitlets>=4.3.1; python_version == '3.6'
-traitlets>=5.1.0; python_version >= '3.7'
+traitlets>=5.6.0; python_version >= '3.7'
 
 # TODOs:
 # importlib-resources 5.12.0 depends on zipp>=3.1.0; python_version < "3.10"
