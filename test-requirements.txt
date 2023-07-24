@@ -13,9 +13,9 @@
 
 
 # Unit test (imports into testcases):
-packaging>=19.0; python_version <= '3.6'
-packaging>=21.0; python_version >= '3.7'
-funcsigs>=1.0.2; python_version < '3.3'
+packaging>=19.0; python_version == '3.6'
+packaging>=21.3; python_version >= '3.7'
+funcsigs>=1.0.2; python_version == '2.7'
 # pytest 5.0.0 has removed support for Python < 3.5
 # pytest 4.3.1 solves an issue on Python 3 with minimum package levels
 # pytest==6.0.0 causes pylint to report "not-callable" issues
@@ -36,7 +36,8 @@ colorama>=0.4.5; python_version >= '3.5'
 easy-vault>=0.7.0
 easy-server>=0.8.0
 pytest-easy-server>=0.8.0
-jsonschema>=2.6.0,!=4.0.0
+jsonschema>=2.6.0,!=4.0.0; python_version <= '3.6'
+jsonschema>=4.17.3; python_version >= '3.7'
 
 requests-mock>=1.6.0
 requests-toolbelt>=0.8.0
