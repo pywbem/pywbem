@@ -38,6 +38,9 @@ Released: not yet
 
 * Fixed coveralls issues with KeyError and HTTP 422 Unprocessable Entity.
 
+* Circumvented the removal of Python 2.7 from the Github Actions plugin
+  setup-python, by using the Docker container python:2.7.18-buster instead.
+
 **Enhancements:**
 
 * The 'pywbem.ValueMapping' class now allows controlling what should happen

@@ -95,8 +95,19 @@ function install_redhat() {
 function install_debian() {
   pkg="$1"
   echo "$myname: Installing package: $pkg"
-  run_cmd "sudo apt-get --yes install $pkg"
-  run_cmd "sudo apt list --installed | grep $pkg"
+  # Note: The python:2.7.18-buster Docker container has no sudo
+  apt -qq list $pkg
+  if [[ "$(apt -qq list $pkg)" != *"installed"* ]]; then
+    if which sudo >/dev/null; then
+      echo "Installing $pkg package"
+      run_cmd "sudo apt-get --yes install $pkg"
+      run_cmd "sudo apt list --installed | grep $pkg"
+    else
+      echo "Warning: Not installing $pkg package due to missing sudo"
+    fi
+  else
+    echo "$pkg package is already installed"
+  fi
   echo "$myname: Done installing package: $pkg"
 }
 
