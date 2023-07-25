@@ -14,18 +14,16 @@ Change log
       :revisions: 1
 
 
-pywbem 1.6.2.dev1
------------------
+pywbem 1.6.2
+------------
 
-Released: not yet
+Released: 2023-07-25
 
 **Incompatible changes:**
 
 * The 'pywbem.ValueMapping' class will now raise a 'pywbem.ModelError' for any
   missing or extra items in the 'Values' qualifier, compared to the 'ValueMap'
   qualifier. Previously, 'IndexError' was raised. (issue #2991)
-
-**Deprecations:**
 
 **Bug fixes:**
 
@@ -57,12 +55,6 @@ Released: not yet
 
 * Add a number of new ignores for additions to the safety issues lise May
   2003
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 1.6.1
