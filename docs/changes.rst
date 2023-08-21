@@ -43,6 +43,8 @@ Released: not yet
 
 * Fixed missing dependencies in minimum-constraints.txt.
 
+* Fixed safety issues as of 8/21.
+
 **Enhancements:**
 
 * The 'pywbem.ValueMapping' class now allows controlling what should happen
