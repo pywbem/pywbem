@@ -126,7 +126,7 @@ def kids(tup_tree):
     k = tup_tree[2]
     assert k is not None
     # pylint: disable=unidiomatic-typecheck
-    return [x for x in k if type(x) == tuple]
+    return [x for x in k if isinstance(x) == tuple]
 
 
 def pcdata(tup_tree):
@@ -2341,7 +2341,7 @@ class TupleParser(object):
           CIMXMLParseError: There is an error in the XML.
         """
 
-        if type(val) == list:  # pylint: disable=unidiomatic-typecheck
+        if isinstance(val) == list:
             return [self.parse_embeddedObject(obj) for obj in val]
         if val is None:
             return None
@@ -2385,7 +2385,7 @@ class TupleParser(object):
 
         raw_val = raw_val[0]
 
-        if type(raw_val) == list:  # pylint: disable=unidiomatic-typecheck
+        if isinstance(raw_val) == list:
             return [self.unpack_single_value(data, valtype)
                     for data in raw_val]
 
