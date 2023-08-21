@@ -883,7 +883,7 @@ def test_pywbem_requests_exception(
     act_message = str(act_exc)
 
     # Verify the result
-    # pylint: disable=unidiomatic-typecheck
+    # pylint: disable=unidiomatic-typecheck,line-too-long
     assert type(act_exc) == exp_exc_type, \
         "Unexpected exception type:\n" \
         "  Actual type: {}\n" \
