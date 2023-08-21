@@ -167,7 +167,9 @@ ipykernel>=6.2.0; python_version >= '3.7'
 ipython_genutils>=0.1.0
 
 # Safety issue 50463 affected ipywidgets < 8.0.0
-ipywidgets>=5.2.2; python_version == '2.7'
+# ipywidget 7.8.0 claims support for py27 but does not install,
+#   see https://github.com/jupyter-widgets/ipywidgets/issues/3825
+ipywidgets>=5.2.2,<7.8.0; python_version == '2.7'
 ipywidgets>=5.2.2; python_version == '3.6'
 ipywidgets>=8.0.0; python_version >= '3.7'
 
