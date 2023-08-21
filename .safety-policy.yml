@@ -163,6 +163,8 @@ security:
             reason: Fixed tornado version 6.3.2 requires Python>=3.8 and is used there
         59062:
             reason: Fixed cryptography version 41.0.0 requires Python>=3.7 and is used there
+        59473:
+            reason: Fixed cryptography version 41.0.2 requires Python>=3.7 and is used there
 
     # Continue with exit code 0 when vulnerabilities are found.
     continue-on-vulnerability-error: False
