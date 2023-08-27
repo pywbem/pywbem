@@ -52,10 +52,11 @@ tox>=2.5.0
 # Sphinx pins docutils to <0.18 (some versions even to <0.17) but the package
 #   version resolver in the pip version used on py27 ignores package dependencies
 #   (issue #2787)
+# Sphinx 7.2.0-7.2.3 fails in autodoc (https://github.com/sphinx-doc/sphinx/issues/11631)
 Sphinx>=1.7.6,<2.0.0; python_version == '2.7'
 Sphinx>=3.5.4,<4.0.0; python_version == '3.5'
 Sphinx>=3.5.4; python_version >= '3.6' and python_version <= '3.9'
-Sphinx>=4.2.0; python_version >= '3.10'
+Sphinx>=4.2.0,!=7.2.0,!=7.2.1,!=7.2.2,!=7.2.3; python_version >= '3.10'
 docutils>=0.13.1,<0.17; python_version == '2.7'
 docutils>=0.13.1; python_version >= '3.5' and python_version <= '3.9'
 docutils>=0.14; python_version == '3.10'
