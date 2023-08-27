@@ -167,6 +167,12 @@ security:
             reason: Fixed cryptography version 3.3 requires Python 2.7 or Python>=3.6 and is used there
         59473:
             reason: Fixed cryptography version 41.0.2 requires Python>=3.7 and is used there
+        59956:
+            reason: Fixed certifi version 2023.07.22 requires Python>=3.6 and is used there
+        59910:
+            reason: Fixed sphinx version 3.3.0 requires Python>=3.5 and is used there
+        59925:
+            reason: Fixed sphinx version 3.3.0 requires Python>=3.5 and is used there
 
 
     # Continue with exit code 0 when vulnerabilities are found.
