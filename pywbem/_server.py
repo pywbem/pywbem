@@ -1113,16 +1113,17 @@ class WBEMServer(object):
                     break
                 # Some other error happened.
                 raise
-            else:
-                # Namespace class is implemented in the current namespace.
-                # Use the returned namespace name, if possible.
-                ns_names = [p.keybindings['name'] for p in inst_paths]
-                ns_dict = NocaseDict(list(zip(ns_names, ns_names)))
-                try:
-                    interop_ns = ns_dict[ns]
-                except KeyError:
-                    interop_ns = ns
-                break
+
+            # Namespace class is implemented in the current namespace.
+            # Use the returned namespace name, if possible.
+            ns_names = [p.keybindings['name'] for p in inst_paths]
+            ns_dict = NocaseDict(list(zip(ns_names, ns_names)))
+            try:
+                interop_ns = ns_dict[ns]
+            except KeyError:
+                interop_ns = ns
+            break
+
         if interop_ns is None:
             # Exhausted the possible namespaces
             raise ModelError(
@@ -1205,10 +1206,11 @@ class WBEMServer(object):
                     continue
                 # Some other error.
                 raise
-            else:
-                # Found a namespace class that is implemented.
-                ns_classname = classname
-                break
+
+            # Found a namespace class that is implemented.
+            ns_classname = classname
+            break
+
         if ns_insts is None:
             # Exhausted the possible class names
             raise ModelError(

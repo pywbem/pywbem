@@ -253,11 +253,10 @@ class ClientTest(unittest.TestCase):
                     mofcomp.compile_file(PYWBEM_TEST_MOF_FILE, self.namespace)
                 except Error:
                     return False
-                else:
-                    return True
+                return True
+
             # Error other than NOT_FOUND. Just return False so tests continue
-            else:
-                return False
+            return False
 
     def assertClassNamesValid(self, classnames):
         """

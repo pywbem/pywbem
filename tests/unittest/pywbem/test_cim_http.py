@@ -888,7 +888,8 @@ def test_pywbem_requests_exception(
         "  Expected type: {}\n" \
         "  Actual message: {}\n" \
         "  Expected message pattern: {}\n". \
-        format(type(act_exc), exp_exc_type, act_message, exp_pattern)
+        format(type(act_exc), exp_exc_type, \
+               act_message, exp_pattern)  # noqa=E721
     assert re.search(exp_pattern, act_message), \
         "Unexpected exception message:\n" \
         "  Actual: {}\n" \

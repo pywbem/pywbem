@@ -45,6 +45,7 @@ The following example creates and runs a listener::
 
         certkeyfile = 'listener.pem'
 
+        # Receive indications only on the IP address returned by getfqdn()
         listener = WBEMListener(host=getfqdn(),
                                 http_port=5990,
                                 https_port=5991,
@@ -230,6 +231,7 @@ def saved_term_attrs():
         term_fd = None
 
     if term_fd is not None:
+        # pylint: disable=use-dict-literal
         count_dict = dict(count=0)  # Must be mutable
         saved_attrs = termios.tcgetattr(term_fd)
         atexit.register(restore_term_attrs, term_fd, saved_attrs, count_dict)
@@ -719,7 +721,12 @@ class WBEMListener(object):
         Parameters:
 
           host (:term:`string`):
-            IP address or host name at which this listener can be reached.
+            IP address or host name at which this listener can be reached. Only
+            indications directed to this IP address will be accepted.
+            The listener can receive indications from any network
+            interface in the host system by using a wildcard address (0.0.0.0
+            (IPv4) or :: (IPv6)) or an empty string ( "" ) to indicate that the
+            wild card address should be used.
 
           http_port (:term:`string` or :term:`integer`):
             HTTP port at which this listener can be reached. Note that at

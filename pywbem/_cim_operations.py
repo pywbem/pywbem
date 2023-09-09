@@ -197,6 +197,7 @@ with warnings.catch_warnings():
     else:
         RETRY_METHODS_PARM = 'method_whitelist'
 
+# pylint: disable=use-dict-literal
 RETRY_KWARGS = dict(
     total=HTTP_TOTAL_RETRIES,
     connect=HTTP_CONNECT_RETRIES,

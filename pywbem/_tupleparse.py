@@ -126,7 +126,7 @@ def kids(tup_tree):
     k = tup_tree[2]
     assert k is not None
     # pylint: disable=unidiomatic-typecheck
-    return [x for x in k if type(x) == tuple]
+    return [x for x in k if type(x) == tuple]  # noqa: E721
 
 
 def pcdata(tup_tree):
@@ -2340,11 +2340,12 @@ class TupleParser(object):
 
           CIMXMLParseError: There is an error in the XML.
         """
-
-        if type(val) == list:  # pylint: disable=unidiomatic-typecheck
+        # pylint: disable=unidiomatic-typecheck
+        if type(val) == list:   # noqa: E721
             return [self.parse_embeddedObject(obj) for obj in val]
         if val is None:
             return None
+        # pylint: enable=unidiomatic-typecheck
 
         # Perform the un-embedding (may raise XMLParseError)
         tup_tree = xml_to_tupletree_sax(val, "embedded object", self.conn_id)
@@ -2385,9 +2386,11 @@ class TupleParser(object):
 
         raw_val = raw_val[0]
 
-        if type(raw_val) == list:  # pylint: disable=unidiomatic-typecheck
+        # pylint: disable=unidiomatic-typecheck
+        if type(raw_val) == list:  # noqa: E721
             return [self.unpack_single_value(data, valtype)
                     for data in raw_val]
+        # pylint: enable=unidiomatic-typecheck
 
         return self.unpack_single_value(raw_val, valtype)
 

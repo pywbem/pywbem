@@ -257,6 +257,8 @@ package_version = get_version(os.path.join('pywbem', '_version.py'))
 #   highlight=setup#distutils.core.setup
 # * https://setuptools.readthedocs.io/en/latest/setuptools.html#
 #   new-and-changed-setup-keywords
+
+# pylint: disable=use-dict-literal
 setup_options = dict(
     name='pywbem',
     version=package_version,
@@ -323,6 +325,7 @@ setup_options = dict(
         'Topic :: System :: Systems Administration',
     ]
 )
+# pylint: enable=use-dict-literal
 
 CYTHONIZED = False
 if cythonize and '--cythonized' in sys.argv:
@@ -343,6 +346,7 @@ if CYTHONIZED:
                 src_files,
                 build_dir='build_cythonize',
                 annotate=False,
+                # pylint: disable=use-dict-literal
                 compiler_directives=dict(
                     language_level=str(sys.version_info[0])))
         except CompileError as exc:
