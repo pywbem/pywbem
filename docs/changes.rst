@@ -29,6 +29,9 @@ Released: not yet
   missing or extra items in the 'Values' qualifier, compared to the 'ValueMap'
   qualifier. Previously, 'IndexError' was raised. (issue #2991)
 
+* Installation of this package using "setup.py" is no longer supported.
+  Use "pip" instead.
+
 **Deprecations:**
 
 **Bug fixes:**
