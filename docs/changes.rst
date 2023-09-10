@@ -58,7 +58,7 @@ Released: 2023-07-25
 
 * Fixed missing dependencies in minimum-constraints.txt.
 
-* Fixed safety issues as of 2023-08-21 and 2023-08-27.
+* Fixed safety issues as of 2023-08-21 and 2023-08-27 and 2023-09-10.
 
 * dev: Fixed UnboundLocalError for membername in Sphinx autodoc.
 
