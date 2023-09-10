@@ -309,8 +309,9 @@ pipdeptree>=2.2.0
 #   on Python 2.7.
 # pip-check-reqs 2.3.2 is needed to have proper support for pip>=21.3 and below.
 # pip-check-reqs 2.4.3 fixes a speed issue on Python 3.11.
-pip-check-reqs>=2.3.2; python_version >= '3.6' and python_version <= '3.10'
-pip-check-reqs>=2.4.3; python_version >= '3.11'
+# pip-check-reqs 2.5.0 has issue https://github.com/r1chardj0n3s/pip-check-reqs/issues/143
+pip-check-reqs>=2.3.2; python_version >= '3.6' and python_version <= '3.7'
+pip-check-reqs>=2.4.3,!=2.5.0; python_version >= '3.8'
 
 pyzmq>=17.0.0; python_version <= '3.6'
 pyzmq>=24.0.0; python_version >= '3.7'

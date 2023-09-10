@@ -47,6 +47,8 @@ Released: not yet
 
 * dev: Fixed UnboundLocalError for membername in Sphinx autodoc.
 
+* Test: Circumvented a pip-check-reqs issue by excluding its version 2.5.0.
+
 **Enhancements:**
 
 * The 'pywbem.ValueMapping' class now allows controlling what should happen
