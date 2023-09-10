@@ -27,7 +27,6 @@ Examples
 The following example creates and runs a listener::
 
     import logging
-    from socket import getfqdn
     from pywbem import WBEMListener
 
     def process_indication(indication, host):
@@ -45,7 +44,9 @@ The following example creates and runs a listener::
 
         certkeyfile = 'listener.pem'
 
-        listener = WBEMListener(host=getfqdn(),
+        # Set host name to wildcard host address to recieve indications on
+        # any network address defined for this system.
+        listener = WBEMListener(host="",
                                 http_port=5990,
                                 https_port=5991,
                                 certfile=certkeyfile,
@@ -725,13 +726,16 @@ class WBEMListener(object):
             that IP address (or to any IP address on the network interface
             containing that address) depending on the OS.
 
-            Setting the host parameter to an empty string (i.e. "") defines a
-            listener that binds to all configured network interfaces on the
-            local machine. Binding to IPV4 or IPV6 network interfaces can be
-            defined with the IP addresses "0.0.0.0" for IPV4 or "::" for IPV6.
+            Network wildcard addressing enables receiving indications from
+            all IP addresses on the system by binding the listener to certain
+            special addresses. The IPV4 wildcard IP address is "0.0.0.0"
+            and the IPV6 wild card IP address is "::".
+
+            Setting the host parameter to an empty string (i.e. "") is
+            equivalent to using at least the IPV4 wildcard address.
 
           http_port (:term:`string` or :term:`integer`):
-            HTTP port at which this listener can be reached. Note that at
+            HTTP port at which this listener can be reached. At
             least one port (HTTP or HTTPS) must be set. Both the http and
             https ports can be set.
 
