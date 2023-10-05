@@ -8,9 +8,12 @@ the listener and then requests the indications from the server. It waits for a
 defined time for all indications to be received and then terminates either
 normally if all are received or in error if not all were received.
 
+This is a complete example with cmd line argument parsing to set up parameters
+for the test.  Use --help option to view cmd line parameters.
+
 This example:
 
-1. Only handles http WBEM server and listener because parameters do not allow
+1. Only handles http WBEM server and listener because parameters do not include
    certificates.
 """
 from __future__ import print_function, absolute_import
@@ -38,38 +41,34 @@ def current_time():
     return time.strftime("%H:%M:%S", time.localtime())
 
 
-class RunIndicationTest(object):  # pylint: disable=too-many-instance-attributes
+class RunIndicationTest(object):
+    # pylint: disable=too-many-instance-attributes, useless-object-inheritance
     """
+    Sets up and runs the indication test and removes subscriptions at the
+    completion of the test.  There no return from this instance, it
+    closes with the test complete or with an exception if the setup
+    or test fails. Uses class to simplify parameters for methods.
+
     Runs a test that:
-    1. Creates a server
+    1. Creates a WBEM server connection
     2. Creates a dynamic listener and starts it.
     3. Creates a filter and subscription
-    4. Calls the server to execute a method that creates an indication
+    4. Calls the server to execute a method that creates indications
     5. waits for indications to be received.
-    6. Removes the filter and subscription and stops the listener
+    6. Removes the filter and subscription and stops the listener.
     """
 
     # Definition of the indicationfilter.  This is openpegasus specific and uses
-    # a class that generates one indication for each call of a method
+    # a class that generates indications for each call of a method
     indication_test_class = 'Test_IndicationProviderClass'
     test_class_namespace = 'test/TestProvider'
     test_query = 'SELECT * from %s' % indication_test_class
 
-    # If set, outputs all of the requests (apis and html) and responses to
-    # pywbem log file. This is not same log as the listener output.
-    output_pywbem_log = False
-
     def __init__(self, wbem_conn, indication_destination_host,
                  listener_host, http_listener_port, requested_indications,
-                 repeat_loop, output_log, verbose):
-        # pylint: disable=too-many-locals
-        # pylint: disable=too-many-arguments
+                 repeat_loop, verbose):
+        # pylint: disable=too-many-locals, too-many-arguments
         """
-        Sets up and runs the indication test and removes subscriptions at the
-        completion of the test.  There no return from this instance, it
-        closes with the test complete or with an exception if the setup
-        or test fails.
-
         Parameters:
 
             wbem_conn (:class:`WBEMConnection`):
@@ -85,15 +84,14 @@ class RunIndicationTest(object):  # pylint: disable=too-many-instance-attributes
                 Localhost is not a valid host name in that case.
 
             listener_host (:term:`string` or None):
-                host name/ip address that will be used by the listener as
-                its bind address. If this parameter contains
-                a string that will be passed to WBEMListener as the host
-                parameter. That name/IP address is used by the the socket
-                services to only accept indications addressed to that
-                network interface or IP address (depening on the OS, network,
-                etc.)
-                If None the listener will be forwarded indications addressed
-                to any IP address in the containing computer system.
+                host name/ip address that will be used by the listener as its
+                bind address. If this parameter contains a string that will be
+                passed to WBEMListener as the host parameter. That name/IP
+                address is used by socket services to accept only indications
+                addressed to that network interface or IP address (depending on
+                the OS, network, etc.). If None the listener will receive
+                indications addressed to any IP address in the containing
+                computer system.
 
             http_listener_port (:term:`number`):
                 listener port for indications sent with http.
@@ -109,14 +107,10 @@ class RunIndicationTest(object):  # pylint: disable=too-many-instance-attributes
                 request_indications parameter and when that number of
                 indications has been received
 
-            output_log (:class:`py:bool`):
-                Flag to indicate whether the server should generate a log.
-
             verbose (:class:`py:bool`):
                 Flag that when set generates diagnostic displays as the
                 test proceedes.
         """
-
         # Test config parameters
         self.conn = wbem_conn
         self.indication_destination_host = indication_destination_host
@@ -125,7 +119,6 @@ class RunIndicationTest(object):  # pylint: disable=too-many-instance-attributes
         self.requested_indications = requested_indications
         self.repeat_loop = repeat_loop
         self.verbose = verbose
-        self.logfile = 'pegasusindicationtest.log'
         if self.verbose:
             print("Listener indication_destination_host IP address {}".
                   format(self.indication_destination_host))
@@ -148,26 +141,10 @@ class RunIndicationTest(object):  # pylint: disable=too-many-instance-attributes
         self.max_time_between_indications = None
         self.last_seq_num = None
 
-        # Setup test
-        if output_log:
-            if self.verbose:
-                print("Configure pywbem logger to a file.")
-            configure_logger('all', log_dest='file', detail_level='all',
-                             connection=True)
-
         # Define the ids of the subscription manager, destination and listener
         sub_mgr_id = 'pywbempegasusIndicationTest'
         self.subscription_destination_id = "dest1"
         self.subscription_filter_id = "filter1"
-
-        if os.path.exists(self.logfile):
-            if verbose:
-                print("Removing old indication logfile {}".format(self.logfile))
-            os.remove(self.logfile)
-
-        logging.basicConfig(filename='pegasusindicationtest.log',
-                            level=logging.INFO,
-                            format='%(asctime)s %(levelname)s: %(message)s')
 
         try:
             # Setup WBEMServer instance for the WBEM connection
@@ -187,8 +164,8 @@ class RunIndicationTest(object):  # pylint: disable=too-many-instance-attributes
             self.remove_existing_subscriptions(sub_mgr, self.server_id)
 
         except Error as er:  # pylint: disable=invalid-name
-            print('Error {} communicating with WBEMServer {}'.format(er,
-                                                                     self.conn))
+            print('Error {} communicating with WBEMServer {}'.
+                  format(er, self.conn))
             sys.exit(1)
 
         self.create_listener()
@@ -199,12 +176,15 @@ class RunIndicationTest(object):  # pylint: disable=too-many-instance-attributes
         success = self.repeat_test_loop(self.repeat_loop)
 
         # Remove server_id which removes owned subscriptions for this server_id
+        if self.verbose:
+            print("Remove subscriptions and stop listener.")
         sub_mgr.remove_server(self.server_id)
-
         self.listener.stop()
 
         completion_status = "Success" if success else "Failed"
         print("Indication test completed: {}".format(completion_status))
+        if not success:
+            sys.exit(1)
 
     def create_listener(self):
         """
@@ -222,7 +202,7 @@ class RunIndicationTest(object):  # pylint: disable=too-many-instance-attributes
                                      https_port=None)
 
         # Start connect and start listener.
-        self.listener.add_callback(self.consume_indication)
+        self.listener.add_callback(self.indication_consumer)
 
         if self.verbose:
             print("Starting listener\n {}".format(self.listener))
@@ -287,7 +267,7 @@ class RunIndicationTest(object):  # pylint: disable=too-many-instance-attributes
 
         return test_result
 
-    def consume_indication(self, indication, host):
+    def indication_consumer(self, indication, host):
         """
         Consume a single indication. This is a callback and may be on another
         thead. It is called each time an indication is received.
@@ -325,6 +305,26 @@ class RunIndicationTest(object):  # pylint: disable=too-many-instance-attributes
             format(self.received_indication_count, host,
                    indication.tomof()))
 
+    def display_pegasus_queue_info(self):
+        """
+        Try to display the information from the OpenPegasus internal queue
+        of indications. This provides more information about the indications
+        that did not get delivered, etc.
+        """
+        insts = self.conn.EnumerateInstances(
+            'PG_ListenerDestinationQueue', namespace='root/PG_Internal')
+        for inst in insts:
+            print('ListenerDestinationName={}:\n   QueueFullDropped={} , '
+                  'RetryAttemptsExceeded={}, InQueue={}'
+                  .format(inst['ListenerDestinationName'],
+                          inst['QueueFullDroppedIndications'],
+                          inst['RetryAttemptsExceededIndications'],
+                          inst['CurrentIndications']))
+
+            if self.verbose:
+                print("\nFull instance of OpenPegasus dest queue:\n{}".
+                      format(inst.tomof()))
+
     def receive_expected_indications(self):
         """
         Wait for expected indications to be received.  If there is an
@@ -338,20 +338,7 @@ class RunIndicationTest(object):  # pylint: disable=too-many-instance-attributes
         if not success:
             print("Wait for expected indications failed.\n"
                   "Attempting to display pegasus Indication dest queue.\n")
-
-            insts = self.conn.EnumerateInstances(
-                'PG_ListenerDestinationQueue', namespace='root/PG_Internal')
-            for inst in insts:
-                print('ListenerDestinationName={}:\n   QueueFullDropped={} , '
-                      'RetryAttemptsExceeded={}, InQueue={}'
-                      .format(inst['ListenerDestinationName'],
-                              inst['QueueFullDroppedIndications'],
-                              inst['RetryAttemptsExceededIndications'],
-                              inst['CurrentIndications']))
-
-                if self.verbose:
-                    print("Full instnace of OpenPegasus dest queue:\n{}".
-                          format(inst.tomof()))
+            self.display_pegasus_queue_info()
         return success
 
     def wait_for_indications(self):
@@ -390,10 +377,10 @@ class RunIndicationTest(object):  # pylint: disable=too-many-instance-attributes
                     if elapsed_time.total_seconds() != 0:
                         ind_per_sec = self.received_indication_count / \
                             elapsed_time.total_seconds()
-                    print('Rcvd {} indications, time={} sec, {:.2f} per sec'
+                    print('Rcvd {} indications, time={} sec, {:.1f} '
+                          'indications/sec.'
                           .format(self.received_indication_count,
-                                  elapsed_time.total_seconds(),
-                                  ind_per_sec))
+                                  elapsed_time.total_seconds(), ind_per_sec))
                     return_flag = True
                     break
 
@@ -420,9 +407,8 @@ class RunIndicationTest(object):  # pylint: disable=too-many-instance-attributes
                             self.last_indication_time - \
                             self.indication_start_time
                         ind_per_sec = self.received_indication_count / \
-                            elapsed_time
+                            elapsed_time.total_seconds()
                         elapsed_time = elapsed_time.total_seconds()
-
                     else:
                         elapsed_time = 0
                         ind_per_sec = 0
@@ -437,8 +423,8 @@ class RunIndicationTest(object):  # pylint: disable=too-many-instance-attributes
                     break
 
                 # NOTE: Leave this in until we resolve issue # 3022
-                print("waiting {:.2f} sec. with no indications ct {}".
-                      format(stalled_time.total_seconds(), stall_ctr))
+                print("waiting {:.2f} sec. with no indications rcvd".
+                      format(stalled_time.total_seconds()))
 
         # Because this can be a long loop, catch CTRL-C
         except KeyboardInterrupt:
@@ -509,6 +495,40 @@ class RunIndicationTest(object):  # pylint: disable=too-many-instance-attributes
             [inst.path for inst in sub_mgr.get_owned_destinations(server_id)])
 
 
+def connect_wbem_server(wbem_server_url, username, password, timeout):
+    """
+    Create the WBEM server connection
+    """
+    if username and password:
+        creds = (username, password)
+    else:
+        creds = None
+    # NOTE: Does not test for existence of username or password.
+    conn = WBEMConnection(wbem_server_url,
+                          creds=creds,
+                          timeout=timeout,
+                          no_verification=True)
+    try:
+        conn.GetQualifier('Association')
+    except ConnectionError as cd:
+        print("Connection Error: {}. Connection to wbemserver {} failed".
+              format(cd, wbem_server_url))
+        sys.exit(1)
+    except AuthError as ae:
+        print("Auth Error: {}. Connection to wbemserver {} failed".
+              format(ae, wbem_server_url))
+        sys.exit(1)
+    except Error:
+        # Retest with EnumerateClassNames if Error received.
+        try:
+            conn.EnumerateClassNames()
+        except Error as er1:
+            print("Error: {}. Connection to wbemserver {} failed".
+                  format(er1, wbem_server_url))
+            sys.exit(1)
+    return conn
+
+
 def usage(script_name):  # pylint: disable=missing-function-docstring
     return """
 This example tests pywbem capability to create subscriptions in a WBEM server
@@ -565,19 +585,20 @@ Simple wbem server in same network as client and using loopback:
     return examples_txt
 
 
-def main():
+def main():  # pylint: disable=too-many-branches
     """Setup parameters for the test and call the test function. This example
        includes parameters to allow the user to set the server url, indication
        destination host, listener port, and users/password. Note that it does
        not include parameters for certificates and only creates HTTP
        listeners.
     """
-    prog = "pegasusindicationtest.py"
+    prog_name = os.path.basename(__file__)
+
     parser = argparse.ArgumentParser(
-        prog=prog,
+        prog=prog_name,
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        description=usage(prog),
-        epilog=examples(prog))
+        description=usage(prog_name),
+        epilog=examples(prog_name))
 
     parser.add_argument(
         "wbem_server_url",
@@ -594,10 +615,11 @@ def main():
     parser.add_argument(
         '-l', "--listener_host", default=None,
         help="Optional host name or IP address for the indication listener.  "
-        "This must be host system name or IP address available to both system "
-        "containing listener and WBEM Server.  Listener will refuse "
-        "indications on any other network address if this is set. Default is "
-        "None which allows listener to receive on any defined network.")
+        "This must be a host system name or IP address publically available to "
+        "both the system containing listener and WBEM Server.  Listener will"
+        " refuse indications on any other network address if this is set. "
+        "Default is None which allows listener to receive on any network "
+        "address defined for the local system.")
 
     parser.add_argument(
         '-p', "--port", type=int, default=5000,
@@ -625,43 +647,37 @@ def main():
     parser.add_argument(
         "--log", action='store_true',
         help="Generate pywbem log with details of all api calls requests "
-        "to the server and responses.  File name is pywbem.log")
+        "to the server and responses and for indications received.")
 
     parser.add_argument("-v", "--verbose", help="increase output verbosity",
                         action="store_true")
     args = parser.parse_args()
 
-    if args.verbose:
-        print(args)
+    # Setup logging for requests to server and indications if --log set
+    basename = prog_name.rsplit(".", 1)[0]
+    log_file_name = "{}.log".format(basename) if args.log else None
+    if args.log:
+        if args.verbose:
+            print("Configure pywbem logger to files: requests={}, "
+                  "indications={}".format('pywbem.log', log_file_name))
+        configure_logger('all', log_dest='file', detail_level='all',
+                         connection=True)
 
-    if args.username and args.password:
-        creds = (args.user, args.password)
-    else:
-        creds = None
-    conn = WBEMConnection(args.wbem_server_url,
-                          creds=creds,
-                          timeout=30,
-                          no_verification=True)
-    try:
-        conn.GetQualifier(
-            'Association')
-    except ConnectionError as cd:
-        print("Connection Error: {}. Connection to wbemserver {} failed".
-              format(cd, args.wbem_server_url))
-    except AuthError as ae:
-        print("Auth Error: {}. Connection to wbemserver {} failed".
-              format(ae, args.wbem_svr_url))
-    except Error:
-        # Retest with EnumerateClassNames if Error received.
-        try:
-            conn.EnumerateClassNames()
-        except Error as er1:
-            print("Error: {}. Connection to wbemserver {} failed".
-                  format(er1, args.svr_url))
+        if os.path.exists(log_file_name):
+            if args.verbose:
+                print("Removing old logfile {}".format(log_file_name))
+            os.remove(log_file_name)
 
-    RunIndicationTest(conn, args.dest_host, args.listener_host,
-                      args.port, args.indication_count, args.repeat_loop,
-                      args.log, args.verbose)
+        logging.basicConfig(filename=log_file_name,
+                            level=logging.INFO,
+                            format='%(asctime)s %(levelname)s: %(message)s')
+
+    timeout = 30
+    conn = connect_wbem_server(args.wbem_server_url, args.username,
+                               args.password, timeout)
+
+    RunIndicationTest(conn, args.dest_host, args.listener_host, args.port,
+                      args.indication_count, args.repeat_loop, args.verbose)
 
     return 0
 
