@@ -232,7 +232,7 @@ docutils==0.16; python_version >= '3.11'
 sphinx-git==10.1.1
 GitPython==2.1.1; python_version == '2.7'
 GitPython==2.1.1; python_version >= '3.5' and python_version <= '3.6'
-GitPython==3.1.27; python_version >= '3.7'
+GitPython==3.1.35; python_version >= '3.7'
 sphinxcontrib-fulltoc==1.2.0
 sphinxcontrib-websupport==1.1.2
 sphinxcontrib-applehelp==1.0.2; python_version >= '3.5'
@@ -534,6 +534,11 @@ traitlets==4.3.1; python_version == '2.7'
 traitlets==4.3.1; python_version == '3.5'
 traitlets==4.3.1; python_version == '3.6'
 traitlets==5.6.0; python_version >= '3.7'
+
+ruamel-yaml==0.13.6; python_version == '2.7'
+#safety 2.2.0 depends on ruamel.yaml>=0.17.21
+ruamel-yaml==0.17.21; python_version == '3.6'
+ruamel-yaml==0.17.21; python_version >= '3.7'
 
 typing==3.10.0.0; python_version == '2.7'
 wcwidth==0.1.7
