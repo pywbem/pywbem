@@ -83,6 +83,9 @@ Released: not yet
 * Bring example pegasusindicationtest.py up to date and extend to be used
   with WBEM server in a container. (see issue #2993)
 
+* Update dev-requirements.txt, minimum-constraings.txt, .safety_policy.json for
+  new safety issues with GitPython and add ruamel-yaml.
+
 **Known issues:**
 
 * See `list of open issues`_.
