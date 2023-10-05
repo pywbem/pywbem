@@ -251,6 +251,8 @@ Released: 2022-10-12
   (i.e. CIMInstanceName). Now issues a warning and ignores the host value since
   pywbem_mock does not handle cross-host associations. (see issue #2920)
 
+* Fixed python syntax issue in example/pegasus_indication_test.py
+
 **Enhancements:**
 
 * Added support for the new 'CIM_WBEMServerNamespace' class used in the
