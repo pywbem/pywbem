@@ -106,7 +106,7 @@ def _main():
 WBEM listener started on host %s (HTTP port: %s, HTTPS port: %s).
 The host parameter may be:
 
-  * a specific host name or host IP address on the computer - only  
+  * a specific host name or host IP address on the computer; only  
     indications addressed to that host will be accepted:
   * a wildcard address (0.0.0.0 (IPV4) or ;; (IPV6))) - the listener will accept
     indications addressed to any network address on the host system.
