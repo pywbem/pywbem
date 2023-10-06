@@ -80,9 +80,9 @@ class ClientTest(unittest.TestCase):
         """Create a connection."""
 
         # pylint: disable=global-variable-not-assigned,global-statement
-        global args                 # pylint: disable=invalid-name
+        global args  # pylint: disable=invalid-name
 
-        self.host = args['host']
+        self.host = args['host']  # pylint: disable=used-before-assignment
         self.port = args['port']
         self.verbose = args['verbose']
         self.debug = args['debug']
