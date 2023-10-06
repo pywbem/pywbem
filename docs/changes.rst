@@ -30,6 +30,8 @@ Released: not yet
 * Update dev-requirements.txt, minimum-constraings.txt, .safety_policy.json for
   new safety issues with GitPython and add ruamel-yaml.
 
+* Disable cyclic-import pylint warning.
+
 **Enhancements:**
 
 **Cleanup:**
