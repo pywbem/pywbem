@@ -88,6 +88,9 @@ Released: not yet
 
 * Disable cyclic-import pylint warning.
 
+* Fix issue in pywbem_mock._base_provider where __repr__ had invalid parameter
+  (see issue #3036)
+
 **Known issues:**
 
 * See `list of open issues`_.

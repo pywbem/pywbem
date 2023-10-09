@@ -77,10 +77,9 @@ class BaseProvider(object):
     def __repr__(self):
         return _format(
             "{s.__class__.__name__}("
-            "provider_type={s.provider_type!A}, "
             "provider_classnames={s.provider_classnames!A}, "
             "_interop_namespace_names={s._interop_namespace_names!A}, "
-            "cimrepository=...)",
+            "_cim_repository={s._cimrepository}",
             s=self)
 
     @property
