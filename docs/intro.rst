@@ -7,6 +7,24 @@ Introduction
 .. contents:: Chapter Contents
    :depth: 2
 
+Pywbem is a python implementation of the APIs defined by the DTMF WBEM Standards
+specifications.
+
+This document provides information on:
+* pywbem  :ref:`Functionality`,
+* pywbem :ref:`Installation`,
+* pywbem libraries including:
+
+  * pywbem Python API definitions
+  * Examples of the use of these Python APIs.
+
+..index:: single; examples
+Examples of the APIs are contained throughout this document (see examples in
+the document index), in a set of Jupyter notebooks :ref:`Tutorial`, and in the:
+`pywbem repository examples directory (``pywbem/examples``) at
+<https://github.com/pywbem/pywbem/tree/master/examples/>`_ that is available in
+the pywbem github project and available when pywbem is cloned.
+
 
 .. _`Functionality`:
 
@@ -25,6 +43,9 @@ The blue components are not part of the pywbem or pywbemtools packages.
 The pywbem components all run on the client side and communicate with a remote
 WBEM server using the standard CIM operations over HTTP (CIM-XML) protocol
 defined in the DMTF standards :term:`DSP0200` and :term:`DSP0201`.
+
+.. index:: pair: pywbem; libraries
+.. index:: pair: pywbem; APIs
 
 Pywbem provides the following Python APIs:
 

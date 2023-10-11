@@ -4,6 +4,8 @@
 CIM data types
 --------------
 
+.. index:: pair: CIM data types; libraries
+
 .. automodule:: pywbem._cim_types
 
 .. autoclass:: pywbem.CIMType

@@ -106,7 +106,6 @@ This documentation uses a few special terms to refer to Python types:
       components like indications) and the registered profiles implemented by
       that server.
 
-
    keybindings input object
       a Python object used as input for initializing an ordered list of
       keybindings in a parent object (i.e. a :class:`~pywbem.CIMInstanceName`
