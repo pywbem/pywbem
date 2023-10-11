@@ -106,7 +106,6 @@ This documentation uses a few special terms to refer to Python types:
       components like indications) and the registered profiles implemented by
       that server.
 
-
    keybindings input object
       a Python object used as input for initializing an ordered list of
       keybindings in a parent object (i.e. a :class:`~pywbem.CIMInstanceName`
@@ -488,6 +487,16 @@ Troubleshooting
 
 Here are some trouble shooting hints for the installation of pywbem.
 
+.. index:: pair: troubleshooting: OpenSSL
+
+NotOpenSSLWarning: urllib3 v2.0 only supports OpenSSL 1.1.1+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This issue may be caused by the dependent package urllib3 update to version 2.0
+in pywbem version 1.7.0. In this case it is probably that the local environment
+includes a version of OpenSSL less than 2.0 Again the best options is to
+reinstall urllib3 < 2.0
+
 Installation fails with "invalid command 'bdist_wheel'"
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -509,13 +518,25 @@ To fix this, install the Python "wheel" package::
 ConnectionError raised with [SSL: UNSUPPORTED_PROTOCOL]
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+.. index:: pair: troubleshooting: OpenSSL
+
+.. index:: pair: SSL: OpenSSL
+.. index:: pair: UNSUPPORTED_PROTOCOL: OpenSSL
+
 On newer versions of the operating system running the pywbem client,
 communication with the WBEM server may fail with::
 
     pywbem.exceptions.ConnectionError: SSL error <class 'ssl.SSLError'>:
       [SSL: UNSUPPORTED_PROTOCOL] unsupported protocol (_ssl.c:1056)
 
-For example, this happened after an upgrade of the client OS to Debian buster
+In pywbem version 1.7.0 the urllib3 configuration version limit was modified to allow
+urllib3 versions >= 2.0.  These versions of urllib3 limit the minimum TLS
+version to 1.2 (i.e OpenSSL version >= 1.1.1). If the version of OpenSSL is
+less than 1.1.1, this SSLError will occur with the initial request to the
+WBEM Server. Urllib3 version <= 2.0 also limits the SSL library implementations
+to just OpenSSL and possibly libreSSL.
+
+This also happened after an upgrade of the client OS to Debian buster
 using Python 3.7, with OpenSSL 1.1.1d.
 
 This is an error that is created by the OpenSSL library and handed back up to
@@ -530,20 +551,34 @@ additional restrictions on top of OpenSSL.
 Debian buster includes OpenSSL 1.1.1d and increased its security settings to
 require at least TLS 1.2 (see https://stackoverflow.com/a/53065682/1424462).
 
-This error means most likely that the WBEM server side does not yet support
-TLS 1.2 or higher.
+This error means that the WBEM server side does not yet support
+TLS 1.2 or higher or that the SSL library used by pywbem does not support
+TL 1.2.
 
-This can be fixed for example by adding TLS 1.2 support to the server side
-(preferred) or by lowering the minimum TLS level OpenSSL requires on the client
-side (which lowers security). The latter can be done by changing the
-``MinProtocol`` parameter in the OpenSSL config file on the client OS
-(typically ``/etc/ssl/openssl.cnf`` on Linux and OS-X,
-and ``C:\OpenSSL-Win64\openssl.cnf`` on Windows).
-At the end of the file there is::
+This issue can be corrected by:
 
-    [system_default_sect]
-    MinProtocol = TLSv1.2
-    CipherString = DEFAULT@SECLEVEL=2
+1. If the current version of urllib3 is less than 2.0, update the version
+   of urllib3 (ex. ``pip install --upgrade  --upgrade-strategy eager urllib3``). Since
+   the pywbem install does not force an eager update of packages, if a valid
+   previous version of urllib3 exists it will not be upgraded to 2.0+ in the
+   reinstallation of pywbem.
+
+2. If the current version of urllib3 is greater than 2.0, the previous version
+   of urllib3 (ex. version 1.26.5) can be installed (ex. ``pip install
+   urllib3<2.0)
+
+3. Adding TLS 1.2 support to the server side (preferred) or by lowering the
+    minimum TLS level OpenSSL requires on the client
+    side (which lowers security). The latter can be done by changing the
+    ``MinProtocol`` parameter in the OpenSSL config file on the client OS
+    (typically ``/etc/ssl/openssl.cnf`` on Linux and OS-X,
+    and ``C:\OpenSSL-Win64\openssl.cnf`` on Windows).
+    At the end of the file there is::
+
+        [system_default_sect]
+        MinProtocol = TLSv1.2
+        CipherString = DEFAULT@SECLEVEL=2
+
 
 ConnectionError raised with [SSL] EC lib
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

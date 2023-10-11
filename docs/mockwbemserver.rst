@@ -10,6 +10,8 @@ Mock WBEM server
 Overview
 --------
 
+.. index:: single: Mock WBEM Server
+
 The 'pywbem_mock' module of pywbem provides a *mock WBEM server* that
 enables using the pywbem client library without a real WBEM server.
 This is useful for testing the pywbem client library itself as well
@@ -61,6 +63,9 @@ the operations of a real WBEM server.
 CIM classes, instances and qualifier types to its CIM repository by providing
 them as :term:`CIM objects <CIM object>`, or by compiling MOF.
 See :ref:`Building a mocked CIM repository` for details.
+
+.. index:: pair: examples; mock WBEM server setup
+.. index:: pair: mock WBEM server; setup
 
 The following example demonstrates setting up a mock WBEM server, adding
 several CIM objects defined in a MOF string to its CIM repository, and
@@ -212,6 +217,8 @@ Diagram of flow of requests operations through mocker
 
 WBEM operations of a mock WBEM server
 -------------------------------------
+
+.. index:: pair: Mock WBEM Server; WBEM Operations
 
 The :class:`pywbem_mock.FakedWBEMConnection` class supports the same WBEM
 operations that are supported by the :class:`pywbem.WBEMConnection` class and
@@ -610,6 +617,9 @@ schema version 2.49.0 into the CIM repository along with all of the qualifier
 types defined by the DMTF CIM schema and any dependent classes
 (superclasses, etc.).
 
+.. index: pair: examples, mock define qualifier types
+.. index: pair: examples, mock define classes
+
 .. code-block:: python
 
     import pywbem
@@ -641,6 +651,9 @@ types defined by the DMTF CIM schema and any dependent classes
 
 Example: Set up qualifier types and classes from MOF
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. index: pair: examples, mock define qualifier types from MOF
+.. index: pair: examples, mock define classes from MOF
 
 This example creates a mock WBEM server and sets up its CIM repository with
 qualifier types and classes that are defined in a MOF string.
@@ -745,6 +758,8 @@ Here is the output from displaying the CIM repository in the example above:
 Example: Set up instances from single CIM objects
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+.. index: pair: examples, mock define CIM instances
+
 Based on the CIM repository content of the previous example, this example
 adds two class instances and one association instance from their CIM objects
 using the :meth:`~pywbem_mock.FakedWBEMConnection.add_cimobjects` method.
@@ -844,7 +859,7 @@ DMTF CIM schema download support
 .. _`In-memory CIM repository classes`:
 
 In-memory CIM repository classes
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: pywbem_mock._inmemoryrepository
 
@@ -964,8 +979,13 @@ Creating user-defined providers
 
 A user-defined provider can be created as follows:
 
+.. index:: pair: examples; instance write provider
+
 1. Define a subclass of the superclass listed in the table above, with the
    methods and attributes listed below.
+
+   .. index:: pair: examples; create instance write provider
+
 
    Example for an instance write provider:
 
@@ -1021,6 +1041,8 @@ A user-defined provider can be created as follows:
       provider class default to implementations in the superclass.
       See `Python operation methods in user-defined providers`_ for details.
 
+      .. index:: pair: examples; instance write provider CreateInstance
+
       Example for an ``CreateInstance`` method of an instance write provider
       that just calls superclass method to perform the work (and that could
       therefore be omitted):
@@ -1055,6 +1077,8 @@ A user-defined provider can be created as follows:
    This specifies the CIM namespaces for which the user-defined provider will
    be active. These namespaces must already exist in the CIM repository
    if the mock WBEM server.
+
+   .. index:: pair: examples; register user-defined provider
 
    .. code-block:: python
 

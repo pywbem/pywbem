@@ -10,6 +10,9 @@ They are all implemented as pure-Python scripts.
 These commands are installed into the Python script directory and should
 therefore automatically be available in the command search path.
 
+..index:: pair; MOF, compiler
+..index:: single; MOF compiler
+
 The following commands are provided:
 
 * :ref:`mof_compiler`
@@ -22,6 +25,7 @@ interactive command line environment. It is recommended to use the
 ``pywbemcli`` command from the
 `pywbemtools package on Pypi <https://pypi.org/project/pywbemtools/>`_
 as a replacement.
+
 
 
 .. _`mof_compiler`:

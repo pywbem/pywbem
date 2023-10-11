@@ -32,6 +32,28 @@ Released: not yet
 * Installation of this package using "setup.py" is no longer supported.
   Use "pip" instead.
 
+* Update to support urllib3 package version 2.0+ (for python versions 3.7+)
+  which limits the SSL library implementations (ex. OpenSSL, libreSSL)
+  and only OpenSSL versions >= 1.1.1 (TLS minimum version 1.2). If an older
+  OpenSSL or incompatible SSL library is used, the import of urllib3  will
+  cause an import error. When the server TLS versions allowed by the server are
+  not compatible with the pywbem client an exception like the following may
+  occur:
+
+    SSLError(1, '[SSL: UNSUPPORTED_PROTOCOL] unsupported protocol . . .)
+
+    or
+
+    NotOpenSSLWarning: urllib3 v2.0 only supports OpenSSL 1.1.1+, currently the
+           'ssl' module is compiled with 'LibreSSL 2.8.3'
+
+  Also, the default set of cyphers available has changed to use the list of
+  ciphers configured by the system rather than ciphers defined by urllib3.
+  See issue #1302 and the pywbem documentation
+  `trouble shooting section <https://pywbem.readthedocs.io/en/stable/appendix.html#troubleshooting>`_
+  for more information.
+
+
 **Deprecations:**
 
 **Bug fixes:**

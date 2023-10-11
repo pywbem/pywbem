@@ -4,6 +4,8 @@
 Mapping between ValueMap and Values qualifiers
 ----------------------------------------------
 
+.. index:: pair: CIM Objects; ValueMap
+
 .. automodule:: pywbem._valuemapping
 
 .. autoclass:: pywbem.ValueMapping

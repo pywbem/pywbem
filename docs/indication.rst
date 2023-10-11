@@ -17,6 +17,8 @@ subscriptions for indications on a WBEM server.
 
 .. _`WBEMListener`:
 
+.. index: pair: WBEMListener, indications
+
 WBEMListener
 ^^^^^^^^^^^^
 
