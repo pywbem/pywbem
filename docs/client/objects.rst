@@ -1,8 +1,11 @@
 
+
 .. _`CIM objects`:
 
 CIM objects
 -----------
+
+.. index:: pair: CIM Objects; libraries
 
 .. automodule:: pywbem._cim_obj
 

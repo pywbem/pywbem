@@ -8,6 +8,8 @@ This section contains a few short tutorials about using pywbem. It is intended
 to be enough to get people up and going who already know a bit about WBEM and
 CIM.
 
+.. index:: pair: examples; Jupyter Notebooks
+
 The tutorials in this section are
 `Jupyter Notebooks <https://jupyter-notebook-beginner-guide.readthedocs.io/>`_,
 and are shown using the online
@@ -43,7 +45,7 @@ For the following topics, tutorials are not yet available:
 * ExecQuery
 * Association Operations
 * Class Operations
-* Qualifier Operations
+* Qualifier Declaration Operations
 * WBEMListener
 
 Executing code in the tutorials
