@@ -141,6 +141,10 @@ Released: 2023-01-14
   dict form dict(a=1) which is slower than {'a':1} and other new tests in
   pylint 2.16.0
 
+* Disable/fix Sphinx WARNING: reference not found messages.  Hide about 270
+  msgs because they are probably a Sphinx issue. Fixe about 10 as they were
+  docstring formatting issues (see Issue #3065)
+
 **Known issues:**
 
 * See `list of open issues`_.

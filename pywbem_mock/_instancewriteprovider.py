@@ -121,7 +121,8 @@ class InstanceWriteProvider(BaseProvider):
     """
 
     #: :term:`string`: Keyword defining the type of request the provider will
-    #: service. The type for this provider class is predefined as 'instance'.
+    #: service. The type for this provider class is predefined as
+    #  'instance-write'.
     provider_type = 'instance-write'
 
     def __init__(self, cimrepository=None):
@@ -532,6 +533,7 @@ class InstanceWriteProvider(BaseProvider):
     #####################################################################
     def find_multins_association_ref_namespaces(self, cim_object,
                                                 target_namespace):
+        # pylint: disable=line-too-long
         """
         Return list of namespaces in which this association participates
         excluding the target namespace.  If an empty list is returned, this
@@ -539,8 +541,8 @@ class InstanceWriteProvider(BaseProvider):
 
         Parameters:
 
-          cim_object (:class:`CIMInstance` or :class:`CIMInstanceName`):
-            object from which references/keybindings searched to determine
+          cim_object (:class:`~pywbem.CIMInstance` or :class:`~pywbem.CIMInstanceName`):  # noqa: E501
+            Object from which references/keybindings searched to determine
             if multinamespace object. Must be an association.
 
           target_namespace (:term:`string`):
@@ -553,6 +555,7 @@ class InstanceWriteProvider(BaseProvider):
             If no other namespaces are defined by reference properties, it
             returns None.
         """
+        # pylint: enable=line-too-long
         if isinstance(cim_object, CIMInstanceName):
             instance_store = self.cimrepository.get_instance_store(
                 target_namespace)
@@ -632,7 +635,7 @@ class InstanceWriteProvider(BaseProvider):
         namespaces causes an exception.
 
         Parameters:
-          new_instance ((:class:`~pywbem.CIMInstance`):)
+          new_instance (:class:`~pywbem.CIMInstance`):
             The new instance that will be created
 
           orig_ns (:term:`string`):
@@ -731,7 +734,7 @@ class InstanceWriteProvider(BaseProvider):
         namespaces causes an exception.
 
         Parameters:
-          modified_instance ((:class:`~pywbem.CIMInstance`):)
+          modified_instance (:class:`~pywbem.CIMInstance`):
             The modified instance that is to replace the original
             instance in the repository
 
@@ -797,8 +800,8 @@ class InstanceWriteProvider(BaseProvider):
 
         Parameters:
           creation_class (:class:`~pywbem.CIMClass`):
-          The CIM class from which the instance was created. Used to determine
-          the key properties.
+            The CIM class from which the instance was created. Used to
+            determine the key properties.
 
           new_instance (:class:`~pywbem.CIMInstance`):
             The instance from which the CIMInstanceName will be derived.
@@ -807,7 +810,8 @@ class InstanceWriteProvider(BaseProvider):
             The namespace in which the instance will be added.
 
         Raises:
-            CIMError if instance name cannot be created from instance.
+            :exc:`~pywbem.CIMError`: if instance name cannot be created from
+              instance.
 
         """
         try:
@@ -826,7 +830,7 @@ class InstanceWriteProvider(BaseProvider):
         otherwise False.
 
         Parameters:
-            path (:class:`pywbem.CIMInstanceName`)
+            path (:class:`~pywbem.CIMInstanceName`):
                 path to instance to be tested including namespace.
 
         Returns:
@@ -849,12 +853,13 @@ class InstanceWriteProvider(BaseProvider):
         exists.  Generates INVALID_PARAMETER if it does not exist.
 
         Parameters:
-          prop (:class:`pywbem.CIMInstanceName`):
+          prop (:class:`~pywbem.CIMInstanceName`):
             Reference property containing CIMInstanceName as value or
-            Null Value
+            Null value.
 
         Raises:
-            CIMError if value of property is not a valid instance or Null
+            :exc:`~pywbem.CIMError`:  If value of property is not a valid
+              instance or Null.
         """
         path = prop.value
 

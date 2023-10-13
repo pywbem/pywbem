@@ -231,7 +231,7 @@ from ._utils import _format
 __all__ = ['configure_logger', 'configure_loggers_from_string',
            'LOGGER_API_CALLS_NAME', 'LOGGER_HTTP_NAME', 'LOGGER_SIMPLE_NAMES',
            'LOG_DESTINATIONS', 'DEFAULT_LOG_DESTINATION', 'LOG_DETAIL_LEVELS',
-           'DEFAULT_LOG_DETAIL_LEVEL']
+           'DEFAULT_LOG_DETAIL_LEVEL', 'DEFAULT_LOG_FILENAME']
 
 _CONN = None
 
