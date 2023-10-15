@@ -1,21 +1,21 @@
 Pywbem - A WBEM client and related utilities, written in pure Python
 ====================================================================
 
-.. image:: https://badge.fury.io/py/pywbem.svg
+.. image:: https://img.shields.io/pypi/v/pywbem.svg
     :target: https://pypi.python.org/pypi/pywbem/
-    :alt: PyPI Version
+    :alt: Version on Pypi
 
-.. image:: https://github.com/pywbem/pywbem/workflows/test/badge.svg?branch=master
-    :target: https://github.com/pywbem/pywbem/actions/
-    :alt: Actions status
+.. image:: https://github.com/pywbem/pywbem/actions/workflows/test.yml/badge.svg?branch=master
+    :target: https://github.com/pywbem/pywbem/actions/workflows/test.yml?query=branch%3Amaster
+    :alt: Test status (master)
 
 .. image:: https://readthedocs.org/projects/pywbem/badge/?version=latest
     :target: https://readthedocs.org/projects/pywbem/builds/
-    :alt: ReadTheDocs status
+    :alt: Docs status (master)
 
 .. image:: https://coveralls.io/repos/github/pywbem/pywbem/badge.svg?branch=master
     :target: https://coveralls.io/github/pywbem/pywbem?branch=master
-    :alt: Coveralls result
+    :alt: Test coverage (master)
 
 .. image:: https://img.shields.io/pypi/pyversions/pywbem.svg?color=brightgreen
     :target: https://pypi.python.org/pypi/pywbem/
