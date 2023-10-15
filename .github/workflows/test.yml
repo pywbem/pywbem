@@ -378,6 +378,11 @@ jobs:
         TESTOPTS: "-x"
       run: |
         make testc
+    - name: Run safety
+      env:
+        PACKAGE_LEVEL: ${{ matrix.package_level }}
+      run: |
+        make safety
 
   test_finish:
     needs: test

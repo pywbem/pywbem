@@ -336,9 +336,10 @@ help:
 	@echo "  check_reqs - Perform missing dependency checks"
 	@echo "  build      - Build the source and wheel distribution archives in: $(dist_dir)"
 	@echo "  builddoc   - Build documentation in: $(doc_build_dir)"
-	@echo "  check      - Run Flake8 on sources and safety on minimum_constraints.txt"
+	@echo "  check      - Run Flake8 on sources"
 	@echo "  pylint     - Run PyLint on sources"
 	@echo "  installtest - Run install tests"
+	@echo "  safety      - Run Safety on minimum_constraints.txt"
 	@echo "  test       - Run unit and function tests (in tests/unittest and tests/functiontest)"
 	@echo "  leaktest   - Run memory leak tests (in tests/leaktest)"
 	@echo "  resourcetest - Run resource consumption tests (in tests/resourcetest)"
@@ -535,11 +536,15 @@ builddoc: html
 	@echo "Makefile: Target $@ done."
 
 .PHONY: check
-check: flake8_$(pymn)_$(PACKAGE_LEVEL).done safety_$(pymn)_$(PACKAGE_LEVEL).done
+check: flake8_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Target $@ done."
 
 .PHONY: pylint
 pylint: pylint_$(pymn)_$(PACKAGE_LEVEL).done
+	@echo "Makefile: Target $@ done."
+
+.PHONY: safety
+safety: safety_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Target $@ done."
 
 .PHONY: todo
