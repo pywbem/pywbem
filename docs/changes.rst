@@ -68,6 +68,9 @@ Released: not yet
   indication subscriptions the indication listener. This test uses the
   OpenPegasus container used for other end-end tests.
 
+* Split safety run out of "check" make target ino a separate "safety" make target
+  and moved its run to the end of the test workflow.
+
 **Cleanup:**
 
 * Replaced the safety_ignore_opts in Makefile that is used as the basis for
