@@ -1345,3 +1345,81 @@ def test_copy_conn(
         for fname in files:
             os.remove(fname)
         dev_null.close()
+
+
+TESTCASES_WBEMCONNECTION_ERROR = [
+
+    # Test WBEMConnection error
+    # The testcase items are tuples with these items:
+    # * desc: Testcase description
+    # * init_kwargs: dict of init arguments for WBEMConnection
+    # * exp_exc: Type of expected exception, or None
+    # * exp_exc_regex: Regexp for the expected exception message, or None
+
+    (
+        "http connection",
+        dict(
+            url='http://InvalidHostName',
+            creds=None,
+            default_namespace='root/cimv2',
+            x509=None,
+            ca_certs=None,
+            no_verification=False,
+            timeout=5,
+            use_pull_operations=False,
+            stats_enabled=False,
+            proxies=None,
+        ),
+        ConnectionError, None
+    ),
+    (
+        "No optional init parameters, test defaults",
+        dict(
+            url='https://InvalidHostName',
+            creds=None,
+            default_namespace='root/cimv2',
+            x509=None,
+            ca_certs=None,
+            no_verification=False,
+            timeout=5,
+            use_pull_operations=False,
+            stats_enabled=False,
+            proxies=None,
+        ),
+        ConnectionError, None
+    ),
+]
+
+
+class TestConnectionError(object):  # pylint: disable=too-few-public-methods
+    """
+    Test construction of WBEMConnection and error exception when connection
+    is executed with a function that communicates with the server.
+    Only returns the exception message determined by the system since we have
+    not control over these exceptions.
+    """
+
+    @pytest.mark.parametrize(
+        'desc, init_kwargs, exp_exc, exp_exc_regex',
+        TESTCASES_WBEMCONNECTION_ERROR)
+    def test_init(self, desc, init_kwargs, exp_exc, exp_exc_regex):
+        # pylint: disable=no-self-use,unused-argument
+        """
+        Test  WBEMConnection object Exceptions caused by Server connection
+        failure.
+        """
+        exc = None
+        try:
+            assert exp_exc is not None
+            with pytest.raises(exp_exc) as exc_info:
+
+                # The code to be tested
+                conn = WBEMConnection(**init_kwargs)
+                _ = conn.EnumerateClasses()
+
+            exc = exc_info.value
+            exc_msg = str(exc)
+            if exp_exc_regex:
+                assert re.search(exp_exc_regex, exc_msg)
+        finally:
+            assert exc is not None
