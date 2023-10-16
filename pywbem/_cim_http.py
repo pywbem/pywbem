@@ -253,11 +253,21 @@ def pywbem_urllib3_exception(exc, conn):
     used as follows, with the specified messages:
 
     - no target port:
+      urllib3 version < 2.0
 
       HTTPSConnectionPool(host='localhost', port=5989): Max retries exceeded
       with url: /cimom (Caused by NewConnectionError('<urllib3.connection.
       HTTPSConnection object at 0x1105eaa30>: Failed to establish a new
       connection: [Errno 61] Connection refused'))
+
+      urllib3 version >= 2.0
+
+      WBEMConnection(url='localhost', certs= . . .): Max retries exceeded
+      with url: /cimom (NewConnectionError('<urllib3.connection.
+      HTTPSConnection object at 0x1105eaa30>: Failed to establish a new
+      connection: [Errno 61] Connection refused'))
+
+      TODO: Fix the item above.  Not sure if HTTPS Connection object.
 
     - port handled by paused container:
 
@@ -270,7 +280,15 @@ def pywbem_urllib3_exception(exc, conn):
 
     - operation exceeded the timeout:
 
+      urllib3 version < 2.0
+
       HTTPSConnectionPool(host='localhost', port=5989): Max retries exceeded
+      with url: /cimom (Caused by ReadTimeoutError("HTTPSConnectionPool(
+      host='localhost', port=5989): Read timed out. (read timeout=15)"))
+
+      urllib3 version >= 2.0
+
+      WBEMConnection(url='localhost', certs= . . .): Max retries exceeded
       with url: /cimom (Caused by ReadTimeoutError("HTTPSConnectionPool(
       host='localhost', port=5989): Read timed out. (read timeout=15)"))
 
@@ -311,9 +329,15 @@ def pywbem_urllib3_exception(exc, conn):
             elif exc_message.startswith("'"):
                 exc_message = exc_message.strip("'")
 
+        # Define pattern for search to remove unnecary info
+            # Urllib3 ver 2, NewConnectionError will have WBEMConnection as
+            # exc_message rather than ConnectionPool
+            if re.search("^WBEMConnection(.*)$", exc_message):
+                pattern = r'^WBEMConnection\(url=.*, creds=.*\): (.*)$'
+            else:
+                pattern = r'^HTTPS?ConnectionPool\(host=.*, port=.*\): (.*)$'
             # Remove unnecessary information from the message
-            m = re.search(r'^HTTPS?ConnectionPool\(host=.*, port=.*\): (.*)$',
-                          exc_message)
+            m = re.search(pattern, exc_message)
             if m:
                 exc_message = m.group(1)
             else:

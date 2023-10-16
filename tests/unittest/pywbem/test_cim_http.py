@@ -29,6 +29,9 @@ DEFAULT_SCHEME = 'http'
 # Keep in sync with same value in _cim_http.py
 HTTP_CONNECT_TIMEOUT = 9.99
 
+URLLIB3_VERSION = tuple(map(int, urllib3.__version__.split('.')[0:3]))
+URLLIB3V2 = URLLIB3_VERSION >= (2, 0, 0)
+
 TESTCASES_PARSE_URL = [
 
     # Testcases for _cim_http.parse_url()
@@ -623,9 +626,12 @@ def test_parse_url(
 
 
 DUMMY_CONN_USING_HTTPS = pywbem.WBEMConnection('https://dummy')
-DUMMY_CONN_USING_HTTP = pywbem.WBEMConnection('http://dummy')
+DUMMY_CONN_USING_HTTP = pywbem.WBEMConnection(url='http://dummy')
 DUMMY_POOL = urllib3.connectionpool.HTTPConnectionPool('dummy')
 
+# Argument for NewConnectionError which changes first parameter from
+# urllib3 version 1.x to urllib3 version 2.0 (from pool to host).
+NEW_CONN_ERR_PARM1 = DUMMY_CONN_USING_HTTP if URLLIB3V2 else DUMMY_POOL
 
 TESTCASES_PYWBEM_REQUESTS_EXCEPTION = [
 
@@ -833,12 +839,12 @@ TESTCASES_PYWBEM_REQUESTS_EXCEPTION = [
                         pool=DUMMY_POOL,
                         url='http://dummy',
                         reason=urllib3.exceptions.NewConnectionError(
-                            pool=DUMMY_POOL,
+                            NEW_CONN_ERR_PARM1,
                             message="bla"))),
                 conn=DUMMY_CONN_USING_HTTP,
             ),
             exp_exc_type=pywbem.ConnectionError,
-            exp_pattern="^bla$",
+            exp_pattern="^bla$"
         ),
         None, None, True
     ),

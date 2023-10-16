@@ -71,6 +71,11 @@ Released: not yet
 * Split safety run out of "check" make target ino a separate "safety" make target
   and moved its run to the end of the test workflow.
 
+* Update handling of request exceptions in CIM_http.py to account for changes
+  to the urllib3 exceptions API that occurred in urllib3 version 2.0.0 and
+  keep the capability to handle the urllib3 exceptions API prior to versiion
+  2.0. (see issue #3006)
+
 **Cleanup:**
 
 * Replaced the safety_ignore_opts in Makefile that is used as the basis for
