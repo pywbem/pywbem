@@ -43,14 +43,11 @@ nocasedict>=1.0.1
 # urllib3 1.25.9 addressed issue 38834 reported by safety
 # urllib3 needs to be pinned to <1.25 for requests <2.22.0
 # urllib3 1.26.5 vendors six 1.16.0 which is needed on Python 3.10 to remove ImportWarning
-# urllib3 2.0 requires py>=3.7
-urllib3>=1.25.9,<2.0.0; python_version == '2.7'
-urllib3>=1.25.9,<2.0.0; python_version == '3.5'
-urllib3>=1.25.9,<2.0.0; python_version == '3.6'
-# TODO: Following limits use of urllib3<= 2.0 until issues about this upgrade
-# resolved. Issue #3006 failed to update urllib3 to version 2.0.0 for python >= '3.7'
-urllib3>=1.25.9,<2.0.0; python_version >= '3.7' and python_version <= '3.9'
-urllib3>=1.26.5,<2.0.0; python_version >= '3.10'
+# urllib3 2.0 requires changes in pywbem that have not been rolled back into pywbem 1.2.
+urllib3>=1.26.17,<2.0.0; python_version == '2.7'
+urllib3>=1.26.9,<2.0.0; python_version == '3.5'
+urllib3>=1.26.17,<2.0.0; python_version == '3.6'
+urllib3>=1.26.17,<2.0.0; python_version >= '3.7'
 
 # setuptools 61.0.0 breaks "setup.py install", see https://github.com/pypa/setuptools/issues/3198
 setuptools!=61.0.0; python_version >= '3.7'

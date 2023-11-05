@@ -25,7 +25,7 @@ Released: not yet
 
 **Bug fixes:**
 
-* Fixed safety issues from 2023-08-27.
+* Addressed safety issues up to 2023-11-05.
 
 * Update dev-requirements.txt, minimum-constraings.txt, .safety_policy.json for
   new safety issues with GitPython and add ruamel-yaml.
@@ -65,8 +65,6 @@ Released: 2023-07-25
   setup-python, by using the Docker container python:2.7.18-buster instead.
 
 * Fixed missing dependencies in minimum-constraints.txt.
-
-* Fixed safety issues as of 2023-08-21 and 2023-08-27 and 2023-09-10.
 
 * dev: Fixed UnboundLocalError for membername in Sphinx autodoc.
 
