@@ -44,10 +44,9 @@ nocasedict>=1.0.1
 # urllib3 needs to be pinned to <1.25 for requests <2.22.0
 # urllib3 1.26.5 vendors six 1.16.0 which is needed on Python 3.10 to remove ImportWarning
 # urllib3 2.0 requires py>=3.7
-urllib3>=1.25.9,<2.0.0; python_version == '2.7'
-urllib3>=1.25.9,<2.0.0; python_version == '3.6'
-urllib3>=1.25.9; python_version >= '3.7' and python_version <= '3.9'
-urllib3>=1.26.5; python_version >= '3.10'
+urllib3>=1.26.17,<2.0.0; python_version == '2.7'
+urllib3>=1.26.17,<2.0.0; python_version == '3.6'
+urllib3>=1.26.17; python_version >= '3.7'
 
 # setuptools 61.0.0 breaks "setup.py install", see https://github.com/pypa/setuptools/issues/3198
 setuptools!=61.0.0; python_version >= '3.7'
