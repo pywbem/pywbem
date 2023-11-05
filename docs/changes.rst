@@ -98,6 +98,9 @@ Released: not yet
   keep the capability to handle the urllib3 exceptions API prior to versiion
   2.0. (see issue #3006)
 
+* Add end2end tests for operation timeout. (see issue #2181)
+
+
 **Cleanup:**
 
 * Replaced the safety_ignore_opts in Makefile that is used as the basis for
