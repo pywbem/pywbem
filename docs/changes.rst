@@ -58,6 +58,8 @@ Released: not yet
 
 **Bug fixes:**
 
+* Addressed safety issues up to 2023-11-05.
+
 * Fixed a doc build issue with Sphinx 6.x (issue #2983) and addressed
   some of the Sphinx warnings during doc build.
 
@@ -67,8 +69,6 @@ Released: not yet
   setup-python, by using the Docker container python:2.7.18-buster instead.
 
 * Fixed missing dependencies in minimum-constraints.txt.
-
-* Fixed safety issues as of 2023-08-21 and 2023-08-27 and 2023-09-10.
 
 * dev: Fixed UnboundLocalError for membername in Sphinx autodoc.
 
@@ -97,6 +97,9 @@ Released: not yet
   to the urllib3 exceptions API that occurred in urllib3 version 2.0.0 and
   keep the capability to handle the urllib3 exceptions API prior to versiion
   2.0. (see issue #3006)
+
+* Add end2end tests for operation timeout. (see issue #2181)
+
 
 **Cleanup:**
 
