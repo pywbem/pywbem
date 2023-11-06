@@ -140,6 +140,7 @@ class RunIndicationTest(object):
         self.last_indication_time = None
         self.max_time_between_indications = None
         self.last_seq_num = None
+        self.received_indications = []
 
         # Define the ids of the subscription manager, destination and listener
         sub_mgr_id = 'pywbempegasusIndicationTest'
@@ -272,6 +273,7 @@ class RunIndicationTest(object):
         Consume a single indication. This is a callback and may be on another
         thead. It is called each time an indication is received.
         """
+        self.received_indications.append(indication)
         # Count received indications and save received time.
         if self.indication_start_time is None:
             self.indication_start_time = datetime.datetime.now()
@@ -284,20 +286,23 @@ class RunIndicationTest(object):
             elif time_diff > self.max_time_between_indications:
                 self.max_time_between_indications = time_diff
 
-        seq_num = indication['SequenceNumber']
+        rcvd_seq_num = indication['SequenceNumber']
 
         if self.last_seq_num is None:
-            self.last_seq_num = seq_num
-            self.received_indication_count = 1
+            self.last_seq_num = rcvd_seq_num
+            self.received_indication_count = 0
         else:
-            if seq_num != (self.last_seq_num + 1):
-                print('Missed {0} indications at {1}'.
-                      format(((seq_num - 1) - self.last_seq_num),
-                             self.last_seq_num))
+            exp_seq_num = self.last_seq_num + 1
+            if rcvd_seq_num != exp_seq_num:
+                missing_cnt = (rcvd_seq_num - 1) - self.last_seq_num
+                print('Missed {0} indications at {1}, last rcvd seq num={2}, '
+                      'exp seq num={2}'.format(missing_cnt, self.last_seq_num,
+                                               exp_seq_num))
 
-            self.last_seq_num = seq_num
-            self.last_indication_time = datetime.datetime.now()
-            self.received_indication_count += 1
+            self.last_seq_num = rcvd_seq_num
+
+        self.last_indication_time = datetime.datetime.now()
+        self.received_indication_count += 1
 
         # pylint: disable=logging-format-interpolation
         self.listener.logger.info(
@@ -435,9 +440,13 @@ class RunIndicationTest(object):
         if return_flag:
             time.sleep(2)
             if self.received_indication_count != self.requested_indications:
-                print('ERROR. Extra indications received {}, requested {}'.
+                rcvd_ind_strs = [ind.tomof() for
+                                 ind in self.received_indications]
+                print('ERROR. Extra indications received {}, requested {}, '
+                      'Received indications:\n{}'.
                       format(self.received_indication_count,
-                             self.requested_indications))
+                             self.requested_indications,
+                             "\n".join(rcvd_ind_strs)))
         return return_flag
 
     def send_request_for_indications(self, class_name, indication_count):
