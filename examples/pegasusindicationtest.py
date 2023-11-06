@@ -270,8 +270,9 @@ class RunIndicationTest(object):
 
     def indication_consumer(self, indication, host):
         """
-        Consume a single indication. This is a callback and may be on another
-        thead. It is called each time an indication is received.
+        Consume a single indication. This is a callback and is on another
+        thread from the script thread. It is called each time an indication
+        is received.
         """
         self.received_indications.append(indication)
         # Count received indications and save received time.
@@ -402,9 +403,14 @@ class RunIndicationTest(object):
                 if self.last_indication_time:
                     stalled_time = datetime.datetime.now() - \
                         self.last_indication_time
-                else:
+                elif self.indication_start_time:
                     stalled_time = datetime.datetime.now() - \
                         self.indication_start_time
+
+                else:
+                    self.indication_starttime = datetime.datetime.now()
+                    stalled_time = datetime.datetime.now() - \
+                        datetime.datetime.now()
 
                 if stall_ctr > 5:
                     if self.last_indication_time:
