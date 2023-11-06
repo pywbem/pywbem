@@ -186,6 +186,12 @@ SUPPORTED_DTD_VERSION_STR = '2.x'
 SUPPORTED_PROTOCOL_VERSION_PATTERN = r'1\.\d+'
 SUPPORTED_PROTOCOL_VERSION_STR = '1.x'
 
+
+# NOTE: This is a test flag while making modifications to use a queue between
+# the reception of indications and the indication consumer.  When False,
+# the queue path is used.
+DIRECT_DELIVER_INDICATIONS =True
+
 # Pattern for findall() for header values that are a list of tokens with
 # quality values (see RFC2616). The pattern does not verify conformance
 # to the valid characters for tokens, but does its job in parsing tokens
