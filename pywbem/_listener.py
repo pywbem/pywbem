@@ -144,11 +144,15 @@ import ssl
 import threading
 import atexit
 import getpass
+<<<<<<< HEAD
 # Python 2.7 uses name Queue
 try:
     import queue
 except ImportError:
     import Queue as queue
+=======
+import queue
+>>>>>>> e37bdcf4 (Fix issue with example/pegasusindicationtest.py. (#3079))
 try:
     import termios
 except ImportError:
@@ -185,6 +189,12 @@ SUPPORTED_DTD_VERSION_PATTERN = r'2\.\d+'
 SUPPORTED_DTD_VERSION_STR = '2.x'
 SUPPORTED_PROTOCOL_VERSION_PATTERN = r'1\.\d+'
 SUPPORTED_PROTOCOL_VERSION_STR = '1.x'
+
+
+# NOTE: This is a test flag while making modifications to use a queue between
+# the reception of indications and the indication consumer.  When False,
+# the queue path is used.
+DIRECT_DELIVER_INDICATIONS =True
 
 # Pattern for findall() for header values that are a list of tokens with
 # quality values (see RFC2616). The pattern does not verify conformance
@@ -510,9 +520,19 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                     _format("NewIndication parameter is not a CIM instance, "
                             "but {0!A}", indication_inst))
                 return
+<<<<<<< HEAD
             # server.listener created in WBEMListener.start function
             self.server.listener.handle_indication(indication_inst,
                                                    self.client_address[0])
+=======
+            if DIRECT_DELIVER_INDICATIONS:
+                # server.listener created in WBEMListener.start function
+                self.server.listener.deliver_indication(indication_inst,
+                                                        self.client_address[0])
+            else:
+                self.server.listener.queue_indication(indication_inst,
+                                                      self.client_address[0])
+>>>>>>> e37bdcf4 (Fix issue with example/pegasusindicationtest.py. (#3079))
 
             self.send_success_response(msgid, methodname)
 
@@ -848,11 +868,22 @@ class WBEMListener(object):
 
         self._callbacks = []  # Registered callback functions
 
+<<<<<<< HEAD
         # Set up callback queue and callback thread.
         self.rcvd_indication_queue = queue.Queue()
         self.callback_thread = StoppableThread(
             target=self.deliver_indications_from_queue,
             args=(self.rcvd_indication_queue,))
+=======
+        # Setup queue instance to hold received indications and thread
+        # to send them to consumer.
+        self.rcvd_indication_queue = queue.Queue()
+        self.delivery_thread = threading.Thread(
+            target=self.deliver_indications_from_queue,
+            args=(self.rcvd_indication_queue, ))
+        self.delivery_thread.daemon = True
+        self.delivery_running = True
+>>>>>>> e37bdcf4 (Fix issue with example/pegasusindicationtest.py. (#3079))
 
     def __str__(self):
         """
@@ -1031,9 +1062,15 @@ class WBEMListener(object):
           :exc:`py:OSError`: Other error
           :exc:`py:IOError`: Other error (Python 2.7 only)
         """
+<<<<<<< HEAD
         # Start delivery queue
         self.callback_thread.start()
         self.logger.info("Callback queue thread started")
+=======
+        # Start delivery queue only if direct not enabled.
+        if not DIRECT_DELIVER_INDICATIONS:
+            self.delivery_thread.start()
+>>>>>>> e37bdcf4 (Fix issue with example/pegasusindicationtest.py. (#3079))
 
         if self._http_port:
             if not self._http_server:
@@ -1189,6 +1226,7 @@ class WBEMListener(object):
             self._https_thread = None
             self.logger.info("Stopped threaded Queue")
 
+<<<<<<< HEAD
         self.logger.info("Stopping queued delivery")
         self.callback_thread.stop()
         self.logger.info("Joining queued delivery")
@@ -1196,6 +1234,34 @@ class WBEMListener(object):
         self.logger.info("Join finished threaded Deliver queue")
 
     def deliver_indications_from_queue(self, delivery_queue):
+=======
+        #self.delivery_thread
+
+    def queue_indication(self, indication, host):
+        """
+        Queue the received indication for delivery to the indication consumers
+
+        This queues the indication and host to be delivered by a the
+        indication delivery thread.
+
+        """
+        self.rcvd_indication_queue.put((indication, host))
+
+    def deliver_indications_from_queue(self, delivery_queue):
+        """
+       Deliver indications from delivery_queue to the defined consumer.
+
+        """
+        while self.delivery_running:
+            try:
+                indication_tuple = delivery_queue.get(timeout=2)
+                self.deliver_indication(indication_tuple[0],
+                                        indication_tuple[1])
+            except queue.Empty:
+                pass
+
+    def deliver_indication(self, indication, host):
+>>>>>>> e37bdcf4 (Fix issue with example/pegasusindicationtest.py. (#3079))
         """
         Deliver indications from delivery_queue to the defined consumer. This
         function runs a loop in its own thread and only exits the thread when
