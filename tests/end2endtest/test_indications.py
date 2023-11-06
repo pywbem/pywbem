@@ -360,14 +360,16 @@ class RunIndicationTest(object):  # pylint: disable=too-many-instance-attributes
             self.last_seq_num = seq_num
             self.received_indication_count = 1
         else:
-            if seq_num != (self.last_seq_num + 1):
-                print('Missed {0} indications at {1}'.
-                      format(((seq_num - 1) - self.last_seq_num),
-                             self.last_seq_num))
-
-            self.last_seq_num = seq_num
-            self.last_indication_time = datetime.datetime.now()
+            exp_seq_num = self.last_seq_num + 1
+            assert seq_num == exp_seq_num, \
+                'Missed {0} indications at seq_num={1}. rcvd seq num={2}, ' \
+                'expected={3}'. \
+                format((seq_num - 1) - self.last_seq_num,
+                       self.last_seq_num, seq_num, exp_seq_num)
             self.received_indication_count += 1
+
+        self.last_seq_num = seq_num
+        self.last_indication_time = datetime.datetime.now()
 
         # pylint: disable=logging-format-interpolation
         self.listener.logger.info(
