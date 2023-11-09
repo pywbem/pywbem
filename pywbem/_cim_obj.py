@@ -2052,6 +2052,7 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
                 _format("WBEM URI has an invalid format for its keybindings: "
                         "{0!A}", keybindings_str))
 
+        kb_assigns = []
         if m.group(1):
             kb_assigns = [m.group(1)]
 
