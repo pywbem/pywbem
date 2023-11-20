@@ -519,7 +519,6 @@ ConnectionError raised with [SSL: UNSUPPORTED_PROTOCOL]
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. index:: pair: troubleshooting: OpenSSL
-
 .. index:: pair: SSL: OpenSSL
 .. index:: pair: UNSUPPORTED_PROTOCOL: OpenSSL
 
@@ -593,6 +592,42 @@ This is an error that is created by the OpenSSL library and handed back up to
 the SSL module of Python which hands it up to pywbem. The error indicates that
 OpenSSL on the client side cannot deal with the cipher used by the server
 side. This was fixed by upgrading OpenSSL on the client OS to version 1.1.1.
+
+Install failes, Externally-managed-environment error
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. index:: pair: troubleshooting: Externally-managed-environment error
+.. index:: pair: SSL: OpenSSL
+
+On newer versions of some operating systems (Ex. Ubuntu 23.04, Debian 12,
+etc.), you may get an error message such as:
+
+```
+        error: externally-managed-environment
+
+    × This environment is externally managed . . .
+```
+
+This is caused when trying to install pywbem system-wide whereas pip only
+allows installantion of packages that are not part of the OS distribution into
+a virtual environment. A change to limit where pip can install was  defined by
+`Python PEP 668 https://peps.python.org/pep-0668/`_. to force separation of
+user packages from ``apt`` installed packages.  The common solution to this is
+to ``always`` use a virtual environment to install pywbem as recommended in the
+pywbem installation.
+
+There are atternatives to allow installation of pywbem systemwide including:
+
+* Add this to your ~/.config/pip/pip.conf file:
+
+    [global]
+    break-system-packages = true
+
+
+
+
+
+
 
 
 .. _`Base classes`:
