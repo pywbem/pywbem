@@ -121,7 +121,11 @@ environment:
 
 This will also install any prerequisite Python packages.
 
-Starting with version 1.0.0, pywbem has no OS-level prerequisite packages.
+Starting with version 1.0.0, pywbem has no OS-level prhis ierequisite packages.
+
+On newer versions pfsome operating systems(ex. Ubuntu 23.10, Debian 12) pywbem
+will only install into a virtual environment. This is by design and is
+documented in `Python PEP 668 https://peps.python.org/pep-0668/`_.
 
 For more details and alternative ways to install, see the
 `Installation section`_ in the pywbem documentation.

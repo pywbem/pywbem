@@ -136,6 +136,9 @@ operating system packages in addition to Python itself.
     - setuptools
     - wheel
     - pip
+    - On newer versions of some operating systems(ex. Ubuntu 23.10, Debian 12) pywbem will
+      only install in a virtual environment so venv, etc. must also be
+      installed.
 
 * Install pywbem (and its prerequisite Python packages) into the active Python
   environment:
