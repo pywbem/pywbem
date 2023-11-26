@@ -485,12 +485,18 @@ Many times, CIM_System or CIM_ComputerSystem is the scoping class.
 Troubleshooting
 ---------------
 
-Here are some trouble shooting hints for the installation of pywbem.
+This section describes some trouble shooting hints for the installation of
+pywbem.
 
-.. index:: pair: troubleshooting: OpenSSL
+.. index:: pair; troubleshooting: OpenSSL
+.. index:: pair; installation fail: OpenSSL
+
 
 NotOpenSSLWarning: urllib3 v2.0 only supports OpenSSL 1.1.1+
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. index:: pair; installation fail: NotOpenSSLWarning
+.. index:: pair; troubleshooting: NotOpenSSLWarning
 
 This issue may be caused by the dependent package urllib3 update to version 2.0
 in pywbem version 1.7.0. In this case it is probably that the local environment
@@ -499,6 +505,9 @@ reinstall urllib3 < 2.0
 
 Installation fails with "invalid command 'bdist_wheel'"
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. index:: pair; installation fail: invalid command
+.. index:: pair; troubleshooting: "invalid command 'bdist_wheel'"
 
 The installation of some Python packages requires the Python "wheel" package.
 If that package is not installed in the current Python environment, the
@@ -518,9 +527,9 @@ To fix this, install the Python "wheel" package::
 ConnectionError raised with [SSL: UNSUPPORTED_PROTOCOL]
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. index:: pair: troubleshooting: OpenSSL
-.. index:: pair: SSL: OpenSSL
-.. index:: pair: UNSUPPORTED_PROTOCOL: OpenSSL
+.. index:: pair; troubleshooting: OpenSSL
+.. index:: pair; SSL: OpenSSL
+.. index:: pair; UNSUPPORTED_PROTOCOL: OpenSSL
 
 On newer versions of the operating system running the pywbem client,
 communication with the WBEM server may fail with::
@@ -564,7 +573,7 @@ This issue can be corrected by:
 
 2. If the current version of urllib3 is greater than 2.0, the previous version
    of urllib3 (ex. version 1.26.5) can be installed (ex. ``pip install
-   urllib3<2.0)
+   urllib3<2.0``)
 
 3. Adding TLS 1.2 support to the server side (preferred) or by lowering the
     minimum TLS level OpenSSL requires on the client
@@ -582,6 +591,8 @@ This issue can be corrected by:
 ConnectionError raised with [SSL] EC lib
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+.. index:: pair: installation failure; ConnectionError raises with
+
 Using pywbem on Python 3.5 with OpenSSL 1.0.1e-fips against an IBM DS8000
 raised the following exception::
 
@@ -593,41 +604,60 @@ the SSL module of Python which hands it up to pywbem. The error indicates that
 OpenSSL on the client side cannot deal with the cipher used by the server
 side. This was fixed by upgrading OpenSSL on the client OS to version 1.1.1.
 
-Install failes, Externally-managed-environment error
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. _`Install fails, Externally-managed-environment error`:
 
-.. index:: pair: troubleshooting: Externally-managed-environment error
-.. index:: pair: SSL: OpenSSL
+Install fails, Externally-managed-environment error
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-On newer versions of some operating systems (Ex. Ubuntu 23.04, Debian 12,
-etc.), you may get an error message such as:
+.. index:: pair: troubleshooting; Externally-managed-environment error
+.. index:: pair: installation failure; Externally-managed-environment error
 
-```
+This error is caused by the OS distribution adopting the changes defined by
+`Python PEP 668`_ (Marking Python base environments as “externally managed”)
+which sets configuration information so that pip (version 23.0+) will only
+install packages that are not part of the OS distibution into virtual
+environments and will not install them into any of the system python
+directories. This forces the separation of user packages from OS distribution
+installed packages.
+
+On newer versions of some operating systems (Ex. Ubuntu 23.04, Debian 12, etc.)
+installed from the OS distribution, you may get an error message such as the
+following which indicates that pip refused to install a package:
+
+.. code-block:: text
+
         error: externally-managed-environment
 
     × This environment is externally managed . . .
-```
+    . . .
 
-This is caused when trying to install pywbem system-wide whereas pip only
-allows installantion of packages that are not part of the OS distribution into
-a virtual environment. A change to limit where pip can install was  defined by
-`Python PEP 668 https://peps.python.org/pep-0668/`_. to force separation of
-user packages from ``apt`` installed packages.  The common solution to this is
-to ``always`` use a virtual environment to install pywbem as recommended in the
-pywbem installation.
 
-There are atternatives to allow installation of pywbem systemwide including:
+The best solution to this issue is to ``always`` install pywbem into a virtual
+environment as recommended in the pywbem installation.
 
-* Add this to your ~/.config/pip/pip.conf file:
+There are alernatives to allow installation of pywbem into the system python
+directories if required including:
+
+
+* Create or modify a `pip configuration file`_ to include the statement:
+
+  .. code-block:: text
 
     [global]
     break-system-packages = true
 
+* Set an environment variable BREAK_SYSTEM_PACKAGES before installing pywbem
+  since environment variables can be used to define pip command line options.
 
+* Remove the flag file that pip uses to enable the limiting behavior. See
+  `Python PEP 668`_ which would be most logical in the case of installation
+  into a container such as Docker.
 
+See `pywbem issue #3080 <https://github.com/pywbem/pywbem/issues/3080>`_ for
+more information about this issue.
 
-
-
+.. _Python PEP 668: https://peps.python.org/pep-0668/
+.. _pip configuration file: https://pip.pypa.io/en/stable/topics/configuration/
 
 
 .. _`Base classes`:

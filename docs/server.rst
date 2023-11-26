@@ -4,9 +4,9 @@
 WBEM server library
 ===================
 
-.. index: pair: WBEM server library; indications
-.. index: pair: WBEM server library; indication subscriptions
-.. index: pair: libraries; WBEM Server library
+.. index:: pair: WBEM server library; indications
+.. index:: pair: WBEM server library; indication subscriptions
+.. index:: pair: libraries; WBEM Server library
 
 .. automodule:: pywbem._server
 

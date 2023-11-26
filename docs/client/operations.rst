@@ -6,7 +6,7 @@ WBEM operations
 
 .. automodule:: pywbem._cim_operations
 
-..index: pair: libraries; WBEMConnection library
+..index:: pair: libraries; WBEMConnection library
 
 WBEMConnection
 ^^^^^^^^^^^^^^

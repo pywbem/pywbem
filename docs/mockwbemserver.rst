@@ -617,8 +617,8 @@ schema version 2.49.0 into the CIM repository along with all of the qualifier
 types defined by the DMTF CIM schema and any dependent classes
 (superclasses, etc.).
 
-.. index: pair: examples, mock define qualifier types
-.. index: pair: examples, mock define classes
+.. index:: pair: examples; mock define qualifier types
+.. index:: pair: examples; mock define classes
 
 .. code-block:: python
 
@@ -652,8 +652,8 @@ types defined by the DMTF CIM schema and any dependent classes
 Example: Set up qualifier types and classes from MOF
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. index: pair: examples, mock define qualifier types from MOF
-.. index: pair: examples, mock define classes from MOF
+.. index:: pair: examples; mock define qualifier types from MOF
+.. index:: pair: examples; mock define classes from MOF
 
 This example creates a mock WBEM server and sets up its CIM repository with
 qualifier types and classes that are defined in a MOF string.
@@ -758,7 +758,7 @@ Here is the output from displaying the CIM repository in the example above:
 Example: Set up instances from single CIM objects
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. index: pair: examples, mock define CIM instances
+.. index:: pair: examples; mock define CIM instances
 
 Based on the CIM repository content of the previous example, this example
 adds two class instances and one association instance from their CIM objects

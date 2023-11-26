@@ -10,10 +10,12 @@ This will also install any prerequisite Python packages.
 
 Since version 1.0.0, pywbem has no more OS-level prerequisite packages.
 
-On newer versions of some OS's (ex. Ubuntu 23.10, Debian 12) pywbem can only
-be installed into a virtual environment.  If an attempt is made to install it
-into the system directories the install will fail with a message about
-"externally managed" environments.
+On newer versions of some OS's'(ex. Ubuntu 23.04, Debian 12) pywbem
+will only install into a virtual environment. This is by design to avoid conflicts
+between OS distributed python packages and other user installed packages and is
+documented in `Python PEP 668`_. See the pywbem documentation
+`Troubleshooting section`_ for more information if an "Externally-managed-environment"
+error occurs during installation.
 
 For more details and alternative ways to install, see the
 [Installation section](https://pywbem.readthedocs.io/en/stable/intro.html#installation)
