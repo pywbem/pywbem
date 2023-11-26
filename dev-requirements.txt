@@ -284,7 +284,7 @@ pywin32>=303; sys_platform == 'win32' and python_version >= '3.10'
 tornado>=4.4.2,<5.0; python_version == '2.7'
 tornado>=6.1; python_version == '3.6'
 tornado>=6.2; python_version == '3.7'
-tornado>=6.3.2; python_version >= '3.8'
+tornado>=6.3.3; python_version >= '3.8'
 
 
 # Table output formatter used by the manual performance tests to display
