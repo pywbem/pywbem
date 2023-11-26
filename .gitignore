@@ -18,6 +18,7 @@ MANIFEST
 /AUTHORS
 /ChangeLog
 /*.done
+/done/*.done
 parser.out
 moflog*.txt
 test_recorder.yaml
