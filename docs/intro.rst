@@ -136,9 +136,11 @@ operating system packages in addition to Python itself.
     - setuptools
     - wheel
     - pip
-    - On newer versions of some operating systems(ex. Ubuntu 23.10, Debian 12) pywbem will
-      only install in a virtual environment so venv, etc. must also be
-      installed.
+    - On newer versions of some operating systems(ex. Ubuntu 23.04, Debian 12)
+      pywbem can only be installed in a virtual environment so a virtual
+      environment (ex. virtualenv), etc. must also be installed. See
+      ref:`Install fails, Externally-managed-environment error` for more
+      information.
 
 * Install pywbem (and its prerequisite Python packages) into the active Python
   environment:
@@ -178,7 +180,9 @@ always available without having to think about activating virtual Python
 environments, then installation of pywbem into the system Python environment
 is probably the right choice for you. If your intention is to write code
 against the pywbem APIs, installation into a `virtual Python environment`_ is
-recommended.
+recommended. Newer versions of some OSs may not allow installation into the
+system python directories. See ref:`Install fails, Externally-managed-environment error`
+for more information.
 
 .. _virtual Python environment: https://docs.python-guide.org/en/latest/dev/virtualenvs/
 
@@ -231,6 +235,10 @@ For simplicity, the following examples show only the default commands.
   Therefore, this approach is not recommended and you should apply this
   approach only after you have thought about how you would maintain these
   Python packages in the future.
+
+  Some newer OS versions do not allow installation of packages with
+  pip into the system Python directories.
+  See ref:`Install fails, Externally-managed-environment error`
 
 
 .. _`Installing a different version of pywbem`:
