@@ -325,6 +325,9 @@ check_reqs_packages := pytest coverage coveralls flake8 pylint safety sphinx twi
 
 PIP_INSTALL_CMD := $(PYTHON_CMD) -m pip install
 
+# Directory for .done files
+done_dir := done
+
 .PHONY: help
 help:
 	@echo "Makefile for $(package_name) package"
@@ -427,7 +430,7 @@ ifeq (,$(package_version))
 	$(error Package version could not be determined)
 endif
 
-pip_upgrade_$(pymn)_$(PACKAGE_LEVEL).done: Makefile
+$(done_dir)/pip_upgrade_$(pymn)_$(PACKAGE_LEVEL).done: Makefile
 	-$(call RM_FUNC,$@)
 ifeq ($(PLATFORM),Windows_native)
 	@echo "Makefile: On Windows, there is no automatic upgrade of Pip to a minimum version of 9.x. Current Pip version:"
@@ -438,14 +441,14 @@ endif
 	$(PIP_INSTALL_CMD) $(pip_level_opts) pip
 	echo "done" >$@
 
-install_basic_$(pymn)_$(PACKAGE_LEVEL).done: Makefile pip_upgrade_$(pymn)_$(PACKAGE_LEVEL).done
+$(done_dir)/install_basic_$(pymn)_$(PACKAGE_LEVEL).done: Makefile $(done_dir)/pip_upgrade_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Installing/upgrading basic Python packages with PACKAGE_LEVEL=$(PACKAGE_LEVEL)"
 	-$(call RM_FUNC,$@)
 	$(PIP_INSTALL_CMD) $(pip_level_opts) setuptools wheel
 	echo "done" >$@
 	@echo "Makefile: Done installing/upgrading basic Python packages"
 
-install_pywbem_$(pymn)_$(PACKAGE_LEVEL).done: Makefile pip_upgrade_$(pymn)_$(PACKAGE_LEVEL).done requirements.txt setup.py
+$(done_dir)/install_pywbem_$(pymn)_$(PACKAGE_LEVEL).done: Makefile $(done_dir)/pip_upgrade_$(pymn)_$(PACKAGE_LEVEL).done requirements.txt setup.py
 	-$(call RM_FUNC,$@)
 ifdef TEST_INSTALLED
 	@echo "Makefile: Skipping installation of pywbem and its Python runtime prerequisites because TEST_INSTALLED is set"
@@ -460,7 +463,7 @@ else
 endif
 	echo "done" >$@
 
-installc_pywbem_$(pymn)_$(PACKAGE_LEVEL).done: Makefile pip_upgrade_$(pymn)_$(PACKAGE_LEVEL).done $(bdistc_file)
+$(done_dir)/installc_pywbem_$(pymn)_$(PACKAGE_LEVEL).done: Makefile $(done_dir)/pip_upgrade_$(pymn)_$(PACKAGE_LEVEL).done $(bdistc_file)
 	-$(call RM_FUNC,$@)
 ifdef TEST_INSTALLED
 	@echo "Makefile: Skipping installation of pywbem and its Python runtime prerequisites because TEST_INSTALLED is set"
@@ -475,20 +478,20 @@ endif
 	echo "done" >$@
 
 .PHONY: install
-install: install_$(pymn)_$(PACKAGE_LEVEL).done
+install: $(done_dir)/install_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Target $@ done."
 
-install_$(pymn)_$(PACKAGE_LEVEL).done: Makefile install_basic_$(pymn)_$(PACKAGE_LEVEL).done install_pywbem_$(pymn)_$(PACKAGE_LEVEL).done
+$(done_dir)/install_$(pymn)_$(PACKAGE_LEVEL).done: Makefile $(done_dir)/install_basic_$(pymn)_$(PACKAGE_LEVEL).done $(done_dir)/install_pywbem_$(pymn)_$(PACKAGE_LEVEL).done
 	-$(call RM_FUNC,$@)
 	$(PYTHON_CMD) -c "import $(package_name)"
 	$(PYTHON_CMD) -c "import $(mock_package_name)"
 	echo "done" >$@
 
 .PHONY: installc
-installc: installc_$(pymn)_$(PACKAGE_LEVEL).done
+installc: $(done_dir)/installc_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Target $@ done."
 
-installc_$(pymn)_$(PACKAGE_LEVEL).done: Makefile install_basic_$(pymn)_$(PACKAGE_LEVEL).done installc_pywbem_$(pymn)_$(PACKAGE_LEVEL).done
+$(done_dir)/installc_$(pymn)_$(PACKAGE_LEVEL).done: Makefile $(done_dir)/install_basic_$(pymn)_$(PACKAGE_LEVEL).done $(done_dir)/installc_pywbem_$(pymn)_$(PACKAGE_LEVEL).done
 	-$(call RM_FUNC,$@)
 ifeq ($(PLATFORM),Windows_native)
 	cmd /c "set TEST_INSTALLED=1 & $(PYTHON_CMD) -c "from tests.utils import import_installed; pkg=import_installed('$(package_name)'); print('$(package_name).__file__={}'.format(pkg.__file__))""
@@ -498,10 +501,10 @@ endif
 	echo "done" >$@
 
 .PHONY: develop_os
-develop_os: develop_os_$(pymn)_$(PACKAGE_LEVEL).done
+develop_os: $(done_dir)/develop_os_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Target $@ done."
 
-develop_os_$(pymn)_$(PACKAGE_LEVEL).done: Makefile pip_upgrade_$(pymn)_$(PACKAGE_LEVEL).done pywbem_os_setup.sh pywbem_os_setup.bat
+$(done_dir)/develop_os_$(pymn)_$(PACKAGE_LEVEL).done: Makefile $(done_dir)/pip_upgrade_$(pymn)_$(PACKAGE_LEVEL).done pywbem_os_setup.sh pywbem_os_setup.bat
 	@echo "Makefile: Installing OS-level development requirements"
 	-$(call RM_FUNC,$@)
 ifeq ($(PLATFORM),Windows_native)
@@ -513,10 +516,10 @@ endif
 	@echo "Makefile: Done installing OS-level development requirements"
 
 .PHONY: develop
-develop: develop_$(pymn)_$(PACKAGE_LEVEL).done
+develop: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Target $@ done."
 
-develop_$(pymn)_$(PACKAGE_LEVEL).done: pip_upgrade_$(pymn)_$(PACKAGE_LEVEL).done install_$(pymn)_$(PACKAGE_LEVEL).done develop_os_$(pymn)_$(PACKAGE_LEVEL).done install_basic_$(pymn)_$(PACKAGE_LEVEL).done dev-requirements.txt test-requirements.txt
+$(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/pip_upgrade_$(pymn)_$(PACKAGE_LEVEL).done $(done_dir)/install_$(pymn)_$(PACKAGE_LEVEL).done $(done_dir)/develop_os_$(pymn)_$(PACKAGE_LEVEL).done $(done_dir)/install_basic_$(pymn)_$(PACKAGE_LEVEL).done dev-requirements.txt test-requirements.txt
 	@echo "Makefile: Installing Python development requirements (with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
 	-$(call RM_FUNC,$@)
 	$(PIP_INSTALL_CMD) $(pip_level_opts) -r dev-requirements.txt
@@ -536,19 +539,19 @@ builddoc: html
 	@echo "Makefile: Target $@ done."
 
 .PHONY: check
-check: flake8_$(pymn)_$(PACKAGE_LEVEL).done
+check: $(done_dir)/flake8_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Target $@ done."
 
 .PHONY: pylint
-pylint: pylint_$(pymn)_$(PACKAGE_LEVEL).done
+pylint: $(done_dir)/pylint_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Target $@ done."
 
 .PHONY: safety
-safety: safety_$(pymn)_$(PACKAGE_LEVEL).done
+safety: $(done_dir)/safety_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Target $@ done."
 
 .PHONY: todo
-todo: todo_$(pymn)_$(PACKAGE_LEVEL).done
+todo: $(done_dir)/todo_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Target $@ done."
 
 .PHONY: all
@@ -587,7 +590,7 @@ upload: _check_version $(dist_files)
 	@echo "Makefile: Target $@ done."
 
 .PHONY: html
-html: develop_$(pymn)_$(PACKAGE_LEVEL).done $(doc_build_dir)/html/index.html
+html: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done $(doc_build_dir)/html/index.html
 	@echo "Makefile: Target $@ done."
 
 $(doc_build_dir)/html/index.html: Makefile $(doc_utility_help_files) $(doc_dependent_files)
@@ -597,7 +600,7 @@ $(doc_build_dir)/html/index.html: Makefile $(doc_utility_help_files) $(doc_depen
 	@echo "Makefile: Done creating the documentation as HTML pages; top level file: $@"
 
 .PHONY: pdf
-pdf: develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile $(doc_utility_help_files) $(doc_dependent_files)
+pdf: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile $(doc_utility_help_files) $(doc_dependent_files)
 	@echo "Makefile: Creating the documentation as PDF file"
 	-$(call RM_FUNC,$@)
 	bash -c "pushd docs; $(doc_cmd) -b latex $(doc_opts) ../$(doc_build_dir)/pdf"
@@ -607,7 +610,7 @@ pdf: develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile $(doc_utility_help_files) $(
 	@echo "Makefile: Target $@ done."
 
 .PHONY: man
-man: develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile $(doc_utility_help_files) $(doc_dependent_files)
+man: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile $(doc_utility_help_files) $(doc_dependent_files)
 	@echo "Makefile: Creating the documentation as man pages"
 	-$(call RM_FUNC,$@)
 	bash -c "pushd docs; $(doc_cmd) -b man $(doc_opts) ../$(doc_build_dir)/man/man1"
@@ -615,7 +618,7 @@ man: develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile $(doc_utility_help_files) $(
 	@echo "Makefile: Target $@ done."
 
 .PHONY: docchanges
-docchanges: develop_$(pymn)_$(PACKAGE_LEVEL).done
+docchanges: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Creating the doc changes overview file"
 	bash -c "pushd docs; $(doc_cmd) -b changes $(doc_opts) ../$(doc_build_dir)/changes"
 	@echo
@@ -623,7 +626,7 @@ docchanges: develop_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Target $@ done."
 
 .PHONY: doclinkcheck
-doclinkcheck: develop_$(pymn)_$(PACKAGE_LEVEL).done
+doclinkcheck: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Creating the doc link errors file"
 	bash -c "pushd docs; $(doc_cmd) -b linkcheck $(doc_opts) ../$(doc_build_dir)/linkcheck"
 	@echo
@@ -631,7 +634,7 @@ doclinkcheck: develop_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Target $@ done."
 
 .PHONY: doccoverage
-doccoverage: develop_$(pymn)_$(PACKAGE_LEVEL).done
+doccoverage: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Creating the doc coverage results file"
 	bash -c "pushd docs; $(doc_cmd) -b coverage $(doc_opts) ../$(doc_build_dir)/coverage"
 	@echo "Makefile: Done creating the doc coverage results file: $(doc_build_dir)/coverage/python.txt"
@@ -692,7 +695,7 @@ endif
 # search path, the pywbem module will be imported from ./pywbem even
 # when an installed version of pywbem is tested. This is correct, because the
 # purpose of this rule is to build the mof*tab files in ./pywbem.
-$(moftab_files): install_$(pymn)_$(PACKAGE_LEVEL).done $(moftab_dependent_files) build_moftab.py
+$(moftab_files): $(done_dir)/install_$(pymn)_$(PACKAGE_LEVEL).done $(moftab_dependent_files) build_moftab.py
 	@echo "Makefile: Creating the LEX/YACC table modules"
 	-$(call RM_FUNC,$(package_name)/_mofparsetab.py* $(package_name)/_moflextab.py*)
 	$(PYTHON_CMD) -c "from pywbem import _mof_compiler; _mof_compiler._build(verbose=True)"
@@ -707,7 +710,7 @@ $(moftab_files): install_$(pymn)_$(PACKAGE_LEVEL).done $(moftab_dependent_files)
 # * 16 if convention messages issued
 # * 32 on usage error
 # Status 1 to 16 will be bit-ORed.
-pylint_$(pymn)_$(PACKAGE_LEVEL).done: develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile $(pylint_rc_file) $(py_src_files) $(py_test_files)
+$(done_dir)/pylint_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile $(pylint_rc_file) $(py_src_files) $(py_test_files)
 ifeq ($(python_m_version),2)
 	@echo "Makefile: Warning: Skipping Pylint on Python $(python_version)" >&2
 else
@@ -720,7 +723,7 @@ else
 	@echo "Makefile: Done running Pylint"
 endif
 
-flake8_$(pymn)_$(PACKAGE_LEVEL).done: develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile $(flake8_rc_file) $(py_src_files) $(py_test_files)
+$(done_dir)/flake8_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile $(flake8_rc_file) $(py_src_files) $(py_test_files)
 	@echo "Makefile: Running Flake8"
 	-$(call RM_FUNC,$@)
 	flake8 --version
@@ -729,7 +732,7 @@ flake8_$(pymn)_$(PACKAGE_LEVEL).done: develop_$(pymn)_$(PACKAGE_LEVEL).done Make
 	@echo "Makefile: Done running Flake8"
 
 # The safety test failure does not cause a CI test failure. Issue # 2970
-#safety_$(pymn)_$(PACKAGE_LEVEL).done: develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile minimum-constraints.txt
+#$(done_dir)/safety_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile minimum-constraints.txt
 #	@echo "Makefile: Running pyup.io safety check"
 #	-$(call RM_FUNC,$@)
 #	-safety check -r minimum-constraints.txt --full-report $(safety_ignore_opts)
@@ -737,7 +740,7 @@ flake8_$(pymn)_$(PACKAGE_LEVEL).done: develop_$(pymn)_$(PACKAGE_LEVEL).done Make
 #	@echo "Makefile: Done running pyup.io safety check"
 
 # NEW safety -----------------
-safety_$(pymn)_$(PACKAGE_LEVEL).done: develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile $(safety_policy_file) minimum-constraints.txt
+$(done_dir)/safety_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile $(safety_policy_file) minimum-constraints.txt
 ifeq ($(python_m_version),2)
 	@echo "Makefile: Warning: Skipping Safety on Python $(python_version)" >&2
 else
@@ -753,10 +756,10 @@ endif
 ifdef TEST_INSTALLED
   test_deps =
 else
-  test_deps = develop_$(pymn)_$(PACKAGE_LEVEL).done $(moftab_files)
+  test_deps = $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done $(moftab_files)
 endif
 
-todo_$(pymn)_$(PACKAGE_LEVEL).done: develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile $(pylint_rc_file) $(py_src_files) $(py_test_files)
+$(done_dir)/todo_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile $(pylint_rc_file) $(py_src_files) $(py_test_files)
 ifeq ($(python_m_version),2)
 	@echo "Makefile: Warning: Skipping checking for TODOs on Python $(python_version)" >&2
 else
@@ -769,7 +772,7 @@ else
 endif
 
 .PHONY: check_reqs
-check_reqs: develop_$(pymn)_$(PACKAGE_LEVEL).done minimum-constraints.txt requirements.txt
+check_reqs: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done minimum-constraints.txt requirements.txt
 ifeq ($(python_m_version),2)
 	@echo "Makefile: Warning: Skipping the checking of missing dependencies on Python $(python_version)" >&2
 else
@@ -795,7 +798,7 @@ test: $(test_deps)
 	@echo "Makefile: Done running unit and function tests"
 
 .PHONY: testc
-testc: $(test_deps) installc_$(pymn)_$(PACKAGE_LEVEL).done
+testc: $(test_deps) $(done_dir)/installc_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Running unit and function tests on cythonized archive"
 ifeq ($(PLATFORM),Windows_native)
 	cmd /c "set TEST_INSTALLED=1 & py.test --color=yes $(pytest_cov_opts) $(pytest_warning_opts) $(pytest_opts) $(test_dir)/unittest $(test_dir)/functiontest -s"
@@ -821,13 +824,13 @@ leaktest: $(test_deps)
 	@echo "Makefile: Done running memory leak tests"
 
 .PHONY: end2endtest
-end2endtest: develop_$(pymn)_$(PACKAGE_LEVEL).done $(moftab_files)
+end2endtest: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done $(moftab_files)
 	@echo "Makefile: Running end2end tests"
 	py.test --color=yes $(pytest_end2end_warning_opts) $(pytest_end2end_opts) $(test_dir)/end2endtest -s
 	@echo "Makefile: Done running end2end tests"
 
 .PHONY: resourcetest
-resourcetest: develop_$(pymn)_$(PACKAGE_LEVEL).done $(moftab_files)
+resourcetest: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done $(moftab_files)
 ifeq ($(python_m_version),2)
 	@echo "Makefile: Warning: Skipping resource consumption tests on Python $(python_version)" >&2
 else
@@ -837,7 +840,7 @@ else
 endif
 
 .PHONY: perftest
-perftest: develop_$(pymn)_$(PACKAGE_LEVEL).done $(moftab_files)
+perftest: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done $(moftab_files)
 ifeq ($(python_m_version),2)
 	@echo "makefile: Warning: Skipping performance tests on Python $(python_version)" >&2
 else
