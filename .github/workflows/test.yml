@@ -191,6 +191,11 @@ jobs:
               }, \
               { \
                 \"os\": \"windows-latest\", \
+                \"python-version\": \"3.6\", \
+                \"package_level\": \"latest\" \
+              }, \
+              { \
+                \"os\": \"windows-latest\", \
                 \"python-version\": \"3.10\", \
                 \"package_level\": \"minimum\" \
               }, \
