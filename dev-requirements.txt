@@ -342,7 +342,7 @@ terminado>=0.8.3,<0.10.0; python_version >= '3.6'
 anyio>=3.1.0; python_version >= '3.7'
 cryptography>=3.3; python_version == '2.7'
 cryptography>=3.4.7; python_version == '3.6'
-cryptography>=41.0.2; python_version >= '3.7'
+cryptography>=41.0.6; python_version >= '3.7'
 distlib>=0.3.4
 filelock>=3.0.0
 # gitdb2 4.0.2 requires gitdb>=4.0.1 for installation, see https://github.com/gitpython-developers/gitdb/issues/86
