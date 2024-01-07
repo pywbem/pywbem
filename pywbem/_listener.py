@@ -145,6 +145,7 @@ import threading
 import atexit
 import getpass
 <<<<<<< HEAD
+<<<<<<< HEAD
 # Python 2.7 uses name Queue
 try:
     import queue
@@ -153,6 +154,8 @@ except ImportError:
 =======
 import queue
 >>>>>>> e37bdcf4 (Fix issue with example/pegasusindicationtest.py. (#3079))
+=======
+>>>>>>> 735da1d2 (Document the timeout issue between listener and WBEM server.)
 try:
     import termios
 except ImportError:
@@ -189,12 +192,6 @@ SUPPORTED_DTD_VERSION_PATTERN = r'2\.\d+'
 SUPPORTED_DTD_VERSION_STR = '2.x'
 SUPPORTED_PROTOCOL_VERSION_PATTERN = r'1\.\d+'
 SUPPORTED_PROTOCOL_VERSION_STR = '1.x'
-
-
-# NOTE: This is a test flag while making modifications to use a queue between
-# the reception of indications and the indication consumer.  When False,
-# the queue path is used.
-DIRECT_DELIVER_INDICATIONS =True
 
 # Pattern for findall() for header values that are a list of tokens with
 # quality values (see RFC2616). The pattern does not verify conformance
@@ -521,6 +518,7 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                             "but {0!A}", indication_inst))
                 return
 <<<<<<< HEAD
+<<<<<<< HEAD
             # server.listener created in WBEMListener.start function
             self.server.listener.handle_indication(indication_inst,
                                                    self.client_address[0])
@@ -533,6 +531,11 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.server.listener.queue_indication(indication_inst,
                                                       self.client_address[0])
 >>>>>>> e37bdcf4 (Fix issue with example/pegasusindicationtest.py. (#3079))
+=======
+            # server.listener created in WBEMListener.start function
+            self.server.listener.deliver_indication(indication_inst,
+                                                    self.client_address[0])
+>>>>>>> 735da1d2 (Document the timeout issue between listener and WBEM server.)
 
             self.send_success_response(msgid, methodname)
 
@@ -766,6 +769,13 @@ class WBEMListener(object):
     The listener must be stopped in order to free the TCP/IP port it listens
     on. Using this class as a context manager ensures that the listener is
     stopped when leaving the context manager scope.
+
+    The listener validates the syntax of the received CIM instance but does not
+    validate the values of received the MESSAGE_ID or SEQUENCE_NUMBER of
+    incoming indications. Therefore, it does not know if any indications are
+    missing from a sequence. The callback function must do any such
+    processing., etc. that confirms if indications are in the proper sequence
+    and none were lost.
     """
 
     def __init__(self, host, http_port=None, https_port=None,
@@ -869,6 +879,7 @@ class WBEMListener(object):
         self._callbacks = []  # Registered callback functions
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         # Set up callback queue and callback thread.
         self.rcvd_indication_queue = queue.Queue()
         self.callback_thread = StoppableThread(
@@ -885,6 +896,8 @@ class WBEMListener(object):
         self.delivery_running = True
 >>>>>>> e37bdcf4 (Fix issue with example/pegasusindicationtest.py. (#3079))
 
+=======
+>>>>>>> 735da1d2 (Document the timeout issue between listener and WBEM server.)
     def __str__(self):
         """
         Return a representation of the :class:`~pywbem.WBEMListener` object
@@ -1063,6 +1076,7 @@ class WBEMListener(object):
           :exc:`py:IOError`: Other error (Python 2.7 only)
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         # Start delivery queue
         self.callback_thread.start()
         self.logger.info("Callback queue thread started")
@@ -1071,6 +1085,8 @@ class WBEMListener(object):
         if not DIRECT_DELIVER_INDICATIONS:
             self.delivery_thread.start()
 >>>>>>> e37bdcf4 (Fix issue with example/pegasusindicationtest.py. (#3079))
+=======
+>>>>>>> 735da1d2 (Document the timeout issue between listener and WBEM server.)
 
         if self._http_port:
             if not self._http_server:
@@ -1227,6 +1243,7 @@ class WBEMListener(object):
             self.logger.info("Stopped threaded Queue")
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         self.logger.info("Stopping queued delivery")
         self.callback_thread.stop()
         self.logger.info("Joining queued delivery")
@@ -1260,6 +1277,8 @@ class WBEMListener(object):
             except queue.Empty:
                 pass
 
+=======
+>>>>>>> 735da1d2 (Document the timeout issue between listener and WBEM server.)
     def deliver_indication(self, indication, host):
 >>>>>>> e37bdcf4 (Fix issue with example/pegasusindicationtest.py. (#3079))
         """

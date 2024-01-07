@@ -449,7 +449,7 @@ Profile implementations in a WBEM server are not entirely free when making a
 choice of which methodology to implement:
 
 * Autonomous profiles in a WBEM server must implement the central class
-  methodology, and may in addition implement the new GetCentralInstances
+  methodology, and may in addition implement the new ``GetCentralInstances``
   methodology.
 
   Note that the scoping class methodology falls together with the
@@ -457,8 +457,8 @@ choice of which methodology to implement:
   class is also their central class.
 
 * Component profiles in a WBEM server may implement the central class
-  methodology and the new GetCentralInstances methodology, and must support the
-  scoping class methodology.
+  methodology and the new ``GetCentralInstances`` methodology, and must support
+  the scoping class methodology.
 
   Note that implementing the scoping class methodology in a WBEM server
   requires implementing the classes and associations of the scoping path,
@@ -485,8 +485,8 @@ Many times, CIM_System or CIM_ComputerSystem is the scoping class.
 Troubleshooting
 ---------------
 
-This section describes some trouble shooting hints for the installation of
-pywbem.
+This section describes some trouble shooting hints for the installation and
+execution of pywbem.
 
 Installation fails with "invalid command 'bdist_wheel'"
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -681,6 +681,16 @@ communication with the WBEM server may fail with::
     pywbem.exceptions.ConnectionError: SSL error <class 'ssl.SSLError'>:
       [SSL: UNSUPPORTED_PROTOCOL] unsupported protocol (_ssl.c:1056)
 
+<<<<<<< HEAD
+=======
+In pywbem version 1.7.0 the urllib3 configuration version limit was modified to
+allow urllib3 versions >= 2.0.  These versions of urllib3 limit the minimum TLS
+version to 1.2 (i.e OpenSSL version >= 1.1.1). If the version of OpenSSL is
+less than 1.1.1, this SSLError will occur with the initial request to the WBEM
+Server. Urllib3 version <= 2.0 also limits the SSL library implementations to
+just OpenSSL and possibly LibreSSL.
+
+>>>>>>> 735da1d2 (Document the timeout issue between listener and WBEM server.)
 This error indicates that OpenSSL and the WBEM server do not agree about which
 SSL/TLS protocol level to use.
 
@@ -703,7 +713,11 @@ This issue can be corrected by:
    of urllib3 (ex. ``pip install --upgrade  --upgrade-strategy eager
    urllib3``). Since the pywbem install does not force an eager update of
    packages, if a valid previous version of urllib3 exists it will not be
+<<<<<<< HEAD
    upgraded to 2.0+ in the re-installation of pywbem.
+=======
+   upgraded to 2.0+ in the reinstallation of pywbem.
+>>>>>>> 735da1d2 (Document the timeout issue between listener and WBEM server.)
 
 2. If the current version of urllib3 is greater than 2.0, the previous version
    of urllib3 (ex. version 1.26.5) can be installed with, for example::
@@ -789,8 +803,13 @@ Install fails, Externally-managed-environment error
 This error is caused by the OS distribution adopting the changes defined by
 `Python PEP 668`_ (Marking Python base environments as “externally managed”)
 which sets configuration information so that pip (version 23.0+) will only
+<<<<<<< HEAD
 install packages that are not part of the OS distibution into virtual
 environments and will not install them into any of the system Python
+=======
+install packages that are not part of the OS distribution into virtual
+environments and will not install them into any of the system python
+>>>>>>> 735da1d2 (Document the timeout issue between listener and WBEM server.)
 directories. This forces the separation of user packages from OS distribution
 installed packages.
 
@@ -833,6 +852,77 @@ more information about this issue.
 
 .. _Python PEP 668: https://peps.python.org/pep-0668/
 .. _pip configuration file: https://pip.pypa.io/en/stable/topics/configuration/
+
+
+.. _`Losing indications when sent from OpenPegasus server`:
+
+Losing indications when sent from OpenPegasus server
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. index:: pair: troubleshooting; indication listener
+.. index:: pair: losing indications; indication listener
+
+
+If there is a case where the pywbem listener appears to be losing indications
+sent from at least the OpenPegasus server, this may be due to timeout/retry
+settings issues between the WBEM server and pywbem listener.
+
+OpenPegasus has two configuration settings that can impact sending indications:
+
+1. **maxIndicationDeliveryRetryAttempts** (Default 3 seconds)
+
+   If set to a positive integer, value defines the number of times
+   OpenPegasusindication service will enable the ``reliableIndication`` feature
+   and try to deliver an indication to a particular listener destination.
+   This does not effect the original delivery attempt. A value of 0
+   disables reliable indication feature completely, and the cimserver will
+   deliver the indication once before discarding it.
+
+2. **minIndicationDeliveryRetryInterval** (Default: 30 seconds).
+
+   If set to a positive integer, this value defines the minimal time interval
+   in seconds for the indication service to wait before retrying to deliver an
+   indication to a listener destination that previously failed. Cimserver may
+   take longer due to QoS or other processing.
+
+Together these configuration variables try to insure that indications will be
+delivered. If there is an issue sending any single indication it is put into
+a delay queue for the destination along with any succeeding indications that
+are created for the same destination.  After the timeout defined by the
+configuration variable **minIndicationDeliveryRetryInterval**, OpenPegasus
+attempts to send the indication again. It repeats this process the number of
+times determined by the **maxIndicationDeliveryRetryAttempts** configuration
+variable.
+
+Thus, as a default after receiving anything but a successful response from the
+listener OpenPegasus waits 30 seconds and retries. It repeats this process
+3 times before discarding the indication.
+
+As noted in pywbem issue https://github.com/pywbem/pywbem/issues/3022 tests
+with OpenPegasus under high indication loading have indicated that occasionally
+the WBEM server receives a zero length response immediately after sending the
+indication. This is treated as an error and the retry process started.  If any
+timeouts or time checks in the listener, (ex. very short times in tests between
+received indications) these timeouts could be interpreted as lost indications
+when, in fact, OpenPegasus will wait 30 seconds and then retry the indication
+that the server thought had failed.
+
+This was the case with testing against local OpenPegasus Docker containers where
+the WBEM server was requested to deliver a fixed number of indications as fast
+as possible but the test listener set a timeout of 3 seconds with no indication
+received to indicate that the delivery has stopped before all requested
+indications had been delivered. However the delay was simply waiting 30 seconds
+delay before resending the failed indications.  Setting the
+OpenPegasus WBEM server to different timeout times can correct this problem
+(ex. delay 2 seconds, retry attempts 5 for local testing).
+
+The OpenPegasus configuration variables can be set with the OpenPegasus
+``cimconfig`` command line utility  either when the server is running or
+stopped.
+
+See the OpenPegasus documenation or OpenPegasus ``cimconfig --help`` for
+detailed information on the command parameters for setting these configuation
+variables.
 
 
 .. _`Base classes`:

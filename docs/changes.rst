@@ -119,6 +119,11 @@ Released: not yet
   This reduces the burden of fixing safety issues that affect only development
   packages.
 
+* Document the issue and possible corrections for the pywbem listener possibly
+  losing indications.  Modifies the indication tests in the examples directory
+  to give better visibility and control of what these examples are doing.
+  See the documentation troubleshooting section. See issue #3022.
+
 **Cleanup:**
 
 * Replaced the safety_ignore_opts in Makefile that is used as the basis for
