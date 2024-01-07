@@ -3,10 +3,6 @@
 ''' Test listener. When started this code creates a WBEMListener on the
     address/ports defined by the input parameters.  This listener
     displays any indications received as log entries.
-
-    It does not validate the MESSAGE_ID or SEQUENCE_NUMBER of incoming
-    indications. Therefore, it does not know if any indications are missing
-    from a sequence.
 '''
 
 import sys as _sys

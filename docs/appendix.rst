@@ -485,8 +485,8 @@ Many times, CIM_System or CIM_ComputerSystem is the scoping class.
 Troubleshooting
 ---------------
 
-This section describes some trouble shooting hints for the installation of
-pywbem.
+This section describes some trouble shooting hints for the installation and
+execution of pywbem.
 
 Installation fails with "invalid command 'bdist_wheel'"
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -833,6 +833,77 @@ more information about this issue.
 
 .. _Python PEP 668: https://peps.python.org/pep-0668/
 .. _pip configuration file: https://pip.pypa.io/en/stable/topics/configuration/
+
+
+.. _`Losing indications when sent from OpenPegasus server`:
+
+Losing indications when sent from OpenPegasus server
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. index:: pair: troubleshooting; indication listener
+.. index:: pair: losing indications; indication listener
+
+
+If there is a case where the pywbem listener appears to be losing indications
+sent from at least the OpenPegasus server, this may be due to timout/retry
+settings issues between the WBEM server and pywbem listener.
+
+OpenPegasus has two configuration settings that can impact sending indications:
+
+1. **maxIndicationDeliveryRetryAttempts** (Default 3 seconds)
+
+   If set to a positive integer, value defines the number of times
+   indication service will enable the reliableIndication feature
+   and try to deliver an indication to a particular listener destination.
+   This does not effect the original delivery attempt. A value of 0
+   disables reliable indication feature completely, and cimserver will
+   deliver the indication once.
+
+2. **minIndicationDeliveryRetryInterval** (Default: 30 seconds).
+
+   If set to a positive integer, this value defines the minimal time interval
+   in seconds for the indication service to wait before retrying to deliver an
+   indication to a listener destination that previously failed. Cimserver may
+   take longer due to QoS or other processing.
+
+Together these configuration variables try to insure that indications will be
+delivered. If there is an issue sending any single indication it is put into
+a delay queue for the destination along with any suceeding indications that
+are created for the same destination.  After the timeout defined by the
+configuration variable **minIndicationDeliveryRetryInterval**, OpenPegasus
+attempts to send the indication again. It repeats this process the number of
+times determined by the **maxIndicationDeliveryRetryAttempts** configuration
+variable.
+
+Thus, as a default after receiving anything but a successful response from the
+listener OpenPegasus waits 30 seconds and retries. It repeats this process
+3 times before discarding the indication.
+
+As noted in pywbem issue https://github.com/pywbem/pywbem/issues/3022 tests
+with OpenPegasus under high indication loading have indicated that occasionally
+the WBEM server receives a zero length response immediatly after sending the
+indication. This is treated as
+an error and the retry process started.  If any timeouts or time checks in the
+listener, (ex. very short times in tests between received indications) these
+timeouts could be interpreted as lost indications when, in fact, OpenPegasus
+will wait 30 seconds and then retry the indication that the server thought
+had failed.
+
+This was the case with testing against local OpenPegasus Docker containers where
+the WBEM server was requested to deliver a fixed number of indications as fast
+as possible but the test listener set a timeout of 3 seonds with no indication
+received to indicate that the delivery has stopped before all requested
+indications had been delivered. However the delay was simply waiting 30 seconds
+delay before resending the failed indications.  Setting the
+OpenPegasus WBEM server to different timeout times can correct this problem
+(ex. delay 2 seconds, retry attempts 5 for local testing).
+
+The OpenPegasus configuration variables can be set with the OpenPegasus ``cimconfig`` command
+line utility  either when the server is running or stopped.
+
+See the OpenPegasus documenation or OpenPegasus ``cimconfig --help`` for
+detailed information on the command parameters for setting these configuation
+variables.
 
 
 .. _`Base classes`:

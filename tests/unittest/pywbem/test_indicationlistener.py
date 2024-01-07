@@ -649,6 +649,10 @@ def test_WBEMListener_send_indications(send_count):
     can receive large numbers of indications without duplicates or dropping
     indications.
 
+    The test generates the indications itself and does not depend on a
+    WBEM Server.  Tests in tests/end2end test with indications from
+    a WBEM server.
+
     It does not validate all of the possible xml options on indications.
 
     Creates the listener, starts the listener, creates the indication XML and
