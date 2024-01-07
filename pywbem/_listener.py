@@ -138,7 +138,11 @@ import ssl
 import threading
 import atexit
 import getpass
-import queue
+# Python 2.7 uses name Queue
+try:
+    import queue
+except ImportError:
+    import Queue as queue
 try:
     import termios
 except ImportError:
@@ -180,7 +184,7 @@ SUPPORTED_PROTOCOL_VERSION_STR = '1.x'
 # NOTE: This is a test flag while making modifications to use a queue between
 # the reception of indications and the indication consumer.  When False,
 # the queue path is used.
-DIRECT_DELIVER_INDICATIONS =True
+DIRECT_DELIVER_INDICATIONS = False
 
 # Pattern for findall() for header values that are a list of tokens with
 # quality values (see RFC2616). The pattern does not verify conformance
@@ -1168,8 +1172,6 @@ class WBEMListener(object):
             self._https_server = None
             self._https_thread = None
             self.logger.info("Stopped threaded HTTPS server")
-
-        #self.delivery_thread
 
     def queue_indication(self, indication, host):
         """

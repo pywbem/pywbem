@@ -19,6 +19,7 @@ This example:
 from __future__ import print_function, absolute_import
 
 import sys
+import socket
 import os
 import time
 import logging
@@ -39,6 +40,23 @@ from pywbem import configure_logger
 def current_time():
     """get current time as string"""
     return time.strftime("%H:%M:%S", time.localtime())
+
+
+def get_real_ip_address(verbose):
+    """
+    Get a real IP address for the machine to insert into the
+    indication_destination_host variable. This must be an address available
+    to both the test machine/vm/etc. and the container in which OpenPegasus
+    is running so OpenPegasus can route indications to the listener.
+    cannot be localhost, etc.
+    """
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.connect(("8.8.8.8", 80))
+    ip_address = sock.getsockname()[0]
+    sock.close()
+    if verbose:
+        print("Using IP {} as listener bind address".format(ip_address))
+    return ip_address
 
 
 class RunIndicationTest(object):
@@ -66,7 +84,7 @@ class RunIndicationTest(object):
 
     def __init__(self, wbem_conn, indication_destination_host,
                  listener_host, http_listener_port, requested_indications,
-                 repeat_loop, verbose):
+                 repeat_loop, verbose, cmd=None):
         # pylint: disable=too-many-locals, too-many-arguments
         """
         Parameters:
@@ -110,6 +128,14 @@ class RunIndicationTest(object):
             verbose (:class:`py:bool`):
                 Flag that when set generates diagnostic displays as the
                 test proceedes.
+
+            cmd  (:term:`string` or None):
+                String defines a special test setup to allow execting just
+                the setup or just the send of indications
+                1. setup
+                2. indications (assumes that setup was already executed)
+                3. cleanup
+
         """
         # Test config parameters
         self.conn = wbem_conn
@@ -156,36 +182,35 @@ class RunIndicationTest(object):
             sub_mgr = WBEMSubscriptionManager(
                 subscription_manager_id=sub_mgr_id)
             self.server_id = sub_mgr.add_server(server)
-
-            # Remove existing subscriptions, destinations and filters
-            # for this server_id since we want to rebuild from
-            # scratch. This example uses only owned subscriptions, filters, and
-            # destinations.  This only does anything in the odd case where
-            # we fail during test and do not clean up at end of test.
-            self.remove_existing_subscriptions(sub_mgr, self.server_id)
+            if cmd is None or cmd == 'setup':
+                # Remove existing subscriptions, destinations and filters
+                # for this server_id since we want to rebuild from
+                # scratch. This example uses only owned subscriptions, filters,
+                # and destinations.  This only does anything in the odd case
+                # where we fail during test and do not clean up at end of test.
+                self.remove_existing_subscriptions(sub_mgr, self.server_id)
+                self.create_listener()
+                self.create_subscription(self.server_id, sub_mgr)
 
         except Error as er:  # pylint: disable=invalid-name
             print('Error {} communicating with WBEMServer {}'.
                   format(er, self.conn))
             sys.exit(1)
 
-        self.create_listener()
-
-        self.create_subscription(self.server_id, sub_mgr)
-
         # Run the test the number of times defined by repeat_loop
-        success = self.repeat_test_loop(self.repeat_loop)
+        if cmd is None or cmd == "run":
+            success = self.repeat_test_loop(self.repeat_loop)
+            completion_status = "Success" if success else "Failed"
+            print("Indication test completed: {}".format(completion_status))
+            if not success:
+                sys.exit(1)
 
         # Remove server_id which removes owned subscriptions for this server_id
-        if self.verbose:
-            print("Remove subscriptions and stop listener.")
-        sub_mgr.remove_server(self.server_id)
-        self.listener.stop()
-
-        completion_status = "Success" if success else "Failed"
-        print("Indication test completed: {}".format(completion_status))
-        if not success:
-            sys.exit(1)
+        if cmd is None or cmd == 'cleanup':
+            if self.verbose:
+                print("Remove subscriptions and stop listener.")
+            sub_mgr.remove_server(self.server_id)
+            self.listener.stop()
 
     def create_listener(self):
         """
@@ -406,7 +431,6 @@ class RunIndicationTest(object):
                 elif self.indication_start_time:
                     stalled_time = datetime.datetime.now() - \
                         self.indication_start_time
-
                 else:
                     self.indication_starttime = datetime.datetime.now()
                     stalled_time = datetime.datetime.now() - \
@@ -434,8 +458,9 @@ class RunIndicationTest(object):
                     break
 
                 # NOTE: Leave this in until we resolve issue # 3022
-                print("waiting {:.2f} sec. with no indications rcvd".
-                      format(stalled_time.total_seconds()))
+                print("waiting {:.2f} sec. with no indications rcvd. count {}".
+                      format(stalled_time.total_seconds(),
+                             self.received_indication_count))
 
         # Because this can be a long loop, catch CTRL-C
         except KeyboardInterrupt:
@@ -621,11 +646,12 @@ def main():  # pylint: disable=too-many-branches
         "scheme since this is http only.")
 
     parser.add_argument(
-        '-d', "--dest_host",
+        '-d', "--dest_host", default=None,
         help="Listener destination host name or IP address to be set into the "
              "subscription destination instance. This must be an IP address or "
              "hostname available to to the system containing the listener "
-             "and the system containing the WBEM server.")
+             "and the system containing the WBEM server. If not provided the "
+             "program attempts to find a usable IP address for this system.")
 
     parser.add_argument(
         '-l', "--listener_host", default=None,
@@ -666,6 +692,12 @@ def main():  # pylint: disable=too-many-branches
 
     parser.add_argument("-v", "--verbose", help="increase output verbosity",
                         action="store_true")
+
+    parser.add_argument('-c', '--cmd',
+                        default="",
+                        choices=['setup', 'run', 'cleanup'],
+                        help="Optional cmd that allows running just "
+                        "setup, run, cleanup. default runs complete test.")
     args = parser.parse_args()
 
     # Setup logging for requests to server and indications if --log set
@@ -687,11 +719,13 @@ def main():  # pylint: disable=too-many-branches
                             level=logging.INFO,
                             format='%(asctime)s %(levelname)s: %(message)s')
 
+    dest_host = args.dest_host or get_real_ip_address(args.verbose)
+
     timeout = 30
     conn = connect_wbem_server(args.wbem_server_url, args.username,
                                args.password, timeout)
 
-    RunIndicationTest(conn, args.dest_host, args.listener_host, args.port,
+    RunIndicationTest(conn, dest_host, args.listener_host, args.port,
                       args.indication_count, args.repeat_loop, args.verbose)
 
     return 0
