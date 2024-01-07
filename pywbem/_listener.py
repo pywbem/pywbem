@@ -186,12 +186,6 @@ SUPPORTED_DTD_VERSION_STR = '2.x'
 SUPPORTED_PROTOCOL_VERSION_PATTERN = r'1\.\d+'
 SUPPORTED_PROTOCOL_VERSION_STR = '1.x'
 
-
-# NOTE: This is a test flag while making modifications to use a queue between
-# the reception of indications and the indication consumer.  When False,
-# the queue path is used.
-DIRECT_DELIVER_INDICATIONS =True
-
 # Pattern for findall() for header values that are a list of tokens with
 # quality values (see RFC2616). The pattern does not verify conformance
 # to the valid characters for tokens, but does its job in parsing tokens
@@ -752,6 +746,13 @@ class WBEMListener(object):
     The listener must be stopped in order to free the TCP/IP port it listens
     on. Using this class as a context manager ensures that the listener is
     stopped when leaving the context manager scope.
+
+    The listener validates the syntax of the received CIM instance but does not
+    validate the values of received the MESSAGE_ID or SEQUENCE_NUMBER of
+    incoming indications. Therefore, it does not know if any indications are
+    missing from a sequence. The callback function must do any such
+    processing., etc. that confirms if indications are in the proper sequence
+    and none were lost.
     """
 
     def __init__(self, host, http_port=None, https_port=None,
