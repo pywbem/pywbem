@@ -202,6 +202,5 @@ security:
         62817:
             reason: Fixed prompt-toolkit version 3.0.13 requires Python>=3.6 and is used there
 
-
     # Continue with exit code 0 when vulnerabilities are found.
     continue-on-vulnerability-error: False
