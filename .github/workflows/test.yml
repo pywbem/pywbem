@@ -285,7 +285,7 @@ jobs:
     - name: Show package dependency tree
       run: |
         echo "Package dependency tree of installed Python packages:"
-        pipdeptree --all
+        python -m pipdeptree --all
     - name: Run check_reqs
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
