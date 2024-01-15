@@ -53,12 +53,11 @@ Released: not yet
   `trouble shooting section <https://pywbem.readthedocs.io/en/stable/appendix.html#troubleshooting>`_
   for more information.
 
-
 **Deprecations:**
 
 **Bug fixes:**
 
-* Addressed safety issues up to 2024-01-03.
+* Addressed safety issues up to 2024-01-15.
 
 * Fixed a doc build issue with Sphinx 6.x (issue #2983) and addressed
   some of the Sphinx warnings during doc build.
