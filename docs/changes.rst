@@ -25,7 +25,7 @@ Released: not yet
 
 **Bug fixes:**
 
-* Addressed safety issues up to 2024-01-03.
+* Addressed safety issues up to 2024-01-15.
 
 * Update dev-requirements.txt, minimum-constraings.txt, .safety_policy.json for
   new safety issues with GitPython and add ruamel-yaml.

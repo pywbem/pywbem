@@ -481,7 +481,9 @@ pickleshare==0.7.4
 prometheus-client==0.12.0; python_version == '2.7'
 prometheus-client==0.12.0; python_version == '3.5'
 prometheus-client==0.13.1; python_version >= '3.6'
-prompt-toolkit==2.0.1
+prompt-toolkit==2.0.1; python_version == '2.7'
+prompt-toolkit==2.0.1; python_version == '3.5'
+prompt-toolkit==3.0.13; python_version >= '3.6'
 ptyprocess==0.5.1
 # Safety issue 51457, min version 1.11.0
 py==1.11.0
