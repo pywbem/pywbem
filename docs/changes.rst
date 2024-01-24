@@ -130,6 +130,8 @@ Released: not yet
 * Fix issue in pywbem_mock._base_provider where __repr__ had invalid parameter
   (see issue #3036)
 
+* Extend support to Python  version 3.12 (see issue #3098)
+
 **Known issues:**
 
 * See `list of open issues`_.
