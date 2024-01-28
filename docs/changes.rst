@@ -77,6 +77,9 @@ Released: not yet
 
 * Test: Upgraded GitHub Actions plugins to use node.js 20.
 
+* Test: Fixed issue in test_recorder.py where format of OrderDict repl output
+  changed with python 3.12 (see issue #3097)
+
 **Enhancements:**
 
 * The 'pywbem.ValueMapping' class now allows controlling what should happen
