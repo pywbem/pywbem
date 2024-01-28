@@ -73,6 +73,8 @@ Released: not yet
 
 * Test: Circumvented a pip-check-reqs issue by excluding its version 2.5.0.
 
+* Development: Fixed dependency issue with safety 3.0.0 by pinning it.
+
 **Enhancements:**
 
 * The 'pywbem.ValueMapping' class now allows controlling what should happen
