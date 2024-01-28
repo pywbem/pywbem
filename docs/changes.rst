@@ -32,6 +32,8 @@ Released: not yet
 
 * Disable cyclic-import pylint warning.
 
+* Development: Fixed dependency issue with safety 3.0.0 by pinning it.
+
 **Enhancements:**
 
 * Split safety run out of "check" make target ino a separate "safety" make target
