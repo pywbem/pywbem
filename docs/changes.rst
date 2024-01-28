@@ -34,6 +34,8 @@ Released: not yet
 
 * Development: Fixed dependency issue with safety 3.0.0 by pinning it.
 
+* Test: Upgraded GitHub Actions plugins to use node.js 20.
+
 **Enhancements:**
 
 * Split safety run out of "check" make target ino a separate "safety" make target
