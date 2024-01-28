@@ -75,6 +75,8 @@ Released: not yet
 
 * Development: Fixed dependency issue with safety 3.0.0 by pinning it.
 
+* Test: Upgraded GitHub Actions plugins to use node.js 20.
+
 **Enhancements:**
 
 * The 'pywbem.ValueMapping' class now allows controlling what should happen
