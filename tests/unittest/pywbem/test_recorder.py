@@ -2647,12 +2647,12 @@ class Test_LOR_PywbemArgsResults(BaseLogOperationRecorderTests):
                 "MethodName='Blah', "
                 "ObjectName={!r}, "
                 "Params=OrderedDict("
-                "{'StringParam': 'Spotty', "
+                "{{'StringParam': 'Spotty', "
                 "'Uint8': Uint8(cimtype='uint8', minvalue=0, "
                 "maxvalue=255, 1), "
                 "'Sint8': Sint8(cimtype='sint8', minvalue=-128, "
                 "maxvalue=127, 2)"
-                "}))".
+                "}}))".
                 format(instancename))
         else:
             result_req = (
