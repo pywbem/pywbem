@@ -127,6 +127,9 @@ Released: not yet
 * Fix issue in pywbem_mock._base_provider where __repr__ had invalid parameter
   (see issue #3036)
 
+* Fix new Feb 2024 safety issues, GitPython, Jinja2, JupyterLab. Added to
+  safety ignore and fixed in requirements files.
+
 **Known issues:**
 
 * See `list of open issues`_.
