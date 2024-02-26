@@ -82,6 +82,10 @@ Released: not yet
 
 * Fixed new Pylint issue for unused variable 'exp_result'. (issue #3113)
 
+* Test: Fixed issue in test_recorder.py where format of OrderDict repl output
+  changed with python 3.12 (see issue #3097)
+
+
 **Enhancements:**
 
 * The 'pywbem.ValueMapping' class now allows controlling what should happen
@@ -132,8 +136,15 @@ Released: not yet
 * Fix issue in pywbem_mock._base_provider where __repr__ had invalid parameter
   (see issue #3036)
 
-* Fix new Feb 2024 safety issues, GitPython, Jinja2, JupyterLab. Added to
+* Fix new feb 2024 safety issues, GitPython, Jinja2, JupyterLab. Added to
   safety ignore and fixed in requirements files.
+
+* Extend support to Python  version 3.12 (see issue #3098). This includes
+  changes to package version requirements in requirements.txt,
+  dev-requirements.txt, minimum_constraints.txt
+
+* Add ignore for gitpython new safety issue 2024-2.
+
 
 **Known issues:**
 
