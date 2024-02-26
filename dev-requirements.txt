@@ -12,11 +12,11 @@
 # Direct dependencies:
 
 # Build distribution archive
-# TODO: Remove dependency to wheel in setup.py, because build 1.1.0 removed
-#       wheel. Wheel does not provide a public API. For details, see
+# Version 1.1.0 pulled after release
+# FUTURE: Remove  wheel < 1.0 For details, see
 #       https://github.com/pypa/build/issues/750. Circumvention for now is
-#       to pin build to <1.1.0.
-build>=0.5.1,<1.1.0
+#       to pin build to <1.0. See issue #3112
+build>=0.5.1, <1.0
 
 # Cythonize
 Cython>=0.29.33
@@ -84,24 +84,24 @@ Babel>=2.9.1; python_version >= '3.8'
 # Pylint 2.7-2.9 had issue https://github.com/PyCQA/pylint/issues/4118 (issues #2672, #2673)
 # Pylint 2.14 / astroid 2.11 support wrapt 1.14 which is required for Python 3.11
 # Pylint 2.15 / astroid 2.12 is needed to circumvent issue https://github.com/PyCQA/pylint/issues/7972 on Python 3.11
-pylint>=2.10.0; python_version >= '3.6' and python_version <= '3.10'
-pylint>=2.15.0; python_version >= '3.11'
-astroid>=2.7.2; python_version >= '3.6' and python_version <= '3.10'
-astroid>=2.12.4; python_version >= '3.11'
-
+# Pylint 3.0.1 / astroid 3.0.1 python 3.12
 # astroid 2.13.0 uses typing-extensions on Python<3.11 but misses to require it on 3.10. See https://github.com/PyCQA/astroid/issues/1942
-# rich 13.3.5 requires typing-extensions>=4.0.0,<5.0
-# typing-extensions 4.0.0 removed support for Python < 3.6
-typing-extensions>=3.10.0; python_version == '2.7'
-typing-extensions>=4.0.0; python_version >= '3.6' and python_version <= '3.10'
+pylint>=2.13.0,<2.14.0; python_version == '3.6'
+pylint>=2.13.0; python_version >= '3.7' and python_version <= '3.10'
+pylint>=2.15.0; python_version == '3.11'
+pylint>=3.0.3; python_version >= '3.12'
+astroid>=2.11.0; python_version >= '3.6' and python_version <= '3.10'
+astroid>=2.12.4; python_version == '3.11'
+astroid>=3.0.2; python_version >= '3.12'
 typed-ast>=1.4.0,<1.5.0; python_version >= '3.6' and python_version < '3.8' and implementation_name=='cpython'
 # lazy-object-proxy is used by astroid
 lazy-object-proxy>=1.4.3; python_version >= '3.6'
-# wrapt 1.13.0 started depending on MS Visual C++ 9.0 on Python 2.7 on Windows,
-#   which is not available by default on GitHub Actions
-# wrapt 1.14.0 started supporting Python 3.11 by accomodating the removed inspect.formatargspec
-wrapt>=1.12; python_version >= '3.6' and python_version <= '3.10'
+wrapt>=1.11.2; python_version >= '3.5' and python_version <= '3.10'
 wrapt>=1.14; python_version >= '3.11'
+# platformdirs is used by pylint starting with its 2.10
+platformdirs>=2.2.0; python_version == '3.6'
+platformdirs>=2.5.0; python_version >= '3.7' and python_version <= '3.11'
+platformdirs>=3.2.0; python_version >= '3.12'
 # isort 5.0.0 removed support for py27,py35
 # isort 4.2.8 fixes a pylint issue with false positive on import order of ssl on Windows
 # isort 4.3.8 fixes an issue with py310 and works on py310 (Note that isort 5.10.0 has official support for py310)
@@ -109,28 +109,29 @@ isort>=4.3.8
 # Pylint 2.14 uses tomlkit>=0.10.1 and requires py>=3.7
 tomlkit>=0.10.1; python_version >= '3.7'
 # dill is used by pylint >=2.13
-dill>=0.2; python_version >= '3.6' and python_version <= '3.10'
+dill>=0.3.4; python_version >= '3.6' and python_version <= '3.10'
 dill>=0.3.6; python_version >= '3.11'
-# platformdirs is used by pylint starting with its 2.10
-platformdirs>=2.2.0; python_version == '3.6'
-platformdirs>=2.5.0; python_version >= '3.7'
+
+# rich 13.3.5 requires typing-extensions>=4.0.0,<5.0
+# typing-extensions 4.0.0 removed support for Python < 3.6
+typing-extensions>=3.10.0; python_version == '2.7'
+typing-extensions>=4.0.0; python_version >= '3.6' and python_version <= '3.10'
 
 # Flake8 and dependents (no imports, invoked via flake8 script):
 # flake8 4.0.0 fixes an AttributeError on Python 3.10.
 # flake8 4.0.0 pins importlib-metadata to <4.3 on Python <3.8. This causes
 #   version conflicts with Sphinx>=4.4.0 and virtualenv>=20.0.35
 flake8>=3.8.0,<4.0.0; python_version == '2.7'
-flake8>=3.8.0,<4.0.0; python_version >= '3.6' and python_version <= '3.7'
-flake8>=3.8.0; python_version >= '3.8' and python_version <= '3.9'
-flake8>=4.0.0; python_version >= '3.10'
-mccabe>=0.6.0; python_version == '2.7'
-mccabe>=0.6.0; python_version >= '3.6'
+flake8>=3.8.0; python_version >= '3.6' and python_version <= '3.9'
+flake8>=5.0.0; python_version >= '3.10'
+mccabe>=0.6.0; python_version <= '3.9'
+mccabe>=0.7.0; python_version >= '3.10'
 pycodestyle>=2.6.0,<2.8.0; python_version == '2.7'
-pycodestyle>=2.6.0; python_version >= '3.6' and python_version <= '3.9'
-pycodestyle>=2.8.0; python_version >= '3.10'
+pycodestyle>=2.6.0; python_version >= '3.5' and python_version <= '3.9'
+pycodestyle>=2.9.0; python_version >= '3.10'
 pyflakes>=2.2.0,<2.4.0; python_version == '2.7'
-pyflakes>=2.2.0; python_version >= '3.6' and python_version <= '3.9'
-pyflakes>=2.4.0; python_version >= '3.10'
+pyflakes>=2.2.0; python_version >= '3.5' and python_version <= '3.9'
+pyflakes>=2.5.0; python_version >= '3.10'
 entrypoints>=0.3.0
 functools32>=3.2.3.post2; python_version == '2.7'  # technically: python_version < '3.2'
 
@@ -319,8 +320,10 @@ tornado>=6.3.3; python_version >= '3.8'
 tabulate >= 0.8.3
 
 # Performance profiling tools
-pyinstrument >=3.0.1
-pyinstrument-cext>=0.2.2  # from pyinstrument
+pyinstrument>=3.0.1; python_version <= '3.11'
+pyinstrument-cext>=0.2.2; python_version <= '3.11'  # from pyinstrument
+pyinstrument>=4.5.3; python_version >= '3.12'    # pyinstrument-cext integrated
+
 # psutil on PyPy needs to be <=5.6.3 to avoid an installation error,
 #   see https://github.com/giampaolo/psutil/issues/1659.
 # psutil on macos 11.6 needs to be >=5.8.0 to have support for the compiler.
@@ -339,10 +342,13 @@ pipdeptree>=2.2.0
 # pip-check-reqs 2.4.3 fixes a speed issue on Python 3.11.
 # pip-check-reqs 2.5.0 has issue https://github.com/r1chardj0n3s/pip-check-reqs/issues/143
 pip-check-reqs>=2.3.2; python_version >= '3.6' and python_version <= '3.7'
-pip-check-reqs>=2.4.3,!=2.5.0; python_version >= '3.8'
+pip-check-reqs>=2.4.3,!=2.5.0; python_version >= '3.8' and python_version <= '3.11'
+pip-check-reqs>=2.5.1; python_version >= '3.12'
 
-pyzmq>=17.0.0; python_version <= '3.6'
-pyzmq>=24.0.0; python_version >= '3.7'
+# notebook 6.4.10 depends on pyzmq>=17
+pyzmq==17.0.0; python_version <= '3.6'
+pyzmq>=24.0.0; python_version >= '3.7' and python_version <= '3.11'
+pyzmq>=25.1.1; python_version >= '3.12'
 
 # Indirect dependencies are not specified in this file unless constraints are needed.
 
@@ -370,7 +376,9 @@ anyio>=3.1.0; python_version >= '3.7'
 cryptography>=3.3; python_version == '2.7'
 cryptography>=3.4.7; python_version == '3.6'
 cryptography>=41.0.6; python_version >= '3.7'
-distlib>=0.3.4
+
+distlib>=0.3.4; python_version <= '3.11'
+distlib>=0.3.7; python_version >= '3.12'
 filelock>=3.0.0
 # gitdb2 4.0.2 requires gitdb>=4.0.1 for installation, see https://github.com/gitpython-developers/gitdb/issues/86
 gitdb2>=2.0.6,<4.0; python_version == '2.7'
