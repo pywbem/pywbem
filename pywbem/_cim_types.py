@@ -74,14 +74,17 @@ objects, :term:`string`, in addition to
 
 from __future__ import absolute_import
 
-from datetime import tzinfo, datetime, timedelta
-import re
 import copy
-import six
+import re
 
+from datetime import tzinfo, datetime, timedelta
+import six
 from .config import ENFORCE_INTEGER_RANGE
 from ._utils import _ensure_unicode, _hash_item, _format, _to_unicode, \
     _eq_item
+
+if six.PY3:
+    from datetime import timezone
 
 if six.PY2:
     # pylint: disable=invalid-name,undefined-variable
@@ -655,11 +658,18 @@ class CIMDateTime(_CIMComparisonMixin, CIMType):
         A positive value indicates minutes east of UTC, and a negative
         value indicates minutes west of UTC.
         """
-        utc = datetime.utcnow()
-        local = datetime.now()
-        if local < utc:
-            return - int(float((utc - local).seconds) / 60 + .5)
-        return int(float((local - utc).seconds) / 60 + .5)
+        if six.PY2:
+            # Effective Python 3.12, utcnow() deprecated, it returns
+            # naive datetime object and warning msg. timezone does
+            # not exist for python 2.7; use utcnow(timezone.utc).
+            utc_unaware = datetime.utcnow()
+        else:
+            utc_unaware = datetime.now(timezone.utc).replace(tzinfo=None)
+
+        local_unaware = datetime.now()
+        if local_unaware < utc_unaware:
+            return - int(float((utc_unaware - local_unaware).seconds) / 60 + .5)
+        return int(float((local_unaware - utc_unaware).seconds) / 60 + .5)
 
     @classmethod
     def now(cls, tzi=None):

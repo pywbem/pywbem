@@ -2641,16 +2641,32 @@ class Test_LOR_PywbemArgsResults(BaseLogOperationRecorderTests):
         self.test_recorder.stage_pywbem_result((return_val, params),
                                                None)
 
-        result_req = (
-            "Request:test_id InvokeMethod("
-            "MethodName='Blah', "
-            "ObjectName={!r}, "
-            "Params=OrderedDict(["
-            "('StringParam', 'Spotty'), "
-            "('Uint8', Uint8(cimtype='uint8', minvalue=0, maxvalue=255, 1)), "
-            "('Sint8', Sint8(cimtype='sint8', minvalue=-128, maxvalue=127, 2))"
-            "]))".
-            format(instancename))
+        if sys.version_info[0:2] >= (3, 12):  # fix issue #3097
+            result_req = (
+                "Request:test_id InvokeMethod("
+                "MethodName='Blah', "
+                "ObjectName={!r}, "
+                "Params=OrderedDict("
+                "{{'StringParam': 'Spotty', "
+                "'Uint8': Uint8(cimtype='uint8', minvalue=0, "
+                "maxvalue=255, 1), "
+                "'Sint8': Sint8(cimtype='sint8', minvalue=-128, "
+                "maxvalue=127, 2)"
+                "}}))".
+                format(instancename))
+        else:
+            result_req = (
+                "Request:test_id InvokeMethod("
+                "MethodName='Blah', "
+                "ObjectName={!r}, "
+                "Params=OrderedDict(["
+                "('StringParam', 'Spotty'), "
+                "('Uint8', Uint8(cimtype='uint8', minvalue=0, "
+                "maxvalue=255, 1)), "
+                "('Sint8', Sint8(cimtype='sint8', minvalue=-128, "
+                "maxvalue=127, 2))"
+                "]))".
+                format(instancename))
 
         result_ret = "Return:test_id InvokeMethod(tuple )"
 
