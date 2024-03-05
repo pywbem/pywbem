@@ -1199,6 +1199,8 @@ def result_tuple(value, tc_name):
     # test for both paths and instances.
     objs = None
     if "query_result_class" in value:
+        # This appears to be an issue with pylint itself ver 2.13.0
+        # pylint: disable=unused-variable
         result = namedtuple("exp_result", ["instances", "eos", "context",
                                            "query_result_class"])
     else:

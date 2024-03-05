@@ -201,6 +201,15 @@ security:
             reason: Fixed cryptography version 41.0.6 requires Python>=3.7 and is used there
         62817:
             reason: Fixed prompt-toolkit version 3.0.13 requires Python>=3.6 and is used there
+        63687:
+            reason: GitPython, Python 2.7, 3.6. fixed version 3.1.35 requires Python>=3.7
+        64227:
+            reason: Jinja2, ver 3.1.3 fixes scripting vulnerability, requires Python>=3.7
+        64587:
+            reason: jupyterlab  issue in version 4.03, requires < 4.0.11 python >= 3.8
+        64588:
+            reason: jupyterlab  issue in version 4.03, requires < 4.0.11 python >= 3.8
+
 
     # Continue with exit code 0 when vulnerabilities are found.
     continue-on-vulnerability-error: False
