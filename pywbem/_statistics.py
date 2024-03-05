@@ -153,6 +153,11 @@ from ._utils import _format
 
 __all__ = ['Statistics', 'OperationStatistic']
 
+# pylint: disable=consider-using-min-builtin
+# pylint: disable=consider-using-max-builtin
+#  replaces if statements with something like:
+#  self._reply_len_min = min(_reply_len_min, reply_len)
+
 
 class OperationStatistic(object):
     # pylint: disable=too-many-instance-attributes
