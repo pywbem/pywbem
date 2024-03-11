@@ -370,10 +370,6 @@ jupyterlab-server==2.22.1; python_version >= '3.8'
 # safety vulnerability #64588, #64587 with jupyterlab < 4.0.11
 jupyterlab==4.0.11; python_version >= '3.8'
 
-jupyterlab-server==2.22.1; python_version >= '3.8'
-
-jupyterlab==4.0.2; python_version >= '3.8'
-
 pyrsistent==0.14.0; python_version == '2.7'
 pyrsistent==0.14.0; python_version >= '3.5' and python_version <= '3.6'
 pyrsistent==0.19.1; python_version >= '3.7'
