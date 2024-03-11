@@ -36,6 +36,7 @@ import shutil
 import re
 from copy import deepcopy
 from datetime import datetime
+import warnings
 
 try:
     from collections import OrderedDict
@@ -6270,8 +6271,7 @@ class TestInstanceOperations(object):
         conn.add_cimobjects([c], namespace=ns)
 
         # create the new instance
-        exp_warn_types = None
-        with pytest.warns(exp_warn_types) as rec_warnings:
+        with warnings.catch_warnings(record=True) as rec_warnings:
             new_inst = CIMInstance(
                 'CIM_AbstractClass',
                 properties={'InstanceID': "AbstractTestWarn"})
@@ -6284,7 +6284,7 @@ class TestInstanceOperations(object):
             conn.add_cimobjects(new_inst, namespace=ns)
 
         assert len(rec_warnings) == 0, \
-            "Unexpected warn msg {}".format(exp_warn_types)
+            "Unexpected warnings: {}".format(list(rec_warnings))
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
@@ -6706,7 +6706,7 @@ class TestInstanceOperations(object):
                 # Since pywbem 1.1.0, this issues a DeprecationWarning.
                 # The following does not expect any warnings, but catches
                 # and tolerates all warnings.
-                with pytest.warns(None):
+                with warnings.catch_warnings():
                     modified_instance[property_def[0]] = property_def[1]
 
         # Code to change characteristics of modify_instance test based on
