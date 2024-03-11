@@ -80,6 +80,8 @@ Released: not yet
 * Test: Fixed issues resulting from removal of support for pytest.warns(None)
   in pytest version 8. (issue #3114)
 
+* Fixed new Pylint issue for unused variable 'exp_result'. (issue #3113)
+
 **Enhancements:**
 
 * The 'pywbem.ValueMapping' class now allows controlling what should happen
