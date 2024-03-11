@@ -1200,10 +1200,10 @@ def result_tuple(value, tc_name):
     if "query_result_class" in value:
         # This appears to be an issue with pylint itself ver 2.13.0
         # pylint: disable=unused-variable
-        result = namedtuple("exp_result", ["instances", "eos", "context",
-                                           "query_result_class"])
+        result = namedtuple("result", ["instances", "eos", "context",
+                                       "query_result_class"])
     else:
-        result = namedtuple("exp_result", ["instances", "eos", "context"])
+        result = namedtuple("result", ["instances", "eos", "context"])
 
     # either path or instances should be in value
     if "instances" in value:

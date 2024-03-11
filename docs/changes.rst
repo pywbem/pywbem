@@ -42,6 +42,8 @@ Released: not yet
 * Fix new Feb 2024 safety issues, GitPython, Jinja2, JupyterLab. Added to
   safety ignore and fixed in requirements files.
 
+* Fixed new Pylint issue for unused variable 'exp_result'. (issue #3113)
+
 **Enhancements:**
 
 * Split safety run out of "check" make target ino a separate "safety" make target
