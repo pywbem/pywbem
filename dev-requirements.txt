@@ -16,7 +16,7 @@
 # FUTURE: Remove  wheel < 1.0 For details, see
 #       https://github.com/pypa/build/issues/750. Circumvention for now is
 #       to pin build to <1.0. See issue #3112
-build>=0.5.1, <1.0
+build>=0.5.1, <1.1.0
 
 # Cythonize
 Cython>=0.29.33
