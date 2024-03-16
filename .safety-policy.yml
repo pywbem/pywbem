@@ -204,11 +204,25 @@ security:
         63687:
             reason: GitPython, Python 2.7, 3.6. fixed version 3.1.35 requires Python>=3.7
         64227:
-            reason: Jinja2, ver 3.1.3 fixes scripting vulnerability, requires Python>=3.7
+            reason: Jinja2, ver 3.1.3 fixes scripting vulnerability, requires Python >= 3.7
         64587:
-            reason: jupyterlab  issue in version 4.03, requires < 4.0.11 python >= 3.8
+            reason: jupyterlab issue in version 4.03, requires < 4.0.11 python >= 3.8
         64588:
-            reason: jupyterlab  issue in version 4.03, requires < 4.0.11 python >= 3.8
+            reason: jupyterlab issue in version 4.03, requires < 4.0.11 python >= 3.8
+        65212:
+            reason: cryptography, Fixed  version 42.0.2 requires Python >= 3.7 and used there
+        65182:
+            reason: notebook, Fixed version 7.1.0, requires Python >= 3.8 and used there
+        65183:
+            reason: notebook, Fixed  version 7.0.7, requires Python >= 3.8 and used there
+        65278:
+            reason: crypography, Fixed version 42.0.1 requires Python >=3.7 and used there
+        65358:
+            reason: Jupyter-Server, Fixed version 2.11.2 requires Python >= 3.8 and used there
+        65029:
+            reason: Jupyter-Server, Fixed version 2.7.2 requires Python >= 3.8 and used there
+
+
 
 
     # Continue with exit code 0 when vulnerabilities are found.
