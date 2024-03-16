@@ -207,6 +207,13 @@ security:
             reason: jupyterlab  issue in version 4.03, requires < 4.0.11 python >= 3.8
         64588:
             reason: jupyterlab  issue in version 4.03, requires < 4.0.11 python >= 3.8
+        65212:
+            reason: Fixed cryptography version <=42.0.2 requires Python>=3.8
+        65182:
+            reason: Notebook; Issue affects ver >=7.0.0,<=7.0.6, requires Python>=3.8
+        65183:
+            reason: Notebook; Issue affects ver >=7.0.0,<=7.0.6, requires Python>=3.8
+
 
 
     # Continue with exit code 0 when vulnerabilities are found.

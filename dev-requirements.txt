@@ -261,7 +261,8 @@ nbformat>=5.9.0; python_version >= '3.8'
 notebook>=4.3.1,<6.1.0; python_version == '2.7'
 notebook>=6.4.10; python_version == '3.6'
 notebook>=6.5.4; python_version == '3.7'
-notebook>=7.0.2; python_version >= '3.8'
+notebook>=7.0.7; python_version >= '3.8'
+
 
 # notebook-shim 0.1.0 removed support for Python 3.6
 # latest 3.10: notebook_shim 0.2.3
@@ -369,7 +370,7 @@ terminado>=0.8.3,<0.10.0; python_version >= '3.6'
 anyio>=3.1.0; python_version >= '3.7'
 cryptography>=3.3; python_version == '2.7'
 cryptography>=3.4.7; python_version == '3.6'
-cryptography>=41.0.6; python_version >= '3.7'
+cryptography>=42.0.2; python_version >= '3.7'
 distlib>=0.3.4
 filelock>=3.0.0
 # gitdb2 4.0.2 requires gitdb>=4.0.1 for installation, see https://github.com/gitpython-developers/gitdb/issues/86

@@ -130,7 +130,8 @@ urllib3==1.26.18; python_version >= '3.7'
 # From easy-vault:
 cryptography==3.3; python_version == '2.7'
 cryptography==3.4.7; python_version == '3.6'
-cryptography==41.0.6; python_version >= '3.7'
+# minimum version 42.0.2, safety issue Mar 24
+cryptography==42.0.2; python_version >= '3.7'
 keyring==18.0.0
 
 
@@ -311,7 +312,8 @@ jupyterlab-widgets==1.0.2; python_version == '3.6'
 jupyterlab-widgets==3.0.3; python_version >= '3.7'
 
 jupyter-server>=1.24.0; python_version == '3.7'
-jupyter-server>=2.4.0; python_version >= '3.8'
+# Safety issue with noteboook.
+jupyter-server==2.7.2; python_version >= '3.8'
 
 nbclassic==1.0.0; python_version >= '3.7'
 
@@ -332,7 +334,7 @@ nbformat==5.9.0; python_version >= '3.8'
 notebook==4.3.1; python_version == '2.7'
 notebook==6.4.10; python_version == '3.6'
 notebook==6.5.4; python_version == '3.7'
-notebook==7.0.2; python_version >= '3.8'
+notebook==7.0.7; python_version >= '3.8'
 
 notebook-shim==0.2.3; python_version >= '3.7'
 
