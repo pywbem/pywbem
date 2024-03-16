@@ -220,7 +220,8 @@ jupyterlab-widgets>=3.0.3; python_version >= '3.7'
 # jupyter-server 2.25.0 removed support for Python 3.7
 # latest 3.10: jupyter_server 2.12.4
 jupyter-server>=1.24.0; python_version == '3.7'
-jupyter-server>=2.4.0; python_version >= '3.8'
+# safety issue requires jupyter_server >=2.11.2 2204-3-17
+jupyter-server>=2.11.2; python_version >= '3.8'
 
 # latest 3.10: jupyter-events                0.9.0
 # latest 3.10: jupyter-lsp                   2.2.1
@@ -262,7 +263,8 @@ nbformat>=5.9.0; python_version >= '3.8'
 notebook>=4.3.1,<6.1.0; python_version == '2.7'
 notebook>=6.4.10; python_version == '3.6'
 notebook>=6.5.4; python_version == '3.7'
-notebook>=7.0.2; python_version >= '3.8'
+# safety issue sets new minimum 7.1.0 2025-3-17
+notebook>=7.1.0; python_version >= '3.8'
 
 # notebook-shim 0.1.0 removed support for Python 3.6
 # latest 3.10: notebook_shim 0.2.3
@@ -275,7 +277,8 @@ jupyterlab-server>=2.22.1,<3; python_version >= '3.8'
 # jupyterlab 4.0.0 removed support for Python 3.7
 # latest 3.10: jupyterlab 4.0.10
 # safety vulnerability #64588, #64587 jupyterlab < 4.0.11
-jupyterlab>=4.0.11,<5; python_version >= '3.8'
+# notebook 7.1.0 depends on jupyterlab<4.2 and >=4.1.1
+jupyterlab>=4.1.1,<5; python_version >= '3.8'
 
 pyrsistent>=0.14.0,<0.16.0; python_version == '2.7'
 pyrsistent>=0.14.0; python_version == '3.6'
@@ -375,10 +378,11 @@ terminado>=0.8.3,<0.10.0; python_version >= '3.6'
 anyio>=3.1.0; python_version >= '3.7'
 cryptography>=3.3; python_version == '2.7'
 cryptography>=3.4.7; python_version == '3.6'
-cryptography>=41.0.6; python_version >= '3.7'
+cryptography>=42.0.2; python_version >= '3.7'
 
 distlib>=0.3.4; python_version <= '3.11'
 distlib>=0.3.7; python_version >= '3.12'
+
 filelock>=3.0.0
 # gitdb2 4.0.2 requires gitdb>=4.0.1 for installation, see https://github.com/gitpython-developers/gitdb/issues/86
 gitdb2>=2.0.6,<4.0; python_version == '2.7'

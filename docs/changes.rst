@@ -85,6 +85,8 @@ Released: not yet
 * Test: Fixed issue in test_recorder.py where format of OrderDict repl output
   changed with python 3.12 (see issue #3097)
 
+* Updated safety issues to 2024-3-17. Includes issues for: GitPython, Jinja2,
+  Jupyter notebook. Adds to .safety-policy.yml and fixes in requirements files.
 
 **Enhancements:**
 
