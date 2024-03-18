@@ -1,16 +1,17 @@
-# Additional pip requirements file for pywbem testing.
-#
-# The order of packages is significant, because pip processes them in the order
-# of appearance.
-#
-# Make sure that the minimum versions required in this file are consistent with
-# the minimum versions specified in minimum-constraints.txt.
+# Pip requirements file for test dependencies.
+
+# These dependencies have been separated from the other development dependencies
+# in dev-requirements.txt in order to be able to run tests from just the
+# source archive using 'setup.py test', without having the rest of the files
+# in the repo.
 
 
+# Include install dependencies
 -r requirements.txt
 
-# Direct dependencies (just for "setup.py test")
 
+# Direct dependencies for test and indirect dependencies for test that are
+# needed for some reason (must be consistent with minimum-constraints.txt)
 
 # Unit test (imports into testcases):
 packaging>=19.0; python_version == '3.6'
@@ -37,6 +38,11 @@ colorama>=0.4.5; python_version >= '3.6'
 easy-vault>=0.7.0
 easy-server>=0.8.0
 pytest-easy-server>=0.8.0
+cryptography>=3.3; python_version == '2.7'
+cryptography>=3.4.7; python_version == '3.6'
+cryptography>=42.0.5; python_version >= '3.7'
+keyring>=18.0.0
+
 jsonschema>=2.6.0,!=4.0.0; python_version <= '3.6'
 jsonschema>=4.17.3; python_version == '3.7'
 # jsonschema v 4.18.0 required by jupyter-events 0.9.1
@@ -57,6 +63,7 @@ pytz>=2016.10; python_version <= '3.9'
 pytz>=2019.1; python_version >= '3.10'
 
 # Unit test (indirect dependencies):
+
 # Pluggy 0.12.0 has a bug causing pytest plugins to fail loading on py38
 pluggy>=0.7.1; python_version == '2.7'
 pluggy>=0.12.0; python_version == '3.6'
@@ -85,7 +92,6 @@ lxml>=4.6.2; python_version >= '3.6' and python_version <= '3.9'
 lxml>=4.6.4; python_version == '3.10'
 lxml>=4.9.2; python_version == '3.11'
 lxml>=4.9.3; python_version == '3.12'
-
 
 virtualenv>=16.1.0,!=20.0.19,!=20.0.32; python_version <= '3.7'
 virtualenv>=20.15.0; python_version >= '3.8' and python_version <= '3.11'  # requires six<2,>=1.12.0
