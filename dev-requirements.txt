@@ -1,15 +1,12 @@
-# Additional pip requirements file for pywbem develop.
-#
-# The order of packages is significant, because pip processes them in the order
-# of appearance.
-#
-# Make sure that the minimum versions required in this file are consistent with
-# the minimum versions specified in minimum-constraints.txt.
+# Pip requirements file for development dependencies.
 
 
+# Include test dependencies (which includes install dependencies)
 -r test-requirements.txt
 
-# Direct dependencies:
+
+# Direct dependencies for development and indirect dependencies for development
+# that are needed for some reason (must be consistent with minimum-constraints.txt)
 
 # Build distribution archive
 # Version 1.1.0 pulled after release
@@ -45,8 +42,8 @@ dparse>=0.4.1,<0.5.0; python_version == '2.7'
 # ver 0.6.2 min requirement by safety 2.2.0
 dparse>=0.6.2; python_version >= '3.6'
 ruamel-yaml>=0.13.6; python_version == '2.7'
-ruamel.yaml>=0.17.21,<0.17.22; python_version == '3.6'
-ruamel.yaml>=0.17.21; python_version >= '3.7'
+ruamel-yaml>=0.17.21,<0.17.22; python_version == '3.6'
+ruamel-yaml>=0.17.21; python_version >= '3.7'
 
 # Tox
 tox>=2.5.0
@@ -317,10 +314,9 @@ tornado>=6.1; python_version == '3.6'
 tornado>=6.2; python_version == '3.7'
 tornado>=6.3.3; python_version >= '3.8'
 
-
 # Table output formatter used by the manual performance tests to display
 # timing results
-tabulate >= 0.8.3
+tabulate>=0.8.3
 
 # Performance profiling tools
 pyinstrument>=3.0.1; python_version <= '3.11'
@@ -353,8 +349,6 @@ pyzmq==17.0.0; python_version <= '3.6'
 pyzmq>=24.0.0; python_version >= '3.7' and python_version <= '3.11'
 pyzmq>=25.1.1; python_version >= '3.12'
 
-# Indirect dependencies are not specified in this file unless constraints are needed.
-
 # bleach is used by nbconvert and readme-renderer
 # bleach 3.1.1 addressed safety issue 38546
 # bleach 3.1.1 addressed safety issue 37910
@@ -374,21 +368,17 @@ pywinpty>=2.0.3; os_name == "nt" and python_version >= '3.7'
 terminado>=0.6; python_version == '2.7'
 terminado>=0.8.3,<0.10.0; python_version >= '3.6'
 
-# Dependencies to reduce backtracking time
-anyio>=3.1.0; python_version >= '3.7'
-cryptography>=3.3; python_version == '2.7'
-cryptography>=3.4.7; python_version == '3.6'
-cryptography>=42.0.2; python_version >= '3.7'
 
+# Dependencies to reduce backtracking time (must be consistent with minimum-constraints.txt)
+
+anyio>=3.1.0; python_version >= '3.7'
 distlib>=0.3.4; python_version <= '3.11'
 distlib>=0.3.7; python_version >= '3.12'
-
 filelock>=3.0.0
 # gitdb2 4.0.2 requires gitdb>=4.0.1 for installation, see https://github.com/gitpython-developers/gitdb/issues/86
 gitdb2>=2.0.6,<4.0; python_version == '2.7'
 gitdb2>=2.0.6,<4.0; python_version == '3.6'
 gitdb>=4.0.8; python_version >= '3.7'
-idna>=2.8
 # jupyter-server 1.17.0 depends on traitlets>=5.1
 traitlets>=4.3.1; python_version == '2.7'
 traitlets>=4.3.1; python_version == '3.6'
