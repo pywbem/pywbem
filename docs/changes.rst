@@ -57,7 +57,7 @@ Released: not yet
 
 **Bug fixes:**
 
-* Addressed safety issues up to 2024-01-15.
+* Addressed safety issues up to 2024-03-25.
 
 * Fixed a doc build issue with Sphinx 6.x (issue #2983) and addressed
   some of the Sphinx warnings during doc build.
