@@ -1,6 +1,6 @@
 #!/bin/bash
-# Send  indications to a WBEM listener. 
-# See USAGE for cmd line parameter details.  
+# Send  indications to a WBEM listener.
+# See USAGE for cmd line parameter details.
 
 # To use HTTPS, create a self-signed certificate with private key:
 #   openssl req -new -x509 -keyout tmp.pem -out tmp.pem -days 365 -nodes
@@ -18,12 +18,13 @@ Usage: `basename $0` url <options> ;
            or https://<hostname>
 
     Where the options are:
-    -h --help               Usage 
+    -h --help               Usage
 
     -p --port    integer    Listener port (default; 5000)
     -c --cert    file_name  Certificate file (default; None)
     -k --key     file_name  Key file (default; None)
     -d --deliver count      Number of indications to deliver (default; 1)
+    -v --verbose            Display info on each indication sent.
 EOF
 }
 
@@ -34,6 +35,7 @@ cert_file=""
 key_file=""
 NUMBER_TO_DELIVER=1
 URL="http://127.0.0.1"
+VERBOSE=0
 
 while test -n "$1"; do
     case "$1" in
@@ -56,6 +58,9 @@ while test -n "$1"; do
         -d|--deliver)
             NUMBER_TO_DELIVER="$2"
             shift
+            ;;
+        -v|--verbose)
+            VERBOSE=1
             ;;
         *)
             echo all $1
@@ -89,12 +94,13 @@ SEQ_NUMBER=0
 while [ $SEQ_NUMBER -lt $NUMBER_TO_DELIVER ]; do
 
     let SEQ_NUMBER=SEQ_NUMBER+1
-    
+    let MSG_ID=SEQ_NUMBER
+
     CUR_TIME=$(date +%s)
     DELTA_TIME=$((CUR_TIME-$START_TIME))
     data='<?xml version="1.0" encoding="utf-8" ?>
     <CIM CIMVERSION="2.0" DTDVERSION="2.4">
-      <MESSAGE ID="42" PROTOCOLVERSION="1.4">
+      <MESSAGE ID="'$MSG_ID'" PROTOCOLVERSION="1.4">
         <SIMPLEEXPREQ>
           <EXPMETHODCALL NAME="ExportIndication">
             <EXPPARAMVALUE NAME="NewIndication">
@@ -118,11 +124,15 @@ while [ $SEQ_NUMBER -lt $NUMBER_TO_DELIVER ]; do
     curl_opts="$key_opts --verbose --show-error --header 'Content-Type: text/xml' --data '${data}'"
 
     cmd="curl $fullurl $curl_opts"
-    echo -e "Request payload:\n$data"
+    if [[ ! -z $VERBOSE ]]; then
+        echo -e "Request payload:\n$data"
+    fi
 
     eval $cmd
-    echo send $SEQ_NUMBER of $NUMBER_TO_DELIVER
+    if [[ ! -z $VERBOSE ]]; then
+        echo send $SEQ_NUMBER of $NUMBER_TO_DELIVER
+    fi
 done
 
-echo ""
+echo "Done"
 
