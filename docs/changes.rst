@@ -25,7 +25,7 @@ Released: not yet
 
 **Bug fixes:**
 
-* Updated safety issues to 2024-3-17. Includes issues for: GitPython, Jinja2,
+* Updated safety issues to 2024-03-25. Includes issues for: GitPython, Jinja2,
   Jupyter notebook. Adds to .safety-policy.yml and fixes in requirements files.
 
 * Update dev-requirements.txt, minimum-constraings.txt, .safety_policy.json for
