@@ -221,9 +221,10 @@ security:
             reason: Jupyter-Server, Fixed version 2.11.2 requires Python >= 3.8 and used there
         65029:
             reason: Jupyter-Server, Fixed version 2.7.2 requires Python >= 3.8 and used there
-
-
-
+        65510:
+            reason: Fixed cryptography version 42.0.0 requires Python>=3.7 and is used there
+        65581:
+            reason: Fixed tornado version 6.3.3 requires Python>=3.8 and is used there
 
     # Continue with exit code 0 when vulnerabilities are found.
     continue-on-vulnerability-error: False
