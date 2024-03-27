@@ -182,6 +182,22 @@ jobs:
       PIP_DISABLE_PIP_VERSION_CHECK: 1
       PIP_NO_PYTHON_VERSION_WARNING: 1
     steps:
+    - name: Set run type (normal, scheduled, release)
+      id: set-run-type
+      uses: actions/github-script@v6
+      with:
+        result-encoding: string
+        script: |
+          var result
+          if ("${{ github.event_name }}" == "schedule") {
+            result = "scheduled"
+          } else if ("${{ github.head_ref }}".match(/^release_/)) {
+            result = "release"
+          } else {
+            result = "normal"
+          }
+          console.log(result)
+          return result
     - name: Select whether to run steps for cythonized archive
       id: run_cythonized
       if: "! startsWith(matrix.os, 'windows-') && (github.event_name == 'schedule' || startsWith(github.head_ref, 'release_'))"
@@ -211,29 +227,41 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Display initial Python packages
+      env:
+        PACKAGE_LEVEL: ${{ matrix.package_level }}
+        RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
       run: |
         echo "Installed Python packages:"
         make pip_list
     - name: Display platform and env vars
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
+        RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
       run: |
         make platform env
     - name: Install the package and its dependents
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
+        RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
       run: |
         make install
     - name: Display Python packages
+      env:
+        PACKAGE_LEVEL: ${{ matrix.package_level }}
+        RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
       run: |
         echo "Installed Python packages:"
         make pip_list
     - name: Development setup
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
+        RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
       run: |
         make develop
     - name: Display Python packages
+      env:
+        PACKAGE_LEVEL: ${{ matrix.package_level }}
+        RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
       run: |
         echo "Installed Python packages:"
         make pip_list
@@ -244,26 +272,31 @@ jobs:
     - name: Run check_reqs
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
+        RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
       run: |
         make check_reqs
     - name: Run build
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
+        RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
       run: |
         make build
     - name: Run builddoc
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
+        RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
       run: |
         make builddoc
     - name: Run check
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
+        RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
       run: |
         make check
     - name: Run pylint
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
+        RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
       run: |
         make pylint
     - name: Run test
@@ -271,6 +304,7 @@ jobs:
       if: matrix.python-version != '2.7'
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
+        RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
         # TESTCASES: test_cim_obj.py
       run: |
         make test
@@ -279,6 +313,7 @@ jobs:
       if: startsWith(matrix.os, 'ubuntu-') && matrix.python-version != '2.7'
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
+        RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
       run: |
         make end2endtest
     - name: Send coverage result to coveralls.io
@@ -297,28 +332,33 @@ jobs:
     - name: Run installtest
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
+        RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
       run: |
         make installtest
     - name: Run leaktest
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
+        RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
       run: |
         make leaktest
     - name: Run resourcetest
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
+        RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
       run: |
         make resourcetest
     - name: Run perftest
       if: "github.event_name == 'schedule' || startsWith(github.head_ref, 'release_')"
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
+        RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
       run: |
         make perftest
     - name: Build cythonized archive
       if: steps.run_cythonized.outcome == 'success'
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
+        RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
       run: |
         make buildc
     - name: Install cythonized archive
@@ -327,6 +367,7 @@ jobs:
       if: steps.run_cythonized.outcome == 'success' && matrix.python-version != '2.7'
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
+        RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
       run: |
         make installc
     - name: Test cythonized archive
@@ -334,6 +375,7 @@ jobs:
       if: steps.run_cythonized.outcome == 'success' && matrix.python-version != '2.7'
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
+        RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
         # TODO: Remove -x option once tests succeed
         TESTOPTS: "-x"
       run: |
@@ -341,6 +383,7 @@ jobs:
     - name: Run safety
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
+        RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
       run: |
         make safety
 

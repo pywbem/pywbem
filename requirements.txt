@@ -1,13 +1,10 @@
-# Pip requirements file for pywbem install.#
-#
-# The order of packages is significant, because pip processes them in the order
-# of appearance.
+# Pip requirements file for install dependencies.
 
-# Make sure that the minimum versions required in this file are also the
-# versions defined in minimum-constraints.txt.
+# Note: The dependencies in this file will become the dependencies stated
+# in the Pypi package metadata.
 
 
-# Direct dependencies (except pip, setuptools, wheel):
+# Direct dependencies for install (must be consistent with minimum-constraints-install.txt)
 
 mock>=2.0.0,<4.0.0; python_version == '2.7'
 ply>=3.10
@@ -35,8 +32,11 @@ yamlloader>=0.5.5; python_version >= '3.6'
 nocaselist>=1.0.3
 nocasedict>=1.0.1
 
-# Indirect dependencies only specified here if needed. Keep in sync with the
-# minimum-constraints.txt file.
+
+# Indirect dependencies for install that are needed for some reason (must be consistent with minimum-constraints-install.txt)
+
+# setuptools 61.0.0 breaks "setup.py install", see https://github.com/pypa/setuptools/issues/3198
+setuptools!=61.0.0; python_version >= '3.7'
 
 # urllib3 1.24.1 addressed issue 37055 reported by safety
 # urllib3 1.24.2 addressed issue 37071 reported by safety
@@ -48,9 +48,8 @@ urllib3>=1.26.18,<2.0.0; python_version == '2.7'
 urllib3>=1.26.18,<2.0.0; python_version == '3.6'
 urllib3>=1.26.18; python_version >= '3.7'
 
-# setuptools 61.0.0 breaks "setup.py install", see https://github.com/pypa/setuptools/issues/3198
-setuptools!=61.0.0; python_version >= '3.7'
-
 # certifi 2020.6.20 removed support for Python 2.7 but does not declare it
 certifi>=2019.11.28,<2020.6.20; python_version == '2.7'
 certifi>=2023.07.22; python_version >= '3.6'
+
+idna>=2.8
