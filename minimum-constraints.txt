@@ -180,7 +180,7 @@ jupyter==1.0.0
 ipython==5.1.0; python_version == '2.7'
 ipython==7.16.3; python_version == '3.6'
 ipython==7.23.1; python_version == '3.7'
-ipython==8.0.0; python_version >= '3.8'
+ipython==8.10.0; python_version >= '3.8'
 
 ipykernel==4.5.2; python_version == '2.7'
 ipykernel==4.5.2; python_version == '3.6'
