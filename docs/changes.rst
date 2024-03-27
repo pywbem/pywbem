@@ -57,7 +57,7 @@ Released: not yet
 
 **Bug fixes:**
 
-* Addressed safety issues up to 2024-03-25.
+* Addressed safety issues up to 2024-03-27.
 
 * Fixed a doc build issue with Sphinx 6.x (issue #2983) and addressed
   some of the Sphinx warnings during doc build.
@@ -85,9 +85,6 @@ Released: not yet
 * Test: Fixed issue in test_recorder.py where format of OrderDict repl output
   changed with python 3.12 (see issue #3097)
 
-* Updated safety issues to 2024-3-17. Includes issues for: GitPython, Jinja2,
-  Jupyter notebook. Adds to .safety-policy.yml and fixes in requirements files.
-
 **Enhancements:**
 
 * The 'pywbem.ValueMapping' class now allows controlling what should happen
@@ -114,6 +111,14 @@ Released: not yet
 
 * Add end2end tests for operation timeout. (see issue #2181)
 
+* Split safety runs into an 'install' and an 'all' run. The install run
+  uses a new minimum-constraints-install.txt file that contains just the
+  direct and indirect install dependencies and must succeed. The 'all' run
+  uses the minimum-constraints.txt file which includes the
+  minimum-constraints-install.txt file and that run must succeed when releasing
+  a version, but may fail otherwise (in scheduled runs or normal runs).
+  This reduces the burden of fixing safety issues that affect only development
+  packages.
 
 **Cleanup:**
 
@@ -147,6 +152,9 @@ Released: not yet
 
 * Add ignore for gitpython new safety issue 2024-2.
 
+* Moved the version constraints for the 'idna' package into the pywbem
+  installation dependencies since it is an indirect dependency (pywbem ->
+  requests -> idna).
 
 **Known issues:**
 
