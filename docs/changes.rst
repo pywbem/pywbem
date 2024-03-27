@@ -59,6 +59,8 @@ Released: not yet
 
 * Addressed safety issues up to 2024-03-27.
 
+* Addressed Dependabot issues up to 2024-03-27.
+
 * Fixed a doc build issue with Sphinx 6.x (issue #2983) and addressed
   some of the Sphinx warnings during doc build.
 
