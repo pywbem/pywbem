@@ -488,21 +488,6 @@ Troubleshooting
 This section describes some trouble shooting hints for the installation of
 pywbem.
 
-.. index:: pair; troubleshooting: OpenSSL
-.. index:: pair; installation fail: OpenSSL
-
-
-NotOpenSSLWarning: urllib3 v2.0 only supports OpenSSL 1.1.1+
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. index:: pair; installation fail: NotOpenSSLWarning
-.. index:: pair; troubleshooting: NotOpenSSLWarning
-
-This issue may be caused by the dependent package urllib3 update to version 2.0
-in pywbem version 1.7.0. In this case it is probably that the local environment
-includes a version of OpenSSL less than 2.0 Again the best options is to
-reinstall urllib3 < 2.0
-
 Installation fails with "invalid command 'bdist_wheel'"
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -524,68 +509,106 @@ To fix this, install the Python "wheel" package::
 
     pip install wheel
 
-ConnectionError raised with [SSL: UNSUPPORTED_PROTOCOL]
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. index:: pair; troubleshooting: OpenSSL
+.. index:: pair; installation fail: OpenSSL
+
+NotOpenSSLWarning: urllib3 v2.0 only supports OpenSSL 1.1.1+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. index:: pair; installation fail: NotOpenSSLWarning
+.. index:: pair; troubleshooting: NotOpenSSLWarning
+
+This issue is probably caused by the dependent Python package urllib3 update to
+version 2.0 in pywbem version 1.7.0. In this case probably the local OS
+environment includes a version of OpenSSL less than 2.0 or another SSL
+implementation.
+
+See :ref:`ConnectionError raised with SSL UNSUPPORTED_PROTOCOL` for
+more information.
+
+
+.. _ConnectionError raised with SSL UNSUPPORTED_PROTOCOL:
+
+ConnectionError raised with SSL UNSUPPORTED_PROTOCOL
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. index:: pair; troubleshooting: OpenSSL
 .. index:: pair; SSL: OpenSSL
+.. index:: single LibreSSL
+.. index:: single: TLS
 .. index:: pair; UNSUPPORTED_PROTOCOL: OpenSSL
 
 On newer versions of the operating system running the pywbem client,
-communication with the WBEM server may fail with::
+communication with the WBEM server may fail with an exception similar to::
 
     pywbem.exceptions.ConnectionError: SSL error <class 'ssl.SSLError'>:
       [SSL: UNSUPPORTED_PROTOCOL] unsupported protocol (_ssl.c:1056)
 
-In pywbem version 1.7.0 the urllib3 configuration version limit was modified to allow
-urllib3 versions >= 2.0.  These versions of urllib3 limit the minimum TLS
-version to 1.2 (i.e OpenSSL version >= 1.1.1). If the version of OpenSSL is
-less than 1.1.1, this SSLError will occur with the initial request to the
-WBEM Server. Urllib3 version <= 2.0 also limits the SSL library implementations
-to just OpenSSL and possibly libreSSL.
+This error means that the WBEM server side SSL implementation does not yet support
+TLS 1.2 or higher or that the SSL library (OpenSSL or LibreSSL) used
+by pywbem does not support TLS 1.2 and the other side requires TLS >= 1.2.
 
-This also happened after an upgrade of the client OS to Debian buster
+See the Python document
+`https://peps.python.org/pep-0644/ <PEP 644 – Require OpenSSL 1.1.1 or newer>`_
+for more information on Python and OpenSSL version 1.1.1.
+
+In pywbem version 1.7.0 the urllib3 configuration version limit was modified to
+allow urllib3 package versions >= 2.0.  These new versions of urllib3 include backward
+incompatible changes including:
+
+* Support limiting the minimum TLS version to >= 1.2 (i.e OpenSSL version >= 1.1.1). If
+  the version of OpenSSL is less than 1.1.1, this SSLError will occur with the
+  initial request to the WBEM Server.
+* Limit the SSL library implementations to just OpenSSL and some versions of
+  LibreSSL.  The  version 2.0+ urllib3 implementation does not support any
+  other implementations of SSL.
+
+This also happens after an upgrade of the client OS to Debian buster
 using Python 3.7, with OpenSSL 1.1.1d.
 
-This is an error that is created by the OpenSSL library and handed back up to
-the SSL module of Python which hands it up to pywbem. The error indicates that
-OpenSSL and the WBEM server do not agree about which SSL/TLS protocol level to
-use.
+This is an error that is created by the SSL library (normally OpenSSL or
+LibreSSL) and handed back up to the SSL module of Python which hands it up to
+pywbem. The error indicates that OpenSSL and the WBEM server do not agree about
+which SSL/TLS protocol level to use.
 
 Pywbem specifies SSL parameters such that the highest SSL/TLS protocol version
-is used that both the client and server support. Thus, pywbem does not put any
-additional restrictions on top of OpenSSL.
+is used that both the client and server support. Pywbem itself does not put any
+additional TLS version restrictions on top of SSL library.
 
 Debian buster includes OpenSSL 1.1.1d and increased its security settings to
-require at least TLS 1.2 (see https://stackoverflow.com/a/53065682/1424462).
+require at least TLS 1.2 (see `https://stackoverflow.com/a/53065682/1424462`).
 
-This error means that the WBEM server side does not yet support
-TLS 1.2 or higher or that the SSL library used by pywbem does not support
-TL 1.2.
+This issue can possibly be corrected by:
 
-This issue can be corrected by:
-
-1. If the current version of urllib3 is less than 2.0, update the version
-   of urllib3 (ex. ``pip install --upgrade  --upgrade-strategy eager urllib3``). Since
-   the pywbem install does not force an eager update of packages, if a valid
-   previous version of urllib3 exists it will not be upgraded to 2.0+ in the
-   reinstallation of pywbem.
+1. If the current version of urllib3 is less than 2.0 (``pip list``), update
+   the version of urllib3 (ex. ``pip install --upgrade  --upgrade-strategy
+   eager urllib3``). to a later version. This is required because pip install
+   does not force an eager update of packages; if a valid previous version (
+   i.e. any version in the range defined by the dev-requirements.txt file) of
+   urllib3 exists it will not be upgraded to 2.0+ in the reinstallation of
+   pywbem.
 
 2. If the current version of urllib3 is greater than 2.0, the previous version
    of urllib3 (ex. version 1.26.5) can be installed (ex. ``pip install
-   urllib3<2.0``)
+   urllib3<2.0``).
 
-3. Adding TLS 1.2 support to the server side (preferred) or by lowering the
-    minimum TLS level OpenSSL requires on the client
-    side (which lowers security). The latter can be done by changing the
-    ``MinProtocol`` parameter in the OpenSSL config file on the client OS
-    (typically ``/etc/ssl/openssl.cnf`` on Linux and OS-X,
-    and ``C:\OpenSSL-Win64\openssl.cnf`` on Windows).
-    At the end of the file there is::
+3. Adding TLS 1.2 support to the WBEM server side (preferred) or lowering the
+   minimum TLS level required on the client side (which lowers security). With
+   OpenSSL the latter can be done by changing the ``MinProtocol`` parameter in
+   the OpenSSL config file on the client OS (typically ``/etc/ssl/openssl.cnf``
+   on Linux and OS-X, and ``C:\OpenSSL-Win64\openssl.cnf`` on Windows).
+
+   At the end of the file there is::
 
         [system_default_sect]
         MinProtocol = TLSv1.2
         CipherString = DEFAULT@SECLEVEL=2
+
+4. If the issue is the use of LibreSSL (ex. MacOS) as the OS level SSL
+   implementation, the issue may be that urllib3 before version 2.0.3 did not
+   support LibreSSL.  See `urllib3 issue <https://github.com/urllib3/urllib3/issues/3020>`_
+   for discussion of this issue.
 
 
 ConnectionError raised with [SSL] EC lib
@@ -650,10 +673,11 @@ directories if required including:
   since environment variables can be used to define pip command line options.
 
 * Remove the flag file that pip uses to enable the limiting behavior. See
-  `Python PEP 668`_ which would be most logical in the case of installation
-  into a container such as Docker.
+  `Python PEP 668`_ ("Marking Python base environments as “externally managed")
+  which would be most logical in the case of installation into a container such
+  as Docker.
 
-See `pywbem issue #3080 <https://github.com/pywbem/pywbem/issues/3080>`_ for
+See `pywbem issue 3080 <https://github.com/pywbem/pywbem/issues/3080>`_ for
 more information about this issue.
 
 .. _Python PEP 668: https://peps.python.org/pep-0668/
