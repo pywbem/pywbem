@@ -141,7 +141,7 @@ cryptography==3.3; python_version == '2.7'
 cryptography==3.2.1; python_version == '3.5'
 cryptography==3.4.7; python_version == '3.6'
 # minimum version 42.0.2, safety issue 2024-3-17
-cryptography==42.0.2; python_version >= '3.7'
+cryptography==42.0.5; python_version >= '3.7'
 keyring==18.0.0
 
 

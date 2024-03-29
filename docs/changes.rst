@@ -14,14 +14,10 @@ Change log
       :revisions: 1
 
 
-pywbem 1.6.3.dev1
------------------
+pywbem 1.6.3
+------------
 
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
+Released: 2024-03-29
 
 **Bug fixes:**
 
@@ -49,14 +45,6 @@ Released: not yet
 
 * Split safety run out of "check" make target ino a separate "safety" make target
   and moved its run to the end of the test workflow.
-
-**Cleanup:**
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 1.6.2
