@@ -89,7 +89,7 @@ virtualenv==20.23.0; python_version >= '3.12'
 build==0.5.1
 
 # Cythonize
-Cython==0.29.33
+Cython==3.0.0
 
 more-itertools==4.0.0
 
