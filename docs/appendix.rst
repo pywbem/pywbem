@@ -510,110 +510,150 @@ To fix this, install the Python "wheel" package::
     pip install wheel
 
 
+.. _`Issues with pywbem verson 1.7+, Urllib3 package version 2, and SSL`:
+
+Issues with pywbem verson 1.7+, Urllib3 package version 2, and SSL
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. _`Overview of the changes and issues`:
+
+Overview of the changes and issues
+""""""""""""""""""""""""""""""""""
+
 .. index:: pair; troubleshooting: OpenSSL
-.. index:: pair; installation fail: OpenSSL
+.. index:: pair; SSL: OpenSSL
+.. index:: pair; UNSUPPORTED_PROTOCOL: OpenSSL
+
+Pywbem version 1.7 expanded the urllib3 package version requirement to include
+urllib3 version >= 2.0. Note that urllib3 version 2.0 was allowed with previous
+version of pywbem only because the package version requirements did not pin
+urllib version to < 2.0.
+
+The urlib3 package version requirements in requirements.txt are::
+
+      urllib3>=1.26.18; python_version >= '3.7'  (pywbem 1.7.0)
+
+previously::
+
+      urllib3>=1.26.18,<2.0.0; python_version >= '3.7' (pywbem 1.6.x)
+
+
+The urllib3 Python package version 2.0 made a significant number of changes
+including the following list that can be potentially non-compatible:
+
+* Urllib3 >= 2.0 limits the minimum OpenSSL version >= 1.1.1. Note that
+  Python 3.10 also limits the minimum OpenSSL version >= 1.1.1.
+
+* Urllib3 >= 2.0 changes the default minimum TLS version to TLS 1.2 (previously
+  was TLS 1.0), the default minimum defined for OpenSSL 1.1.1.
+
+* Urllib3 >= 2.0 removed support for LibreSSL, WolfSSL and other non OpenSSL
+  implementations.  Multiple operating systems including: macOS and BSD use
+  LibreSSL as the TLS/SSL implementation. LibreSSL support however, was
+  restored to urllib3 in version 2.0.3.
+
+* Urllib3 >= 2.0 changed the minimum version for Python to Python 3.7.
+
+* Urllib3 >= 2.0 removed the default set of TLS ciphers, instead now urllib3
+  uses the list of ciphers configured by the system.
+
+This means that pywbem exceptions can occur during installation, update of pywbem
+or the underlying platform because:
+
+* Level of minimum TLS protocol support depends on the Python Version and the
+  SSL implementation version.
+
+* SSL compatibility issues can happen with new pywbem installations on some
+  platforms or updates to the OS platforms or to pywbem.
+
+Pywbem uses the requests dependent package which uses the urllib3 package which
+uses the  Python openssl module to communicate with OpenSSL; neither pywbem nor the
+requests package pins the urllib3 package to versions below version 2.0. This
+is a function of the SSL implementation and urllib3 package version.
+
+Python version 3.10+ already requires OpenSSL version 1.1.1 or higher
+independent of the use of urllib3 version 2.0+ and pywbem version 1.6 allowed
+urllib3 version 2.0+ simply because it was released before that urllib3 version
+was released.
+
+Because of this pywbem change to allow urllib3 >= 2.0, Warnings, Exceptions,
+etc. can occur in the process of:
+
+* pywbem package installation
+* pywbem package update ( ie. updating urllib3)
+* Update to use a different version of Python, ex. Python 3.6 to a newer Python version
+* OS update which changes the SSL implementation version
+* Pywbem attempting to communicate with a WBEM server where the server may
+  not implement the new TLS version requirement.
+
+The following documents present more information on this change to urllib3 and
+the issues and possible corrections:
+
+* PYTHONPEP644_
+
+* `Urllib3 migration guide <https://urllib3.readthedocs.io/en/stable/v2-migration-guide.html>`_
+
+* `macOS issues with Urllib3 - urllib3 issue 3024 <https://github.com/urllib3/urllib3/issues/3020>`_
+
+* `urllib3 issue 2168, Drop support for OpenSS\<1.1.1 <https://github.com/urllib3/urllib3/issues/2168>`_
+
+The current version and implementation  of the SSL library can be determined
+as follows::
+
+  $ python -c "import ssl; print(ssl.OPENSSL_VERSION)"
+  OpenSSL 1.1.1  7 Feb 2023
+
+or::
+
+  $ python -c "import ssl; print(ssl.OPENSSL_VERSION)"
+  LibreSSL 2.8.3
+
+OpenSSL version can be directly determined from OpenSSL as follows::
+
+    $ openssl version
+    OpenSSL 3.0.2 15 Mar 2022 (Library: OpenSSL 3.0.2 15 Mar 2022)
+
+The current urllib3 installed version can be determined with pip::
+
+  $ pip list | grep urllib3
+  urllib3                       2.2.1
+
+The server TLS version can be verified with the OpenSSL CLI tool::
+
+    openssl s_client -connect localhost:15989 -XXXX
+
+    where: XXXX is tls1_1, tls1_2
+    and a certificate is returned if the corresponding TLS version is valid.
+
+The following subsections define specific issues that can occur with this
+change and proposed solutions.
+
+* :ref:`NotOpenSSLWarning: urllib3 v2.0 only supports OpenSSL 1.1.1+`
+* :ref:`ConnectionError raised with [SSL] EC lib`
+* :ref:`ConnectionError raised with [SSL: UNSUPPORTED_PROTOCOL]`
+* :ref:`ImportError urllib3 v2.0 only supports OpenSSL 1.1.1+`
+
+.. _PYTHONPEP644: Python PEP 644 – Require OpenSSL 1.1.1 or newer <https://peps.python.org/pep-0644/>
+
+
+.. _`NotOpenSSLWarning: urllib3 v2.0 only supports OpenSSL 1.1.1+`:
 
 NotOpenSSLWarning: urllib3 v2.0 only supports OpenSSL 1.1.1+
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 .. index:: pair; installation fail: NotOpenSSLWarning
 .. index:: pair; troubleshooting: NotOpenSSLWarning
 
-This issue is probably caused by the dependent Python package urllib3 update to
-version 2.0 in pywbem version 1.7.0. In this case probably the local OS
-environment includes a version of OpenSSL less than 2.0 or another SSL
-implementation.
-
-See :ref:`ConnectionError raised with SSL UNSUPPORTED_PROTOCOL` for
-more information.
+This issue may be caused by the urllib3 package update to version 2.0
+in pywbem version 1.7.0. In this case it is probably that the local environment
+includes a version of OpenSSL less than 1.1.1 The best options is to
+reinstall urllib3 < 2.0
 
 
-.. _ConnectionError raised with SSL UNSUPPORTED_PROTOCOL:
-
-ConnectionError raised with SSL UNSUPPORTED_PROTOCOL
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. index:: pair; troubleshooting: OpenSSL
-.. index:: pair; SSL: OpenSSL
-.. index:: single LibreSSL
-.. index:: single: TLS
-.. index:: pair; UNSUPPORTED_PROTOCOL: OpenSSL
-
-On newer versions of the operating system running the pywbem client,
-communication with the WBEM server may fail with an exception similar to::
-
-    pywbem.exceptions.ConnectionError: SSL error <class 'ssl.SSLError'>:
-      [SSL: UNSUPPORTED_PROTOCOL] unsupported protocol (_ssl.c:1056)
-
-This error means that the WBEM server side SSL implementation does not yet support
-TLS 1.2 or higher or that the SSL library (OpenSSL or LibreSSL) used
-by pywbem does not support TLS 1.2 and the other side requires TLS >= 1.2.
-
-See the Python document
-`https://peps.python.org/pep-0644/ <PEP 644 – Require OpenSSL 1.1.1 or newer>`_
-for more information on Python and OpenSSL version 1.1.1.
-
-In pywbem version 1.7.0 the urllib3 configuration version limit was modified to
-allow urllib3 package versions >= 2.0.  These new versions of urllib3 include backward
-incompatible changes including:
-
-* Support limiting the minimum TLS version to >= 1.2 (i.e OpenSSL version >= 1.1.1). If
-  the version of OpenSSL is less than 1.1.1, this SSLError will occur with the
-  initial request to the WBEM Server.
-* Limit the SSL library implementations to just OpenSSL and some versions of
-  LibreSSL.  The  version 2.0+ urllib3 implementation does not support any
-  other implementations of SSL.
-
-This also happens after an upgrade of the client OS to Debian buster
-using Python 3.7, with OpenSSL 1.1.1d.
-
-This is an error that is created by the SSL library (normally OpenSSL or
-LibreSSL) and handed back up to the SSL module of Python which hands it up to
-pywbem. The error indicates that OpenSSL and the WBEM server do not agree about
-which SSL/TLS protocol level to use.
-
-Pywbem specifies SSL parameters such that the highest SSL/TLS protocol version
-is used that both the client and server support. Pywbem itself does not put any
-additional TLS version restrictions on top of SSL library.
-
-Debian buster includes OpenSSL 1.1.1d and increased its security settings to
-require at least TLS 1.2 (see `https://stackoverflow.com/a/53065682/1424462`).
-
-This issue can possibly be corrected by:
-
-1. If the current version of urllib3 is less than 2.0 (``pip list``), update
-   the version of urllib3 (ex. ``pip install --upgrade  --upgrade-strategy
-   eager urllib3``). to a later version. This is required because pip install
-   does not force an eager update of packages; if a valid previous version (
-   i.e. any version in the range defined by the dev-requirements.txt file) of
-   urllib3 exists it will not be upgraded to 2.0+ in the reinstallation of
-   pywbem.
-
-2. If the current version of urllib3 is greater than 2.0, the previous version
-   of urllib3 (ex. version 1.26.5) can be installed (ex. ``pip install
-   urllib3<2.0``).
-
-3. Adding TLS 1.2 support to the WBEM server side (preferred) or lowering the
-   minimum TLS level required on the client side (which lowers security). With
-   OpenSSL the latter can be done by changing the ``MinProtocol`` parameter in
-   the OpenSSL config file on the client OS (typically ``/etc/ssl/openssl.cnf``
-   on Linux and OS-X, and ``C:\OpenSSL-Win64\openssl.cnf`` on Windows).
-
-   At the end of the file there is::
-
-        [system_default_sect]
-        MinProtocol = TLSv1.2
-        CipherString = DEFAULT@SECLEVEL=2
-
-4. If the issue is the use of LibreSSL (ex. MacOS) as the OS level SSL
-   implementation, the issue may be that urllib3 before version 2.0.3 did not
-   support LibreSSL.  See `urllib3 issue <https://github.com/urllib3/urllib3/issues/3020>`_
-   for discussion of this issue.
-
+.. _`ConnectionError raised with [SSL] EC lib`:
 
 ConnectionError raised with [SSL] EC lib
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
+""""""""""""""""""""""""""""""""""""""""
 .. index:: pair: installation failure; ConnectionError raises with
 
 Using pywbem on Python 3.5 with OpenSSL 1.0.1e-fips against an IBM DS8000
@@ -622,10 +662,121 @@ raised the following exception::
     pywbem.exceptions.ConnectionError: SSL error <class 'ssl.SSLError'>:
       [SSL] EC lib (_ssl.c:728)
 
-This is an error that is created by the OpenSSL library and handed back up to
-the SSL module of Python which hands it up to pywbem. The error indicates that
-OpenSSL on the client side cannot deal with the cipher used by the server
-side. This was fixed by upgrading OpenSSL on the client OS to version 1.1.1.
+This error indicates that OpenSSL on the client side cannot deal with the
+cipher used by the server side. This was fixed by upgrading OpenSSL on the
+client OS to version 1.1.1.
+
+.. _`ConnectionError raised with [SSL: UNSUPPORTED_PROTOCOL]`:
+
+ConnectionError raised with [SSL: UNSUPPORTED_PROTOCOL]
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+.. index:: pair; troubleshooting: OpenSSL
+.. index:: pair; SSL: OpenSSL
+.. index:: pair; UNSUPPORTED_PROTOCOL: OpenSSL
+
+On newer versions of the operating system running the pywbem client,
+communication with the WBEM server may fail with::
+
+    pywbem.exceptions.ConnectionError: SSL error <class 'ssl.SSLError'>:
+      [SSL: UNSUPPORTED_PROTOCOL] unsupported protocol (_ssl.c:1056)
+
+This error indicates that OpenSSL and the WBEM server do not agree about which
+SSL/TLS protocol level to use.
+
+This can also happened after an upgrade of the client OS to Debian buster using
+Python 3.7, with OpenSSL 1.1.1d. Debian buster includes OpenSSL 1.1.1d and
+increased its security settings to require at least TLS 1.2 (see
+https://stackoverflow.com/a/53065682/1424462).
+
+Pywbem specifies SSL parameters such that the highest SSL/TLS protocol version
+is used that both the client and server support. Pywbem does not put any
+additional SSL restrictions on top of Python or the SSL libraries.
+
+This error means that the WBEM server side does not yet support
+TLS 1.2 or higher or that the SSL library used by pywbem does not support
+TLS 1.2.
+
+This issue can be corrected by:
+
+1. If the current version of urllib3 is less than 2.0, update the version
+   of urllib3 (ex. ``pip install --upgrade  --upgrade-strategy eager
+   urllib3``). Since the pywbem install does not force an eager update of
+   packages, if a valid previous version of urllib3 exists it will not be
+   upgraded to 2.0+ in the re-installation of pywbem.
+
+2. If the current version of urllib3 is greater than 2.0, the previous version
+   of urllib3 (ex. version 1.26.5) can be installed with, for example::
+
+    $ pip install urllib3 < 2.0
+
+3. Adding TLS 1.2 support to the WBEM server side (preferred) or owering the
+   minimum TLS level OpenSSL requires on the client side (which lowers
+   security). The latter can be done  with OpenSSL by changing the
+   ``MinProtocol`` parameter in the OpenSSL config file on the client OS
+   (typically ``/etc/ssl/openssl.cnf`` on Linux and OS-X,
+   and ``C:\OpenSSL-Win64\openssl.cnf`` on Windows).
+
+   At the end of the file set::
+
+        [system_default_sect]
+        MinProtocol = TLSv1.2
+        CipherString = DEFAULT@SECLEVEL=2
+
+
+.. _`ImportError urllib3 v2.0 only supports OpenSSL 1.1.1+`:
+
+ImportError urllib3 v2.0 only supports OpenSSL 1.1.1+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+.. index:: single LibreSSL
+.. index:: pair; troubleshooting: OpenSSL
+.. index:: pair; troubleshooting: LibreSSL
+.. index:: LibreSSL macOS
+.. index:: pair; ImportError urllib3: OpenSSL
+
+
+Upgrading Python packages, with a Python that does not support
+OpenSSL 1.1.1 or higher or other SSL implementations, causes an ImportError
+exception raised by urllib3 such as:
+
+    ImportError: urllib3 v2.0 only supports OpenSSL 1.1.1+, currently the ‘ssl’ module is compiled with LibreSSL 2.8.3.
+    See: https://github.com/urllib3/urllib3/issues/2168
+
+This can happen for example on macOS with the system Python of macOS as the
+basis for a Python virtual environment and installing pywbem into that virtual
+environment, which typically installs the latest available versions of
+dependent packages, and thus may install urllib3 with a version 2.0 or later.
+
+The ImportError exception message shows the name and version of the underlying
+SSL library the Python 'ssl' module is using. On most Python systems, that is a
+statically linked SSL library, so just installing OpenSSL 1.1.1 or higher does
+not address the issue.
+
+At least up to macOS Ventura, Apple compiles the system Python with LibreSSL.
+As long as that does not change, you cannot use the system Python of macOS with
+urllib3>=2.0; also not as a basis for Python virtual environments.
+
+There are basically two options on how this issue can be addressed:
+
+* Use a Python version that uses OpenSSL 1.1.1 or higher. That is the case
+  for the CPython reference implementation version 3.7 or higher. CPython can
+  either be downloaded from https://www.python.org/downloads/macos/ or
+  installed using a third party package installer for macOS, such as Homebrew.
+
+* Pin the urllib3 package to stay below version 2.0 when on Python 3.7 or
+  higher, by specifying in the package dependencies, e.g. in the
+  requirements.txt file::
+
+    urllib3>=1.26.5,<2.0; python_version >= '3.7'
+
+    The minimum version of urllib3 should be at least what the
+    minimum-constraints.txt file of the 'pywbem' project specifies as a minimum,
+    for the 'pywbem' version.
+
+    Note that pinning a dependent package prevents installing security
+    fixes, which is important for a network related package such as urllib3, so
+    this option should not be the preferred one.
 
 .. _`Install fails, Externally-managed-environment error`:
 
@@ -639,26 +790,26 @@ This error is caused by the OS distribution adopting the changes defined by
 `Python PEP 668`_ (Marking Python base environments as “externally managed”)
 which sets configuration information so that pip (version 23.0+) will only
 install packages that are not part of the OS distibution into virtual
-environments and will not install them into any of the system python
+environments and will not install them into any of the system Python
 directories. This forces the separation of user packages from OS distribution
 installed packages.
 
 On newer versions of some operating systems (Ex. Ubuntu 23.04, Debian 12, etc.)
 installed from the OS distribution, you may get an error message such as the
-following which indicates that pip refused to install a package:
+following which indicates that pip refused to install a package::
 
 .. code-block:: text
 
-        error: externally-managed-environment
+    error: externally-managed-environment
 
     × This environment is externally managed . . .
     . . .
 
 
 The best solution to this issue is to ``always`` install pywbem into a virtual
-environment as recommended in the pywbem installation.
+environment as recommended in the pywbem :ref:`Installation` documentation.
 
-There are alernatives to allow installation of pywbem into the system python
+There are alernatives to allow installation of pywbem into the system Python
 directories if required including:
 
 
