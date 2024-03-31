@@ -16,7 +16,7 @@
 build>=0.5.1, <1.0
 
 # Cythonize
-Cython>=0.29.33
+Cython>=3.0.0
 
 # Coverage reporting (no imports, invoked via coveralls script):
 coverage>=5.0
