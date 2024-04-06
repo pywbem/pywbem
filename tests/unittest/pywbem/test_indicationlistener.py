@@ -30,29 +30,31 @@ from pywbem._utils import _format  # noqa: E402
 # log level, and add code to set or unset the log level of the root logger
 # globally or specifically in each test case.
 LOGLEVEL = logging.NOTSET  # NOTSET disables logging
+# LOGLEVEL = logging.DEBUG   # Enable to generate logs at debug level
 
-# Name of the log file
-LOGFILE = 'test_indicationlistener.log'
+# Set name of the log file
+LOG_NAME = 'test_indicationlistener'
+LOGFILE = LOG_NAME + '.log'
 
 
 def configure_root_logger(logfile):
     """
-    Configure the root logger, except for log level
+    Configure the root logger, except for log level. Add or configure
+    a single file handler for the log with our formatter and logfile name
     """
     root_logger = logging.getLogger('')
-    hdlr_exists = False
     for hdlr in root_logger.handlers:
         if isinstance(hdlr, logging.FileHandler):
-            hdlr_exists = True
-    if not hdlr_exists:
-        hdlr = logging.FileHandler(logfile)
-        hdlr.setFormatter(
-            logging.Formatter(
-                "%(asctime)s %(thread)s %(name)s %(levelname)s %(message)s"))
-        root_logger.addHandler(hdlr)
+            root_logger.removeHandler(hdlr)
+    # add Filehandler with logfile name and our formatter
+    hdlr = logging.FileHandler(logfile)
+    hdlr.setFormatter(
+        logging.Formatter(
+            "%(asctime)s %(thread)s %(name)s %(levelname)s %(message)s"))
+    root_logger.addHandler(hdlr)
 
 
-LOGGER = logging.getLogger('test_indicationlistener')
+LOGGER = logging.getLogger(LOG_NAME)
 if LOGLEVEL > logging.NOTSET:
     configure_root_logger(LOGFILE)
 
@@ -213,6 +215,27 @@ TESTCASES_WBEMLISTENER_INIT = [
     ),
     (
         "Verify full arguments for success with https_port",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
+                host='woot.com',
+                http_port=None,
+                https_port=6998,
+                certfile='certfile.pem',
+                keyfile='keyfile.pem',
+            ),
+            exp_attrs=dict(
+                host='woot.com',
+                http_port=None,
+                https_port=6998,
+                certfile='certfile.pem',
+                keyfile='keyfile.pem',
+            ),
+        ),
+        None, None, True
+    ),
+    (
+        "Verify use of direct_call argument",
         dict(
             init_args=[],
             init_kwargs=dict(
@@ -612,6 +635,7 @@ def process_indication(indication, host):
 @pytest.mark.parametrize(
     "send_count",
     [1, 10, 100]  # 1000 in some environments takes 30 min
+
 )
 def test_WBEMListener_send_indications(send_count):
     """
@@ -621,8 +645,8 @@ def test_WBEMListener_send_indications(send_count):
     parameter using HTTP. It confirms that they are all received by the
     listener.
 
-    This test validates the main paths of the listener and that the listener can
-    receive large numbers of indications without duplicates or dropping
+    This test validates the main paths of the listener and that the listener
+    can receive large numbers of indications without duplicates or dropping
     indications.
 
     It does not validate all of the possible xml options on indications.
@@ -654,6 +678,7 @@ def test_WBEMListener_send_indications(send_count):
     listener = WBEMListener(host, http_port)
     listener.add_callback(process_indication)
     listener.start()
+    timer = ElapsedTimer()
 
     try:
 
@@ -672,11 +697,10 @@ def test_WBEMListener_send_indications(send_count):
 
         delta_time = time() - start_time
         random_base = randint(1, 10000)
-        timer = ElapsedTimer()
 
         RCV_COUNT = 0
         RCV_ERRORS = False
-
+        LOGGER.debug("Testcase sending %s indications", send_count)
         for i in range(send_count):
 
             msg_id = random_base + i
@@ -688,11 +712,12 @@ def test_WBEMListener_send_indications(send_count):
             try:
                 response = post_bsl(url, headers=headers, data=payload)
             except requests.exceptions.RequestException as exc:
-                msg = ("Testcase sending indication #{} raised {}: {}".
-                       format(i, exc.__class__.__name__, exc))
+                msg = ("Testcase sending indication #{} raised {}: {}",
+                       (i, exc.__class__.__name__, exc))
                 LOGGER.error(msg)
                 new_exc = AssertionError(msg)
-                new_exc.__cause__ = None  # Disable to see original traceback
+                # Disable to see original traceback
+                new_exc.__cause__ = None
                 raise new_exc
 
             LOGGER.debug("Testcase received response from sending "
@@ -704,15 +729,8 @@ def test_WBEMListener_send_indications(send_count):
                 LOGGER.error(msg)
                 raise AssertionError(msg)
 
-        endtime = timer.elapsed_sec()
-
         # Make sure the listener thread has processed all indications
         sleep(1)
-
-        if VERBOSE_SUMMARY:
-            print("\nSent {} indications in {} sec or {:.2f} ind/sec".
-                  format(send_count, endtime, (send_count / endtime)))
-            sys.stdout.flush()
 
         assert not RCV_ERRORS, \
             "Errors occurred in process_indication(), as printed to stdout"
@@ -722,8 +740,21 @@ def test_WBEMListener_send_indications(send_count):
             format(send_count, RCV_COUNT)
 
     finally:
-        listener.stop()
 
+        endtime = timer.elapsed_sec()
+        per_sec = send_count / endtime
+
+        LOGGER.debug("SUMMARY: Sent %d indications in %d sec or %.2f ind/sec",
+                     send_count, endtime, per_sec)
+
+        if VERBOSE_SUMMARY:
+            print("\nSSUMMARY: Sent {} indications in {} sec or {:.2f} ind/sec".
+                  format(send_count, endtime, per_sec))
+            sys.stdout.flush()
+
+        LOGGER.debug("Start listener stop")
+        listener.stop()
+        LOGGER.debug("End listener stop")
         # Disable logging for this test function
         if LOGLEVEL > logging.NOTSET:
             logging.getLogger('').setLevel(logging.NOTSET)

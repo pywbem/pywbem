@@ -128,6 +128,12 @@ WBEMListener class
 ------------------
 """
 
+# FUTURE: we should add the following:
+#  1. Max size for callback queue.  We do not want to kill the client
+#     Queue has a Full state so we can use that and stop the server from
+#     sending if the queue is full.
+#
+
 import sys
 import os
 import errno
@@ -138,6 +144,11 @@ import ssl
 import threading
 import atexit
 import getpass
+# Python 2.7 uses name Queue
+try:
+    import queue
+except ImportError:
+    import Queue as queue
 try:
     import termios
 except ImportError:
@@ -500,8 +511,8 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                             "but {0!A}", indication_inst))
                 return
             # server.listener created in WBEMListener.start function
-            self.server.listener.deliver_indication(indication_inst,
-                                                    self.client_address[0])
+            self.server.listener.handle_indication(indication_inst,
+                                                   self.client_address[0])
 
             self.send_success_response(msgid, methodname)
 
@@ -698,6 +709,29 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                        __version__, self.server_version, self.sys_version)
 
 
+class StoppableThread(threading.Thread):
+    """
+    Thread subclass with a stop() method. The thread itself must check
+    regularly for the stopped() event ( i.e. if stop_event.is_set()) and
+    exit the thread code.
+    """
+
+    def __init__(self, *args, **kwargs):
+        """
+        Init with arguments for the thread
+        """
+        super(StoppableThread, self).__init__(*args, **kwargs)
+        self.stop_event = threading.Event()
+
+    def stop(self):
+        """Set the thread stop_event. To tell thread to stop"""
+        self.stop_event.set()
+
+    def stopped(self):
+        """Test for thread stop event set"""
+        return self.stop_event.is_set()
+
+
 # pylint: disable=too-many-instance-attributes
 class WBEMListener(object):
     """
@@ -813,6 +847,12 @@ class WBEMListener(object):
             _format("pywbem.listener.{0}", id(self)))
 
         self._callbacks = []  # Registered callback functions
+
+        # Set up callback queue and callback thread.
+        self.rcvd_indication_queue = queue.Queue()
+        self.callback_thread = StoppableThread(
+            target=self.deliver_indications_from_queue,
+            args=(self.rcvd_indication_queue,))
 
     def __str__(self):
         """
@@ -991,6 +1031,9 @@ class WBEMListener(object):
           :exc:`py:OSError`: Other error
           :exc:`py:IOError`: Other error (Python 2.7 only)
         """
+        # Start delivery queue
+        self.callback_thread.start()
+        self.logger.info("Callback queue thread started")
 
         if self._http_port:
             if not self._http_server:
@@ -1139,17 +1182,66 @@ class WBEMListener(object):
             self.logger.info("Stopped threaded HTTP server")
 
         if self._https_server:
-            self.logger.info("Stopping threaded HTTPS server")
+            self.logger.info("Stopping threaded Queue")
             self._https_server.shutdown()
             self._https_server.server_close()
             self._https_server = None
             self._https_thread = None
-            self.logger.info("Stopped threaded HTTPS server")
+            self.logger.info("Stopped threaded Queue")
 
-    def deliver_indication(self, indication, host):
+        self.logger.info("Stopping queued delivery")
+        self.callback_thread.stop()
+        self.logger.info("Joining queued delivery")
+        self.callback_thread.join()
+        self.logger.info("Join finished threaded Deliver queue")
+
+    def deliver_indications_from_queue(self, delivery_queue):
         """
-        This function is called by the listener threads for each received
-        indication. It is not supposed to be called by the user.
+        Deliver indications from delivery_queue to the defined consumer. This
+        function runs a loop in its own thread and only exits the thread when
+        the listener is shut down (i.e. when the stop_event is set).
+
+        """
+        # queue get wait timeout in seconds. This is short because it impacts
+        # time to stop the thread.
+        queue_timeout = 2
+        self.logger.debug("Start deliver indications from queue.")
+        # NOTE: Loop continues to deliver queued indications until empty
+        #       even if the stop_event is set.
+        while True:
+            try:
+                self.logger.debug("Get from queue. %d in queue",
+                                  delivery_queue.qsize())
+                indication_tuple = delivery_queue.get(block=True,
+                                                      timeout=queue_timeout)
+                # self.logger.debug("Got from queue")
+                self.deliver_indication_to_callback(indication_tuple[0],
+                                                    indication_tuple[1])
+            # FUTURE: Should we be able to turn off this thread if there are
+            # no indications received for a defined time? Now just continues
+            # the receive process with wait loop.
+            # FUTURE: add test for excessive indications in queue.
+            # Probably stop and get out with some indication of problem.
+            except queue.Empty:
+                self.logger.debug("Queue empty")
+                if self.callback_thread.stop_event.is_set():
+                    self.logger.debug("Stop Deliver: stop_event set")
+                    break
+
+        return
+
+    def handle_indication(self, indication, host):
+        """
+        Entry point from the listener with a single indication.
+        Puts the indication in the indication queue.
+        """
+        self.rcvd_indication_queue.put((indication, host))
+
+    def deliver_indication_to_callback(self, indication, host):
+        """
+        This function is called to deliver a single indication to all
+        registered callback functions. It is not supposed to be called
+        by the user.
 
         It delivers the indication to all callback functions that have been
         added to the listener.
