@@ -71,10 +71,11 @@ def test_indications(wbem_connection):  # noqa: F811
     # the container not returning all of the indications.  This appears to
     # be much more consistent with python 3.7 and 3.7 PACKAGE_LEVEL=minimum
 
+    # Skipping tests for python 2.7 and 3.7 if issues losing indications
     if sys.version_info[0:2] in ((2, 7), (3, 7)):
-        skip("Skipping test_indications for python 2.7")
+        skip("Skipping test_indications for python 2.7, 3.7")
     else:
-        test_run_loops = ((1, 2), (1, 10), )
+        test_run_loops = ((1, 1), (1, 2), (1, 10), (1, 100), (1, 1000))
 
     for params in test_run_loops:
         repeat_loop = params[0]
