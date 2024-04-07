@@ -162,6 +162,11 @@ jobs:
               { \
                 \"os\": \"windows-latest\", \
                 \"python-version\": \"3.12\", \
+                \"package_level\": \"minimum\" \
+              }, \
+              { \
+                \"os\": \"windows-latest\", \
+                \"python-version\": \"3.12\", \
                 \"package_level\": \"latest\" \
               } \
             ] \
