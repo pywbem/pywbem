@@ -40,10 +40,9 @@ from __future__ import absolute_import, print_function
 
 from copy import deepcopy
 import six
-from nocaselist import NocaseList
 
+from pywbem._vendor.nocaselist import NocaseList
 from pywbem import CIMClass, CIMQualifierDeclaration, CIMInstance
-
 from pywbem._nocasedict import NocaseDict
 from pywbem._utils import _format
 

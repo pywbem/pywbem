@@ -40,8 +40,8 @@ described in detail in this documentation.
 
 from __future__ import print_function, absolute_import
 
-from nocasedict import NocaseDict as _NocaseDict
-from nocasedict import HashableMixin, KeyableByMixin
+from ._vendor.nocasedict import NocaseDict as _NocaseDict
+from ._vendor.nocasedict import HashableMixin, KeyableByMixin
 
 __all__ = ['NocaseDict']
 

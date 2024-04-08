@@ -91,6 +91,10 @@ build==0.5.1
 # Cythonize
 Cython==3.0.0
 
+# Vendorize
+vendorize==0.2.2; python_version == '2.7'
+vendorize==0.3.0; python_version >= '3.6'
+
 more-itertools==4.0.0
 
 # Safety CI by pyup.io
