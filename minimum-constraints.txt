@@ -344,7 +344,8 @@ backports.functools-lru-cache==1.6.4; python_version == '2.7'
 backports.shutil-get-terminal-size==1.0.0; python_version == '2.7'
 backports.statistics==0.1.0; python_version == '2.7'
 beautifulsoup4==4.10.0; python_version >= '3.6'
-cffi==1.14.5
+cffi==1.14.5; python_version <= '3.7'
+cffi==1.16.0; python_version >= '3.8'
 # Click used by easy-vault (8.0.2) and safety (7.1.1).
 Click==7.1.1; python_version == '2.7'
 Click==8.0.2; python_version >= '3.6'
