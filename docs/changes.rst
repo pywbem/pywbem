@@ -25,6 +25,10 @@ Released: not yet
 
 * Dropped support for Python 3.5. (issue #2867)
 
+* In order to make life easier for people that package pywbem into Linux
+  distros, vendorized the nocasedict and nocaselist packages. They have been
+  removed from the package dependencies. (issue #3141)
+
 * The 'pywbem.ValueMapping' class will now raise a 'pywbem.ModelError' for any
   missing or extra items in the 'Values' qualifier, compared to the 'ValueMap'
   qualifier. Previously, 'IndexError' was raised. (issue #2991)

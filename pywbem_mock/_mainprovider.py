@@ -41,7 +41,6 @@ from collections import Counter
 from copy import deepcopy
 import re
 import six
-from nocaselist import NocaseList
 
 # pylint: disable=ungrouped-imports
 try:
@@ -55,6 +54,7 @@ except ImportError:
     from time import clock as perf_counter
 # pylint: enable=ungrouped-imports
 
+from pywbem._vendor.nocaselist import NocaseList
 from pywbem import CIMClass, CIMClassName, CIMInstanceName, \
     CIMQualifierDeclaration, CIMError, \
     CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_PARAMETER, CIM_ERR_INVALID_CLASS, \
