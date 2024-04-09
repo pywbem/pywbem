@@ -223,7 +223,7 @@ def supports_capability(conn, cap_name):
 @pytest.fixture(
     scope='function'
 )
-def wbem_connection(request, es_server):
+def wbem_connection(request, es_server):  # noqa: F811
     # pylint: disable=redefined-outer-name, unused-argument
     """
     Fixture representing a WBEMConnection object to use for the end2end tests.

@@ -362,6 +362,7 @@ help:
 	@echo "  build      - Build the source and wheel distribution archives in: $(dist_dir)"
 	@echo "  builddoc   - Build documentation in: $(doc_build_dir)"
 	@echo "  check      - Run Flake8 on sources"
+	@echo "  ruff       - Run Ruff (an alternate lint tool) on sources"
 	@echo "  pylint     - Run PyLint on sources"
 	@echo "  installtest - Run install tests"
 	@echo "  safety     - Run Safety for install and all"
@@ -564,6 +565,10 @@ builddoc: html
 check: $(done_dir)/flake8_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Target $@ done."
 
+.PHONY: ruff
+ruff: $(done_dir)/ruff_$(pymn)_$(PACKAGE_LEVEL).done
+	@echo "Makefile: Target $@ done."
+
 .PHONY: pylint
 pylint: $(done_dir)/pylint_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Target $@ done."
@@ -577,7 +582,7 @@ todo: $(done_dir)/todo_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Target $@ done."
 
 .PHONY: all
-all: install develop check_reqs build builddoc check pylint installtest test leaktest resourcetest perftest
+all: install develop check_reqs build builddoc check ruff pylint installtest test leaktest resourcetest perftest
 	@echo "Makefile: Target $@ done."
 
 .PHONY: clobber
@@ -781,6 +786,22 @@ $(done_dir)/flake8_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/develop_$(pymn)_$(
 	flake8 --statistics --config=$(flake8_rc_file) --filename='*' $(py_src_files) $(py_test_files)
 	echo "done" >$@
 	@echo "Makefile: Done running Flake8"
+
+$(done_dir)/ruff_$(pymn)_$(PACKAGE_LEVEL).done: Makefile $(py_src_files) $(py_test_files)
+ifeq ($(python_mn_version),2.7)
+	@echo "Makefile: Warning: Skipping Ruff on Python $(python_version)" >&2
+else
+ifeq ($(python_mn_version),3.6)
+	@echo "Makefile: Warning: Skipping Ruff on Python $(python_version)" >&2
+else
+	@echo "Makefile: Running Ruff"
+	-$(call RM_FUNC,$@)
+	ruff --version
+	ruff check --unsafe-fixes $(py_src_files) $(py_test_files)
+	echo "done" >$@
+	@echo "Makefile: Done running Ruff"
+endif
+endif
 
 $(done_dir)/safety_all_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile $(safety_all_policy_file) minimum-constraints.txt minimum-constraints-install.txt
 ifeq ($(python_m_version),2)

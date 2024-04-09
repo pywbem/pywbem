@@ -19,13 +19,5 @@ exclude =
 # Globally disabled flake8 issues:
 # * W504 (line break after binary operator) is issued since 10/2018 in situations
 #   that are ok (e.g. within brackets).
-# * E402 (module level import not at top of file) is quite daunting since we
-#   are using conditional imports for py2/py3 in a number of places.
-# * F811 () flake8 reports this on the use of pytest fixtures. Flake8 3.7
-#   changed the place where the corresponding noqa statement needed to be
-#   placed such that there is no place anymore that works with versions before
-#   and after.
 ignore =
-    W504,
-#    E402,
-    F811
+   W504,

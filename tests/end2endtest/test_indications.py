@@ -42,7 +42,8 @@ from pywbem import WBEMServer, WBEMListener, CIMClassName, \
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
-def test_indications(wbem_connection):  # pylint: disable=redefined-outer-name
+def test_indications(wbem_connection):  # noqa: F811
+    # pylint: disable=redefined-outer-name
     """
     Test indication subscription to a container and reception of indications
     from the container.
