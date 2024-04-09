@@ -1594,7 +1594,7 @@ def to_dict(mapping, dict_type):
     that are mappings, recursively.
     """
     assert isinstance(mapping, Mapping)
-    if not type(mapping) is dict_type:  # pylint: disable=unidiomatic-typecheck
+    if type(mapping) is not dict_type:  # pylint: disable=unidiomatic-typecheck
         mapping = dict(mapping)
     for k, v in mapping.items():
         if isinstance(v, Mapping):

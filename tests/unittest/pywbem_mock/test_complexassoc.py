@@ -555,28 +555,28 @@ def test_complexref_instnames(conn, ns, target, ro, rc, mof, exp_rslt,
         # pylint: disable=line-too-long
         ['TST_EP', None, None, None, None, None, ['TST_EP', 'TST_LD'], OK],
         ['TST_EP', None, 'TST_A3', None, None, None, ['TST_EP', 'TST_LD'], OK],
-        ['TST_EP', 'Initiator', None, None, None, None, ['TST_EP', 'TST_LD'], OK],  # noqa: 501
-        ['TST_EP', 'Initiator', 'TST_A3', None, None, None, ['TST_EP', 'TST_LD'], OK],  # noqa: 501
+        ['TST_EP', 'Initiator', None, None, None, None, ['TST_EP', 'TST_LD'], OK],  # noqa: E501
+        ['TST_EP', 'Initiator', 'TST_A3', None, None, None, ['TST_EP', 'TST_LD'], OK],  # noqa: E501
         ['TST_EP', None, 'TST_A3', 'Target', None, None, ['TST_EP'], OK],
         ['TST_EP', 'Initiator', 'TST_A3', 'Target', None, None, ['TST_EP'], OK],
         ['TST_EP', None, 'TST_A3', 'Target', 'TST_LD', None, [], OK],
         ['TST_EP', 'Initiator', 'TST_A3', 'Target', None, None, ['TST_EP'], OK],
         ['TST_EP', 'Initiator', 'TST_A3', 'Target', 'TST_LD', None, [], OK],
-        ['TST_EP', 'Initiator', 'TST_A3', 'LogicalUnit', 'TST_LD', None, ['TST_LD'], OK],  # noqa: 501
+        ['TST_EP', 'Initiator', 'TST_A3', 'LogicalUnit', 'TST_LD', None, ['TST_LD'], OK],  # noqa: E501
         # test for case indepence on all parameters
-        ['tst_ep', 'INITIATOR', 'tst_a3', 'LOGICALUNIT', 'tst_ld', None, ['TST_LD'], OK],  # noqa: 501
+        ['tst_ep', 'INITIATOR', 'tst_a3', 'LOGICALUNIT', 'tst_ld', None, ['TST_LD'], OK],  # noqa: E501
 
         # test source TST_EP and Target as role
         ['TST_EP', None, None, None, None, None, ['TST_EP', 'TST_LD'], OK],
         ['TST_EP', None, 'TST_A3', None, None, None, ['TST_EP', 'TST_LD'], OK],
         ['TST_EP', 'Target', None, None, None, None, ['TST_EP', 'TST_LD'], OK],
-        ['TST_EP', 'Target', 'TST_A3', None, None, None, ['TST_EP', 'TST_LD'], OK],  # noqa: 501
+        ['TST_EP', 'Target', 'TST_A3', None, None, None, ['TST_EP', 'TST_LD'], OK],  # noqa: E501
         ['TST_EP', None, 'TST_A3', 'Initiator', None, None, ['TST_EP'], OK],
         ['TST_EP', 'Target', 'TST_A3', 'Initiator', None, None, ['TST_EP'], OK],
         ['TST_EP', None, 'TST_A3', 'Initiator', 'TST_LD', None, [], OK],
         ['TST_EP', 'Target', 'TST_A3', 'Initiator', None, None, ['TST_EP'], OK],
         ['TST_EP', 'Target', 'TST_A3', 'Initiator', 'TST_LD', None, [], OK],
-        ['TST_EP', 'Target', 'TST_A3', 'LogicalUnit', 'TST_LD', None, ['TST_LD'], OK],  # noqa: 501
+        ['TST_EP', 'Target', 'TST_A3', 'LogicalUnit', 'TST_LD', None, ['TST_LD'], OK],  # noqa: E501
 
         # Test source TST_LD, Initiator as ResultRole
         # TODO 4 Failures. PEG Returns TST_EP only. Mock ACT TST_EP and TST_LD
@@ -586,17 +586,17 @@ def test_complexref_instnames(conn, ns, target, ro, rc, mof, exp_rslt,
         ['TST_LD', 'LogicalUnit', 'TST_A3', None, None, None, ['TST_EP'], OK],
         ['TST_LD', None, 'TST_A3', 'Initiator', None, None, ['TST_EP'], OK],
         # TODO: did we miss this option with all params in tests above
-        ['TST_LD', 'LogicalUnit', 'TST_A3', 'Initiator', 'TST_EP', None, ['TST_EP'], OK],  # noqa: 501
-        ['TST_LD', 'LogicalUnit', 'TST_A3', 'Initiator', None, None, ['TST_EP'], OK],  # noqa: 501
+        ['TST_LD', 'LogicalUnit', 'TST_A3', 'Initiator', 'TST_EP', None, ['TST_EP'], OK],  # noqa: E501
+        ['TST_LD', 'LogicalUnit', 'TST_A3', 'Initiator', None, None, ['TST_EP'], OK],  # noqa: E501
         ['TST_LD', None, 'TST_A3', 'Initiator', 'TST_LD', None, [], OK],
-        ['TST_LD', 'LogicalUnit', 'TST_A3', 'Initiator', None, None, ['TST_EP'], OK],  # noqa: 501
-        ['TST_LD', 'LogicalUnit', 'TST_A3', 'Initiator', 'TST_EP', None, ['TST_EP'], OK],  # noqa: 501
+        ['TST_LD', 'LogicalUnit', 'TST_A3', 'Initiator', None, None, ['TST_EP'], OK],  # noqa: E501
+        ['TST_LD', 'LogicalUnit', 'TST_A3', 'Initiator', 'TST_EP', None, ['TST_EP'], OK],  # noqa: E501
 
-        ['TST_LD', 'LogicalUnit', 'TST_A3', 'Initiator', 'TST_LD', None, [], OK],  # noqa: 501
-        ['TST_LD', 'LogicalUnit', 'TST_A3', 'Target', None, None, ['TST_EP'], OK],  # noqa: 501
+        ['TST_LD', 'LogicalUnit', 'TST_A3', 'Initiator', 'TST_LD', None, [], OK],  # noqa: E501
+        ['TST_LD', 'LogicalUnit', 'TST_A3', 'Target', None, None, ['TST_EP'], OK],  # noqa: E501
         ['TST_LD', None, 'TST_A3', 'Target', 'TST_LD', None, [], OK],
-        ['TST_LD', 'LogicalUnit', 'TST_A3', 'Target', None, None, ['TST_EP'], OK],  # noqa: 501
-        ['TST_LD', 'LogicalUnit', 'TST_A3', 'Target', 'TST_EP', None, ['TST_EP'], OK],  # noqa: 501
+        ['TST_LD', 'LogicalUnit', 'TST_A3', 'Target', None, None, ['TST_EP'], OK],  # noqa: E501
+        ['TST_LD', 'LogicalUnit', 'TST_A3', 'Target', 'TST_EP', None, ['TST_EP'], OK],  # noqa: E501
         ['TST_LD', 'LogicalUnit', 'TST_A3', 'Target', 'TST_LD', None, [], OK],
         # pylint: enable=line-too-long
 

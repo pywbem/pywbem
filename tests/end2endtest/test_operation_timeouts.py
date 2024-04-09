@@ -152,7 +152,8 @@ def run_timeout_test(conn, timeout, response_delay, timeout_exp):
                    execution_time, ce)
 
 
-def test_timeouts(wbem_connection):  # pylint: disable=redefined-outer-name
+def test_timeouts(wbem_connection):  # noqa: F811
+    # pylint: disable=redefined-outer-name
     """
     Test indication subscription to a container and reception of indications
     from the container.

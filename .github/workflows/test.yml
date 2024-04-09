@@ -298,6 +298,12 @@ jobs:
         RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
       run: |
         make check
+    - name: Run ruff
+      env:
+        PACKAGE_LEVEL: ${{ matrix.package_level }}
+        RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
+      run: |
+        make ruff
     - name: Run pylint
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
