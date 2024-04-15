@@ -283,7 +283,7 @@ setup_options = dict(
     },
     description='pywbem - A WBEM client',
     long_description=read_file('README_PYPI.md'),
-    long_description_content_type='text/x-rst',
+    long_description_content_type='text/markdown',
     license='LGPL version 2.1, or (at your option) any later version',
     author='Tim Potter',
     author_email='tpot@hp.com',
