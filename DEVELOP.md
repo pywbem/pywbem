@@ -103,12 +103,12 @@ local clone of the ``pywbem/pywbem`` Git repo.
 
 5.  Edit the README file for PyPI:
 
-        vi README_PYPI.rst
+        vi README_PYPI.md
 
     and update the constants near the top of the file:
 
         .. |pywbem-version-mn| replace:: M.N
-        .. _Readme file on GitHub: https://github.com/pywbem/pywbem/blob/stable_M.N/README.rst
+        .. _Readme file on GitHub: https://github.com/pywbem/pywbem/blob/stable_M.N/README.md
         .. _Documentation on RTD: https://pywbem.readthedocs.io/en/stable_M.N/
         .. _Change log on RTD: https://pywbem.readthedocs.io/en/stable_M.N/changes.html
 

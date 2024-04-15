@@ -162,6 +162,9 @@ Released: not yet
   installation dependencies since it is an indirect dependency (pywbem ->
   requests -> idna).
 
+* Changed the format of the README and README_PYPI files from RST to Markdown,
+  to address formatting issues with badges on the Github site (issue #3133).
+
 **Known issues:**
 
 * See `list of open issues`_.

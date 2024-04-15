@@ -309,8 +309,8 @@ nocaselist_dist_dir := nocaselist-$(nocaselist_version).dist-info
 # as specified, without being expanded.
 dist_manifest_in_files := \
     LICENSE.txt \
-    README.rst \
-    README_PYPI.rst \
+    README.md \
+    README_PYPI.md \
     INSTALL.md \
     requirements.txt \
     test-requirements.txt \
@@ -329,8 +329,8 @@ dist_manifest_in_files := \
 # Keep in sync with dist_manifest_in_files.
 dist_dependent_files := \
     LICENSE.txt \
-    README.rst \
-    README_PYPI.rst \
+    README.md \
+    README_PYPI.md \
     INSTALL.md \
     requirements.txt \
     test-requirements.txt \
