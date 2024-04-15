@@ -449,7 +449,7 @@ Profile implementations in a WBEM server are not entirely free when making a
 choice of which methodology to implement:
 
 * Autonomous profiles in a WBEM server must implement the central class
-  methodology, and may in addition implement the new GetCentralInstances
+  methodology, and may in addition implement the new ``GetCentralInstances``
   methodology.
 
   Note that the scoping class methodology falls together with the
@@ -457,8 +457,8 @@ choice of which methodology to implement:
   class is also their central class.
 
 * Component profiles in a WBEM server may implement the central class
-  methodology and the new GetCentralInstances methodology, and must support the
-  scoping class methodology.
+  methodology and the new ``GetCentralInstances`` methodology, and must support
+  the scoping class methodology.
 
   Note that implementing the scoping class methodology in a WBEM server
   requires implementing the classes and associations of the scoping path,
@@ -589,12 +589,10 @@ etc. can occur in the process of:
 The following documents present more information on this change to urllib3 and
 the issues and possible corrections:
 
-* PYTHONPEP644_
 
+* `Python PEP 644 – Require OpenSSL 1.1.1 or newer <https://peps.python.org/pep-0644/>`_
 * `Urllib3 migration guide <https://urllib3.readthedocs.io/en/stable/v2-migration-guide.html>`_
-
 * `macOS issues with Urllib3 - urllib3 issue 3024 <https://github.com/urllib3/urllib3/issues/3020>`_
-
 * `urllib3 issue 2168, Drop support for OpenSSL\<1.1.1 <https://github.com/urllib3/urllib3/issues/2168>`_
 
 The current version and implementation  of the SSL library can be determined
@@ -632,9 +630,6 @@ change and proposed solutions.
 * :ref:`ConnectionError raised with [SSL] EC lib`
 * :ref:`ConnectionError raised with [SSL: UNSUPPORTED_PROTOCOL]`
 * :ref:`ImportError urllib3 v2.0 only supports OpenSSL 1.1.1+`
-
-.. _PYTHONPEP644: Python PEP 644 – Require OpenSSL 1.1.1 or newer <https://peps.python.org/pep-0644/>
-
 
 .. _`NotOpenSSLWarning: urllib3 v2.0 only supports OpenSSL 1.1.1+`:
 
@@ -683,6 +678,13 @@ communication with the WBEM server may fail with::
 
 This error indicates that OpenSSL and the WBEM server do not agree about which
 SSL/TLS protocol level to use.
+
+In pywbem version 1.7.0 the urllib3 configuration version limit was modified to
+allow urllib3 versions >= 2.0.  These versions of urllib3 limit the minimum TLS
+version to 1.2 (i.e OpenSSL version >= 1.1.1). If the version of OpenSSL is
+less than 1.1.1, this SSLError will occur with the initial request to the WBEM
+Server. Urllib3 version <= 2.0 also limits the SSL library implementations to
+just OpenSSL and possibly LibreSSL.
 
 This can also happened after an upgrade of the client OS to Debian buster using
 Python 3.7, with OpenSSL 1.1.1d. Debian buster includes OpenSSL 1.1.1d and
@@ -770,13 +772,13 @@ There are basically two options on how this issue can be addressed:
 
     urllib3>=1.26.5,<2.0; python_version >= '3.7'
 
-    The minimum version of urllib3 should be at least what the
-    minimum-constraints.txt file of the 'pywbem' project specifies as a minimum,
-    for the 'pywbem' version.
+  The minimum version of urllib3 should be at least what the
+  minimum-constraints.txt file of the 'pywbem' project specifies as a minimum,
+  for the 'pywbem' version.
 
-    Note that pinning a dependent package prevents installing security
-    fixes, which is important for a network related package such as urllib3, so
-    this option should not be the preferred one.
+  Note that pinning a dependent package prevents installing security
+  fixes, which is important for a network related package such as urllib3, so
+  this option should not be the preferred one.
 
 .. _`Install fails, Externally-managed-environment error`:
 
@@ -801,7 +803,6 @@ following which indicates that pip refused to install a package::
 .. code-block:: text
 
     error: externally-managed-environment
-
     × This environment is externally managed . . .
     . . .
 
@@ -850,14 +851,14 @@ settings issues between the WBEM server and pywbem listener.
 
 OpenPegasus has two configuration settings that can impact sending indications:
 
-1. **maxIndicationDeliveryRetryAttempts** (Default 3 seconds)
+1. **maxIndicationDeliveryRetryAttempts** (Default 3 retries)
 
    If set to a positive integer, value defines the number of times
    indication service will enable the reliableIndication feature
    and try to deliver an indication to a particular listener destination.
    This does not effect the original delivery attempt. A value of 0
    disables reliable indication feature completely, and cimserver will
-   deliver the indication once.
+   attempt deliver the indication once and then discard it.
 
 2. **minIndicationDeliveryRetryInterval** (Default: 30 seconds).
 
@@ -898,8 +899,9 @@ delay before resending the failed indications.  Setting the
 OpenPegasus WBEM server to different timeout times can correct this problem
 (ex. delay 2 seconds, retry attempts 5 for local testing).
 
-The OpenPegasus configuration variables can be set with the OpenPegasus ``cimconfig`` command
-line utility  either when the server is running or stopped.
+The OpenPegasus configuration variables can be set with the OpenPegasus
+``cimconfig`` command line utility  either when the server is running or
+stopped.
 
 See the OpenPegasus documenation or OpenPegasus ``cimconfig --help`` for
 detailed information on the command parameters for setting these configuation
