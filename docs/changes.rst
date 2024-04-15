@@ -14,12 +14,12 @@ Change log
       :revisions: 1
 
 
-pywbem 1.7.0.dev1
------------------
+pywbem 1.7.0
+------------
 
-This version contains all fixes up to version 1.6.x.
+This version contains all fixes up to version 1.6.3.
 
-Released: not yet
+Released: 2024-04-15
 
 **Incompatible changes:**
 
@@ -48,9 +48,6 @@ Released: not yet
   and the pywbem documentation
   `trouble shooting <https://pywbem.readthedocs.io/en/stable/appendix.html#troubleshooting>`_
   for more information.
-
-
-**Deprecations:**
 
 **Bug fixes:**
 
@@ -162,12 +159,6 @@ Released: not yet
 
 * Changed the format of the README and README_PYPI files from RST to Markdown,
   to address formatting issues with badges on the Github site (issue #3133).
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 1.6.0

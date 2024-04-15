@@ -15,8 +15,8 @@ performing systems management tasks. A WBEM indication listener is used to wait
 for and process notifications emitted by a WBEM server for the purpose of
 systems management.
 
-For more information on pywbem version 1.6:
+For more information on pywbem version 1.7:
 
-- [Readme file on GitHub](https://github.com/pywbem/pywbem/blob/stable_1.6/README.md)
-- [Documentation on RTD](https://pywbem.readthedocs.io/en/stable_1.6/)
-- [Change log on RTD](https://pywbem.readthedocs.io/en/stable_1.6/changes.html)
+- [Readme file on GitHub](https://github.com/pywbem/pywbem/blob/stable_1.7/README.md)
+- [Documentation on RTD](https://pywbem.readthedocs.io/en/stable_1.7/)
+- [Change log on RTD](https://pywbem.readthedocs.io/en/stable_1.7/changes.html)
