@@ -845,7 +845,7 @@ Losing indications when sent from OpenPegasus server
 
 
 If there is a case where the pywbem listener appears to be losing indications
-sent from at least the OpenPegasus server, this may be due to timout/retry
+sent from at least the OpenPegasus server, this may be due to timeout/retry
 settings issues between the WBEM server and pywbem listener.
 
 OpenPegasus has two configuration settings that can impact sending indications:
@@ -881,9 +881,9 @@ listener OpenPegasus waits 30 seconds and retries. It repeats this process
 
 As noted in pywbem issue https://github.com/pywbem/pywbem/issues/3022 tests
 with OpenPegasus under high indication loading have indicated that occasionally
-the WBEM server receives a zero length response immediatly after sending the
+the WBEM server receives a zero length response immediately after sending the
 indication. This is treated as
-an error and the retry process started.  If any timeouts or time checks in the
+an error and the retry process is started.  If any timeouts or time checks in the
 listener, (ex. very short times in tests between received indications) these
 timeouts could be interpreted as lost indications when, in fact, OpenPegasus
 will wait 30 seconds and then retry the indication that the server thought
