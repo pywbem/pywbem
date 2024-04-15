@@ -24,7 +24,7 @@ moflog*.txt
 test_recorder.yaml
 pylint_done
 /blah.yaml
-.coverage
+.coverage*
 /coverage_html/
 *.py,cover
 cprofilerstats*.profile
