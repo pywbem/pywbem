@@ -595,7 +595,7 @@ the issues and possible corrections:
 
 * `macOS issues with Urllib3 - urllib3 issue 3024 <https://github.com/urllib3/urllib3/issues/3020>`_
 
-* `urllib3 issue 2168, Drop support for OpenSS\<1.1.1 <https://github.com/urllib3/urllib3/issues/2168>`_
+* `urllib3 issue 2168, Drop support for OpenSSL\<1.1.1 <https://github.com/urllib3/urllib3/issues/2168>`_
 
 The current version and implementation  of the SSL library can be determined
 as follows::
