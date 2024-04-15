@@ -282,7 +282,7 @@ setup_options = dict(
         'bdist_wheel': bdist_wheel,
     },
     description='pywbem - A WBEM client',
-    long_description=read_file('README_PYPI.rst'),
+    long_description=read_file('README_PYPI.md'),
     long_description_content_type='text/x-rst',
     license='LGPL version 2.1, or (at your option) any later version',
     author='Tim Potter',

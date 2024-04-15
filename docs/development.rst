@@ -261,8 +261,8 @@ particular version of pywbem into the current directory and unpack it:
     -rw-r--r--   1 maiera  staff  26436 May 26 06:45 LICENSE.txt
     -rw-r--r--   1 maiera  staff    367 Jul  3 07:54 MANIFEST.in
     -rw-r--r--   1 maiera  staff   3451 Jul  3 07:55 PKG-INFO
-    -rw-r--r--   1 maiera  staff   7665 Jul  2 23:20 README.rst
-    -rw-r--r--   1 maiera  staff   1624 Jul  2 23:20 README_PYPI.rst
+    -rw-r--r--   1 maiera  staff   7665 Jul  2 23:20 README.md
+    -rw-r--r--   1 maiera  staff   1624 Jul  2 23:20 README_PYPI.md
     -rwxr-xr-x   1 maiera  staff   2881 Jun 29 22:31 build_moftab.py
     -rwxr-xr-x   1 maiera  staff  13850 Jun 29 22:31 mof_compiler
     -rw-r--r--   1 maiera  staff    105 May 26 06:45 mof_compiler.bat
