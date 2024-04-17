@@ -34,7 +34,6 @@ That is for manually figuring out the behavior for non-ASCII test strings.
 import sys
 import locale
 import traceback
-import six
 
 from tests.unittest.utils.unichr2 import unichr2
 

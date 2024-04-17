@@ -4,8 +4,6 @@
 Test _exceptions module.
 """
 
-
-import six
 import pytest
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name

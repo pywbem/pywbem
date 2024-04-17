@@ -25,27 +25,16 @@ these tests do not use the pywbem simplified_test_function because they
 use the pytest fixtures.  We understand that the 2 functionalities are
 completely incompatible because fixtures are resolved as test parameters and
 simplified_test_function completely controls the test parameters.
-
 """
 
 import os
-import io
 import shutil
 import re
 from copy import deepcopy
 from datetime import datetime
 import warnings
-
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict  # pylint: disable=import-error
-import six
-
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from unittest.mock import Mock
+from collections import OrderedDict
+from unittest.mock import Mock
 
 import pytest
 from testfixtures import OutputCapture
@@ -245,7 +234,8 @@ def objs_equal(objdict1, objdict2, obj_type, parent_obj_name):
     if objdict1 == objdict2:
         return True
 
-    print('Mismatch: Obj type={} parent name {}'.format(obj_type, parent_obj_name))
+    print('Mismatch: Obj type={} parent name {}'.format(
+        obj_type, parent_obj_name))
 
     if len(objdict1) != len(objdict2):
         print('Number of %s(s):%s differ\n  p1(len=%s)=%s\n  p2(len=%s)=%s' %
@@ -256,10 +246,9 @@ def objs_equal(objdict1, objdict2, obj_type, parent_obj_name):
 
     for name, value in objdict1.items():
         if name not in objdict2:
-            print('{}:{} {} in {} not in {}'.format(obj_type, parent_obj_name,
-                                                name,
-                                                objdict1.keys().sort(),
-                                                objdict2.keys().sort()))
+            print('{}:{} {} in {} not in {}'.format(
+                obj_type, parent_obj_name, name, objdict1.keys().sort(),
+                objdict2.keys().sort()))
 
         if value != objdict2[name]:
             print('%s:%s mismatch \np1=%r\np2=%r' %
@@ -315,12 +304,12 @@ def classes_equal(cls1, cls2):
     if cls1 == cls2:
         return True
     if cls1.classname != cls2.classname:
-        print("Classname mismatch {} != {}".format(cls1.classname, cls2.classname))
+        print("Classname mismatch {} != {}".format(
+            cls1.classname, cls2.classname))
         return False
     if cls1.superclass and cls1.superclass != cls2.superclass:
-        print("Class {} superclass mismatch {} != {}".format(cls1. classname,
-                                                         cls1.superclass,
-                                                         cls2.superclass))
+        print("Class {} superclass mismatch {} != {}".format(
+            cls1. classname, cls1.superclass, cls2.superclass))
         return False
 
     objs_equal(cls1.qualifiers, cls2.qualifiers, 'qualifier', cls1.classname)

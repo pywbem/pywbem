@@ -24,7 +24,6 @@ Setup script for pywbem project.
 
 import sys
 import os
-import io
 import re
 import fnmatch
 import setuptools
@@ -106,8 +105,6 @@ def cythonizable_source_files():
     current directory).
     """
     setup_dir = os.path.dirname(__file__)
-    # os.path.dirname() returns the empty string on Python 2.7 when run from
-    # the work directory, and the empty string is rejected by os.path.relpath().
     if os.path.isabs(setup_dir):
         setup_dir = os.path.relpath(setup_dir)
     py_files = []
@@ -253,7 +250,7 @@ package_version = get_version(os.path.join('pywbem', '_version.py'))
 # pylint: enable=invalid-name
 
 # Docs on setup():
-# * https://docs.python.org/2.7/distutils/apiref.html?
+# * https://docs.python.org/3.8/distutils/apiref.html?
 #   highlight=setup#distutils.core.setup
 # * https://setuptools.readthedocs.io/en/latest/setuptools.html#
 #   new-and-changed-setup-keywords
@@ -304,8 +301,7 @@ setup_options = dict(
     platforms='any',
 
     # Keep these Python versions in sync with pywbem/__init__.py
-    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, ' \
-    '!=3.5.*',
+    python_requires='>=3.8',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
@@ -314,11 +310,7 @@ setup_options = dict(
         'License :: OSI Approved :: '
         'GNU Lesser General Public License v2 or later (LGPLv2+)',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',

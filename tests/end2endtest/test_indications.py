@@ -6,18 +6,13 @@ End2end tests of indications from a wbem server. This tests:
 because OpenPegasus defines a provider in its test environment specifically to
 send indications based on a method invocation and we have a container
 implementation of OpenPegasus.
-
 """
-
 
 import socket
 import time
-import sys
 import os
 import datetime
 import logging
-
-from pytest import skip
 
 from .utils.pytest_extensions import skip_if_unsupported_capability
 
@@ -67,14 +62,9 @@ def test_indications(wbem_connection):  # noqa: F811
     # define repeat_loop and indication_count variables to rerun the test with
     # each of these pairs. (repeat_loop, indication_count)
     # FUTURE: Expand this to more indications when we resolve issue #3022,
-    # the container not returning all of the indications.  This appears to
-    # be much more consistent with python 3.7 and 3.7 PACKAGE_LEVEL=minimum
+    # the container not returning all of the indications.
 
-    # Skipping tests for python 2.7 and 3.7 if issues losing indications
-    if sys.version_info[0:2] in ((2, 7), (3, 7)):
-        skip("Skipping test_indications for python 2.7, 3.7")
-    else:
-        test_run_loops = ((1, 1), (1, 2), (1, 10), (1, 100), (1, 1000))
+    test_run_loops = ((1, 1), (1, 2), (1, 10), (1, 100), (1, 1000))
 
     for params in test_run_loops:
         repeat_loop = params[0]
@@ -289,7 +279,7 @@ class RunIndicationTest:  # pylint: disable=too-many-instance-attributes
         # Create the destination instance
         indication_dest_url = \
             "http://{}:{}".format(self.indication_destination_host,
-                                    self.http_listener_port)
+                                  self.http_listener_port)
 
         destination = sub_mgr.add_destination(
             server_id, indication_dest_url,

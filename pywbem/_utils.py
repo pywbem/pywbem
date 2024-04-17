@@ -24,16 +24,8 @@ Utility functions for pywbem, with no use of other pywbem submodules.
 import re
 import inspect
 from string import Formatter
-import six
-try:
-    from builtins import ascii as _ascii
-except ImportError:  # py2
-    from future_builtins import ascii as _ascii
-try:
-    from collections.abc import Mapping, Set, MutableSequence, Sequence
-except ImportError:  # py2
-    # pylint: disable=deprecated-class
-    from collections.abc import Mapping, Set, MutableSequence, Sequence
+from builtins import ascii as _ascii
+from collections.abc import Mapping, Set, MutableSequence, Sequence
 
 __all__ = []
 
@@ -273,7 +265,7 @@ def _ascii2(value):
         if ret.startswith('b'):
             ret = ret[1:]
 
-    elif isinstance(value, ((int,), float)):
+    elif isinstance(value, (int, float)):
         # str() on Python containers calls repr() on the items. PEP 3140
         # that attempted to fix that, has been rejected. See
         # https://www.python.org/dev/peps/pep-3140/.

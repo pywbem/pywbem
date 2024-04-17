@@ -15,9 +15,8 @@ import threading
 try:
     import readline as _readline
     _HAVE_READLINE = True
-except ImportError as arg:
+except ImportError:
     _HAVE_READLINE = False
-import six
 
 import pywbem
 

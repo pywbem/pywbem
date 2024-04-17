@@ -2,13 +2,8 @@
 Unit tests for pywbem _cim_xml.py module.
 """
 
+from collections.abc import Iterable
 
-try:
-    from collections.abc import Iterable
-except ImportError:  # py2
-    # pylint: disable=deprecated-class
-    from collections.abc import Iterable
-import six
 import pytest
 
 from ..utils.validate import validate_cim_xml, CIMXMLValidationError, \

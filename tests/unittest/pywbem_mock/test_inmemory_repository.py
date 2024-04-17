@@ -14,10 +14,10 @@
 """
 Test of pywbem_mock package.  This tests the implementation of pywbem_mock
 using a set of local mock qualifiers, classes, and instances.
-
 """
 
 import pickle
+
 import pytest
 
 from ..utils.pytest_extensions import simplified_test_function

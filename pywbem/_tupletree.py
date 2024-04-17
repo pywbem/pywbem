@@ -57,7 +57,6 @@ The fourth element is reserved.
 import xml.sax
 import re
 import sys
-import six
 
 from ._exceptions import XMLParseError
 from ._utils import _format, _ensure_bytes

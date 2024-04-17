@@ -23,6 +23,9 @@ Released: not yet
 
 **Incompatible changes:**
 
+* Removed support for Python 2.7, 3.6, and 3.7. pywbem now requires
+  Python >= 3.8. (issue #3145)
+
 **Deprecations:**
 
 **Bug fixes:**

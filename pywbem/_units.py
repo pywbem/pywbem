@@ -104,12 +104,7 @@ Limitations:
 """
 
 import re
-try:
-    from collections.abc import Sequence
-except ImportError:
-    # pylint: disable=deprecated-class
-    from collections.abc import Sequence
-import six
+from collections.abc import Sequence
 
 from ._vendor.nocasedict import NocaseDict
 from ._cim_obj import CIMProperty, CIMMethod, CIMParameter

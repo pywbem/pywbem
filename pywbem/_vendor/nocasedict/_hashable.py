@@ -2,11 +2,12 @@
 This module provides class HashableMixin.
 """
 
+from __future__ import print_function, absolute_import
 
 __all__ = ['HashableMixin']
 
 
-class HashableMixin:
+class HashableMixin(object):
     # pylint: disable=too-few-public-methods
     """
     A mixin class that adds case-insensitive hashability to

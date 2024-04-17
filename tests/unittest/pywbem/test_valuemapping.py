@@ -3,14 +3,10 @@
     Test ValueMapping class
 """
 
-
 import re
-import pytest
+from unittest.mock import Mock
 
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from unittest.mock import Mock
+import pytest
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed

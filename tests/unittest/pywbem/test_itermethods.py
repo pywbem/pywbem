@@ -19,14 +19,9 @@ It does not test for valid parameters if the parameters are tested by lower
 level methods because those are the methods that are mocked.
 """
 
+from unittest.mock import Mock
 
 import pytest
-import six
-
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from unittest.mock import Mock
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed

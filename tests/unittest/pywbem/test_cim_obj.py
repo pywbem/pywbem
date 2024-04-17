@@ -4,20 +4,13 @@ Test CIM objects (e.g. `CIMInstance`).
 Note that class `NocaseDict` is tested in test_nocasedict.py.
 """
 
-
 import sys
 import re
 from datetime import timedelta, datetime
-try:
-    from unittest.mock import patch
-except ImportError:
-    from unittest.mock import patch
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict  # pylint: disable=import-error
+from unittest.mock import patch
+from collections import OrderedDict
+
 import pytest
-import six
 from packaging.version import parse as parse_version
 
 from ..utils.validate import validate_cim_xml_obj
@@ -35,10 +28,7 @@ from pywbem._nocasedict import NocaseDict  # noqa: E402
 from pywbem._cim_types import _Longint  # noqa: E402
 from pywbem._cim_obj import mofstr  # noqa: E402
 from pywbem._utils import _format  # noqa: E402
-try:
-    from pywbem import cimvalue  # noqa: E402
-except ImportError:
-    pass
+from pywbem import cimvalue  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 # Literal form {"blah: 0} faster than dict(blah=0) but same functionality
@@ -266,9 +256,6 @@ def test_dict(testcase, obj, exp_dict):
       * exp_dict (dict): The expected content of the dictionary.
     """
 
-    # Expected Python warnings for iterkeys(), itervalues(), iteritems()
-    iter_warnings = DeprecationWarning if six.PY3 else None
-
     # Test __getitem__()
 
     for key in exp_dict:
@@ -342,57 +329,45 @@ def test_dict(testcase, obj, exp_dict):
 
     # Test iterkeys() iteration
 
-    with pytest.warns(iter_warnings) as rec_warnings:
+    with pytest.warns(DeprecationWarning):
         iterkeys = list(obj.iterkeys())
         assert len(iterkeys) == 2
         for key in exp_dict:
             assert key in iterkeys
-    if iter_warnings is None:
-        assert len(rec_warnings) == 0
 
     # Test iterkeys() containment
 
-    with pytest.warns(iter_warnings) as rec_warnings:
+    with pytest.warns(DeprecationWarning):
         for key in exp_dict:
             assert key in obj.iterkeys()
-    if iter_warnings is None:
-        assert len(rec_warnings) == 0
 
     # Test itervalues() iteration
 
-    with pytest.warns(iter_warnings) as rec_warnings:
+    with pytest.warns(DeprecationWarning):
         itervalues = list(obj.itervalues())
         assert len(itervalues) == 2
         for key in exp_dict:
             assert exp_dict[key] in itervalues
-    if iter_warnings is None:
-        assert len(rec_warnings) == 0
 
     # Test itervalues() containment
 
-    with pytest.warns(iter_warnings) as rec_warnings:
+    with pytest.warns(DeprecationWarning):
         for key in exp_dict:
             assert exp_dict[key] in obj.itervalues()
-    if iter_warnings is None:
-        assert len(rec_warnings) == 0
 
     # Test iteritems() iteration
 
-    with pytest.warns(iter_warnings) as rec_warnings:
+    with pytest.warns(DeprecationWarning):
         iteritems = list(obj.iteritems())
         assert len(iteritems) == 2
         for key in exp_dict:
             assert (key, exp_dict[key]) in iteritems
-    if iter_warnings is None:
-        assert len(rec_warnings) == 0
 
     # Test iteritems() containment
 
-    with pytest.warns(iter_warnings) as rec_warnings:
+    with pytest.warns(DeprecationWarning):
         for key in exp_dict:
             assert (key, exp_dict[key]) in obj.iteritems()
-    if iter_warnings is None:
-        assert len(rec_warnings) == 0
 
     # Test in as test -> __getitem__()
 
@@ -6453,19 +6428,6 @@ TESTCASES_CIMINSTANCE_INIT = [
         ValueError, None, True
     ),
     (
-        "Verify that property with long value fails (on Python 2 only)",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                classname='CIM_Foo',
-                properties=dict(P1=_Longint(42)),
-            ),
-            exp_attrs=None
-        ),
-        # raises ValueError since 0.12
-        ValueError, None, six.PY2
-    ),
-    (
         "Verify that properties with item of invalid type fails",
         dict(
             init_args=[],
@@ -8897,6 +8859,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
     #   * inst_prop_vals: Dict of property values for the instance.
     #     Is specified as OrderedDict to avoid UserWarning about unordered items
     #     in py<3.7.
+    #     TODO-OLDPYTHON: Rework
     #   * kwargs: Dict of input args to from_class method
     #   * exp_props: Expected properties in created instance as a dictionary
     # * exp_exc_types: Expected exception type(s), or None.
@@ -8955,20 +8918,20 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
                 [('ID', 'inst_id'), ('STR', 'str_val'),
                  ('U32', Uint32(3)),
                  ('REF', CIMInstanceName('CIM_Foo',
-                                          keybindings={'InstID': '1234'},
-                                          host='woot.com',
-                                          namespace='root/cimv2'))]),
+                                         keybindings={'InstID': '1234'},
+                                         host='woot.com',
+                                         namespace='root/cimv2'))]),
             kwargs={},
             exp_props={'ID': 'inst_id', 'STR': 'str_val',
                        'U32': Uint32(3),
                        'REF': CIMProperty('REF',
-                                           CIMInstanceName(
-                                               'CIM_Foo',
-                                               keybindings={'InstID': '1234'},
-                                               host='woot.com',
-                                               namespace='root/cimv2'),
-                                           type='reference',
-                                           reference_class='CIM_Foo')},
+                                          CIMInstanceName(
+                                              'CIM_Foo',
+                                              keybindings={'InstID': '1234'},
+                                              host='woot.com',
+                                              namespace='root/cimv2'),
+                                          type='reference',
+                                          reference_class='CIM_Foo')},
         ),
         None, None, OK
     ),
@@ -9062,7 +9025,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
             kwargs={'include_path': False, 'include_class_origin': True,
                     'include_missing_properties': False},
             exp_props={'ID': CIMProperty('ID', 'inst_id', type='string',
-                                          class_origin='CIM_Foo')},
+                                         class_origin='CIM_Foo')},
         ),
         None, None, OK
     ),
@@ -11488,16 +11451,6 @@ TESTCASES_CIMPROPERTY_INIT = [
         ValueError, None, True
     ),
     (
-        "Verify that a value of long without a type fails (Python 2 only) "
-        "(raises ValueError instead of TypeError since 0.12)",
-        dict(
-            init_args=[],
-            init_kwargs=dict(name='FooProp', value=_Longint(42)),
-            exp_attrs=None
-        ),
-        ValueError, None, six.PY2
-    ),
-    (
         "Verify that arrays of reference properties are not allowed in "
         "CIM v2",
         dict(
@@ -11931,7 +11884,7 @@ def test_CIMProperty_copy(testcase, obj_kwargs):
 
     # TODO: Decide whether mutable child objects should be copied, and add test:
     # # Verify that the mutable child objects are different objects
-    # if not isinstance(obj1.value, (int, six.string_types)):
+    # if not isinstance(obj1.value, (int, str)):
     #     assert id(obj2.value) != id(obj1.value)
 
     # Verify that qualifiers are shallow-copied (see CIMProperty.copy())
@@ -18683,16 +18636,6 @@ TESTCASES_CIMQUALIFIER_INIT = [
         # raises ValueError instead of TypeError since 0.12
         ValueError, None, True
     ),
-    (
-        "Verify that value of long without type fails (on Python 2)",
-        dict(
-            init_args=[],
-            init_kwargs=dict(name='FooQual', value=_Longint(42)),
-            exp_attrs=None
-        ),
-        # raises ValueError instead of TypeError since 0.12
-        ValueError, None, six.PY2
-    ),
 ]
 
 
@@ -18820,7 +18763,7 @@ def test_CIMQualifier_copy(testcase, obj_kwargs):
 
     # TODO: Decide whether mutable child objects should be copied, and add test:
     # # Verify that the mutable child objects are different objects
-    #     if not isinstance(obj1.value, (int, six.string_types)):
+    #     if not isinstance(obj1.value, (int, str)):
     #         assert id(obj2.value) != id(obj1.value)
 
     # Verify that the copy can be modified and the original remains unchanged.
@@ -30740,7 +30683,7 @@ def test_CIMParameter_copy(testcase, obj_kwargs):
 
     # TODO: Decide whether mutable child objects should be copied, and add test:
     # # Verify that the mutable child objects are different objects
-    # if not isinstance(obj1.value, (int, six.string_types)):
+    # if not isinstance(obj1.value, (int, str)):
     #     assert id(obj2.value) != id(obj1.value)
 
     # Verify that qualifiers are shallow-copied (see CIMParameter.copy())
@@ -37828,7 +37771,7 @@ def test_CIMQualifierDeclaration_copy(testcase, obj_kwargs):
 
     # TODO: Decide whether mutable child objects should be copied, and add test:
     # # Verify that the mutable child objects are different objects
-    # if not isinstance(obj1.value, (int, six.string_types)):
+    # if not isinstance(obj1.value, (int, str)):
     #     assert id(obj2.value) != id(obj1.value)
 
     # Verify that the copy can be modified and the original remains unchanged.

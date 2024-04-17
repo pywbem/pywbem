@@ -152,7 +152,6 @@ The :ref:`Tutorial` section contains a tutorial about the subscription manager.
 import re
 import warnings
 from socket import getfqdn
-import six
 
 from ._vendor.nocasedict import NocaseDict
 from ._server import WBEMServer
@@ -957,7 +956,7 @@ class WBEMSubscriptionManager:
                     _format("Filter ID contains ':': {0!A}", filter_id))
 
         if source_namespaces is not None:
-            if not isinstance(source_namespaces, ((str,), list)):
+            if not isinstance(source_namespaces, (str, list)):
                 raise TypeError(
                     _format("source_namespaces must string or list. {0} is "
                             "type {1}.", source_namespace,

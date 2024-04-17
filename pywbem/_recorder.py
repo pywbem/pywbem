@@ -20,16 +20,10 @@
 Operation recorder interface and implementations.
 """
 
-import io
-from collections import namedtuple
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict  # pylint: disable=import-error
+from collections import namedtuple, OrderedDict
 from datetime import datetime, timedelta
 import logging
 
-import six
 import yaml
 import yamlloader
 
@@ -590,6 +584,7 @@ class LogOperationRecorder(BaseOperationRecorder):
 
             # Order kwargs.  Note that this is done automatically starting
             # with python 3.6
+            # TODO-OLDPYTHON: Rework
             kwstr = ', '.join([(f'{key}={kwargs[key]!r}')
                                for key in sorted(kwargs.keys())])
 
@@ -830,7 +825,7 @@ class TestClientRecorder(BaseOperationRecorder):
             :meth:`~pywbem.BaseOperationRecorder.open_file`
             can be used to open the file.
 
-            Alternatively, the Python 2/3 compatible :func:`py:io.open` can be
+            Alternatively, the Python 2/3 compatible :func:`py:open` can be
             used.
 
         Examples::
@@ -839,7 +834,7 @@ class TestClientRecorder(BaseOperationRecorder):
               BaseOperationRecorder.open_file('recorder.log'))
 
           recorder = TestClientRecorder(
-              io.open('recorder.log', mode='w', encoding='utf-8')
+              open('recorder.log', mode='w', encoding='utf-8')
         """
         super().__init__()
         self._fp = fp
@@ -999,17 +994,16 @@ class TestClientRecorder(BaseOperationRecorder):
             # bool is a subclass of int in Python.
             return obj
         if isinstance(obj, CIMInt):
+            # TODO-OLDPYTHON: Resolve
             # CIMInt is _Longint and therefore may exceed the value range of
             # int in Python 2. Therefore, we convert it to _Longint.
             return _Longint(obj)
         if isinstance(obj, int):
+            # TODO-OLDPYTHON: Resolve
             # This case must be after CIMInt, because CIMInt is _Longint and
             # would match a long value in Python 2.
-            # We don't convert six.integer_types to _Longint, because the value
+            # We don't convert int to _Longint, because the value
             # fits into the provided type, and there is no need to convert it.
-            # Note that in Python 2 (where that would make a difference), int
-            # and long do not inherit from each other, so it is likely best if
-            # we just don't convert.
             return obj
         if isinstance(obj, CIMFloat):
             return float(obj)

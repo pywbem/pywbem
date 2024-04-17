@@ -3,16 +3,12 @@
 Tests for _utils module
 """
 
-
 import platform
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
+from collections import OrderedDict
 import unicodedata
 import random
+
 import pytest
-import six
 
 from ..utils.unichr2 import unichr2
 from ..utils.pytest_extensions import simplified_test_function
@@ -29,7 +25,7 @@ from pywbem._cim_obj import NocaseDict  # noqa: E402
 
 # Indicates whether binary strings are supported for the format string of
 # _ascii2()
-BYTE_FORMAT_SUPPORTED = six.PY2 or platform.python_implementation() == 'PyPy'
+BYTE_FORMAT_SUPPORTED = platform.python_implementation() == 'PyPy'
 
 TESTCASES_ASCII2 = [
 
@@ -324,7 +320,7 @@ TESTCASES_FORMAT_FIXED = [
             format_str="{0}",
             format_args=[b"abc"],
             format_kwargs={},
-            exp_result="abc" if six.PY2 else "b'abc'",
+            exp_result="b'abc'",
         ),
         None, None, True
     ),
@@ -334,7 +330,7 @@ TESTCASES_FORMAT_FIXED = [
             format_str=b"{0}",
             format_args=[b"abc"],
             format_kwargs={},
-            exp_result="abc" if six.PY2 else "b'abc'",
+            exp_result="b'abc'",
         ),
         None if BYTE_FORMAT_SUPPORTED else TypeError, None, True
     ),
@@ -344,7 +340,7 @@ TESTCASES_FORMAT_FIXED = [
             format_str="{0}",
             format_args=[b"abc"],
             format_kwargs={},
-            exp_result="abc" if six.PY2 else "b'abc'",
+            exp_result="b'abc'",
         ),
         None, None, True
     ),
@@ -354,7 +350,7 @@ TESTCASES_FORMAT_FIXED = [
             format_str="{0!s}",
             format_args=[b"abc"],
             format_kwargs={},
-            exp_result="abc" if six.PY2 else "b'abc'",
+            exp_result="b'abc'",
         ),
         None, None, True
     ),
@@ -374,7 +370,7 @@ TESTCASES_FORMAT_FIXED = [
             format_str="{0!r}",
             format_args=[b"abc"],
             format_kwargs={},
-            exp_result="'abc'" if six.PY2 else "b'abc'",
+            exp_result="b'abc'",
         ),
         None, None, True
     ),
@@ -384,7 +380,7 @@ TESTCASES_FORMAT_FIXED = [
             format_str="{0!r}",
             format_args=["abc"],
             format_kwargs={},
-            exp_result="u'abc'" if six.PY2 else "'abc'",
+            exp_result="'abc'",
         ),
         None, None, True
     ),
@@ -394,7 +390,7 @@ TESTCASES_FORMAT_FIXED = [
             format_str="{0!a}",
             format_args=[b"abc"],
             format_kwargs={},
-            exp_result="'abc'" if six.PY2 else "b'abc'",
+            exp_result="b'abc'",
         ),
         None, None, True
     ),
@@ -404,7 +400,7 @@ TESTCASES_FORMAT_FIXED = [
             format_str="{0!a}",
             format_args=["abc"],
             format_kwargs={},
-            exp_result="u'abc'" if six.PY2 else "'abc'",
+            exp_result="'abc'",
         ),
         None, None, True
     ),

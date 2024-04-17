@@ -2,9 +2,6 @@
 Assertion functions for pywbem end2end tests.
 """
 
-
-import six
-
 from pywbem import CIMInstance, CIMInstanceName
 from pywbem._utils import _format
 

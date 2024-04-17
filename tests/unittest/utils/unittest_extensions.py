@@ -5,11 +5,8 @@ The ideas for these extensions are based on functions from the comfychair
 module by Martin Pool <mbp@samba.org>.
 """
 
-
 import re
 import os
-
-import six
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
@@ -325,7 +322,7 @@ def assert_copy(cpy, org):
         # Mutable
         assert cpy == org
         assert id(cpy) != id(org)
-    elif isinstance(org, (tuple, (str,), bool, int, type(None))):
+    elif isinstance(org, (tuple, str, bool, int, type(None))):
         # Immutable
         assert cpy == org
     else:

@@ -6,48 +6,25 @@
 
 # Direct dependencies for install (must be consistent with minimum-constraints-install.txt)
 
-mock>=2.0.0,<4.0.0; python_version == '2.7'
 ply>=3.10
-# PyYAML 5.3 fixed narrow build error on Python 2.7
-# PyYAML 5.3.1 addressed issue 38100 reported by safety
-# PyYAML 5.2 addressed issue 38639 reported by safety
-# PyYAML 6.0 removed support for Python 2.7, but 6.0b1 installs in installtest
-PyYAML>=5.3.1,<6.0; python_version == '2.7'
-PyYAML>=5.3.1; python_version >= '3.6'
-# virtualenv 20.0.0 (required on py3.8+) requires six>=0.12.0
-# tox 3.17 (used in dev-requirements.txt) requires six>=1.14.0
-# six 1.16.0 removes the ImportWarning raised by Python 3.10
+PyYAML>=5.3.1
+# requests 2.22.0 removed the pinning of urllib3 to <1.25.0
+# requests 2.25.0 tolerates urllib3 1.26.5 which is needed on Python 3.10 to remove ImportWarning in six
+requests>=2.31.0
+yamlloader>=0.5.5
+
+# The vendorized nocasedict and nocaselist use six
+# urllib3 1.26.5 vendors six 1.16.0 which is needed on Python 3.10 to remove ImportWarning
 six>=1.14.0; python_version <= '3.9'
 six>=1.16.0; python_version >= '3.10'
-# requests 2.22.0 removed the pinning of urllib3 to <1.25.0, and urllib 1.25.9
-#   is required to address safety issues
-# requests 2.25.0 tolerates urllib3 1.26.5 which is needed on Python 3.10 to
-#   remove ImportWarning in six
-requests>=2.25.0; python_version == '2.7'
-requests>=2.25.0; python_version == '3.6'
-requests>=2.31.0; python_version >= '3.7'
-# yamlloader 1.1.0 gets istalled by mistake on py27+34 on Ubuntu when using setup.py install. See issue #2745.
-yamlloader>=0.5.5,<1.0.0; python_version == '2.7'
-yamlloader>=0.5.5; python_version >= '3.6'
 
 
 # Indirect dependencies for install that are needed for some reason (must be consistent with minimum-constraints-install.txt)
 
 # setuptools 61.0.0 breaks "setup.py install", see https://github.com/pypa/setuptools/issues/3198
-setuptools!=61.0.0; python_version >= '3.7'
+setuptools!=61.0.0
 
-# urllib3 1.24.1 addressed issue 37055 reported by safety
-# urllib3 1.24.2 addressed issue 37071 reported by safety
-# urllib3 1.25.9 addressed issue 38834 reported by safety
-# urllib3 needs to be pinned to <1.25 for requests <2.22.0
-# urllib3 1.26.5 vendors six 1.16.0 which is needed on Python 3.10 to remove ImportWarning
-# urllib3 2.0 requires py>=3.7
-urllib3>=1.26.18,<2.0.0; python_version == '2.7'
-urllib3>=1.26.18,<2.0.0; python_version == '3.6'
-urllib3>=1.26.18; python_version >= '3.7'
+urllib3>=1.26.18
 
-# certifi 2020.6.20 removed support for Python 2.7 but does not declare it
-certifi>=2019.11.28,<2020.6.20; python_version == '2.7'
-certifi>=2023.07.22; python_version >= '3.6'
-
+certifi>=2023.07.22
 idna>=2.8

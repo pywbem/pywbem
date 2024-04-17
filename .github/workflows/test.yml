@@ -30,91 +30,13 @@ jobs:
       # otherwise. The matrix is defined as a JSON string.
       # This technique documented in:
       #    https://stackoverflow.com/questions/65384420/how-to-make-a-github-action-matrix-element-conditional
-      # NOTE: Ubuntu 20.04 used because in some tests Ubuntu:latest fails with
-      # Python 3.6. See pywbemtools issue 1245 for explanation.
       # TODO: Find a way to define this with fewer escapes.
       run: |
         if [[ "${{ github.event_name }}" == "schedule" || "${{ github.head_ref }}" =~ ^release_ ]]; then \
           echo "matrix={ \
             \"os\": [ \"ubuntu-latest\", \"macos-latest\", \"windows-latest\" ], \
-            \"python-version\": [ \"3.6\", \"3.7\", \"3.8\", \"3.9\", \"3.10\", \"3.11\", \"3.12\" ], \
-            \"package_level\": [ \"minimum\", \"latest\" ], \
-            \"exclude\": [ \
-              { \
-                \"os\": \"ubuntu-latest\", \
-                \"python-version\": \"3.6\", \
-                \"package_level\": \"minimum\" \
-              }, \
-              { \
-                \"os\": \"ubuntu-latest\", \
-                \"python-version\": \"3.6\", \
-                \"package_level\": \"latest\" \
-              }, \
-              { \
-                \"os\": \"macos-latest\", \
-                \"python-version\": \"3.6\", \
-                \"package_level\": \"minimum\" \
-              }, \
-              { \
-                \"os\": \"macos-latest\", \
-                \"python-version\": \"3.6\", \
-                \"package_level\": \"latest\" \
-              }, \
-              { \
-                \"os\": \"macos-latest\", \
-                \"python-version\": \"3.7\", \
-                \"package_level\": \"minimum\" \
-              }, \
-              { \
-                \"os\": \"macos-latest\", \
-                \"python-version\": \"3.7\", \
-                \"package_level\": \"latest\" \
-              } \
-            ], \
-            \"include\": [ \
-              { \
-                \"os\": \"ubuntu-20.04\", \
-                \"python-version\": \"2.7\", \
-                \"package_level\": \"minimum\", \
-                \"container\": {\"image\": \"python:2.7.18-buster\"} \
-              }, \
-              { \
-                \"os\": \"ubuntu-20.04\", \
-                \"python-version\": \"2.7\", \
-                \"package_level\": \"latest\", \
-                \"container\": {\"image\": \"python:2.7.18-buster\"} \
-              }, \
-              { \
-                \"os\": \"ubuntu-20.04\", \
-                \"python-version\": \"3.6\", \
-                \"package_level\": \"minimum\" \
-              }, \
-              { \
-                \"os\": \"ubuntu-20.04\", \
-                \"python-version\": \"3.6\", \
-                \"package_level\": \"latest\" \
-              }, \
-              { \
-                \"os\": \"macos-12\", \
-                \"python-version\": \"3.6\", \
-                \"package_level\": \"minimum\" \
-              }, \
-              { \
-                \"os\": \"macos-12\", \
-                \"python-version\": \"3.6\", \
-                \"package_level\": \"latest\" \
-              }, \
-              { \
-                \"os\": \"macos-12\", \
-                \"python-version\": \"3.7\", \
-                \"package_level\": \"minimum\" \
-              }, \
-              { \
-                \"os\": \"macos-12\", \
-                \"python-version\": \"3.7\", \
-                \"package_level\": \"latest\" \
-              } \
-            ] \
+            \"python-version\": [ \"3.8\", \"3.9\", \"3.10\", \"3.11\", \"3.12\" ], \
+            \"package_level\": [ \"minimum\", \"latest\" ] \
           }" >> $GITHUB_OUTPUT; \
         else \
           echo "matrix={ \
@@ -123,36 +45,9 @@ jobs:
             \"package_level\": [ \"minimum\", \"latest\" ], \
             \"include\": [ \
               { \
-                \"os\": \"ubuntu-20.04\", \
-                \"python-version\": \"2.7\", \
-                \"package_level\": \"minimum\", \
-                \"container\": {\"image\": \"python:2.7.18-buster\"} \
-              }, \
-              { \
-                \"os\": \"ubuntu-20.04\", \
-                \"python-version\": \"2.7\", \
-                \"package_level\": \"latest\", \
-                \"container\": {\"image\": \"python:2.7.18-buster\"} \
-              }, \
-              { \
-                \"os\": \"ubuntu-20.04\", \
-                \"python-version\": \"3.6\", \
-                \"package_level\": \"minimum\" \
-              }, \
-              { \
-                \"os\": \"ubuntu-20.04\", \
-                \"python-version\": \"3.6\", \
-                \"package_level\": \"latest\" \
-              }, \
-              { \
                 \"os\": \"ubuntu-latest\", \
-                \"python-version\": \"3.7\", \
+                \"python-version\": \"3.8\", \
                 \"package_level\": \"minimum\" \
-              }, \
-              { \
-                \"os\": \"ubuntu-latest\", \
-                \"python-version\": \"3.7\", \
-                \"package_level\": \"latest\" \
               }, \
               { \
                 \"os\": \"ubuntu-latest\", \
@@ -170,9 +65,9 @@ jobs:
                 \"package_level\": \"latest\" \
               }, \
               { \
-                \"os\": \"macos-12\", \
-                \"python-version\": \"3.6\", \
-                \"package_level\": \"latest\" \
+                \"os\": \"macos-latest\", \
+                \"python-version\": \"3.8\", \
+                \"package_level\": \"minimum\" \
               }, \
               { \
                 \"os\": \"macos-latest\", \
@@ -186,7 +81,7 @@ jobs:
               }, \
               { \
                 \"os\": \"windows-latest\", \
-                \"python-version\": \"3.6\", \
+                \"python-version\": \"3.8\", \
                 \"package_level\": \"latest\" \
               }, \
               { \
@@ -272,7 +167,6 @@ jobs:
       with:
         fetch-depth: 0
     - name: Set up Python ${{ matrix.python-version }}
-      if: ${{ ! ( matrix.python-version == '2.7' ) }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
@@ -356,8 +250,6 @@ jobs:
       run: |
         make pylint
     - name: Run test
-      # xmllint not in py27 container
-      if: matrix.python-version != '2.7'
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
         RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
@@ -365,16 +257,14 @@ jobs:
       run: |
         make test
     - name: Run end2endtest
-      # GitHub Actions has Docker only on Ubuntu, but not in py27 container
-      if: startsWith(matrix.os, 'ubuntu-') && matrix.python-version != '2.7'
+      # GitHub Actions has Docker only on Ubuntu
+      if: startsWith(matrix.os, 'ubuntu-')
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
         RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
       run: |
         make end2endtest
     - name: Send coverage result to coveralls.io
-      # no coverage in py27 container because no test is run
-      if: matrix.python-version != '2.7'
       shell: bash -l {0}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -418,17 +308,14 @@ jobs:
       run: |
         make buildc
     - name: Install cythonized archive
-      # Excluded py27 because the abitag in the dist file name is hard to predict,
-      # and because it does not have a __file__ member in a module.
-      if: steps.run_cythonized.outcome == 'success' && matrix.python-version != '2.7'
+      if: steps.run_cythonized.outcome == 'success'
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
         RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
       run: |
         make installc
     - name: Test cythonized archive
-      # Excluded py27 because it does not have a __file__ member in a module.
-      if: steps.run_cythonized.outcome == 'success' && matrix.python-version != '2.7'
+      if: steps.run_cythonized.outcome == 'success'
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
         RUN_TYPE: ${{ steps.set-run-type.outputs.result }}

@@ -153,21 +153,15 @@ and for the :attr:`~pywbem.CIMClass.properties` attribute of
 The keys are always the property names, and the values are always
 :class:`~pywbem.CIMProperty` objects (at least when initializing classes).
 
-Even though the :class:`~py:collections.OrderedDict` class preserves the order
-of its items, intializing the dictionary with keyword arguments causes the
-order of items to be lost before the dictionary is even initialized (before
-Python 3.6). The only way to initialize a dictionary without loosing order of
-items is by providing a list of tuples(key,value).
-
-The following examples work but loose the order of properties in the class:
+Before Python 3.6, intializing a dictionary (:class:`py:dict` or
+:class:`~py:collections.OrderedDict`) with keyword arguments caused the order of
+items to be lost before the dictionary was even initialized. With the Python
+versions supported by pywbem as of today, that problem no longer exists, so all
+of the following examples preserve the order of properties in the class:
 
 ::
 
-    # Examples where order of properties in class is not as specified:
-
-
-    # Using an OrderedDict object, initialized with keyword arguments
-    # (before Python 3.6):
+    # Using an OrderedDict object, initialized with keyword arguments:
 
     c1_props = OrderedDict(
         Prop1=CIMProperty('Prop1', value='abc'),
@@ -175,8 +169,7 @@ The following examples work but loose the order of properties in the class:
     )
 
 
-    # Using a dict object, initialized with keyword arguments (This time
-    # specified using key:value notation):
+    # Using a dict object, initialized with keyword arguments:
 
     c1_props = {
         'Prop1': CIMProperty('Prop1', value='abc'),
@@ -190,17 +183,6 @@ The following examples work but loose the order of properties in the class:
         ('Prop1', CIMProperty('Prop1', value='abc')),
         ('Prop2', CIMProperty('Prop2', value=None, type='string')),
     ])
-
-
-    # Any of the above objects can be used to initialize the class properties:
-
-    c1 = CIMClass('CIM_Foo', properties=c1_props)
-
-The following examples all preserve the order of properties in the class:
-
-::
-
-    # Examples where order of properties in class is as specified:
 
 
     # Using a list of CIMProperty objects (starting with pywbem 0.12):
@@ -237,25 +219,13 @@ The following examples all preserve the order of properties in the class:
 
 # This module is meant to be safe for 'import *'.
 
-
 import warnings
 import copy as copy_
 import re
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
-try:
-    from collections.abc import ValuesView, ItemsView
-except ImportError:
-    # pylint: disable=deprecated-class
-    from collections.abc import ValuesView, ItemsView
-try:
-    from builtins import type as builtin_type
-except ImportError:  # py2
-    from __builtin__ import type as builtin_type
+from collections import OrderedDict
+from collections.abc import ValuesView, ItemsView
+from builtins import type as builtin_type
 from xml.dom.minidom import Element
-import six
 
 from . import _cim_xml
 from .config import SEND_VALUE_NULL
@@ -540,7 +510,7 @@ def _mof_escaped(strvalue):
     # chars.
     # The generic code would be (not skipping already handled chars):
     #     for cp in range(1, 32):
-    #         c = six.unichr(cp)
+    #         c = chr(cp)
     #         esc = '\\x{0:04X}'.format(cp)
     #         escaped_str = escaped_str.replace(c, esc)
     escaped_str = escaped_str.\
@@ -1481,7 +1451,7 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
 
     def __iter__(self):
         ""  # Avoids docstring to be inherited
-        return self.keybindings.keys()
+        return iter(self.keybindings.keys())
 
     def copy(self):
         """
@@ -1574,16 +1544,14 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
         Return the keybinding names of this CIM instance path.
 
         The type of the returned object is consistent with the behavior of
-        the corresponding method of the built-in dict class: On Python 2, a
-        list is returned; on Python 3, a
-        `dictionary view <https://docs.python.org/3/library/stdtypes.html#dictionary-view-objects>`_
-        is returned.
+        the corresponding method of the built-in dict class:
+        `dictionary view <https://docs.python.org/3/library/stdtypes.html#dictionary-view-objects>`_.
 
         The keybinding names have their original lexical case and the order of
         keybindings is preserved.
         """  # noqa: E501
         # pylint: enable=line-too-long
-        return self.keybindings.keys()
+        return iter(self.keybindings.keys())
 
     def values(self):
         # pylint: disable=line-too-long
@@ -1591,15 +1559,13 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
         Return the keybinding values of this CIM instance path.
 
         The type of the returned object is consistent with the behavior of
-        the corresponding method of the built-in dict class: On Python 2, a
-        list is returned; on Python 3, a
-        `dictionary view <https://docs.python.org/3/library/stdtypes.html#dictionary-view-objects>`_
-        is returned.
+        the corresponding method of the built-in dict class:
+        `dictionary view <https://docs.python.org/3/library/stdtypes.html#dictionary-view-objects>`_.
 
         The order of keybindings is preserved.
         """  # noqa: E501
         # pylint: enable=line-too-long
-        return self.keybindings.values()
+        return iter(self.keybindings.values())
 
     def items(self):
         # pylint: disable=line-too-long
@@ -1608,16 +1574,14 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
         CIM instance path.
 
         The type of the returned object is consistent with the behavior of
-        the corresponding method of the built-in dict class: On Python 2, a
-        list is returned; on Python 3, a
-        `dictionary view <https://docs.python.org/3/library/stdtypes.html#dictionary-view-objects>`_
-        is returned.
+        the corresponding method of the built-in dict class:
+        `dictionary view <https://docs.python.org/3/library/stdtypes.html#dictionary-view-objects>`_.
 
         The keybinding names have their original lexical case and the order of
         keybindings is preserved.
         """  # noqa: E501
         # pylint: enable=line-too-long
-        return self.keybindings.items()
+        return iter(self.keybindings.items())
 
     def iterkeys(self):
         """
@@ -1627,16 +1591,16 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
         The keybinding names have their original lexical case, and the order
         of keybindings is preserved.
 
-        Deprecated: This method is deprecated on Python 3 and will be removed
-        in a future version of pywbem, consistent with the built-in dict class
-        on Python 3. Use the :meth:`keys` method instead.
+        Deprecated: This method is deprecated and will be removed in a future
+        version of pywbem, consistent with the built-in dict class.
+        Use the :meth:`keys` method instead.
         """
         warnings.warn(
             "The iterkeys() method of pywbem.CIMInstanceName has been "
-            "deprecated on Python 3 and will be removed in a future "
-            "version of pywbem",
+            "deprecated and will be removed in a future version of pywbem. "
+            "Use keys() instead.",
             DeprecationWarning, 2)
-        return self.keybindings.keys()
+        return iter(self.keybindings.keys())
 
     def itervalues(self):
         """
@@ -1645,16 +1609,16 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
 
         The order of keybindings is preserved.
 
-        Deprecated: This method is deprecated on Python 3 and will be removed
-        in a future version of pywbem, consistent with the built-in dict class
-        on Python 3. Use the :meth:`values` method instead.
+        Deprecated: This method is deprecated and will be removed in a future
+        version of pywbem, consistent with the built-in dict class.
+        Use the :meth:`values` method instead.
         """
         warnings.warn(
             "The itervalues() method of pywbem.CIMInstanceName has been "
-            "deprecated on Python 3 and will be removed in a future "
-            "version of pywbem",
+            "deprecated and will be removed in a future version of pywbem. "
+            "Use values() instead.",
             DeprecationWarning, 2)
-        return self.keybindings.values()
+        return iter(self.keybindings.values())
 
     def iteritems(self):
         """
@@ -1664,16 +1628,16 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
         The keybinding names have their original lexical case, and the order
         of keybindings is preserved.
 
-        Deprecated: This method is deprecated on Python 3 and will be removed
-        in a future version of pywbem, consistent with the built-in dict class
-        on Python 3. Use the :meth:`items` method instead.
+        Deprecated: This method is deprecated and will be removed in a future
+        version of pywbem, consistent with the built-in dict class.
+        Use the :meth:`items` method instead.
         """
         warnings.warn(
             "The iteritems() method of pywbem.CIMInstanceName has been "
-            "deprecated on Python 3 and will be removed in a future "
-            "version of pywbem",
+            "deprecated and will be removed in a future version of pywbem. "
+            "Use items() instead.",
             DeprecationWarning, 2)
-        return self.keybindings.items()
+        return iter(self.keybindings.items())
 
     # pylint: disable=too-many-branches
     def tocimxml(self, ignore_host=False, ignore_namespace=False):
@@ -1906,8 +1870,7 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
         # Try CIM types uint<NN> or sint<NN> (see integerValue in DSP00004).
         # * For integer keybindings in an untyped WBEM URI, it is
         #   not possible to detect the exact CIM data type. Therefore, pywbem
-        #   stores the value as a Python int type (or long in Python 2,
-        #   if needed).
+        #   stores the value as a Python int type.
         cimval = _integerValue_to_int(val)
         if cimval is not None:
             return cimval
@@ -2729,7 +2692,7 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
         return len(self.properties)
 
     def __iter__(self):
-        return self.properties.keys()
+        return iter(self.properties.keys())
 
     def copy(self):
         """
@@ -2897,10 +2860,8 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
         Return the property names of this CIM instance.
 
         The type of the returned object is consistent with the behavior of
-        the corresponding method of the built-in dict class: On Python 2, a
-        list is returned; on Python 3, a
-        `dictionary view <https://docs.python.org/3/library/stdtypes.html#dictionary-view-objects>`_
-        is returned.
+        the corresponding method of the built-in dict class:
+        `dictionary view <https://docs.python.org/3/library/stdtypes.html#dictionary-view-objects>`_.
 
         The property names have their original lexical case, and the order
         of properties is preserved.
@@ -2915,16 +2876,12 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
         :class:`~pywbem.CIMProperty` object) of this CIM instance.
 
         The type of the returned object is consistent with the behavior of
-        the corresponding method of the built-in dict class: On Python 2, a
-        list is returned; on Python 3, a
-        `dictionary view <https://docs.python.org/3/library/stdtypes.html#dictionary-view-objects>`_
-        is returned.
+        the corresponding method of the built-in dict class:
+        `dictionary view <https://docs.python.org/3/library/stdtypes.html#dictionary-view-objects>`_.
 
         The order of properties is preserved.
         """  # noqa: E501
         # pylint: enable=line-too-long
-        if six.PY2:
-            return [val.value for val in self.properties.values()]
         return propvalue_values(self.properties)
 
     def items(self):
@@ -2935,17 +2892,13 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
         :class:`~pywbem.CIMProperty` object).
 
         The type of the returned object is consistent with the behavior of
-        the corresponding method of the built-in dict class: On Python 2, a
-        list is returned; on Python 3, a
-        `dictionary view <https://docs.python.org/3/library/stdtypes.html#dictionary-view-objects>`_
-        is returned.
+        the corresponding method of the built-in dict class:
+        `dictionary view <https://docs.python.org/3/library/stdtypes.html#dictionary-view-objects>`_.
 
         The property names have their original lexical case, and the order of
         properties is preserved.
         """  # noqa: E501
         # pylint: enable=line-too-long
-        if six.PY2:
-            return [(key, val.value) for key, val in self.properties.items()]
         return propvalue_items(self.properties)
 
     def iterkeys(self):
@@ -2955,16 +2908,16 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
         The property names have their original lexical case, and the order
         of properties is preserved.
 
-        Deprecated: This method is deprecated on Python 3 and will be removed
-        in a future version of pywbem, consistent with the built-in dict class
-        on Python 3. Use the :meth:`keys` method instead.
+        Deprecated: This method is deprecated and will be removed in a future
+        version of pywbem, consistent with the built-in dict class.
+        Use the :meth:`keys` method instead.
         """
         warnings.warn(
             "The iterkeys() method of pywbem.CIMInstance has been "
-            "deprecated on Python 3 and will be removed in a future "
-            "version of pywbem",
+            "deprecated and will be removed in a future version of pywbem. "
+            "Use keys() instead.",
             DeprecationWarning, 2)
-        return self.properties.keys()
+        return iter(self.properties.keys())
 
     def itervalues(self):
         """
@@ -2975,14 +2928,14 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
 
         The order of properties is preserved.
 
-        Deprecated: This method is deprecated on Python 3 and will be removed
-        in a future version of pywbem, consistent with the built-in dict class
-        on Python 3. Use the :meth:`values` method instead.
+        Deprecated: This method is deprecated and will be removed in a future
+        version of pywbem, consistent with the built-in dict class.
+        Use the :meth:`values` method instead.
         """
         warnings.warn(
             "The itervalues() method of pywbem.CIMInstance has been "
-            "deprecated on Python 3 and will be removed in a future "
-            "version of pywbem",
+            "deprecated and will be removed in a future version of pywbem. "
+            "Use values() instead.",
             DeprecationWarning, 2)
         for val in self.properties.values():
             yield val.value
@@ -2998,14 +2951,14 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
         The property names have their original lexical case, and the order
         of properties is preserved.
 
-        Deprecated: This method is deprecated on Python 3 and will be removed
-        in a future version of pywbem, consistent with the built-in dict class
-        on Python 3. Use the :meth:`items` method instead.
+        Deprecated: This method is deprecated and will be removed in a future
+        version of pywbem, consistent with the built-in dict class.
+        Use the :meth:`items` method instead.
         """
         warnings.warn(
             "The iteritems() method of pywbem.CIMInstance has been "
-            "deprecated on Python 3 and will be removed in a future "
-            "version of pywbem",
+            "deprecated and will be removed in a future version of pywbem. "
+            "Use items() instead.",
             DeprecationWarning, 2)
         for key, val in self.properties.items():
             yield (key, val.value)
@@ -7984,9 +7937,8 @@ def cimvalue(value, type):
         * If `type` specifies one of the CIM integer data types (e.g.
           ``'uint8'``):
 
-          - Any object supported as an init parameter for :class:`py:int` or
-            :class:`py2:long` (Python 2 only). This includes :term:`string`
-            values with decimal integer numbers.
+          - Any object supported as an init parameter for :class:`py:int`.
+            This includes :term:`string` values with decimal integer numbers.
             If the value is not supported, `ValueError` will be raised.
 
         * If `type` specifies one of the CIM float data types (e.g.

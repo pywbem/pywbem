@@ -2,6 +2,7 @@
 This module provides class NocaseList.
 """
 
+from __future__ import print_function, absolute_import
 
 import sys
 import os
@@ -68,7 +69,7 @@ class NocaseList(list):
         """
         Initialize the list with the items in the specified iterable.
         """
-        super().__init__(iterable)
+        super(NocaseList, self).__init__(iterable)
 
         # The _casefolded_list attribute is a list with the same items as the
         # original (inherited) list, except they are casefolded using the
@@ -171,7 +172,7 @@ class NocaseList(list):
         Raises:
           AttributeError: The value does not have the casefold method.
         """
-        super().__setitem__(index, value)
+        super(NocaseList, self).__setitem__(index, value)
         self._casefolded_list[index] = self._casefolded_value(value)
 
     def __delitem__(self, index):
@@ -180,7 +181,7 @@ class NocaseList(list):
 
         Invoked using ``del ncl[index]``.
         """
-        super().__delitem__(index)
+        super(NocaseList, self).__delitem__(index)
         del self._casefolded_list[index]
 
     def __contains__(self, value):
@@ -454,7 +455,7 @@ class NocaseList(list):
         the built-in list class only supports it on Python 3.
         """
         try:
-            super().clear()
+            super(NocaseList, self).clear()
             self._casefolded_list.clear()
         except AttributeError:
             del self[:]
@@ -484,7 +485,7 @@ class NocaseList(list):
         Raises:
           AttributeError: The value does not have the casefold method.
         """
-        super().append(value)
+        super(NocaseList, self).append(value)
         self._casefolded_list.append(self._casefolded_value(value))
 
     def extend(self, iterable):
@@ -496,7 +497,7 @@ class NocaseList(list):
           AttributeError: A value in the iterable does not have the casefold
             method.
         """
-        super().extend(iterable)
+        super(NocaseList, self).extend(iterable)
         # The following is a circumvention for a behavior of the 'pickle' module
         # that during unpickling may call this method on an object that has
         # been created with __new__() without calling __init__().
@@ -514,7 +515,7 @@ class NocaseList(list):
         Raises:
           AttributeError: The value does not have the casefold method.
         """
-        super().insert(index, value)
+        super(NocaseList, self).insert(index, value)
         self._casefolded_list.insert(index, self._casefolded_value(value))
 
     def pop(self, index=-1):
@@ -523,7 +524,7 @@ class NocaseList(list):
         from the list.
         """
         self._casefolded_list.pop(index)
-        return super().pop(index)
+        return super(NocaseList, self).pop(index)
 
     def remove(self, value):
         """
@@ -535,13 +536,13 @@ class NocaseList(list):
           AttributeError: The value does not have the casefold method.
         """
         self._casefolded_list.remove(self._casefolded_value(value))
-        super().remove(value)
+        super(NocaseList, self).remove(value)
 
     def reverse(self):
         """
         Reverse the items in the list in place (and return None).
         """
-        super().reverse()
+        super(NocaseList, self).reverse()
         self._casefolded_list = self._new_casefolded_list(self)
 
     def sort(self, key=None, reverse=False):
@@ -568,7 +569,7 @@ class NocaseList(list):
                 return key(self._casefolded_value(value))
             return self._casefolded_value(value)
 
-        super().sort(key=casefolded_key, reverse=reverse)
+        super(NocaseList, self).sort(key=casefolded_key, reverse=reverse)
         self._casefolded_list = self._new_casefolded_list(self)
 
 

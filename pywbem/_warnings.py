@@ -19,7 +19,8 @@ The following warnings are pywbem specific warnings that can be issued by
 the WBEM client library.
 """
 
-import six
+from builtins import Warning as builtin_Warning
+
 from ._exceptions import Error
 
 # This module is meant to be safe for 'import *'.
@@ -30,7 +31,7 @@ __all__ = ['Warning', 'ToleratedServerIssueWarning',
            'RequestExceptionWarning']
 
 
-class Warning(Error, six.moves.builtins.Warning):
+class Warning(Error, builtin_Warning):
     # pylint: disable=redefined-builtin
     """
     Base class for pywbem specific warnings.

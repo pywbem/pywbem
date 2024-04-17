@@ -3,7 +3,6 @@
     other test mocks
 """
 
-
 import os
 
 from .dmtf_mof_schema_def import DMTF_TEST_SCHEMA_VER, DMTFCIMSchema
@@ -319,8 +318,8 @@ class WbemServerMock:
                                               namespace=self.interop_ns)
 
         assert len(rtn_rpinsts) == len(profiles), \
-            "Expected registered profiles: {!r}, got {}".format(len(profiles),
-                                                          len(rtn_rpinsts))
+            "Expected registered profiles: {!r}, got {}".format(
+                len(profiles), len(rtn_rpinsts))
 
     def build_elementconformstoprofile_inst(self, conn, profile_path,
                                             element_path):

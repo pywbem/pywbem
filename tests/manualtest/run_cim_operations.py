@@ -26,9 +26,7 @@ from getpass import getpass
 import warnings
 import time
 import traceback
-
 from urllib.parse import urlparse
-import six
 
 from tests.unittest.utils.unittest_extensions import RegexpMixin
 
@@ -165,8 +163,8 @@ class ClientTest(unittest.TestCase):
         """Close the test_client YAML file and display stats."""
 
         if self.stats_enabled:
-            print('{}: Test time {:.2f} sec.'.format(self.id(),
-                                               (time.time() - self.start_time)))
+            print('{}: Test time {:.2f} sec.'.format(
+                self.id(), (time.time() - self.start_time)))
             print('{}\n{}'.format(self.id(), self.conn.statistics.formatted()))
 
         if self.yamlfp is not None:
@@ -1713,8 +1711,8 @@ class PullAssociators(ClientTest):
             insts_enum = self.cimcall(self.conn.References, pathi)
 
             if insts_enum:
-                print('Associators {} count {}'.format(insts_pulled,
-                                                   len(insts_enum)))
+                print('Associators {} count {}'.format(
+                    insts_pulled, len(insts_enum)))
             self.assertTrue(len(insts_pulled) == len(insts_enum))
             # TODO ks 5/30 2016 add tests here
             # Do this as a loop for all instances above.
@@ -1840,7 +1838,8 @@ class PullAssociatorPaths(ClientTest):
 
             paths_enum = self.cimcall(self.conn.AssociatorNames, pathi)
             if paths_enum:
-                print('Associator Names {} count {}'.format(pathi, len(paths_enum)))
+                print('Associator Names {} count {}'.format(
+                    pathi, len(paths_enum)))
             self.assertEqual(len(paths_pulled), len(paths_enum))
             # TODO ks 5/30 2016 add tests here
             # Do this as a loop for all instances above.
@@ -3269,13 +3268,13 @@ class ClassOperations(ClientClassTest):
         test_class = CIMClass(
             test_class_name,
             methods={'Delete': CIMMethod('Delete', 'uint32')},
-            qualifiers={'Description': CIMQualifier('Description',
-                                                     'This is a class '
-                                                     'description')},
-            properties={'InstanceID': CIMProperty('InstanceID', None,
-                                                   type='string'),
-                        'MyUint8': CIMProperty('MyUint8', Uint8(99),
-                                                type='uint8')})
+            qualifiers={
+                'Description': CIMQualifier('Description',
+                                            'This is a class description')},
+            properties={
+                'InstanceID': CIMProperty('InstanceID', None, type='string'),
+                'MyUint8': CIMProperty('MyUint8', Uint8(99), type='uint8')
+            })
 
         # force propagated False for all properties
         # Effective V 0.12.0 propagated must be set to compare with
@@ -3298,48 +3297,42 @@ class ClassOperations(ClientClassTest):
         test_class = CIMClass(
             test_class_name,
             methods={'Delete': CIMMethod('Delete', 'uint32')},
-            qualifiers={'Description': CIMQualifier('Description',
-                                                     'This is a class '
-                                                     'description')},
-            properties={'InstanceID': CIMProperty('InstanceID', None,
-                                                   type='string'),
-                        'MyUint8': CIMProperty('MyUint8', Uint8(99),
-                                                type='uint8'),
-                        'MySint8': CIMProperty('MySint8', Sint8(99),
-                                                type='sint8'),
-                        'MyUint16': CIMProperty('MyUint16', Uint16(999),
-                                                 type='uint16'),
-                        'MySint16': CIMProperty('MySint16', Sint16(-999),
-                                                 type='sint16'),
-                        'MyUint32': CIMProperty('MyUint32', Uint32(12345),
-                                                 type='uint32'),
-                        'MySint32': CIMProperty('MySint32', Sint32(-12345),
-                                                 type='sint32'),
-                        'MyUint64': CIMProperty('MyUint64', Uint64(12345),
-                                                 type='uint64'),
-                        'MySint64': CIMProperty('MySint64', Sint64(-12345),
-                                                 type='sint64'),
-                        'MyReal32': CIMProperty('MyReal32', Real32(12345),
-                                                 type='real32'),
-                        'MyReal64': CIMProperty('MyReal64', Real64(12345),
-                                                 type='real64'),
-                        'Mydatetime': CIMProperty('Mydatetime',
-                                                   '12345678224455.654321:000',
-                                                   type='datetime'),
-                        'Uint32Array': CIMProperty('Uint32Array', None,
-                                                    type='uint32',
-                                                    is_array=True),
-                        'Sint32Array': CIMProperty('Sint32Array', None,
-                                                    type='sint32',
-                                                    is_array=True),
-                        'Uint64Array': CIMProperty('Uint64Array', None,
-                                                    type='uint64',
-                                                    is_array=True),
-                        'Sint64Array': CIMProperty('Sint64Array', None,
-                                                    type='sint64',
-                                                    is_array=True),
-                        'MyStr': CIMProperty('MyStr', 'This is a test',
-                                              type='string')})
+            qualifiers={
+                'Description': CIMQualifier('Description',
+                                            'This is a class description')},
+            properties={
+                'InstanceID': CIMProperty('InstanceID', None, type='string'),
+                'MyUint8': CIMProperty('MyUint8', Uint8(99), type='uint8'),
+                'MySint8': CIMProperty('MySint8', Sint8(99), type='sint8'),
+                'MyUint16': CIMProperty('MyUint16', Uint16(999),
+                                        type='uint16'),
+                'MySint16': CIMProperty('MySint16', Sint16(-999),
+                                        type='sint16'),
+                'MyUint32': CIMProperty('MyUint32', Uint32(12345),
+                                        type='uint32'),
+                'MySint32': CIMProperty('MySint32', Sint32(-12345),
+                                        type='sint32'),
+                'MyUint64': CIMProperty('MyUint64', Uint64(12345),
+                                        type='uint64'),
+                'MySint64': CIMProperty('MySint64', Sint64(-12345),
+                                        type='sint64'),
+                'MyReal32': CIMProperty('MyReal32', Real32(12345),
+                                        type='real32'),
+                'MyReal64': CIMProperty('MyReal64', Real64(12345),
+                                        type='real64'),
+                'Mydatetime': CIMProperty('Mydatetime',
+                                          '12345678224455.654321:000',
+                                          type='datetime'),
+                'Uint32Array': CIMProperty('Uint32Array', None, type='uint32',
+                                           is_array=True),
+                'Sint32Array': CIMProperty('Sint32Array', None, type='sint32',
+                                           is_array=True),
+                'Uint64Array': CIMProperty('Uint64Array', None, type='uint64',
+                                           is_array=True),
+                'Sint64Array': CIMProperty('Sint64Array', None, type='sint64',
+                                           is_array=True),
+                'MyStr': CIMProperty('MyStr', 'This is a test', type='string')
+            })
         for p in test_class.properties:
             test_class.properties[p].propagated = False
         return test_class
@@ -3514,10 +3507,10 @@ class CreateClass(ClassOperations):
         test_class_name = 'PyWbem_Run_CIM_Operations1'
         test_class = CIMClass(
             test_class_name,
-            properties={'InstanceID': CIMProperty('InstanceID', None,
-                                                  type='string'),
-                        'MyStr': CIMProperty('MyStr', 'This is a test',
-                                             type='string')})
+            properties={
+                'InstanceID': CIMProperty('InstanceID', None, type='string'),
+                'MyStr': CIMProperty('MyStr', 'This is a test', type='string')
+            })
 
         try:
             self.cimcall(self.conn.CreateClass, test_class, namespace='blah')
@@ -3646,10 +3639,10 @@ class ModifyClass(ClassOperations):
         test_class_name = 'PyWbem_Run_CIM_Operations2'
         test_class = CIMClass(
             test_class_name,
-            properties={'InstanceID': CIMProperty('InstanceID', None,
-                                                   type='string'),
-                        'MyStr': CIMProperty('MyStr', 'This is a test',
-                                              type='string')})
+            properties={
+                'InstanceID': CIMProperty('InstanceID', None, type='string'),
+                'MyStr': CIMProperty('MyStr', 'This is a test', type='string')
+            })
 
         try:
             self.cimcall(self.conn.ModifyClass, test_class, namespace='blah')
@@ -3663,10 +3656,10 @@ class ModifyClass(ClassOperations):
         test_class_name = 'PyWbem_Run_CIM_Operations2'
         test_class = CIMClass(
             test_class_name,
-            properties={'InstanceID': CIMProperty('InstanceID', None,
-                                                   type='string'),
-                        'MyStr': CIMProperty('MyStr', 'This is a test',
-                                              type='string')})
+            properties={
+                'InstanceID': CIMProperty('InstanceID', None, type='string'),
+                'MyStr': CIMProperty('MyStr', 'This is a test', type='string')
+            })
 
         try:
             self.cimcall(self.conn.ModifyClass, test_class)
@@ -4528,9 +4521,8 @@ class IterEnumerateInstances(PegasusServerTestBase):
 
         # account for possible non unicode namespace.  Test fails in compare
         # of unicode and non-unicode namespaces otherwise.
-        if namespace is not None and six.PY3:
-            if isinstance(namespace, bytes):
-                namespace = namespace.decode()
+        if isinstance(namespace, bytes):
+            namespace = namespace.decode()
 
         # execute iterator operation
         generator = self.cimcall(self.conn.IterEnumerateInstances, ClassName,

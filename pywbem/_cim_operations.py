@@ -147,7 +147,6 @@ import warnings
 
 import requests
 from requests.packages import urllib3
-import six
 
 from . import _cim_xml
 from .config import DEFAULT_ITER_MAXOBJECTCOUNT, AUTO_GENERATE_SFCB_UEP_HEADER
@@ -288,7 +287,7 @@ def _validate_OperationTimeout(OperationTimeout):
       TypeError: Invalid type
       ValueError: Invalid value
     """
-    if not isinstance(OperationTimeout, ((int,), type(None))):
+    if not isinstance(OperationTimeout, (int, type(None))):
         raise TypeError(
             _format("The 'OperationTimeout' parameter of the WBEMConnection "
                     "operation has invalid type {0} (must be integer)",
@@ -311,7 +310,7 @@ def _validate_MaxObjectCount_Iter(MaxObjectCount):
       TypeError: Invalid type
       ValueError: Invalid value, including None
     """
-    if not isinstance(MaxObjectCount, ((int,), type(None))):
+    if not isinstance(MaxObjectCount, (int, type(None))):
         raise TypeError(
             _format("The 'MaxObjectCount' parameter of the WBEMConnection "
                     "operation has invalid type {0} (must be integer)",
@@ -2172,7 +2171,7 @@ class WBEMConnection:  # pylint: disable=too-many-instance-attributes
             """
             if isinstance(obj, (datetime, timedelta)):
                 obj = CIMDateTime(obj)
-            if isinstance(obj, (CIMType, bool, (str,))):
+            if isinstance(obj, (CIMType, bool, str)):
                 # This includes CIMDateTime (subclass of CIMType)
                 return _cim_xml.VALUE(atomic_to_cim_xml(obj))
             if isinstance(obj, (CIMClassName, CIMInstanceName)):
@@ -2753,7 +2752,7 @@ class WBEMConnection:  # pylint: disable=too-many-instance-attributes
           TypeError - integer_param has an invalid type
           ValueError - integer param is LT 0
         """
-        if not isinstance(integer_param, ((int,), type(None))):
+        if not isinstance(integer_param, (int, type(None))):
             raise TypeError(
                 _format("The {0!A} parameter of the WBEMConnection operation "
                         "has invalid type {1} (must be None, or an integer)",

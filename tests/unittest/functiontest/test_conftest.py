@@ -4,7 +4,6 @@ at least those functions that can reasonably be tested in a standalone
 manner.
 """
 
-
 from lxml import etree
 
 from ...functiontest.conftest import xml_embed, xml_unembed

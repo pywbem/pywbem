@@ -10,7 +10,7 @@
 
 Pywbem is a WBEM client and WBEM indication listener and provides
 related WBEM client-side functionality. It is written in pure Python and
-runs on Python 2 and Python 3.
+runs on Python 3.
 
 WBEM is a standardized approach for systems management defined by the
 [DMTF](https://www.dmtf.org) that is used in the industry for a wide

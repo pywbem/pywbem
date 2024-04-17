@@ -36,12 +36,8 @@ GetClass or EnumerateClass methods.
 For documentation, see mocksupport.rst.
 """
 
-
-import six
-
 from pywbem import CIMError, CIM_ERR_INVALID_PARAMETER, CIM_ERR_NOT_FOUND, \
     CIM_ERR_INVALID_SUPERCLASS, CIMParameter, CIMMethod, CIMProperty
-
 from pywbem._utils import _format
 
 __all__ = []

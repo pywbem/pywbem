@@ -2,17 +2,12 @@
 Utility functions for pywbem testing
 """
 
-
 import sys
 import os
 import types
-try:
-    from http.client import BadStatusLine
-except ImportError:
-    # Python 2
-    from httplib import BadStatusLine
+from http.client import BadStatusLine
+
 import urllib3
-import six
 import pytest
 import requests
 from ply import yacc, lex

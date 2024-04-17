@@ -25,16 +25,6 @@ from pywbem import WBEMConnection, Error, Uint64, __version__  # noqa: E402
 from pywbem._cliutils import SmartFormatter as _SmartFormatter  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
-# In pywbem 0.13, parse_cim() changed from a function to a method:
-try:
-    from pywbem._tupleparse import parse_cim
-except ImportError:
-    from pywbem._tupleparse import TupleParser
-
-    def parse_cim(tt):
-        """Compatible parse_cim() function"""
-        tp = TupleParser()
-        return tp.parse_cim(tt)
 
 # Pegasus class/namespace to use for test
 TEST_NAMESPACE = "test/TestProvider"

@@ -13,7 +13,7 @@
 # License along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
-#
+
 """
 A CIM schema is the collection of CIM qualifier declarations and CIM
 classes and available  a single tested, coherent package
@@ -75,15 +75,10 @@ compiling DMTF CIM classes for any test significantly.
 """
 
 import os
-import io
 from zipfile import ZipFile
 import shutil
 import re
-import six
-try:
-    from urllib.request import urlopen
-except ImportError:  # py2
-    from urllib2 import urlopen
+from urllib.request import urlopen
 
 from pywbem._utils import _format
 
@@ -454,6 +449,9 @@ class DMTFCIMSchema:
                         self.schema_zip_url))
 
             try:
+                # Note: urlopen() returns http.client.HTTPResponse which
+                #       does not need to be cleaned up.
+                # pylint: disable=consider-using-with
                 ufo = urlopen(self.schema_zip_url)
             except OSError as ie:
                 os.rmdir(self.schema_root_dir)

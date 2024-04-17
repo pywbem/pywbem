@@ -24,6 +24,7 @@ Test for the WBEMSubscriptionManager class.
 
 import os
 import re
+
 import pytest
 
 from ...utils import skip_if_moftab_regenerated

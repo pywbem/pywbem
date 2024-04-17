@@ -37,8 +37,7 @@ import os
 import base64
 import ssl
 import warnings
-import six
-from six.moves import urllib
+import urllib
 import requests
 from requests.packages import urllib3
 
@@ -321,6 +320,7 @@ def pywbem_urllib3_exception(exc, conn):
             exc_name = m.group(1)
             exc_message = m.group(2)
             if exc_message.endswith(','):
+                # TODO-OLDPYTHON: Rework
                 # Python <3.6 represents it as tuple with trailing comma
                 exc_message = exc_message.rstrip(',')
             if exc_message.startswith('"'):

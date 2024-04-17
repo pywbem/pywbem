@@ -78,7 +78,6 @@ representation of CIM in XML by having the following properties:
 
 import re
 import warnings
-import six
 
 from ._utils import _stacklevel_above_module, _format
 from ._nocasedict import NocaseDict
@@ -141,7 +140,7 @@ def pcdata(tup_tree):
     # The callers have already ensured that that is not the case.
     # The following assertion has been verified and disabled again for
     # performance reasons:
-    # assert all([isinstance(n, six.string_types) for n in k])
+    # assert all([isinstance(n, str) for n in k])
 
     return ''.join(k)
 

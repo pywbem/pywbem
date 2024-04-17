@@ -45,14 +45,14 @@ Example :
         klass = class_store.get('CIM_Blah;)          # get the class
 """
 
-from abc import abstractmethod, abstractproperty
-from six import PY2
+from abc import abstractmethod
 
 __all__ = ['BaseObjectStore', 'BaseRepository']
 
 
 def compatibleabstractproperty(func):
     """
+    TODO-OLDPYTHON: Resolve
     Python 2 and python 3 differ in decorator for abstract property.
     in python 3 (gt 3.3) it is:
         @property
