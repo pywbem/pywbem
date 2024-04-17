@@ -4,7 +4,6 @@ OpenPegasus WBEM server.
 
 """
 
-from __future__ import absolute_import, print_function
 
 import re
 
@@ -38,7 +37,7 @@ TESTCLASS = 'Test_CLITestProviderClass'
 TESTMETHOD = 'delayedMethodResponse'
 
 
-class ElapsedTimer(object):
+class ElapsedTimer:
     """
         Set up elapsed time timer. Calculates time between initiation
         and access.

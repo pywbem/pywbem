@@ -4,7 +4,6 @@
 Test _exceptions module.
 """
 
-from __future__ import absolute_import, print_function
 
 import six
 import pytest
@@ -41,26 +40,19 @@ def _assert_subscription(exc):
     """
 
     # Access by subscription is only supported in Python 2:
-    if six.PY2:
-        assert exc[:] == exc.args
-        for i, _ in enumerate(exc.args):
-            assert exc[i] == exc.args[i]
-            assert exc[i:] == exc.args[i:]
-            assert exc[0:i] == exc.args[0:i]
+    try:
+        _ = exc[:]
+    except TypeError:
+        pass
     else:
+        assert False, "Access by slice did not fail in Python 3"
+    for i, _ in enumerate(exc.args):
         try:
-            _ = exc[:]
+            _ = exc[i]  # noqa: F841
         except TypeError:
             pass
         else:
-            assert False, "Access by slice did not fail in Python 3"
-        for i, _ in enumerate(exc.args):
-            try:
-                _ = exc[i]  # noqa: F841
-            except TypeError:
-                pass
-            else:
-                assert False, "Access by index did not fail in Python 3"
+            assert False, "Access by index did not fail in Python 3"
 
 
 def _assert_connection(exc, conn_id_kwarg, exp_conn_str):
@@ -398,7 +390,7 @@ def test_cimerror_1(status_tuple, conn_info):
         assert exc.status_description == invalid_code_desc
         assert exc.status_code_name == invalid_code_name
     else:
-        assert isinstance(exc.status_description, six.string_types)
+        assert isinstance(exc.status_description, str)
         assert exc.status_code_name == status_code_name
 
     assert exc.args[0] == exc.status_code

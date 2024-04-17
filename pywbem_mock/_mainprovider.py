@@ -34,7 +34,6 @@ This provider uses a separate CIM repository for the objects maintained by
 the CIM repository and defined with the interfaces in `BaseRepository`.
 """
 
-from __future__ import absolute_import, print_function
 
 import uuid
 from collections import Counter
@@ -158,7 +157,7 @@ class MainProvider(ResolverMixin, BaseProvider):
             Defines the providerdispatcher object that is called in some
             operations (see DeleteClass method).
         """
-        super(MainProvider, self).__init__(cimrepository)
+        super().__init__(cimrepository)
 
         # value of the host name.  This should be considered read-only
         self.host = host
@@ -272,7 +271,7 @@ class MainProvider(ResolverMixin, BaseProvider):
           `classname`.
         """
 
-        assert classname is None or isinstance(classname, six.string_types)
+        assert classname is None or isinstance(classname, str)
 
         if classname is None:
             rtn_classnames = [
@@ -680,8 +679,8 @@ class MainProvider(ResolverMixin, BaseProvider):
         """
 
         # Parameter types are already checked by WBEMConnection operation
-        assert isinstance(namespace, six.string_types)
-        assert isinstance(ClassName, (six.string_types, type(None)))
+        assert isinstance(namespace, str)
+        assert isinstance(ClassName, ((str,), type(None)))
         assert isinstance(DeepInheritance, (bool, type(None)))
         assert isinstance(LocalOnly, (bool, type(None)))
         assert isinstance(IncludeQualifiers, (bool, type(None)))
@@ -765,8 +764,8 @@ class MainProvider(ResolverMixin, BaseProvider):
         """
 
         # Parameter types are already checked by WBEMConnection operation
-        assert isinstance(namespace, six.string_types)
-        assert isinstance(ClassName, (six.string_types, type(None)))
+        assert isinstance(namespace, str)
+        assert isinstance(ClassName, ((str,), type(None)))
         assert isinstance(DeepInheritance, (bool, type(None)))
 
         self.validate_namespace(namespace)
@@ -850,13 +849,13 @@ class MainProvider(ResolverMixin, BaseProvider):
         # pylint: enable=line-too-long
 
         # Parameter types are already checked by WBEMConnection operation
-        assert isinstance(namespace, six.string_types)
-        assert isinstance(ClassName, six.string_types)
+        assert isinstance(namespace, str)
+        assert isinstance(ClassName, str)
         assert isinstance(LocalOnly, (bool, type(None)))
         assert isinstance(IncludeQualifiers, (bool, type(None)))
         assert isinstance(IncludeClassOrigin, (bool, type(None)))
         assert isinstance(PropertyList,
-                          (six.string_types, list, tuple, type(None)))
+                          ((str,), list, tuple, type(None)))
 
         self.validate_namespace(namespace)
 
@@ -904,7 +903,7 @@ class MainProvider(ResolverMixin, BaseProvider):
         """
 
         # Parameter types are already checked by WBEMConnection operation
-        assert isinstance(namespace, six.string_types)
+        assert isinstance(namespace, str)
         assert isinstance(NewClass, CIMClass)
 
         self.validate_namespace(namespace)
@@ -964,7 +963,7 @@ class MainProvider(ResolverMixin, BaseProvider):
             :exc:`~pywbem.CIMError`: (CIM_ERR_NOT_FOUND)
         """
         # Parameter types are already checked by WBEMConnection operation
-        assert isinstance(namespace, six.string_types)
+        assert isinstance(namespace, str)
         assert isinstance(ModifiedClass, CIMClass)
 
         self.validate_namespace(namespace)
@@ -1084,8 +1083,8 @@ class MainProvider(ResolverMixin, BaseProvider):
         """
 
         # Parameter types are already checked by WBEMConnection operation
-        assert isinstance(namespace, six.string_types)
-        assert isinstance(ClassName, six.string_types)
+        assert isinstance(namespace, str)
+        assert isinstance(ClassName, str)
 
         self.validate_namespace(namespace)
 
@@ -1151,7 +1150,7 @@ class MainProvider(ResolverMixin, BaseProvider):
         """
 
         # Parameter types are already checked by WBEMConnection operation
-        assert isinstance(namespace, six.string_types)
+        assert isinstance(namespace, str)
 
         self.validate_namespace(namespace)
 
@@ -1194,8 +1193,8 @@ class MainProvider(ResolverMixin, BaseProvider):
         """
 
         # Parameter types are already checked by WBEMConnection operation
-        assert isinstance(namespace, six.string_types)
-        assert isinstance(QualifierName, six.string_types)
+        assert isinstance(namespace, str)
+        assert isinstance(QualifierName, str)
 
         self.validate_namespace(namespace)
 
@@ -1239,7 +1238,7 @@ class MainProvider(ResolverMixin, BaseProvider):
         """
 
         # Parameter types are already checked by WBEMConnection operation
-        assert isinstance(namespace, six.string_types)
+        assert isinstance(namespace, str)
         assert isinstance(QualifierDeclaration, CIMQualifierDeclaration)
 
         self.validate_namespace(namespace)
@@ -1296,19 +1295,19 @@ class MainProvider(ResolverMixin, BaseProvider):
             """
             if qualifier_name in cls.qualifiers:
                 return True
-            for prop in six.itervalues(cls.properties):
+            for prop in cls.properties.values():
                 if qualifier_name in prop.qualifiers:
                     return True
-            for method in six.itervalues(cls.methods):
+            for method in cls.methods.values():
                 if qualifier_name in method.qualifiers:
                     return True
-                for parameter in six.itervalues(method.parameters):
+                for parameter in method.parameters.values():
                     if qualifier_name in parameter.qualifiers:
                         return True
             return False
         # Parameter types are already checked by WBEMConnection operation
-        assert isinstance(namespace, six.string_types)
-        assert isinstance(QualifierName, six.string_types)
+        assert isinstance(namespace, str)
+        assert isinstance(QualifierName, str)
 
         self.validate_namespace(namespace)
 
@@ -1441,7 +1440,7 @@ class MainProvider(ResolverMixin, BaseProvider):
         assert isinstance(IncludeQualifiers, (bool, type(None)))
         assert isinstance(IncludeClassOrigin, (bool, type(None)))
         assert isinstance(PropertyList,
-                          (six.string_types, list, tuple, type(None)))
+                          ((str,), list, tuple, type(None)))
 
         namespace = InstanceName.namespace
         self.validate_namespace(namespace)
@@ -1555,14 +1554,14 @@ class MainProvider(ResolverMixin, BaseProvider):
         # pylint: enable=line-too-long
 
         # Parameter types are already checked by WBEMConnection operation
-        assert isinstance(namespace, six.string_types)
-        assert isinstance(ClassName, six.string_types)
+        assert isinstance(namespace, str)
+        assert isinstance(ClassName, str)
         assert isinstance(LocalOnly, (bool, type(None)))
         assert isinstance(DeepInheritance, (bool, type(None)))
         assert isinstance(IncludeQualifiers, (bool, type(None)))
         assert isinstance(IncludeClassOrigin, (bool, type(None)))
         assert isinstance(PropertyList,
-                          (six.string_types, list, tuple, type(None)))
+                          ((str,), list, tuple, type(None)))
 
         self.validate_namespace(namespace)
 
@@ -1656,8 +1655,8 @@ class MainProvider(ResolverMixin, BaseProvider):
         """
 
         # Parameter types are already checked by WBEMConnection operation
-        assert isinstance(namespace, six.string_types)
-        assert isinstance(ClassName, six.string_types)
+        assert isinstance(namespace, str)
+        assert isinstance(ClassName, str)
 
         self.validate_namespace(namespace)
 
@@ -1854,7 +1853,7 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         # Iterate through class repo getting association classes for namespace
         for assoc_cl in self._iter_association_classes(namespace):
-            for prop in six.itervalues(assoc_cl.properties):
+            for prop in assoc_cl.properties.values():
                 if prop.type == 'reference' and \
                         self._ref_prop_matches(prop, target_classlist,
                                                assoc_cl.classname.lower(),
@@ -1901,7 +1900,7 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         rtn_instpaths = set()
         for inst in instance_store.iter_values():
-            for prop in six.itervalues(inst.properties):
+            for prop in inst.properties.values():
                 if prop.type == 'reference':
                     # Does this prop instance name match target inst name
                     if prop.value == instname:
@@ -1954,11 +1953,11 @@ class MainProvider(ResolverMixin, BaseProvider):
         for cl in klasses:
             # Count reference property usage.
             pd = Counter([p.reference_class for p in
-                          six.itervalues(cl.properties)
+                          cl.properties.values()
                           if p.type == 'reference'])
             single_use = [p for p, v in pd.items() if v == 1]
 
-            for prop in six.itervalues(cl.properties):
+            for prop in cl.properties.values():
                 if prop.type == 'reference':
                     if self._assoc_prop_matches(prop,
                                                 cl.classname,
@@ -2007,7 +2006,7 @@ class MainProvider(ResolverMixin, BaseProvider):
         rtn_instpaths = set()
         for ref_path in ref_paths:
             inst = self._get_bare_instance(ref_path, instance_store)
-            for prop in six.itervalues(inst.properties):
+            for prop in inst.properties.values():
                 if prop.type == 'reference':
                     if prop.value == inst_name:
                         if assoc_class \
@@ -2104,10 +2103,10 @@ class MainProvider(ResolverMixin, BaseProvider):
         """
 
         # Parameter types are already checked by WBEMConnection operation
-        assert isinstance(namespace, six.string_types)
-        assert isinstance(ObjectName, (six.string_types, CIMInstanceName))
-        assert isinstance(ResultClass, (six.string_types, type(None)))
-        assert isinstance(Role, (six.string_types, type(None)))
+        assert isinstance(namespace, str)
+        assert isinstance(ObjectName, ((str,), CIMInstanceName))
+        assert isinstance(ResultClass, ((str,), type(None)))
+        assert isinstance(Role, ((str,), type(None)))
 
         self.validate_namespace(namespace)
 
@@ -2259,14 +2258,14 @@ class MainProvider(ResolverMixin, BaseProvider):
         # pylint: enable=line-too-long
 
         # Parameter types are already checked by WBEMConnection operation
-        assert isinstance(namespace, six.string_types)
-        assert isinstance(ObjectName, (six.string_types, CIMInstanceName))
-        assert isinstance(ResultClass, (six.string_types, type(None)))
-        assert isinstance(Role, (six.string_types, type(None)))
+        assert isinstance(namespace, str)
+        assert isinstance(ObjectName, ((str,), CIMInstanceName))
+        assert isinstance(ResultClass, ((str,), type(None)))
+        assert isinstance(Role, ((str,), type(None)))
         assert isinstance(IncludeQualifiers, (bool, type(None)))
         assert isinstance(IncludeClassOrigin, (bool, type(None)))
         assert isinstance(PropertyList,
-                          (six.string_types, list, tuple, type(None)))
+                          ((str,), list, tuple, type(None)))
 
         self.validate_namespace(namespace)
 
@@ -2364,12 +2363,12 @@ class MainProvider(ResolverMixin, BaseProvider):
         """
 
         # Parameter types are already checked by WBEMConnection operation
-        assert isinstance(namespace, six.string_types)
-        assert isinstance(ObjectName, (six.string_types, CIMInstanceName))
-        assert isinstance(AssocClass, (six.string_types, type(None)))
-        assert isinstance(ResultClass, (six.string_types, type(None)))
-        assert isinstance(Role, (six.string_types, type(None)))
-        assert isinstance(ResultRole, (six.string_types, type(None)))
+        assert isinstance(namespace, str)
+        assert isinstance(ObjectName, ((str,), CIMInstanceName))
+        assert isinstance(AssocClass, ((str,), type(None)))
+        assert isinstance(ResultClass, ((str,), type(None)))
+        assert isinstance(Role, ((str,), type(None)))
+        assert isinstance(ResultRole, ((str,), type(None)))
 
         self.validate_namespace(namespace)
 
@@ -2472,16 +2471,16 @@ class MainProvider(ResolverMixin, BaseProvider):
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_NAMESPACE)
         """
         # Parameter types are already checked by WBEMConnection operation
-        assert isinstance(namespace, six.string_types)
-        assert isinstance(ObjectName, (six.string_types, CIMInstanceName))
-        assert isinstance(AssocClass, (six.string_types, type(None)))
-        assert isinstance(ResultClass, (six.string_types, type(None)))
-        assert isinstance(Role, (six.string_types, type(None)))
-        assert isinstance(ResultRole, (six.string_types, type(None)))
+        assert isinstance(namespace, str)
+        assert isinstance(ObjectName, ((str,), CIMInstanceName))
+        assert isinstance(AssocClass, ((str,), type(None)))
+        assert isinstance(ResultClass, ((str,), type(None)))
+        assert isinstance(Role, ((str,), type(None)))
+        assert isinstance(ResultRole, ((str,), type(None)))
         assert isinstance(IncludeQualifiers, (bool, type(None)))
         assert isinstance(IncludeClassOrigin, (bool, type(None)))
         assert isinstance(PropertyList,
-                          (six.string_types, list, tuple, type(None)))
+                          ((str,), list, tuple, type(None)))
 
         self.validate_namespace(namespace)
 
@@ -2661,13 +2660,13 @@ class MainProvider(ResolverMixin, BaseProvider):
         # If objects returne in open lt max_obj_cnt, set Enum context to
         # complete status.
         if len(objects) <= max_obj_cnt:
-            eos = u'TRUE'
+            eos = 'TRUE'
             context_id = ""
             rtn_objects = objects
         # Otherwise create an entry in the open context
         # table, return incomplete status.
         else:
-            eos = u'FALSE'
+            eos = 'FALSE'
             context_id = self._create_contextid()
             # Issue #2063  Use the timeout along with response delay.
             # Then user could timeout pulls. This means adding timer test to
@@ -2747,12 +2746,12 @@ class MainProvider(ResolverMixin, BaseProvider):
             max_obj_cnt = DEFAULT_MAX_OBJECT_COUNT
 
         if len(objs_list) <= max_obj_cnt:
-            eos = u'TRUE'
+            eos = 'TRUE'
             rtn_objs_list = objs_list
             del self.enumeration_contexts[EnumerationContext]
             context_id = ""
         else:
-            eos = u'FALSE'
+            eos = 'FALSE'
             rtn_objs_list = objs_list[0: max_obj_cnt]
             del objs_list[0: max_obj_cnt]
             context_id = EnumerationContext
@@ -2779,7 +2778,7 @@ class MainProvider(ResolverMixin, BaseProvider):
                             FilterQueryLanguage))
         ot = OperationTimeout
         if ot:
-            if not isinstance(ot, six.integer_types) or ot < 0 \
+            if not isinstance(ot, int) or ot < 0 \
                     or ot > OPEN_MAX_TIMEOUT:
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,
@@ -2884,13 +2883,13 @@ class MainProvider(ResolverMixin, BaseProvider):
         """
 
         # Parameter types are already checked by WBEMConnection operation
-        assert isinstance(namespace, six.string_types)
-        assert isinstance(ClassName, six.string_types)
-        assert isinstance(FilterQueryLanguage, (six.string_types, type(None)))
-        assert isinstance(FilterQuery, (six.string_types, type(None)))
-        assert isinstance(OperationTimeout, (six.integer_types, type(None)))
+        assert isinstance(namespace, str)
+        assert isinstance(ClassName, str)
+        assert isinstance(FilterQueryLanguage, ((str,), type(None)))
+        assert isinstance(FilterQuery, ((str,), type(None)))
+        assert isinstance(OperationTimeout, ((int,), type(None)))
         assert isinstance(ContinueOnError, (bool, type(None)))
-        assert isinstance(MaxObjectCount, (six.integer_types, type(None)))
+        assert isinstance(MaxObjectCount, ((int,), type(None)))
 
         self._validate_pull_operations_enabled()
         self.validate_namespace(namespace)
@@ -2985,17 +2984,17 @@ class MainProvider(ResolverMixin, BaseProvider):
         """
 
         # Parameter types are already checked by WBEMConnection operation
-        assert isinstance(namespace, six.string_types)
-        assert isinstance(ClassName, six.string_types)
+        assert isinstance(namespace, str)
+        assert isinstance(ClassName, str)
         assert isinstance(DeepInheritance, (bool, type(None)))
         assert isinstance(IncludeClassOrigin, (bool, type(None)))
         assert isinstance(PropertyList,
-                          (six.string_types, list, tuple, type(None)))
-        assert isinstance(FilterQueryLanguage, (six.string_types, type(None)))
-        assert isinstance(FilterQuery, (six.string_types, type(None)))
-        assert isinstance(OperationTimeout, (six.integer_types, type(None)))
+                          ((str,), list, tuple, type(None)))
+        assert isinstance(FilterQueryLanguage, ((str,), type(None)))
+        assert isinstance(FilterQuery, ((str,), type(None)))
+        assert isinstance(OperationTimeout, ((int,), type(None)))
         assert isinstance(ContinueOnError, (bool, type(None)))
-        assert isinstance(MaxObjectCount, (six.integer_types, type(None)))
+        assert isinstance(MaxObjectCount, ((int,), type(None)))
 
         self._validate_pull_operations_enabled()
         self.validate_namespace(namespace)
@@ -3054,15 +3053,15 @@ class MainProvider(ResolverMixin, BaseProvider):
         """
 
         # Parameter types are already checked by WBEMConnection operation
-        assert isinstance(namespace, six.string_types)
+        assert isinstance(namespace, str)
         assert isinstance(InstanceName, CIMInstanceName)
-        assert isinstance(ResultClass, (six.string_types, type(None)))
-        assert isinstance(Role, (six.string_types, type(None)))
-        assert isinstance(FilterQueryLanguage, (six.string_types, type(None)))
-        assert isinstance(FilterQuery, (six.string_types, type(None)))
-        assert isinstance(OperationTimeout, (six.integer_types, type(None)))
+        assert isinstance(ResultClass, ((str,), type(None)))
+        assert isinstance(Role, ((str,), type(None)))
+        assert isinstance(FilterQueryLanguage, ((str,), type(None)))
+        assert isinstance(FilterQuery, ((str,), type(None)))
+        assert isinstance(OperationTimeout, ((int,), type(None)))
         assert isinstance(ContinueOnError, (bool, type(None)))
-        assert isinstance(MaxObjectCount, (six.integer_types, type(None)))
+        assert isinstance(MaxObjectCount, ((int,), type(None)))
 
         self._validate_pull_operations_enabled()
         self.validate_namespace(namespace)
@@ -3119,18 +3118,18 @@ class MainProvider(ResolverMixin, BaseProvider):
         """
 
         # Parameter types are already checked by WBEMConnection operation
-        assert isinstance(namespace, six.string_types)
+        assert isinstance(namespace, str)
         assert isinstance(InstanceName, CIMInstanceName)
-        assert isinstance(ResultClass, (six.string_types, type(None)))
-        assert isinstance(Role, (six.string_types, type(None)))
+        assert isinstance(ResultClass, ((str,), type(None)))
+        assert isinstance(Role, ((str,), type(None)))
         assert isinstance(IncludeClassOrigin, (bool, type(None)))
         assert isinstance(PropertyList,
-                          (six.string_types, list, tuple, type(None)))
-        assert isinstance(FilterQueryLanguage, (six.string_types, type(None)))
-        assert isinstance(FilterQuery, (six.string_types, type(None)))
-        assert isinstance(OperationTimeout, (six.integer_types, type(None)))
+                          ((str,), list, tuple, type(None)))
+        assert isinstance(FilterQueryLanguage, ((str,), type(None)))
+        assert isinstance(FilterQuery, ((str,), type(None)))
+        assert isinstance(OperationTimeout, ((int,), type(None)))
         assert isinstance(ContinueOnError, (bool, type(None)))
-        assert isinstance(MaxObjectCount, (six.integer_types, type(None)))
+        assert isinstance(MaxObjectCount, ((int,), type(None)))
 
         self._validate_pull_operations_enabled()
         self.validate_namespace(namespace)
@@ -3190,17 +3189,17 @@ class MainProvider(ResolverMixin, BaseProvider):
         """
 
         # Parameter types are already checked by WBEMConnection operation
-        assert isinstance(namespace, six.string_types)
+        assert isinstance(namespace, str)
         assert isinstance(InstanceName, CIMInstanceName)
-        assert isinstance(AssocClass, (six.string_types, type(None)))
-        assert isinstance(ResultClass, (six.string_types, type(None)))
-        assert isinstance(Role, (six.string_types, type(None)))
-        assert isinstance(ResultRole, (six.string_types, type(None)))
-        assert isinstance(FilterQueryLanguage, (six.string_types, type(None)))
-        assert isinstance(FilterQuery, (six.string_types, type(None)))
-        assert isinstance(OperationTimeout, (six.integer_types, type(None)))
+        assert isinstance(AssocClass, ((str,), type(None)))
+        assert isinstance(ResultClass, ((str,), type(None)))
+        assert isinstance(Role, ((str,), type(None)))
+        assert isinstance(ResultRole, ((str,), type(None)))
+        assert isinstance(FilterQueryLanguage, ((str,), type(None)))
+        assert isinstance(FilterQuery, ((str,), type(None)))
+        assert isinstance(OperationTimeout, ((int,), type(None)))
         assert isinstance(ContinueOnError, (bool, type(None)))
-        assert isinstance(MaxObjectCount, (six.integer_types, type(None)))
+        assert isinstance(MaxObjectCount, ((int,), type(None)))
 
         self._validate_pull_operations_enabled()
         self.validate_namespace(namespace)
@@ -3260,20 +3259,20 @@ class MainProvider(ResolverMixin, BaseProvider):
         """
 
         # Parameter types are already checked by WBEMConnection operation
-        assert isinstance(namespace, six.string_types)
+        assert isinstance(namespace, str)
         assert isinstance(InstanceName, CIMInstanceName)
-        assert isinstance(AssocClass, (six.string_types, type(None)))
-        assert isinstance(ResultClass, (six.string_types, type(None)))
-        assert isinstance(Role, (six.string_types, type(None)))
-        assert isinstance(ResultRole, (six.string_types, type(None)))
+        assert isinstance(AssocClass, ((str,), type(None)))
+        assert isinstance(ResultClass, ((str,), type(None)))
+        assert isinstance(Role, ((str,), type(None)))
+        assert isinstance(ResultRole, ((str,), type(None)))
         assert isinstance(IncludeClassOrigin, (bool, type(None)))
         assert isinstance(PropertyList,
-                          (six.string_types, list, tuple, type(None)))
-        assert isinstance(FilterQueryLanguage, (six.string_types, type(None)))
-        assert isinstance(FilterQuery, (six.string_types, type(None)))
-        assert isinstance(OperationTimeout, (six.integer_types, type(None)))
+                          ((str,), list, tuple, type(None)))
+        assert isinstance(FilterQueryLanguage, ((str,), type(None)))
+        assert isinstance(FilterQuery, ((str,), type(None)))
+        assert isinstance(OperationTimeout, ((int,), type(None)))
         assert isinstance(ContinueOnError, (bool, type(None)))
-        assert isinstance(MaxObjectCount, (six.integer_types, type(None)))
+        assert isinstance(MaxObjectCount, ((int,), type(None)))
 
         self._validate_pull_operations_enabled()
         self.validate_namespace(namespace)
@@ -3325,13 +3324,13 @@ class MainProvider(ResolverMixin, BaseProvider):
         """
 
         # Parameter types are already checked by WBEMConnection operation
-        assert isinstance(namespace, six.string_types)
-        assert isinstance(FilterQueryLanguage, (six.string_types, type(None)))
-        assert isinstance(FilterQuery, (six.string_types, type(None)))
+        assert isinstance(namespace, str)
+        assert isinstance(FilterQueryLanguage, ((str,), type(None)))
+        assert isinstance(FilterQuery, ((str,), type(None)))
         assert isinstance(ReturnQueryResultClass, (bool, type(None)))
-        assert isinstance(OperationTimeout, (six.integer_types, type(None)))
+        assert isinstance(OperationTimeout, ((int,), type(None)))
         assert isinstance(ContinueOnError, (bool, type(None)))
-        assert isinstance(MaxObjectCount, (six.integer_types, type(None)))
+        assert isinstance(MaxObjectCount, ((int,), type(None)))
 
         self._validate_pull_operations_enabled()
         self.validate_namespace(namespace)
@@ -3430,8 +3429,8 @@ class MainProvider(ResolverMixin, BaseProvider):
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_ENUMERATION_CONTEXT)
         """
 
-        assert isinstance(EnumerationContext, six.string_types)
-        assert isinstance(MaxObjectCount, (six.integer_types, type(None)))
+        assert isinstance(EnumerationContext, str)
+        assert isinstance(MaxObjectCount, ((int,), type(None)))
 
         self._validate_pull_operations_enabled()
         return self._pull_response('PullInstancesWithPath',
@@ -3504,8 +3503,8 @@ class MainProvider(ResolverMixin, BaseProvider):
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_ENUMERATION_CONTEXT)
         """
 
-        assert isinstance(EnumerationContext, six.string_types)
-        assert isinstance(MaxObjectCount, (six.integer_types, type(None)))
+        assert isinstance(EnumerationContext, str)
+        assert isinstance(MaxObjectCount, ((int,), type(None)))
 
         self._validate_pull_operations_enabled()
         return self._pull_response('PullInstancePaths',
@@ -3575,8 +3574,8 @@ class MainProvider(ResolverMixin, BaseProvider):
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_ENUMERATION_CONTEXT)
         """
 
-        assert isinstance(EnumerationContext, six.string_types)
-        assert isinstance(MaxObjectCount, (six.integer_types, type(None)))
+        assert isinstance(EnumerationContext, str)
+        assert isinstance(MaxObjectCount, ((int,), type(None)))
 
         self._validate_pull_operations_enabled()
         return self._pull_response('PullInstances',
@@ -3602,7 +3601,7 @@ class MainProvider(ResolverMixin, BaseProvider):
             :exc:`~pywbem.CIMError`: (CIM_ERR_INVALID_ENUMERATION_CONTEXT)
         """
 
-        assert isinstance(EnumerationContext, six.string_types)
+        assert isinstance(EnumerationContext, str)
 
         self._validate_pull_operations_enabled()
 

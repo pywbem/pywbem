@@ -32,7 +32,6 @@ To change the schema used:
    Travis, etc. testing
 """
 
-from __future__ import absolute_import, print_function
 
 import os
 

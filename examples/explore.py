@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from __future__ import print_function, absolute_import
 import sys
 
 from pywbem import WBEMConnection, WBEMServer, ValueMapping
@@ -12,7 +11,7 @@ def print_profile_info(org_vm, inst):
     org = org_vm.tovalues(inst['RegisteredOrganization'])
     name = inst['RegisteredName']
     vers = inst['RegisteredVersion']
-    print("  %s %s Profile %s" % (org, name, vers))
+    print("  {} {} Profile {}".format(org, name, vers))
 
 def explore_server(server_url, username, password):
     """ Demo of exploring a cim server for characteristics defined by

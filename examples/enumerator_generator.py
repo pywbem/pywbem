@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 """
     Example of using Iterator Operations to retrieve instances from a
@@ -14,7 +13,6 @@
     It also displays the results of the open and each pull in detail
 """
 
-from __future__ import print_function
 
 import sys
 import argparse as _argparse
@@ -46,12 +44,12 @@ def create_parser(prog):
            ' a WBEM server.'
     epilog = """
 Examples:
-  %s https://localhost:15345 -n vendor -u sheldon -p penny
+  {} https://localhost:15345 -n vendor -u sheldon -p penny
           - (https localhost, port=15345, namespace=vendor user=sheldon
          password=penny)
 
-  %s http://[2001:db8::1234-eth0] -(http port 5988 ipv6, zone id eth0)
-""" % (prog, prog)
+  {} http://[2001:db8::1234-eth0] -(http port 5988 ipv6, zone id eth0)
+""".format(prog, prog)
 
     argparser = _argparse.ArgumentParser(
         prog=prog, usage=usage, description=desc, epilog=epilog,
@@ -193,9 +191,9 @@ def main():
 
         # generate instances with
         for instance in iter_instances:
-            print(' %s %s' % (type(instances), type(instance)))
+            print(' {} {}'.format(type(instances), type(instance)))
             instances.append(instance)
-            print('\npath=%s\n%s' % (instance.path, instance.tomof()))
+            print('\npath={}\n{}'.format(instance.path, instance.tomof()))
 
     # handle exceptions
     except CIMError as ce:

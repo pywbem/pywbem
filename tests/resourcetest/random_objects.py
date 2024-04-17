@@ -13,7 +13,7 @@ from pywbem import CIMQualifier, CIMProperty, CIMClass, CIMInstance, \
 from pywbem_mock import FakedWBEMConnection
 
 
-ASCII_CHARS = [six.unichr(i) for i in range(0x0020, 0x007e + 1)]
+ASCII_CHARS = [chr(i) for i in range(0x0020, 0x007e + 1)]
 
 #: The CIM integer type names
 INTEGER_TYPES = (
@@ -108,7 +108,7 @@ def random_string(length_range, charset='ascii'):
     if charset == 'ascii':
         chars = ASCII_CHARS
     else:
-        raise ValueError("Invalid charset: {}".format(charset))
+        raise ValueError(f"Invalid charset: {charset}")
     length = random.randint(length_range.min, length_range.max)
     value = ''.join(random.choice(chars) for _ in range(length))
     return value
@@ -156,7 +156,7 @@ def random_type_value(values, type=None):
         value = CIMDateTime(datetime(year, month, day, hour, minute, second))
     else:
         # The 'reference' type is intentionally not supported here
-        raise AssertionError('Invalid CIM type name: {}'.format(type))
+        raise AssertionError(f'Invalid CIM type name: {type}')
     return type, value
 
 

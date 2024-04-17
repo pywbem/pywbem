@@ -4,7 +4,6 @@
 Test _listener.py module.
 """
 
-from __future__ import absolute_import
 
 import sys
 import re
@@ -687,7 +686,7 @@ def test_WBEMListener_send_indications(send_count):
     try:
 
         start_time = time()
-        url = 'http://{}:{}'.format(host, http_port)
+        url = f'http://{host}:{http_port}'
         cim_protocol_version = '1.4'
         headers = {
             'Content-Type': 'application/xml; charset=utf-8',
@@ -783,7 +782,7 @@ def test_WBEMListener_incorrect_method(method, exp_status):
 
     host = 'localhost'
     http_port = 50000
-    url = 'http://{}:{}'.format(host, http_port)
+    url = f'http://{host}:{http_port}'
     headers = {
         'Content-Type': 'application/xml; charset=utf-8',
         'CIMExport': 'MethodRequest',
@@ -905,7 +904,7 @@ def test_WBEMListener_incorrect_headers(desc, headers, exp_status, exp_headers):
 
     host = 'localhost'
     http_port = 50000
-    url = 'http://{}:{}'.format(host, http_port)
+    url = f'http://{host}:{http_port}'
     # headers = copy(headers)
 
     listener = WBEMListener(host, http_port)
@@ -1059,7 +1058,7 @@ def test_WBEMListener_incorrect_payload1(
 
     host = 'localhost'
     http_port = 50000
-    url = 'http://{}:{}'.format(host, http_port)
+    url = f'http://{host}:{http_port}'
     headers = {
         'Content-Type': 'application/xml; charset=utf-8',
         'CIMExport': 'MethodRequest',
@@ -1224,7 +1223,7 @@ def test_WBEMListener_incorrect_payload2(
 
     host = 'localhost'
     http_port = 50000
-    url = 'http://{}:{}'.format(host, http_port)
+    url = f'http://{host}:{http_port}'
     headers = {
         'Content-Type': 'application/xml; charset=utf-8',
         'CIMExport': 'MethodRequest',

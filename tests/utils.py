@@ -2,7 +2,6 @@
 Utility functions for pywbem testing
 """
 
-from __future__ import absolute_import, print_function
 
 import sys
 import os
@@ -132,7 +131,7 @@ def import_installed(module_name):
             ix = None
         if ix is not None:
             if test_installed == 'DEBUG':
-                print("Debug: Removing {0} at index {1} from module search "
+                print("Debug: Removing {} at index {} from module search "
                       "path".format(dirpath, ix))
             del sys.path[ix]
 
@@ -147,7 +146,7 @@ def import_installed(module_name):
                 ix = sys.path.index(dirpath)
             except ValueError:
                 if test_installed == 'DEBUG':
-                    print("Debug: Appending {0} to end of module search "
+                    print("Debug: Appending {} to end of module search "
                           "path".format(dirpath))
                 sys.path.append(dirpath)
                 break
@@ -155,7 +154,7 @@ def import_installed(module_name):
                 # it exists once at the end
                 break
             if test_installed == 'DEBUG':
-                print("Debug: Removing {0} at index {1} from module search "
+                print("Debug: Removing {} at index {} from module search "
                       "path".format(dirpath, ix))
             del sys.path[ix]
 
@@ -210,7 +209,7 @@ def is_inherited_from(member_name, derived_class, base_class):
         from the base class.
     """
 
-    assert isinstance(member_name, six.string_types)
+    assert isinstance(member_name, str)
     assert isinstance(base_class, type)
     assert isinstance(derived_class, type)
 
@@ -269,11 +268,11 @@ def post_bsl(url, headers, data, timeout=4):
     except requests.exceptions.ConnectionError as exc:
         org_exc = exc.args[0]  # pylint: disable=no-member
         if debug:
-            print("Debug: ConnectionError: args[0]={!r}".format(org_exc))
+            print(f"Debug: ConnectionError: args[0]={org_exc!r}")
         if isinstance(org_exc, urllib3.exceptions.ProtocolError):
             org_org_exc = org_exc.args[1]  # pylint: disable=no-member
             if debug:
-                print("Debug: ProtocolError: args[1]={!r}".format(org_org_exc))
+                print(f"Debug: ProtocolError: args[1]={org_org_exc!r}")
             if isinstance(org_org_exc, BadStatusLine):
                 # We do just one retry.
                 if debug:

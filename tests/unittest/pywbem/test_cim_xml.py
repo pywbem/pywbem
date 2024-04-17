@@ -2,13 +2,12 @@
 Unit tests for pywbem _cim_xml.py module.
 """
 
-from __future__ import absolute_import
 
 try:
     from collections.abc import Iterable
 except ImportError:  # py2
     # pylint: disable=deprecated-class
-    from collections import Iterable
+    from collections.abc import Iterable
 import six
 import pytest
 
@@ -34,9 +33,8 @@ def iter_flattened(lst):
     """
     for item in lst:
         if isinstance(item, Iterable) and \
-                not isinstance(item, six.string_types):
-            for sub_item in iter_flattened(item):
-                yield sub_item
+                not isinstance(item, str):
+            yield from iter_flattened(item)
         else:
             yield item
 
@@ -61,7 +59,7 @@ def simple_HOST_str(name='leonardo'):
     Return a simple HOST as a list of XML strings.
     """
     return [
-        '<HOST>{name}</HOST>'.format(name=name),
+        f'<HOST>{name}</HOST>',
     ]
 
 
@@ -77,7 +75,7 @@ def simple_NAMESPACE_str(name='myns'):
     Return a simple NAMESPACE as a list of XML strings.
     """
     return [
-        '<NAMESPACE NAME="{name}"/>'.format(name=name),
+        f'<NAMESPACE NAME="{name}"/>',
     ]
 
 
@@ -139,7 +137,7 @@ def simple_CLASSNAME_str(name='MyClass'):
     Return a simple CLASSNAME as a list of XML strings.
     """
     return [
-        '<CLASSNAME NAME="{name}"/>'.format(name=name),
+        f'<CLASSNAME NAME="{name}"/>',
     ]
 
 
@@ -211,7 +209,7 @@ def simple_INSTANCENAME_str(name='MyClass'):
     Return a simple INSTANCENAME as a list of XML strings.
     """
     return [
-        '<INSTANCENAME CLASSNAME="{name}">'.format(name=name),
+        f'<INSTANCENAME CLASSNAME="{name}">',
         '<KEYBINDING NAME="type">',
         '<KEYVALUE VALUETYPE="string">dog</KEYVALUE>',
         '</KEYBINDING>',
@@ -430,7 +428,7 @@ def simple_CLASS_str(name='MyClass'):
     Return a simple CLASS as a list of XML strings.
     """
     return [
-        '<CLASS NAME="{name}"/>'.format(name=name),
+        f'<CLASS NAME="{name}"/>',
     ]
 
 
@@ -446,7 +444,7 @@ def simple_INSTANCE_str(name='MyClass'):
     Return a simple INSTANCE as a list of XML strings.
     """
     return [
-        '<INSTANCE CLASSNAME="{name}"/>'.format(name=name),
+        f'<INSTANCE CLASSNAME="{name}"/>',
     ]
 
 
@@ -1783,9 +1781,9 @@ TESTCASES_CIM_XML_NODE = [
     (
         "CLASSNAME with non-ASCII UCS-2 string as name",
         dict(
-            xml_node=_cim_xml.CLASSNAME(u'ACME_\u00E4'),
+            xml_node=_cim_xml.CLASSNAME('ACME_\u00E4'),
             exp_xml_str_list=[
-                u'<CLASSNAME NAME="ACME_\u00E4"/>',
+                '<CLASSNAME NAME="ACME_\u00E4"/>',
             ],
         ),
         None, None, True
@@ -1793,9 +1791,9 @@ TESTCASES_CIM_XML_NODE = [
     (
         "CLASSNAME with non-UCS-2 unicode string as name",
         dict(
-            xml_node=_cim_xml.CLASSNAME(u'ACME_\U00010142'),
+            xml_node=_cim_xml.CLASSNAME('ACME_\U00010142'),
             exp_xml_str_list=[
-                u'<CLASSNAME NAME="ACME_\U00010142"/>',
+                '<CLASSNAME NAME="ACME_\U00010142"/>',
             ],
         ),
         None, None, True

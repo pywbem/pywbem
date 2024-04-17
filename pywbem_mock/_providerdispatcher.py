@@ -29,7 +29,6 @@ user-defined provider is registered to the user-defined method for the
 provider class defined in the provider registry.
 """
 
-from __future__ import absolute_import, print_function
 
 from copy import deepcopy
 import warnings
@@ -38,7 +37,7 @@ try:
     from collections.abc import Mapping, Sequence
 except ImportError:  # py2
     # pylint: disable=deprecated-class
-    from collections import Mapping, Sequence
+    from collections.abc import Mapping, Sequence
 
 from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMParameter, CIMError, CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_PARAMETER, \
@@ -74,7 +73,7 @@ class ProviderDispatcher(BaseProvider):
         """
         Set instance parameters passed from FakedWBEMConnection
         """
-        super(ProviderDispatcher, self).__init__(cimrepository)
+        super().__init__(cimrepository)
 
         self.provider_registry = provider_registry
 
@@ -194,7 +193,7 @@ class ProviderDispatcher(BaseProvider):
 
         # Verify the input parameter types (type errors have already been
         # raised during checks in the WBEMConnection operation).
-        assert isinstance(namespace, six.string_types)
+        assert isinstance(namespace, str)
         assert isinstance(NewInstance, CIMInstance)
 
         # Verify that the new instance has no path (ensured by the
@@ -276,7 +275,7 @@ class ProviderDispatcher(BaseProvider):
         assert isinstance(ModifiedInstance, CIMInstance)
         assert isinstance(IncludeQualifiers, (bool, type(None)))
         assert isinstance(PropertyList,
-                          (six.string_types, list, tuple, type(None)))
+                          ((str,), list, tuple, type(None)))
         assert isinstance(ModifiedInstance.path, CIMInstanceName)
 
         # Verify equality of the class names in the modified instance.
@@ -493,8 +492,8 @@ class ProviderDispatcher(BaseProvider):
         # Verify the input parameter types (type errors have already been
         # raised during checks in WBEMConnection.InvokeMethod(), and in
         # FakedWBEMConnection._mock_methodcall()).
-        assert isinstance(namespace, six.string_types)
-        assert isinstance(methodname, six.string_types)
+        assert isinstance(namespace, str)
+        assert isinstance(methodname, str)
         assert isinstance(localobject, (CIMInstanceName, CIMClassName))
         assert isinstance(params, NocaseDict)
 
@@ -570,7 +569,7 @@ class ProviderDispatcher(BaseProvider):
         # Verify that the input parameters are defined by the method and have
         # the correct type-related attributes.
         for pn in params:
-            assert isinstance(pn, six.string_types)
+            assert isinstance(pn, str)
             param_in = params[pn]
             assert isinstance(param_in, CIMParameter)
 

@@ -3,7 +3,6 @@ This module provides function KeyableByMixin() returning a mixin class for
 class NocaseDict.
 """
 
-from __future__ import print_function, absolute_import
 
 __all__ = ['KeyableByMixin']
 
@@ -40,5 +39,5 @@ def KeyableByMixin(key_attr):
         # MyDict({'A': <__main__.Obj object at 0x10bc3d820>,
         #         'B': <__main__.Obj object at 0x10bc89af0>})
     """
-    return type('KeyableByMixin_{}'.format(key_attr),
+    return type(f'KeyableByMixin_{key_attr}',
                 (), {'nocasedict_KeyableByMixin_key_attr': key_attr})

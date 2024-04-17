@@ -19,7 +19,6 @@ It does not test for valid parameters if the parameters are tested by lower
 level methods because those are the methods that are mocked.
 """
 
-from __future__ import absolute_import, print_function
 
 import pytest
 import six
@@ -27,7 +26,7 @@ import six
 try:
     from unittest.mock import Mock
 except ImportError:
-    from mock import Mock
+    from unittest.mock import Mock
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
@@ -65,7 +64,7 @@ def tst_insts():
     """
     obj_count = 2
     rtn = []
-    for i in six.moves.range(obj_count):
+    for i in range(obj_count):
         instanceid = str(i + 1000)
         obj = CIMInstance(
             'CIM_Foo',
@@ -92,7 +91,7 @@ def tst_paths():
     """
     obj_count = 2
     rtn = []
-    for i in six.moves.range(obj_count):
+    for i in range(obj_count):
         instanceid = str(i + 1000)
         obj = CIMInstanceName(
             'CIM_Foo',
@@ -110,7 +109,7 @@ def tst_paths():
 #
 ########################################################################
 
-class TestIterEnumerateInstances(object):
+class TestIterEnumerateInstances:
     """Test IterEnumerateInstances execution"""
 
     @pytest.mark.parametrize(
@@ -406,7 +405,7 @@ class TestIterEnumerateInstances(object):
         gen = conn.IterEnumerateInstances(
             'CIM_Foo', MaxObjectCount=max_obj_count)
         result = []
-        for _ in six.moves.range(close_after):
+        for _ in range(close_after):
             obj = next(gen)
             result.append(obj)
         gen.close()  # close prematurely
@@ -488,7 +487,7 @@ class TestIterEnumerateInstances(object):
 #
 ########################################################################
 
-class TestIterEnumerateInstancePaths(object):
+class TestIterEnumerateInstancePaths:
     """Test IterEnumerateInstancePaths execution"""
 
     @pytest.mark.parametrize(
@@ -751,7 +750,7 @@ class TestIterEnumerateInstancePaths(object):
         gen = conn.IterEnumerateInstancePaths(
             'CIM_Foo', MaxObjectCount=max_obj_count)
         result = []
-        for _ in six.moves.range(close_after):
+        for _ in range(close_after):
             obj = next(gen)
             result.append(obj)
         gen.close()  # close prematurely
@@ -833,7 +832,7 @@ class TestIterEnumerateInstancePaths(object):
 #
 ########################################################################
 
-class TestIterReferenceInstances(object):
+class TestIterReferenceInstances:
     """Test IterReferenceInstances execution"""
 
     @staticmethod
@@ -1129,7 +1128,7 @@ class TestIterReferenceInstances(object):
         gen = conn.IterReferenceInstances(
             self.target_path('root/cimv2'), MaxObjectCount=max_obj_count)
         result = []
-        for _ in six.moves.range(close_after):
+        for _ in range(close_after):
             obj = next(gen)
             result.append(obj)
         gen.close()  # close prematurely
@@ -1211,7 +1210,7 @@ class TestIterReferenceInstances(object):
 #
 ########################################################################
 
-class TestIterReferenceInstancePaths(object):
+class TestIterReferenceInstancePaths:
     """Test IterReferenceInstancePaths execution"""
 
     @staticmethod
@@ -1478,7 +1477,7 @@ class TestIterReferenceInstancePaths(object):
         gen = conn.IterReferenceInstancePaths(
             self.target_path('root/cimv2'), MaxObjectCount=max_obj_count)
         result = []
-        for _ in six.moves.range(close_after):
+        for _ in range(close_after):
             obj = next(gen)
             result.append(obj)
         gen.close()  # close prematurely
@@ -1560,7 +1559,7 @@ class TestIterReferenceInstancePaths(object):
 #
 ########################################################################
 
-class TestIterAssociatorInstances(object):
+class TestIterAssociatorInstances:
     """Test IterAssociatorInstances execution"""
 
     @staticmethod
@@ -1864,7 +1863,7 @@ class TestIterAssociatorInstances(object):
         gen = conn.IterAssociatorInstances(
             self.target_path('root/cimv2'), MaxObjectCount=max_obj_count)
         result = []
-        for _ in six.moves.range(close_after):
+        for _ in range(close_after):
             obj = next(gen)
             result.append(obj)
         gen.close()  # close prematurely
@@ -1946,7 +1945,7 @@ class TestIterAssociatorInstances(object):
 #
 ########################################################################
 
-class TestIterAssociatorInstancePaths(object):
+class TestIterAssociatorInstancePaths:
     """Test IterAssociatorInstancePaths execution"""
 
     @staticmethod
@@ -2221,7 +2220,7 @@ class TestIterAssociatorInstancePaths(object):
         gen = conn.IterAssociatorInstancePaths(
             self.target_path('root/cimv2'), MaxObjectCount=max_obj_count)
         result = []
-        for _ in six.moves.range(close_after):
+        for _ in range(close_after):
             obj = next(gen)
             result.append(obj)
         gen.close()  # close prematurely
@@ -2303,7 +2302,7 @@ class TestIterAssociatorInstancePaths(object):
 #
 ########################################################################
 
-class TestIterQueryInstances(object):
+class TestIterQueryInstances:
     """Test IterQueryInstances execution"""
 
     @pytest.mark.parametrize(
@@ -2588,7 +2587,7 @@ class TestIterQueryInstances(object):
             ReturnQueryResultClass=None, MaxObjectCount=max_obj_count)
         gen = q_result.generator
         result = []
-        for _ in six.moves.range(close_after):
+        for _ in range(close_after):
             obj = next(gen)
             result.append(obj)
         gen.close()  # close prematurely

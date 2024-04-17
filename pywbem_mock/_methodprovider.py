@@ -103,7 +103,6 @@ and returns it as its output parameter ``OutputParam2``:
             return (return_value, out_params)
 """
 
-from __future__ import absolute_import, print_function
 
 from pywbem import CIMError, CIM_ERR_METHOD_NOT_FOUND
 
@@ -136,7 +135,7 @@ class MethodProvider(BaseProvider):
           cimrepository (:class:`~pywbem_mock.BaseRepository` or subclass):
             Defines the repository to be used by the provider.
         """
-        super(MethodProvider, self).__init__(cimrepository)
+        super().__init__(cimrepository)
 
     def InvokeMethod(self, methodname, localobject, params):
         # pylint: disable=invalid-name,no-self-use

@@ -38,7 +38,6 @@ described in detail in this documentation.
 
 # This module is meant to be safe for 'import *'.
 
-from __future__ import print_function, absolute_import
 
 from ._vendor.nocasedict import NocaseDict as _NocaseDict
 from ._vendor.nocasedict import HashableMixin, KeyableByMixin
@@ -64,7 +63,7 @@ class NocaseDict(HashableMixin, KeyableByMixin('name'), _NocaseDict):
     """
 
     def __init__(self, *args, **kwargs):
-        super(NocaseDict, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.allow_unnamed_keys = False
 
     def _check_unnamed_key(self, key):
@@ -79,20 +78,20 @@ class NocaseDict(HashableMixin, KeyableByMixin('name'), _NocaseDict):
 
     def __getitem__(self, key):
         self._check_unnamed_key(key)
-        return super(NocaseDict, self).__getitem__(key)
+        return super().__getitem__(key)
 
     def __setitem__(self, key, value):
         self._check_unnamed_key(key)
-        return super(NocaseDict, self).__setitem__(key, value)
+        return super().__setitem__(key, value)
 
     def __delitem__(self, key):
         self._check_unnamed_key(key)
-        return super(NocaseDict, self).__delitem__(key)
+        return super().__delitem__(key)
 
     def __contains__(self, key):
         self._check_unnamed_key(key)
-        return super(NocaseDict, self).__contains__(key)
+        return super().__contains__(key)
 
     def pop(self, key, default=_OMITTED):
         self._check_unnamed_key(key)
-        return super(NocaseDict, self).pop(key, default)
+        return super().pop(key, default)

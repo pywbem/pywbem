@@ -155,7 +155,7 @@ except ImportError:
     termios = None
 import six
 from six.moves import BaseHTTPServer
-from six.moves import socketserver
+import socketserver
 from six.moves import http_client
 try:
     from http.server import HTTPStatus
@@ -280,7 +280,7 @@ def keyfile_password_prompt(keyfile):
     Raises:
       ListenerPromptError: Password prompt was interrupted or ended
     """
-    prompt = "Enter password for key file {}: ".format(keyfile)
+    prompt = f"Enter password for key file {keyfile}: "
     with saved_term_attrs():
         try:
             pw = getpass.getpass(prompt=prompt)
@@ -573,7 +573,7 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         resp_body = '<?xml version="1.0" encoding="utf-8" ?>\n' + \
                     resp_xml.toxml()
 
-        if isinstance(resp_body, six.text_type):
+        if isinstance(resp_body, str):
             resp_body = resp_body.encode("utf-8")
 
         http_code = 200
@@ -606,7 +606,7 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         resp_body = '<?xml version="1.0" encoding="utf-8" ?>\n' + \
                     resp_xml.toxml()
 
-        if isinstance(resp_body, six.text_type):
+        if isinstance(resp_body, str):
             resp_body = resp_body.encode("utf-8")
 
         http_code = 200
@@ -720,7 +720,7 @@ class StoppableThread(threading.Thread):
         """
         Init with arguments for the thread
         """
-        super(StoppableThread, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.stop_event = threading.Event()
 
     def stop(self):
@@ -733,7 +733,7 @@ class StoppableThread(threading.Thread):
 
 
 # pylint: disable=too-many-instance-attributes
-class WBEMListener(object):
+class WBEMListener:
     """
     *New in pywbem 0.9 as experimental and finalized in 0.10.*
 
@@ -811,9 +811,9 @@ class WBEMListener(object):
 
         self._host = host
 
-        if isinstance(http_port, six.integer_types):
+        if isinstance(http_port, int):
             self._http_port = int(http_port)  # Convert Python 2 long to int
-        elif isinstance(http_port, six.string_types):
+        elif isinstance(http_port, str):
             self._http_port = int(http_port)
         elif http_port is None:
             self._http_port = http_port
@@ -821,9 +821,9 @@ class WBEMListener(object):
             raise TypeError(
                 _format("Invalid type for http_port: {0}", type(http_port)))
 
-        if isinstance(https_port, six.integer_types):
+        if isinstance(https_port, int):
             self._https_port = int(https_port)  # Convert Python 2 long to int
-        elif isinstance(https_port, six.string_types):
+        elif isinstance(https_port, str):
             self._https_port = int(https_port)
         elif https_port is None:
             self._https_port = https_port
@@ -1070,7 +1070,7 @@ class WBEMListener(object):
                 try:
                     server = ThreadedHTTPServer((self._host, self._http_port),
                                                 ListenerRequestHandler)
-                except (IOError, OSError) as exc:
+                except OSError as exc:
                     self.stop_callback_thread()
                     # Linux/macOS on py2: socket.error (derived from IOError);
                     # Linux/macOS on py3: OSError;
@@ -1108,7 +1108,7 @@ class WBEMListener(object):
                 try:
                     server = ThreadedHTTPServer((self._host, self._https_port),
                                                 ListenerRequestHandler)
-                except (IOError, OSError) as exc:
+                except OSError as exc:
                     self.stop_callback_thread()
                     # Linux/macOS on py2: socket.error (derived from IOError);
                     # Linux/macOS on py3: OSError;
@@ -1162,7 +1162,7 @@ class WBEMListener(object):
                             format(exc.errno, exc.library, exc))
                         new_exc.__cause__ = None
                         raise new_exc  # ListenerCertificateError
-                    except (IOError, OSError) as exc:
+                    except OSError as exc:
                         new_exc = ListenerCertificateError(
                             "Issue opening {}: {}".
                             format(_cert_key_file(self._certfile,
@@ -1348,5 +1348,5 @@ def callback_interface(indication, host):
 def _cert_key_file(certfile, keyfile):
     "Return a string for use in messages for the certificate or key files"
     if certfile == keyfile or keyfile is None:
-        return "certificate/key file {}".format(certfile)
-    return "certificate file {} or key file {}".format(certfile, keyfile)
+        return f"certificate/key file {certfile}"
+    return f"certificate file {certfile} or key file {keyfile}"

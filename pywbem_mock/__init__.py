@@ -21,7 +21,6 @@ pywbem_mock - Unit test support for users of pywbem package that mocks
 the implementation of the WBEMConnection calls to WBEM Servers.
 """
 
-from __future__ import absolute_import
 
 # The config namespace is imported as a sub-namespace to make the config
 # variables accessible directly via their defining namespace. Importing

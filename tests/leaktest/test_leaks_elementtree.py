@@ -2,7 +2,6 @@
 Test memory leaks for xml.etree.ElementTree classes.
 """
 
-from __future__ import absolute_import, print_function
 
 import xml.etree.ElementTree as ET
 import yagot

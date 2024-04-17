@@ -4,7 +4,6 @@
 Tests for statistics (`_statistics` in pywbem module).
 """
 
-from __future__ import absolute_import, print_function
 
 import re
 import time
@@ -232,7 +231,7 @@ def test_Statistics_get_op_statistic(
         exp_attr_value = exp_op_stats_attrs[attr_name]
         attr_value = getattr(op_stats, attr_name)
         assert attr_value == exp_attr_value, \
-            "Unexpected op_stats attribute '{}'".format(attr_name)
+            f"Unexpected op_stats attribute '{attr_name}'"
 
 
 def test_Statistics_measure_enabled():

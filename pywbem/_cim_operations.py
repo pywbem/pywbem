@@ -136,7 +136,6 @@ WBEMConnection methods targeting a listener                 Purpose
 
 # This module is meant to be safe for 'import *'.
 
-from __future__ import absolute_import
 
 import os
 import re
@@ -244,7 +243,7 @@ def _to_pretty_xml(xml_item):
     if provided as a string. This processing uses a lot of memory and takes
     significant elapsed time.
     """
-    if isinstance(xml_item, (six.text_type, six.binary_type)):
+    if isinstance(xml_item, (str, bytes)):
         xml_item = minidom.parseString(xml_item)
 
     pretty_result = xml_item.toprettyxml(indent='  ')
@@ -266,7 +265,7 @@ def _iparam_propertylist(property_list):
         pass
     elif isinstance(property_list, (list, tuple)):
         pass
-    elif isinstance(property_list, six.string_types):
+    elif isinstance(property_list, str):
         property_list = [property_list]
     else:
         raise TypeError(
@@ -289,7 +288,7 @@ def _validate_OperationTimeout(OperationTimeout):
       TypeError: Invalid type
       ValueError: Invalid value
     """
-    if not isinstance(OperationTimeout, (six.integer_types, type(None))):
+    if not isinstance(OperationTimeout, ((int,), type(None))):
         raise TypeError(
             _format("The 'OperationTimeout' parameter of the WBEMConnection "
                     "operation has invalid type {0} (must be integer)",
@@ -312,7 +311,7 @@ def _validate_MaxObjectCount_Iter(MaxObjectCount):
       TypeError: Invalid type
       ValueError: Invalid value, including None
     """
-    if not isinstance(MaxObjectCount, (six.integer_types, type(None))):
+    if not isinstance(MaxObjectCount, ((int,), type(None))):
         raise TypeError(
             _format("The 'MaxObjectCount' parameter of the WBEMConnection "
                     "operation has invalid type {0} (must be integer)",
@@ -338,7 +337,7 @@ def _validate_MaxObjectCount_OpenPull(MaxObjectCount):
     """
     if MaxObjectCount is None:
         return
-    if not isinstance(MaxObjectCount, six.integer_types):
+    if not isinstance(MaxObjectCount, int):
         raise TypeError(
             _format("The 'MaxObjectCount' parameter of the WBEMConnection "
                     "operation has invalid type {0} (must be integer or None)",
@@ -379,7 +378,7 @@ def _validate_context(context):
                     "of size 2)", context))
 
 
-class IterQueryInstancesReturn(object):
+class IterQueryInstancesReturn:
     """
     The return data for
     :meth:`~pywbem.WBEMConnection.IterQueryInstances`.
@@ -409,11 +408,10 @@ class IterQueryInstancesReturn(object):
         the query result. These instances do not have an instance path
         set.
         """
-        for inst in self.instances:
-            yield inst
+        yield from self.instances
 
 
-class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
+class WBEMConnection:  # pylint: disable=too-many-instance-attributes
     """
     A client's connection to a WBEM server or WBEM listener. This is the main
     class of the WBEM client library API.
@@ -799,15 +797,15 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             except KeyError:
                 raise ValueError(
                     "The x509 parameter does not have the required key "
-                    "'cert_file': {0!r}".format(x509))
-            if not isinstance(cert_file, six.string_types):
+                    "'cert_file': {!r}".format(x509))
+            if not isinstance(cert_file, str):
                 raise TypeError(
                     "The 'cert_file' item in the x509 parameter must be a "
                     "string but has type: {0}".
                     format(type(cert_file)))
             key_file = x509.get('key_file', None)
             if key_file is not None and \
-                    not isinstance(key_file, six.string_types):
+                    not isinstance(key_file, str):
                 raise TypeError(
                     "The 'key_file' item in the x509 parameter must be a "
                     "string but has type: {0}".
@@ -840,12 +838,12 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             cert_file = self.x509['cert_file']
             key_file = self.x509.get('key_file', None)
             if not os.path.exists(cert_file):
-                raise IOError(
+                raise OSError(
                     "Client certificate file for TLS/SSL 2-way "
                     "authentication not found: {}".
                     format(cert_file))
             if key_file is not None and not os.path.exists(key_file):
-                raise IOError(
+                raise OSError(
                     "Client key file for TLS/SSL 2-way "
                     "authentication not found: {}".
                     format(key_file))
@@ -863,10 +861,10 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         elif self.ca_certs is None:
             # Use the certificates provided by the Python certifi package.
             verify = True
-        elif isinstance(self.ca_certs, six.string_types):
+        elif isinstance(self.ca_certs, str):
             # Use the specified path name (to file or directory).
             if not os.path.exists(self.ca_certs):
-                raise IOError(
+                raise OSError(
                     "CA certificate file or directory not found: {}".
                     format(self.ca_certs))
             verify = self.ca_certs
@@ -905,7 +903,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         # Create the connection identifier for this WBEMConnection
         # Includes class level counter and process pid
         self.__class__._conn_counter += 1
-        self._conn_id = '{0}-{1}'.format(
+        self._conn_id = '{}-{}'.format(
             self.__class__._conn_counter,  # pylint: disable=protected-access
             os.getpid())
 
@@ -1474,7 +1472,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         if self.x509:
             x509_repr = "{" + ", ".join(
                 [_format("{0!A}: {1!A}", key, self.x509[key])
-                 for key in sorted(six.iterkeys(self.x509))]) + "}"
+                 for key in sorted(self.x509.keys())]) + "}"
         else:
             x509_repr = "None"
 
@@ -1618,7 +1616,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         This accepts a string or integer for `detail_level`.
         """
         # process detail_level
-        if isinstance(detail_level, six.string_types):
+        if isinstance(detail_level, str):
             if detail_level not in LOG_DETAIL_LEVELS:
                 raise ValueError(
                     _format("Invalid log detail level string: {0!A}; must be "
@@ -2107,7 +2105,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if localobject.namespace is None:
                 localobject.namespace = self.default_namespace
             localobject.host = None
-        elif isinstance(objectname, six.string_types):
+        elif isinstance(objectname, str):
             # a string is always interpreted as a class name
             localobject = CIMClassName(objectname,
                                        namespace=self.default_namespace)
@@ -2146,7 +2144,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                 return obj.cimtype
             elif isinstance(obj, bool):
                 return 'boolean'
-            elif isinstance(obj, six.string_types):
+            elif isinstance(obj, str):
                 return 'string'
             elif isinstance(obj, (datetime, timedelta)):
                 return 'datetime'
@@ -2174,7 +2172,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             """
             if isinstance(obj, (datetime, timedelta)):
                 obj = CIMDateTime(obj)
-            if isinstance(obj, (CIMType, bool, six.string_types)):
+            if isinstance(obj, (CIMType, bool, (str,))):
                 # This includes CIMDateTime (subclass of CIMType)
                 return _cim_xml.VALUE(atomic_to_cim_xml(obj))
             if isinstance(obj, (CIMClassName, CIMInstanceName)):
@@ -2507,7 +2505,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         Raises:
           TypeError - namespace has an invalid type
         """
-        if isinstance(namespace, six.string_types):
+        if isinstance(namespace, str):
             namespace = namespace.strip('/')
         elif namespace is None:
             pass
@@ -2541,7 +2539,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
         if isinstance(objectname, (CIMClassName, CIMInstanceName)):
             namespace = objectname.namespace
-        elif isinstance(objectname, six.string_types):
+        elif isinstance(objectname, str):
             namespace = None
         elif objectname is None:
             namespace = objectname
@@ -2577,7 +2575,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             objectname = objectname.copy()
             objectname.host = None
             objectname.namespace = None
-        elif isinstance(objectname, six.string_types):
+        elif isinstance(objectname, str):
             objectname = CIMClassName(objectname)
         elif not required and objectname is None:
             pass
@@ -2609,7 +2607,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             classname = classname.copy()
             classname.host = None
             classname.namespace = None
-        elif isinstance(classname, six.string_types):
+        elif isinstance(classname, str):
             classname = CIMClassName(classname)
         elif not required and classname is None:
             pass
@@ -2730,7 +2728,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         Raises:
           TypeError - string_param has an invalid type
         """
-        if isinstance(string_param, six.string_types):
+        if isinstance(string_param, str):
             pass
         elif not required and string_param is None:
             pass
@@ -2755,7 +2753,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
           TypeError - integer_param has an invalid type
           ValueError - integer param is LT 0
         """
-        if not isinstance(integer_param, (six.integer_types, type(None))):
+        if not isinstance(integer_param, ((int,), type(None))):
             raise TypeError(
                 _format("The {0!A} parameter of the WBEMConnection operation "
                         "has invalid type {1} (must be None, or an integer)",
@@ -2801,7 +2799,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         enumeration_context_found = False  # flag True if ec tuple found
         for p in result:
             if p[0] == 'EndOfSequence':
-                if isinstance(p[2], six.string_types):
+                if isinstance(p[2], str):
                     p2 = p[2].lower()
                     if p2 in ['true', 'false']:  # noqa: E125
                         end_of_sequence = (p2 == 'true')
@@ -2814,7 +2812,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
             elif p[0] == 'EnumerationContext':
                 enumeration_context_found = True
-                if isinstance(p[2], six.string_types):
+                if isinstance(p[2], str):
                     enumeration_context = p[2]
 
             elif p[0] == "IRETURNVALUE":
@@ -5282,16 +5280,14 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     # Open operation succeeded; set has_pull flag
                     self._use_enum_path_pull_operations = True
 
-                    for inst in pull_result.paths:
-                        yield inst
+                    yield from pull_result.paths
 
                     # Loop to pull while more while eos not returned.
                     while not pull_result.eos:
                         pull_result = self.PullInstancePaths(
                             pull_result.context, MaxObjectCount=MaxObjectCount)
 
-                        for inst in pull_result.paths:
-                            yield inst
+                        yield from pull_result.paths
                     pull_result = None   # clear the pull_result
                     return
 
@@ -5353,8 +5349,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             if path.host is None:
                 path.host = self.host
 
-        for inst in enum_rslt:
-            yield inst
+        yield from enum_rslt
 
     def IterAssociatorInstances(self, InstanceName, AssocClass=None,
                                 ResultClass=None,
@@ -5631,16 +5626,14 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     # Open operation succeeded; set has_pull flag
                     self._use_assoc_inst_pull_operations = True
 
-                    for inst in pull_result.instances:
-                        yield inst
+                    yield from pull_result.instances
 
                     # Loop to pull while more while eos not returned.
                     while not pull_result.eos:
                         pull_result = self.PullInstancesWithPath(
                             pull_result.context, MaxObjectCount=MaxObjectCount)
 
-                        for inst in pull_result.instances:
-                            yield inst
+                        yield from pull_result.instances
                     pull_result = None   # clear the pull_result
                     return
 
@@ -5693,8 +5686,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             IncludeClassOrigin=IncludeClassOrigin,
             PropertyList=PropertyList)
 
-        for inst in enum_rslt:
-            yield inst
+        yield from enum_rslt
 
     def IterAssociatorInstancePaths(self, InstanceName, AssocClass=None,
                                     ResultClass=None,
@@ -5920,16 +5912,14 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     # Open operation succeeded; set use_pull flag
                     self._use_assoc_path_pull_operations = True
 
-                    for inst in pull_result.paths:
-                        yield inst
+                    yield from pull_result.paths
 
                     # Loop to pull while more while eos not returned.
                     while not pull_result.eos:
                         pull_result = self.PullInstancePaths(
                             pull_result.context, MaxObjectCount=MaxObjectCount)
 
-                        for inst in pull_result.paths:
-                            yield inst
+                        yield from pull_result.paths
                     pull_result = None   # clear the pull_result
                     return
 
@@ -5979,8 +5969,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             Role=Role,
             ResultRole=ResultRole)
 
-        for inst in enum_rslt:
-            yield inst
+        yield from enum_rslt
 
     def IterReferenceInstances(self, InstanceName, ResultClass=None,
                                Role=None, IncludeQualifiers=None,
@@ -6230,15 +6219,13 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
 
                     # Open operation succeeded; set has_pull flag
                     self._use_ref_inst_pull_operations = True
-                    for inst in pull_result.instances:
-                        yield inst
+                    yield from pull_result.instances
 
                     # Loop to pull while more while eos not returned.
                     while not pull_result.eos:
                         pull_result = self.PullInstancesWithPath(
                             pull_result.context, MaxObjectCount=MaxObjectCount)
-                        for inst in pull_result.instances:
-                            yield inst
+                        yield from pull_result.instances
                     pull_result = None   # clear the pull_result
                     return
 
@@ -6289,8 +6276,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             IncludeClassOrigin=IncludeClassOrigin,
             PropertyList=PropertyList)
 
-        for inst in enum_rslt:
-            yield inst
+        yield from enum_rslt
 
     def IterReferenceInstancePaths(self, InstanceName, ResultClass=None,
                                    Role=None,
@@ -6497,16 +6483,14 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
                     # Open operation succeeded; set use_pull flag
                     self._use_ref_path_pull_operations = True
 
-                    for inst in pull_result.paths:
-                        yield inst
+                    yield from pull_result.paths
 
                     # Loop to pull while more while eos not returned.
                     while not pull_result.eos:
                         pull_result = self.PullInstancePaths(
                             pull_result.context, MaxObjectCount=MaxObjectCount)
 
-                        for inst in pull_result.paths:
-                            yield inst
+                        yield from pull_result.paths
                     pull_result = None   # clear the pull_result
                     return
 
@@ -6554,8 +6538,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
             ResultClass=ResultClass,
             Role=Role)
 
-        for inst in enum_rslt:
-            yield inst
+        yield from enum_rslt
 
     def IterQueryInstances(self, FilterQueryLanguage, FilterQuery,
                            namespace=None, ReturnQueryResultClass=None,
@@ -10216,7 +10199,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         if isinstance(klass, CIMClass):
             klassname = klass.classname
         else:
-            assert isinstance(klass, six.string_types)
+            assert isinstance(klass, str)
             klassname = klass
             klass = self.GetClass(
                 klassname,
@@ -10225,7 +10208,7 @@ class WBEMConnection(object):  # pylint: disable=too-many-instance-attributes
         if isinstance(superclass, CIMClass):
             superclass = superclass.classname
         else:
-            assert isinstance(superclass, six.string_types)
+            assert isinstance(superclass, str)
         superclass_lower = superclass.lower()
 
         if klassname.lower() == superclass_lower:

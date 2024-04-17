@@ -8,7 +8,6 @@ suite depending on user input.
 The return codes here may be specific to OpenPegasus.
 """
 
-from __future__ import absolute_import
 
 # Can be used with pb.set_trace() to debug really nasty issues.
 # import pdb
@@ -28,7 +27,7 @@ import warnings
 import time
 import traceback
 
-from six.moves.urllib.parse import urlparse
+from urllib.parse import urlparse
 import six
 
 from tests.unittest.utils.unittest_extensions import RegexpMixin
@@ -58,7 +57,7 @@ from pywbem._subscription_manager import SUBSCRIPTION_CLASSNAME, \
 # output files
 TEST_DIR = os.path.dirname(__file__)
 LOG_FILE_NAME = 'run_cim_operations.log'
-RUN_CIM_OPERATIONS_OUTPUT_LOG = '%s/%s' % (TEST_DIR, LOG_FILE_NAME)
+RUN_CIM_OPERATIONS_OUTPUT_LOG = '{}/{}'.format(TEST_DIR, LOG_FILE_NAME)
 
 # Test for decorator for unimplemented tests
 # decorator is @unittest.skip(UNIMPLEMENTED)
@@ -130,9 +129,8 @@ class ClientTest(unittest.TestCase):
 
         # Set this because python 3 http libs generate many ResourceWarnings
         # and unittest enables these warnings.
-        if not six.PY2:
-            # pylint: disable=undefined-variable
-            warnings.simplefilter("ignore", ResourceWarning)  # noqa: F821
+        # pylint: disable=undefined-variable
+        warnings.simplefilter("ignore", ResourceWarning)  # noqa: F821
 
         self.log('setup connection {0} ns {1}'.
                  format(self.system_url, self.namespace))
@@ -167,9 +165,9 @@ class ClientTest(unittest.TestCase):
         """Close the test_client YAML file and display stats."""
 
         if self.stats_enabled:
-            print('%s: Test time %.2f sec.' % (self.id(),
+            print('{}: Test time {:.2f} sec.'.format(self.id(),
                                                (time.time() - self.start_time)))
-            print('%s\n%s' % (self.id(), self.conn.statistics.formatted()))
+            print('{}\n{}'.format(self.id(), self.conn.statistics.formatted()))
 
         if self.yamlfp is not None:
             self.yamlfp.close()
@@ -227,7 +225,7 @@ class ClientTest(unittest.TestCase):
         """Display log entry if verbose."""
         # TODO ks aug 17. FUTURE This should be integrated into logging
         if self.verbose:
-            print('{0}'.format(data_))
+            print(f'{data_}')
 
     def pywbem_person_class_exists(self):
         """
@@ -1478,7 +1476,7 @@ class PullReferences(ClientTest):
 
             insts_enum = self.cimcall(self.conn.References, pathi)
             if insts_enum:
-                print('References %s count %s' % (pathi, len(insts_enum)))
+                print('References {} count {}'.format(pathi, len(insts_enum)))
             self.assertTrue(len(insts_pulled) == len(insts_enum))
 
             # TODO ks 5/30 2016 add tests here
@@ -1603,7 +1601,7 @@ class PullReferencePaths(ClientTest):
 
             paths_enum = self.cimcall(self.conn.ReferenceNames, pathi)
             if paths_enum:
-                print('References %s count %s' % (pathi, len(paths_enum)))
+                print('References {} count {}'.format(pathi, len(paths_enum)))
             self.assertTrue(len(paths) == len(paths_enum))
 
             # TODO ks 5/30 2016 add tests here
@@ -1715,7 +1713,7 @@ class PullAssociators(ClientTest):
             insts_enum = self.cimcall(self.conn.References, pathi)
 
             if insts_enum:
-                print('Associators %s count %s' % (insts_pulled,
+                print('Associators {} count {}'.format(insts_pulled,
                                                    len(insts_enum)))
             self.assertTrue(len(insts_pulled) == len(insts_enum))
             # TODO ks 5/30 2016 add tests here
@@ -1842,7 +1840,7 @@ class PullAssociatorPaths(ClientTest):
 
             paths_enum = self.cimcall(self.conn.AssociatorNames, pathi)
             if paths_enum:
-                print('Associator Names %s count %s' % (pathi, len(paths_enum)))
+                print('Associator Names {} count {}'.format(pathi, len(paths_enum)))
             self.assertEqual(len(paths_pulled), len(paths_enum))
             # TODO ks 5/30 2016 add tests here
             # Do this as a loop for all instances above.
@@ -2229,7 +2227,7 @@ class CreateInstance(ClientTest):
                 ('arraySint64', [Sint64(4222222), Sint64(-999999)]),
                 ('arrayReal32', [Real32(42.0), Real32(4442.9)]),
                 ('arrayReal64', [Real64(42.0), Real64(4442.9)]),
-                ('arrayString', ['ham', u'H\u00E4m']),  # U+00E4=lower a umlaut
+                ('arrayString', ['ham', 'H\u00E4m']),  # U+00E4=lower a umlaut
                 ('arrayDateTime', [dt, dt]),
                 ('arrayTimeDelta', [td, td]),
             ])
@@ -3083,7 +3081,7 @@ class EnumerateClassNames(ClientTest):
         class_names = top_names
 
         for name in class_names:
-            self.assertTrue(isinstance(name, six.string_types))
+            self.assertTrue(isinstance(name, str))
 
         if self.verbose:
             print('Found %s top level classes' % len(class_names))
@@ -3093,7 +3091,7 @@ class EnumerateClassNames(ClientTest):
             sub_names = self.cimcall(self.conn.EnumerateClassNames,
                                      ClassName=name)
             for n in sub_names:
-                self.assertTrue(isinstance(n, six.string_types))
+                self.assertTrue(isinstance(n, str))
             class_names += sub_names
         if self.verbose:
             print('Found %s 1,2 level classes' % len(class_names))
@@ -3106,7 +3104,7 @@ class EnumerateClassNames(ClientTest):
             sub_names = self.cimcall(self.conn.EnumerateClassNames,
                                      ClassName=name, DeepInheritance=True)
             for n in sub_names:
-                self.assertTrue(isinstance(n, six.string_types))
+                self.assertTrue(isinstance(n, str))
             subname_list += sub_names
 
         full_name_list += subname_list
@@ -3128,7 +3126,7 @@ class EnumerateClassNames(ClientTest):
         # The requested class should NOT be in the list
         # since this gets subclass names.
         for cl in classes:
-            self.assertTrue(isinstance(cl, six.string_types))
+            self.assertTrue(isinstance(cl, str))
 
     def test_bad_classname(self):
         '''Enumerate starting at pywbem_person with no extra parameters.'''
@@ -3270,13 +3268,13 @@ class ClassOperations(ClientClassTest):
         test_class_name = 'PyWbem_Run_CIM_Operations0'
         test_class = CIMClass(
             test_class_name,
-            methods={u'Delete': CIMMethod(u'Delete', 'uint32')},
-            qualifiers={u'Description': CIMQualifier('Description',
+            methods={'Delete': CIMMethod('Delete', 'uint32')},
+            qualifiers={'Description': CIMQualifier('Description',
                                                      'This is a class '
                                                      'description')},
-            properties={u'InstanceID': CIMProperty(u'InstanceID', None,
+            properties={'InstanceID': CIMProperty('InstanceID', None,
                                                    type='string'),
-                        u'MyUint8': CIMProperty(u'MyUint8', Uint8(99),
+                        'MyUint8': CIMProperty('MyUint8', Uint8(99),
                                                 type='uint8')})
 
         # force propagated False for all properties
@@ -3299,48 +3297,48 @@ class ClassOperations(ClientClassTest):
         test_class_name = 'PyWbem_Run_CIM_Operations1'
         test_class = CIMClass(
             test_class_name,
-            methods={u'Delete': CIMMethod(u'Delete', 'uint32')},
-            qualifiers={u'Description': CIMQualifier('Description',
+            methods={'Delete': CIMMethod('Delete', 'uint32')},
+            qualifiers={'Description': CIMQualifier('Description',
                                                      'This is a class '
                                                      'description')},
-            properties={u'InstanceID': CIMProperty(u'InstanceID', None,
+            properties={'InstanceID': CIMProperty('InstanceID', None,
                                                    type='string'),
-                        u'MyUint8': CIMProperty(u'MyUint8', Uint8(99),
+                        'MyUint8': CIMProperty('MyUint8', Uint8(99),
                                                 type='uint8'),
-                        u'MySint8': CIMProperty(u'MySint8', Sint8(99),
+                        'MySint8': CIMProperty('MySint8', Sint8(99),
                                                 type='sint8'),
-                        u'MyUint16': CIMProperty(u'MyUint16', Uint16(999),
+                        'MyUint16': CIMProperty('MyUint16', Uint16(999),
                                                  type='uint16'),
-                        u'MySint16': CIMProperty(u'MySint16', Sint16(-999),
+                        'MySint16': CIMProperty('MySint16', Sint16(-999),
                                                  type='sint16'),
-                        u'MyUint32': CIMProperty(u'MyUint32', Uint32(12345),
+                        'MyUint32': CIMProperty('MyUint32', Uint32(12345),
                                                  type='uint32'),
-                        u'MySint32': CIMProperty(u'MySint32', Sint32(-12345),
+                        'MySint32': CIMProperty('MySint32', Sint32(-12345),
                                                  type='sint32'),
-                        u'MyUint64': CIMProperty(u'MyUint64', Uint64(12345),
+                        'MyUint64': CIMProperty('MyUint64', Uint64(12345),
                                                  type='uint64'),
-                        u'MySint64': CIMProperty(u'MySint64', Sint64(-12345),
+                        'MySint64': CIMProperty('MySint64', Sint64(-12345),
                                                  type='sint64'),
-                        u'MyReal32': CIMProperty(u'MyReal32', Real32(12345),
+                        'MyReal32': CIMProperty('MyReal32', Real32(12345),
                                                  type='real32'),
-                        u'MyReal64': CIMProperty(u'MyReal64', Real64(12345),
+                        'MyReal64': CIMProperty('MyReal64', Real64(12345),
                                                  type='real64'),
-                        u'Mydatetime': CIMProperty(u'Mydatetime',
+                        'Mydatetime': CIMProperty('Mydatetime',
                                                    '12345678224455.654321:000',
                                                    type='datetime'),
-                        u'Uint32Array': CIMProperty(u'Uint32Array', None,
+                        'Uint32Array': CIMProperty('Uint32Array', None,
                                                     type='uint32',
                                                     is_array=True),
-                        u'Sint32Array': CIMProperty(u'Sint32Array', None,
+                        'Sint32Array': CIMProperty('Sint32Array', None,
                                                     type='sint32',
                                                     is_array=True),
-                        u'Uint64Array': CIMProperty(u'Uint64Array', None,
+                        'Uint64Array': CIMProperty('Uint64Array', None,
                                                     type='uint64',
                                                     is_array=True),
-                        u'Sint64Array': CIMProperty(u'Sint64Array', None,
+                        'Sint64Array': CIMProperty('Sint64Array', None,
                                                     type='sint64',
                                                     is_array=True),
-                        u'MyStr': CIMProperty(u'MyStr', 'This is a test',
+                        'MyStr': CIMProperty('MyStr', 'This is a test',
                                               type='string')})
         for p in test_class.properties:
             test_class.properties[p].propagated = False
@@ -3648,9 +3646,9 @@ class ModifyClass(ClassOperations):
         test_class_name = 'PyWbem_Run_CIM_Operations2'
         test_class = CIMClass(
             test_class_name,
-            properties={u'InstanceID': CIMProperty(u'InstanceID', None,
+            properties={'InstanceID': CIMProperty('InstanceID', None,
                                                    type='string'),
-                        u'MyStr': CIMProperty(u'MyStr', 'This is a test',
+                        'MyStr': CIMProperty('MyStr', 'This is a test',
                                               type='string')})
 
         try:
@@ -3665,9 +3663,9 @@ class ModifyClass(ClassOperations):
         test_class_name = 'PyWbem_Run_CIM_Operations2'
         test_class = CIMClass(
             test_class_name,
-            properties={u'InstanceID': CIMProperty(u'InstanceID', None,
+            properties={'InstanceID': CIMProperty('InstanceID', None,
                                                    type='string'),
-                        u'MyStr': CIMProperty(u'MyStr', 'This is a test',
+                        'MyStr': CIMProperty('MyStr', 'This is a test',
                                               type='string')})
 
         try:
@@ -3745,7 +3743,7 @@ class SetQualifier(QualifierDeclClientTest):
         the qualifier declaration created and then delete it.
         """
 
-        qd = CIMQualifierDeclaration(u'FooQualDecl', 'string', is_array=False,
+        qd = CIMQualifierDeclaration('FooQualDecl', 'string', is_array=False,
                                      value='Some string',
                                      scopes={'CLASS': True},
                                      overridable=False, tosubclass=False,
@@ -3797,7 +3795,7 @@ class SetQualifier(QualifierDeclClientTest):
 
         # create new one and send to server.
         scopes = {'CLASS': True}
-        qd = CIMQualifierDeclaration(u'FooQualDecl', 'string', is_array=False,
+        qd = CIMQualifierDeclaration('FooQualDecl', 'string', is_array=False,
                                      value='Some string',
                                      scopes=scopes,
                                      overridable=False, tosubclass=False)
@@ -4112,14 +4110,14 @@ class PEGASUSCLITestClass(PegasusServerTestBase):
             xmlout = my_class.tocimxml().toprettyxml(indent='  ')
 
             if self.verbose:
-                print('MOF for %s\n%s' % (my_class, mofout))
-                print('CIMXML  for %s\n%s' % (my_class, xmlout))
+                print('MOF for {}\n{}'.format(my_class, mofout))
+                print('CIMXML  for {}\n{}'.format(my_class, xmlout))
 
             inst_paths = self.cimcall(self.conn.EnumerateInstanceNames,
                                       class_name, namespace=ns)
             for inst_path in inst_paths:
                 if self.verbose:
-                    print('class %s instance %s' % (class_name, inst_path))
+                    print('class {} instance {}'.format(class_name, inst_path))
                 inst_path_xml = inst_path.tocimxml().toprettyxml(indent='  ')
                 if self.verbose:
                     print('INST PATH %s' % inst_path_xml)
@@ -4134,8 +4132,8 @@ class PEGASUSCLITestClass(PegasusServerTestBase):
                 mofout = instance.tomof()
                 xmlout = instance.tocimxml().toprettyxml(indent='  ')
                 if self.verbose:
-                    print('MOF for %s\n%s' % (instance, mofout))
-                    print('CIMXML  for %s\n%s' % (instance, xmlout))
+                    print('MOF for {}\n{}'.format(instance, mofout))
+                    print('CIMXML  for {}\n{}'.format(instance, xmlout))
         # TODO create an instance write it, get it and test results
 
 
@@ -4159,8 +4157,8 @@ class PegasusTestEmbeddedInstance(RegexpMixin, PegasusServerTestBase):
                 str_mof = inst.tomof()
                 str_xml = inst.tocimxmlstr(2)
                 if self.verbose:
-                    print('====== %s MOF=====\n%s' % (inst.path, str_mof))
-                    print('======%s XML=====\n%s' % (inst.path, str_xml))
+                    print('====== {} MOF=====\n{}'.format(inst.path, str_mof))
+                    print('======{} XML=====\n{}'.format(inst.path, str_xml))
 
                 # confirm general characteristics of mof output
                 self.assert_regexp_matches(
@@ -4210,7 +4208,7 @@ class PyWBEMServerClass(RegexpMixin, PegasusServerTestBase):
         org = org_vm.tovalues(inst['RegisteredOrganization'])
         name = inst['RegisteredName']
         vers = inst['RegisteredVersion']
-        print("  %s %s Profile %s" % (org, name, vers))
+        print("  {} {} Profile {}".format(org, name, vers))
 
     def test_namespaces(self):
         """ Compare namespaces from the pegasus function with those from
@@ -4260,7 +4258,7 @@ class PyWBEMServerClass(RegexpMixin, PegasusServerTestBase):
                 org = org_vm.tovalues(inst['RegisteredOrganization'])
                 name = inst['RegisteredName']
                 vers = inst['RegisteredVersion']
-                print("  %s %s Profile %s" % (org, name, vers))
+                print("  {} {} Profile {}".format(org, name, vers))
 
     def test_get_brand(self):
         """ Get brand info. If pegasus server test for correct response.
@@ -4467,7 +4465,7 @@ class PyWBEMServerClass(RegexpMixin, PegasusServerTestBase):
             assert interop2 == interop
 
             # test adding a qualifier decl
-            qd = CIMQualifierDeclaration(u'FooQualDecl', 'string',
+            qd = CIMQualifierDeclaration('FooQualDecl', 'string',
                                          is_array=False,
                                          value='Some string',
                                          scopes={'CLASS': True},
@@ -5836,9 +5834,9 @@ class TestSubscriptionsClass(PyWBEMServerClass):
 
         try:
             if test_http_listener:
-                url = '%s:%s' % (self.conn.url, http_listener_port)
+                url = '{}:{}'.format(self.conn.url, http_listener_port)
             else:
-                url = '%s:%s' % (self.conn.url, https_listener_port)
+                url = '{}:{}'.format(self.conn.url, https_listener_port)
 
             # pylint: disable=attribute-defined-outside-init
             self.listener_url = url
@@ -6093,7 +6091,7 @@ class TestSubscriptionsClass(PyWBEMServerClass):
         dests = sub_mgr.get_all_subscriptions(server_id)
         if dests:
             for i, dest in enumerate(dests):
-                print('destination %s %s' % (i, dest))
+                print('destination {} {}'.format(i, dest))
 
     def test_create_delete_subscription(self):
         """

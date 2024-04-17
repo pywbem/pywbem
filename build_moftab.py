@@ -15,9 +15,9 @@ VERBOSE = True  # TODO: Pass as command line option
 
 
 def env_info():
-    print("%s: Platform: %s" % (myname, sys.platform))
-    print("%s: Python executable: %s" % (myname, sys.executable))
-    print("%s: Python version: %s" % (myname, sys.version))
+    print("{}: Platform: {}".format(myname, sys.platform))
+    print("{}: Python executable: {}".format(myname, sys.executable))
+    print("{}: Python version: {}".format(myname, sys.version))
     print("%s: Python module search path:" % myname)
     pprint(sys.path)
 
@@ -63,7 +63,7 @@ def main():
             print("%s: Debug: Pywbem package successfully imported from: %s" % \
                   (myname, pywbem.__file__))
     except ImportError as exc:
-        print("%s: Error: Import of pywbem package failed: %s" % (myname, exc))
+        print("{}: Error: Import of pywbem package failed: {}".format(myname, exc))
         env_info()
         return 1
 

@@ -10,7 +10,7 @@ except ImportError:
     psutil = None
 
 
-class Timer(object):
+class Timer:
     """
     Timer measuring elapsed time (= wall clock time) and CPU time
     (= execution time).

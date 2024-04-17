@@ -21,7 +21,6 @@
 """
 Test for the WBEMSubscriptionManager class.
 """
-from __future__ import absolute_import, print_function
 
 import os
 import re
@@ -115,7 +114,7 @@ SUBSCRIPTION_WBEM_SERVER_MOCK_DICT = {
 #       test_subscriptionmanager(...)) below. We will leave these functions
 #       because they do provide a broad set of test functionality in just a few
 #       tests (each tests creates the mock environment)
-class BaseMethodsForTests(object):
+class BaseMethodsForTests:
     """
     Base Class for tests contains all common methods and class level
     setup.
@@ -321,7 +320,7 @@ class TestSubMgrClass(BaseMethodsForTests):
         sm = "test_create_delete_subscription"
         server = WBEMServer(self.conn)
 
-        listener_url = '%s:%s' % (self.conn.url, 50000)
+        listener_url = '{}:{}'.format(self.conn.url, 50000)
 
         with WBEMSubscriptionManager(subscription_manager_id=sm) as sub_mgr:
 
@@ -412,7 +411,7 @@ class TestSubMgrClass(BaseMethodsForTests):
         sm = "test_create_delete_subscription"
         server = WBEMServer(self.conn)
 
-        listener_url = '%s:%s' % (self.conn.url, 50000)
+        listener_url = '{}:{}'.format(self.conn.url, 50000)
         # Create a single not_owned subscription
         with WBEMSubscriptionManager(subscription_manager_id=sm) as sub_mgr:
             server_id = sub_mgr.add_server(server)
@@ -463,7 +462,7 @@ class TestSubMgrClass(BaseMethodsForTests):
         sm = "test_subscription_object_recovery"
         server = WBEMServer(self.conn)
 
-        listener_url = '%s:%s' % (self.conn.url, 50000)
+        listener_url = '{}:{}'.format(self.conn.url, 50000)
 
         submgr1 = WBEMSubscriptionManager(subscription_manager_id=sm)
         server_id1 = submgr1.add_server(server)
@@ -1593,7 +1592,7 @@ def test_subscriptionmanager(testcase, submgr_id, connection_attrs,
         assert len(all_dests) == exp_result['listener_count']
 
         owned_dests = submgr.get_owned_destinations(server_id)
-        dest_prefix = 'pywbemdestination:{0}:'.format(submgr_id,)
+        dest_prefix = f'pywbemdestination:{submgr_id}:'
         owned = [d for d in all_dests if d['Name'].startswith(dest_prefix)]
         assert set(owned) == set(owned_dests)
 
@@ -1629,7 +1628,7 @@ def test_subscriptionmanager(testcase, submgr_id, connection_attrs,
                     assert created_instance[prop] == value
             else:
                 if created_instance[prop] != value:
-                    print("THEERROR\n{}".format(created_instance.tomof()))
+                    print(f"THEERROR\n{created_instance.tomof()}")
                 assert created_instance[prop] == value
 
     # The removal methods are executed after all others methods defined for
@@ -2013,7 +2012,7 @@ def test_submgr_modify(testcase, submgr_id, connection_attrs,
 
         owned_dests = submgr.get_owned_destinations(server_id)
 
-        dest_prefix = 'pywbemdestination:{0}:'.format(submgr_id,)
+        dest_prefix = f'pywbemdestination:{submgr_id}:'
         owned = [d for d in all_dests if d['Name'].startswith(dest_prefix)]
         assert set(owned) == set(owned_dests)
 

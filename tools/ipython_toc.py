@@ -13,7 +13,7 @@ import json
 
 def main(ifilepath):
 
-    with io.open(ifilepath, 'r', encoding='utf-8') as infile:
+    with open(ifilepath, encoding='utf-8') as infile:
         notebook = json.loads(infile.read())
 
     cells = notebook['cells']
@@ -36,7 +36,7 @@ def main(ifilepath):
     levels, titles = zip(*titles)
     urls = [title_.replace(' ', '-') for title_ in titles]
 
-    toc = ['- [%s](#%s)\n' % (title, url) for title, url in zip(titles, urls)]
+    toc = ['- [{}](#{})\n'.format(title, url) for title, url in zip(titles, urls)]
     toc = ['\t%s' % tt if lvl > 1 else tt for tt, lvl in zip(toc, levels)]
     toc = [tt for tt, lvl in zip(toc, levels) if lvl <= 5]
 

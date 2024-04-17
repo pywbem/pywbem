@@ -2,7 +2,6 @@
 Assertion functions for pywbem end2end tests.
 """
 
-from __future__ import absolute_import
 
 import six
 
@@ -186,7 +185,7 @@ def assert_mandatory_properties(conn, instance, property_list):
 
     instance_prop_names = instance.properties.keys()
     for prop_name in property_list:
-        assert isinstance(prop_name, six.string_types)
+        assert isinstance(prop_name, str)
 
         if prop_name not in instance_prop_names:
             raise AssertionError(
@@ -226,7 +225,7 @@ def assert_property_one_of(conn, instance, prop_name, value_list):
 
     # Check parameters
     assert isinstance(instance, CIMInstance)
-    assert isinstance(prop_name, six.string_types)
+    assert isinstance(prop_name, str)
     prop = instance.properties[prop_name]
     assert not prop.is_array
 
@@ -259,7 +258,7 @@ def assert_property_contains(conn, instance, prop_name, value):
 
     # Check parameters
     assert isinstance(instance, CIMInstance)
-    assert isinstance(prop_name, six.string_types)
+    assert isinstance(prop_name, str)
     prop = instance.properties[prop_name]
     assert prop.is_array
 
@@ -301,8 +300,8 @@ def assert_path_equal(conn, path1, path1_msg, path2, path2_msg):
 
     # Check parameters
     # Note: path1 and path2 are checked in path_equal()
-    assert isinstance(path1_msg, six.string_types)
-    assert isinstance(path2_msg, six.string_types)
+    assert isinstance(path1_msg, str)
+    assert isinstance(path2_msg, str)
 
     if not path_equal(path1, path2):
         raise AssertionError(
@@ -336,8 +335,8 @@ def assert_path_in(conn, path, path_msg, path_list, path_list_msg):
 
     # Check parameters
     # Note: path and path_list are checked in path_in()
-    assert isinstance(path_msg, six.string_types)
-    assert isinstance(path_list_msg, six.string_types)
+    assert isinstance(path_msg, str)
+    assert isinstance(path_list_msg, str)
 
     if not path_in(path, path_list):
         raise AssertionError(
@@ -841,7 +840,7 @@ def _assert_association_consistency(
     for path in far_paths:
         assert_path_in(
             conn, path, far_paths_msg,
-            far_insts, "path of {0}".format(far_insts_msg))
+            far_insts, f"path of {far_insts_msg}")
 
     assert_instance_of(conn, assoc_insts, assoc_class)
     for inst in assoc_insts:
@@ -850,21 +849,21 @@ def _assert_association_consistency(
         assert_path_equal(
             conn,
             inst.path.keybindings[source_role],
-            "source end {0!r} of {1}".format(source_role, assoc_insts_msg),
+            f"source end {source_role!r} of {assoc_insts_msg}",
             source_path,
             "source instance")
         assert far_role in inst.path.keybindings
         assert_path_in(
             conn,
             inst.path.keybindings[far_role],
-            "far end {0!r} of {1}".format(far_role, assoc_insts_msg),
+            f"far end {far_role!r} of {assoc_insts_msg}",
             far_paths,
             far_paths_msg)
     for path in assoc_paths:
         assert_path_in(
             conn,
             path, assoc_paths_msg,
-            assoc_insts, "path of {0}".format(assoc_insts_msg))
+            assoc_insts, f"path of {assoc_insts_msg}")
 
     # Check consistency across the association approaches
     # Py test does not seem to have a reliable order of executing the

@@ -2,7 +2,6 @@
 Test CIM-XML parsing routines in _tupleparse.py.
 """
 
-from __future__ import absolute_import
 
 import pytest
 from packaging.version import parse as parse_version
@@ -737,7 +736,7 @@ TESTCASES_TUPLEPARSE_XML = [
         "Verify that single quoted attr values work (see XML spec AttValue)",
         dict(
             xml_str='<NAMESPACE NAME=\'abc\'/>',
-            exp_result=u'abc',
+            exp_result='abc',
         ),
         None, None, True
     ),
@@ -745,7 +744,7 @@ TESTCASES_TUPLEPARSE_XML = [
         "Use of empty attribute value",
         dict(
             xml_str='<NAMESPACE NAME=""/>',
-            exp_result=u'',
+            exp_result='',
         ),
         None, None, True
     ),
@@ -868,13 +867,13 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </DECLARATION>'
             '</CIM>',
             exp_result=(
-                u'CIM',
-                {u'CIMVERSION': u'2.8', u'DTDVERSION': u'2.4'},
+                'CIM',
+                {'CIMVERSION': '2.8', 'DTDVERSION': '2.4'},
                 (
-                    u'DECLARATION',
+                    'DECLARATION',
                     {},
                     (
-                        u'DECLGROUP',
+                        'DECLGROUP',
                         {},
                         CIMQualifierDeclaration(
                             'Qual', value=None, type='string',
@@ -901,16 +900,16 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </MESSAGE>'
             '</CIM>',
             exp_result=(
-                u'CIM',
-                {u'CIMVERSION': u'2.8', u'DTDVERSION': u'2.4'},
+                'CIM',
+                {'CIMVERSION': '2.8', 'DTDVERSION': '2.4'},
                 (
-                    u'MESSAGE',
-                    {u'ID': u'42', u'PROTOCOLVERSION': u'1.4'},
+                    'MESSAGE',
+                    {'ID': '42', 'PROTOCOLVERSION': '1.4'},
                     (
-                        u'SIMPLEREQ',
+                        'SIMPLEREQ',
                         {},
                         (
-                            u'IMETHODCALL', {u'NAME': u'M1'}, u'foo', []
+                            'IMETHODCALL', {'NAME': 'M1'}, 'foo', []
                         ),
                     ),
                 ),
@@ -962,10 +961,10 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </DECLGROUP>'
             '</DECLARATION>',
             exp_result=(
-                u'DECLARATION',
+                'DECLARATION',
                 {},
                 (
-                    u'DECLGROUP',
+                    'DECLGROUP',
                     {},
                     CIMQualifierDeclaration(
                         'Qual', value=None, type='string',
@@ -1014,7 +1013,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '  <QUALIFIER.DECLARATION NAME="Qual" TYPE="string"/>'
             '</DECLGROUP>',
             exp_result=(
-                u'DECLGROUP',
+                'DECLGROUP',
                 {},
                 CIMQualifierDeclaration(
                     'Qual', value=None, type='string',
@@ -1033,10 +1032,10 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </VALUE.OBJECT>'
             '</DECLGROUP>',
             exp_result=(
-                u'DECLGROUP',
+                'DECLGROUP',
                 {},
                 (
-                    u'VALUE.OBJECT',
+                    'VALUE.OBJECT',
                     {},
                     CIMInstance('CIM_Foo'),
                 ),
@@ -1121,7 +1120,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE></KEYVALUE>',
-            exp_result=u'',
+            exp_result='',
         ),
         None, None, True
     ),
@@ -1130,7 +1129,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE TYPE=""></KEYVALUE>',
-            exp_result=u'',
+            exp_result='',
         ),
         None, None, True
     ),
@@ -1139,7 +1138,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE>  </KEYVALUE>',
-            exp_result=u'  ',
+            exp_result='  ',
         ),
         None, None, True
     ),
@@ -1148,7 +1147,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE>abc</KEYVALUE>',
-            exp_result=u'abc',
+            exp_result='abc',
         ),
         None, None, True
     ),
@@ -1157,7 +1156,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE> a  b c </KEYVALUE>',
-            exp_result=u' a  b c ',
+            exp_result=' a  b c ',
         ),
         None, None, True
     ),
@@ -1166,7 +1165,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=b''
             b'<KEYVALUE>\xC3\xA9</KEYVALUE>',
-            exp_result=u'\u00E9',  # LATIN SMALL LETTER E WITH ACUTE
+            exp_result='\u00E9',  # LATIN SMALL LETTER E WITH ACUTE
         ),
         None, None, True
     ),
@@ -1175,7 +1174,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE>42</KEYVALUE>',
-            exp_result=u'42',
+            exp_result='42',
         ),
         None, None, True
     ),
@@ -1184,7 +1183,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE TYPE="">42</KEYVALUE>',
-            exp_result=u'42',
+            exp_result='42',
         ),
         None, None, True
     ),
@@ -1193,7 +1192,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE> 42 </KEYVALUE>',
-            exp_result=u' 42 ',
+            exp_result=' 42 ',
         ),
         None, None, True
     ),
@@ -1202,7 +1201,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE>42.1</KEYVALUE>',
-            exp_result=u'42.1',
+            exp_result='42.1',
         ),
         None, None, True
     ),
@@ -1211,7 +1210,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE> 42.1 </KEYVALUE>',
-            exp_result=u' 42.1 ',
+            exp_result=' 42.1 ',
         ),
         None, None, True
     ),
@@ -1220,7 +1219,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE>true</KEYVALUE>',
-            exp_result=u'true',
+            exp_result='true',
         ),
         None, None, True
     ),
@@ -1229,7 +1228,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE TYPE="">true</KEYVALUE>',
-            exp_result=u'true',
+            exp_result='true',
         ),
         None, None, True
     ),
@@ -1238,7 +1237,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE>false</KEYVALUE>',
-            exp_result=u'false',
+            exp_result='false',
         ),
         None, None, True
     ),
@@ -1247,7 +1246,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE> true </KEYVALUE>',
-            exp_result=u' true ',
+            exp_result=' true ',
         ),
         None, None, True
     ),
@@ -1256,7 +1255,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE>20140924193040.654321+120</KEYVALUE>',
-            exp_result=u'20140924193040.654321+120',
+            exp_result='20140924193040.654321+120',
         ),
         None, None, True
     ),
@@ -1276,7 +1275,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE TYPE="string">abc</KEYVALUE>',
-            exp_result=u'abc',
+            exp_result='abc',
         ),
         None, None, True
     ),
@@ -1285,7 +1284,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE TYPE="string"> a  b c </KEYVALUE>',
-            exp_result=u' a  b c ',
+            exp_result=' a  b c ',
         ),
         None, None, True
     ),
@@ -1294,7 +1293,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=b''
             b'<KEYVALUE TYPE="string">\xC3\xA9</KEYVALUE>',
-            exp_result=u'\u00E9',  # LATIN SMALL LETTER E WITH ACUTE
+            exp_result='\u00E9',  # LATIN SMALL LETTER E WITH ACUTE
         ),
         None, None, True
     ),
@@ -1304,7 +1303,7 @@ TESTCASES_TUPLEPARSE_XML = [
             # U+010142: GREEK ACROPHONIC ATTIC ONE DRACHMA
             xml_str=b''
             b'<KEYVALUE TYPE="string">\xF0\x90\x85\x82</KEYVALUE>',
-            exp_result=u'\U00010142',
+            exp_result='\U00010142',
         ),
         None, None, True
     ),
@@ -1313,7 +1312,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE TYPE="string">42</KEYVALUE>',
-            exp_result=u'42',
+            exp_result='42',
         ),
         None, None, True
     ),
@@ -1322,7 +1321,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE TYPE="string"> 42 </KEYVALUE>',
-            exp_result=u' 42 ',
+            exp_result=' 42 ',
         ),
         None, None, True
     ),
@@ -1331,7 +1330,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE TYPE="string">42.1</KEYVALUE>',
-            exp_result=u'42.1',
+            exp_result='42.1',
         ),
         None, None, True
     ),
@@ -1340,7 +1339,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE TYPE="string"> 42.1 </KEYVALUE>',
-            exp_result=u' 42.1 ',
+            exp_result=' 42.1 ',
         ),
         None, None, True
     ),
@@ -1349,7 +1348,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE TYPE="string">true</KEYVALUE>',
-            exp_result=u'true',
+            exp_result='true',
         ),
         None, None, True
     ),
@@ -1358,7 +1357,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE TYPE="string">false</KEYVALUE>',
-            exp_result=u'false',
+            exp_result='false',
         ),
         None, None, True
     ),
@@ -1367,7 +1366,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE TYPE="string"> true </KEYVALUE>',
-            exp_result=u' true ',
+            exp_result=' true ',
         ),
         None, None, True
     ),
@@ -1376,7 +1375,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE TYPE="string">20140924193040.654321+120</KEYVALUE>',
-            exp_result=u'20140924193040.654321+120',
+            exp_result='20140924193040.654321+120',
         ),
         None, None, True
     ),
@@ -1405,7 +1404,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE TYPE="char16"> </KEYVALUE>',
-            exp_result=u' ',
+            exp_result=' ',
         ),
         None, None, True
     ),
@@ -1414,7 +1413,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE TYPE="char16">a</KEYVALUE>',
-            exp_result=u'a',
+            exp_result='a',
         ),
         None, None, True
     ),
@@ -1423,7 +1422,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=b''
             b'<KEYVALUE TYPE="char16">\xC3\xA9</KEYVALUE>',
-            exp_result=u'\u00E9',  # LATIN SMALL LETTER E WITH ACUTE
+            exp_result='\u00E9',  # LATIN SMALL LETTER E WITH ACUTE
         ),
         None, None, True
     ),
@@ -1442,7 +1441,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE TYPE="char16">4</KEYVALUE>',
-            exp_result=u'4',
+            exp_result='4',
         ),
         None, None, True
     ),
@@ -1518,7 +1517,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE VALUETYPE="string" TYPE="string"></KEYVALUE>',
-            exp_result=u'',
+            exp_result='',
         ),
         None, None, True
     ),
@@ -1527,7 +1526,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE VALUETYPE="string" TYPE="string">  </KEYVALUE>',
-            exp_result=u'  ',
+            exp_result='  ',
         ),
         None, None, True
     ),
@@ -1536,7 +1535,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE VALUETYPE="string" TYPE="string">abc</KEYVALUE>',
-            exp_result=u'abc',
+            exp_result='abc',
         ),
         None, None, True
     ),
@@ -1565,7 +1564,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE VALUETYPE="string" TYPE="char16"> </KEYVALUE>',
-            exp_result=u' ',
+            exp_result=' ',
         ),
         None, None, True
     ),
@@ -1574,7 +1573,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<KEYVALUE VALUETYPE="string" TYPE="char16">a</KEYVALUE>',
-            exp_result=u'a',
+            exp_result='a',
         ),
         None, None, True
     ),
@@ -2410,7 +2409,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYBINDING NAME="Foo">'
             '  <KEYVALUE>a</KEYVALUE>'
             '</KEYBINDING>',
-            exp_result={u'Foo': u'a'},
+            exp_result={'Foo': 'a'},
         ),
         None, None, True
     ),
@@ -2421,7 +2420,7 @@ TESTCASES_TUPLEPARSE_XML = [
             b'<KEYBINDING NAME="Foo\xC3\xA9">'
             b'  <KEYVALUE>a</KEYVALUE>'
             b'</KEYBINDING>',
-            exp_result={u'Foo\u00E9': u'a'},
+            exp_result={'Foo\u00E9': 'a'},
         ),
         None, None, True
     ),
@@ -2432,7 +2431,7 @@ TESTCASES_TUPLEPARSE_XML = [
             b'<KEYBINDING NAME="Foo\xF0\x90\x85\x82">'
             b'  <KEYVALUE>a</KEYVALUE>'
             b'</KEYBINDING>',
-            exp_result={u'Foo\U00010142': u'a'},
+            exp_result={'Foo\U00010142': 'a'},
         ),
         None, None, True
     ),
@@ -2443,7 +2442,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYBINDING NAME="Foo">'
             '  <KEYVALUE>a</KEYVALUE>'
             '</KEYBINDING>',
-            exp_result={u'Foo': u'a'},
+            exp_result={'Foo': 'a'},
         ),
         None, None, True
     ),
@@ -2454,7 +2453,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<KEYBINDING NAME="">'
             '  <KEYVALUE>a</KEYVALUE>'
             '</KEYBINDING>',
-            exp_result={u'': u'a'},
+            exp_result={'': 'a'},
         ),
         None, None, True
     ),
@@ -2483,7 +2482,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
             '  </VALUE.REFERENCE>'
             '</KEYBINDING>',
-            exp_result={u'Foo': CIMInstanceName('CIM_Foo')},
+            exp_result={'Foo': CIMInstanceName('CIM_Foo')},
         ),
         None, MissingKeybindingsWarning, True
     ),
@@ -2516,7 +2515,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<VALUE>abc</VALUE>',
-            exp_result=u'abc',
+            exp_result='abc',
         ),
         None, None, True
     ),
@@ -2525,7 +2524,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<VALUE> a  b  c </VALUE>',
-            exp_result=u' a  b  c ',
+            exp_result=' a  b  c ',
         ),
         None, None, True
     ),
@@ -2534,7 +2533,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=b''
             b'<VALUE>\xC3\xA9</VALUE>',
-            exp_result=u'\u00E9',  # LATIN SMALL LETTER E WITH ACUTE
+            exp_result='\u00E9',  # LATIN SMALL LETTER E WITH ACUTE
         ),
         None, None, True
     ),
@@ -2543,7 +2542,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=b''
             b'<VALUE>\xF0\x90\x85\x82</VALUE>',
-            exp_result=u'\U00010142',  # GREEK ACROPHONIC ATTIC ONE DRACHMA
+            exp_result='\U00010142',  # GREEK ACROPHONIC ATTIC ONE DRACHMA
         ),
         None, None, True
     ),
@@ -2627,7 +2626,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '  <VALUE>a</VALUE>'
             '</VALUE.ARRAY>',
             exp_result=[
-                u'a',
+                'a',
             ],
         ),
         None, None, True
@@ -2641,8 +2640,8 @@ TESTCASES_TUPLEPARSE_XML = [
             '  <VALUE>b</VALUE>'
             '</VALUE.ARRAY>',
             exp_result=[
-                u'a',
-                u'b',
+                'a',
+                'b',
             ],
         ),
         None, None, True
@@ -2655,7 +2654,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '  <VALUE>42</VALUE>'
             '</VALUE.ARRAY>',
             exp_result=[
-                u'42',
+                '42',
             ],
         ),
         None, None, True
@@ -2668,7 +2667,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '  <VALUE>TRUE</VALUE>'
             '</VALUE.ARRAY>',
             exp_result=[
-                u'TRUE',
+                'TRUE',
             ],
         ),
         None, None, True
@@ -2696,7 +2695,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.ARRAY>',
             exp_result=[
                 None,
-                u'a',
+                'a',
             ],
         ),
         None, None, True
@@ -2712,7 +2711,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '</VALUE.ARRAY>',
             exp_result=[
                 None,
-                u'a',
+                'a',
                 None,
             ],
         ),
@@ -4541,7 +4540,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<NAMESPACE NAME="foo"/>',
-            exp_result=u'foo',
+            exp_result='foo',
         ),
         None, None, True
     ),
@@ -4550,7 +4549,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=b''
             b'<NAMESPACE NAME="foo\xC3\xA9"/>',
-            exp_result=u'foo\u00E9',
+            exp_result='foo\u00E9',
         ),
         None, None, True
     ),
@@ -4559,7 +4558,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=b''
             b'<NAMESPACE NAME="foo\xF0\x90\x85\x82"/>',
-            exp_result=u'foo\U00010142',
+            exp_result='foo\U00010142',
         ),
         None, None, True
     ),
@@ -4616,7 +4615,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<LOCALNAMESPACEPATH>'
             '  <NAMESPACE NAME="foo"/>'
             '</LOCALNAMESPACEPATH>',
-            exp_result=u'foo',
+            exp_result='foo',
         ),
         None, None, True
     ),
@@ -4628,7 +4627,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '  <NAMESPACE NAME="foo"/>'
             '  <NAMESPACE NAME="bar"/>'
             '</LOCALNAMESPACEPATH>',
-            exp_result=u'foo/bar',
+            exp_result='foo/bar',
         ),
         None, None, True
     ),
@@ -4659,7 +4658,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<HOST>woot.com</HOST>',
-            exp_result=u'woot.com',
+            exp_result='woot.com',
         ),
         None, None, True
     ),
@@ -4668,7 +4667,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<HOST>woot.com:1234</HOST>',
-            exp_result=u'woot.com:1234',
+            exp_result='woot.com:1234',
         ),
         None, None, True
     ),
@@ -4677,7 +4676,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<HOST>woot</HOST>',
-            exp_result=u'woot',
+            exp_result='woot',
         ),
         None, None, True
     ),
@@ -4686,7 +4685,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<HOST>10.11.12.13</HOST>',
-            exp_result=u'10.11.12.13',
+            exp_result='10.11.12.13',
         ),
         None, None, True
     ),
@@ -4695,7 +4694,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<HOST>10.11.12.13:1</HOST>',
-            exp_result=u'10.11.12.13:1',
+            exp_result='10.11.12.13:1',
         ),
         None, None, True
     ),
@@ -4704,7 +4703,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<HOST>[ff::aa]</HOST>',
-            exp_result=u'[ff::aa]',
+            exp_result='[ff::aa]',
         ),
         None, None, True
     ),
@@ -4713,7 +4712,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<HOST>[ff::aa]:1234</HOST>',
-            exp_result=u'[ff::aa]:1234',
+            exp_result='[ff::aa]:1234',
         ),
         None, None, True
     ),
@@ -4854,7 +4853,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '    <NAMESPACE NAME="foo"/>'
             '  </LOCALNAMESPACEPATH>'
             '</NAMESPACEPATH>',
-            exp_result=(u'woot.com', u'foo'),
+            exp_result=('woot.com', 'foo'),
         ),
         None, None, True
     ),
@@ -4918,7 +4917,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=b''
             b'<CLASSNAME NAME="CIM_Foo\xC3\xA9"/>',
-            exp_result=CIMClassName(u'CIM_Foo\u00E9'),
+            exp_result=CIMClassName('CIM_Foo\u00E9'),
         ),
         None, None, True
     ),
@@ -4927,7 +4926,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=b''
             b'<CLASSNAME NAME="CIM_Foo\xF0\x90\x85\x82"/>',
-            exp_result=CIMClassName(u'CIM_Foo\U00010142'),
+            exp_result=CIMClassName('CIM_Foo\U00010142'),
         ),
         None, None, True
     ),
@@ -5317,7 +5316,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=b''
             b'<INSTANCENAME CLASSNAME="CIM_Foo\xC3\xA9"/>',
-            exp_result=CIMInstanceName(u'CIM_Foo\u00E9'),
+            exp_result=CIMInstanceName('CIM_Foo\u00E9'),
         ),
         None, MissingKeybindingsWarning, True
     ),
@@ -5326,7 +5325,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=b''
             b'<INSTANCENAME CLASSNAME="CIM_Foo\xF0\x90\x85\x82"/>',
-            exp_result=CIMInstanceName(u'CIM_Foo\U00010142'),
+            exp_result=CIMInstanceName('CIM_Foo\U00010142'),
         ),
         None, MissingKeybindingsWarning, True
     ),
@@ -6330,7 +6329,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=b''
             b'<INSTANCE CLASSNAME="CIM_Foo\xC3\xA9"/>',
-            exp_result=CIMInstance(u'CIM_Foo\u00E9'),
+            exp_result=CIMInstance('CIM_Foo\u00E9'),
         ),
         None, None, True
     ),
@@ -6339,7 +6338,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=b''
             b'<INSTANCE CLASSNAME="CIM_Foo\xF0\x90\x85\x82"/>',
-            exp_result=CIMInstance(u'CIM_Foo\U00010142'),
+            exp_result=CIMInstance('CIM_Foo\U00010142'),
         ),
         None, None, True
     ),
@@ -6601,7 +6600,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=b''
             b'<CLASS NAME="CIM_Foo\xC3\xA9"/>',
-            exp_result=CIMClass(u'CIM_Foo\u00E9'),
+            exp_result=CIMClass('CIM_Foo\u00E9'),
         ),
         None, None, True
     ),
@@ -6610,7 +6609,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=b''
             b'<CLASS NAME="CIM_Foo\xF0\x90\x85\x82"/>',
-            exp_result=CIMClass(u'CIM_Foo\U00010142'),
+            exp_result=CIMClass('CIM_Foo\U00010142'),
         ),
         None, None, True
     ),
@@ -6815,7 +6814,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=b''
             b'<PROPERTY NAME="Foo\xC3\xA9" TYPE="string"/>',
-            exp_result=CIMProperty(u'Foo\u00E9', value=None, type='string',
+            exp_result=CIMProperty('Foo\u00E9', value=None, type='string',
                                    propagated=False),
         ),
         None, None, True
@@ -6825,7 +6824,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=b''
             b'<PROPERTY NAME="Foo\xF0\x90\x85\x82" TYPE="string"/>',
-            exp_result=CIMProperty(u'Foo\U00010142', value=None, type='string',
+            exp_result=CIMProperty('Foo\U00010142', value=None, type='string',
                                    propagated=False),
         ),
         None, None, True
@@ -6922,7 +6921,7 @@ TESTCASES_TUPLEPARSE_XML = [
             b'<PROPERTY NAME="Spotty" TYPE="string">'
             b'  <VALUE>\xC3\xA9</VALUE>'
             b'</PROPERTY>',
-            exp_result=CIMProperty('Spotty', value=u'\u00E9', type='string',
+            exp_result=CIMProperty('Spotty', value='\u00E9', type='string',
                                    propagated=False),
         ),
         None, None, True
@@ -6934,7 +6933,7 @@ TESTCASES_TUPLEPARSE_XML = [
             b'<PROPERTY NAME="Spotty" TYPE="string">'
             b'  <VALUE>\xF0\x90\x85\x82</VALUE>'
             b'</PROPERTY>',
-            exp_result=CIMProperty('Spotty', value=u'\U00010142', type='string',
+            exp_result=CIMProperty('Spotty', value='\U00010142', type='string',
                                    propagated=False),
         ),
         None, None, True
@@ -6968,7 +6967,7 @@ TESTCASES_TUPLEPARSE_XML = [
             b'<PROPERTY NAME="Spotty" TYPE="char16">'
             b'  <VALUE>\xC3\xA9</VALUE>'
             b'</PROPERTY>',
-            exp_result=CIMProperty('Spotty', value=u'\u00E9', type='char16',
+            exp_result=CIMProperty('Spotty', value='\u00E9', type='char16',
                                    propagated=False),
         ),
         None, None, True
@@ -7743,7 +7742,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str=b''
             b'<PROPERTY.ARRAY NAME="Foo\xC3\xA9" TYPE="string"/>',
             exp_result=CIMProperty(
-                u'Foo\u00E9', value=None, type='string', is_array=True,
+                'Foo\u00E9', value=None, type='string', is_array=True,
                 propagated=False,
             ),
         ),
@@ -7755,7 +7754,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str=b''
             b'<PROPERTY.ARRAY NAME="Foo\xF0\x90\x85\x82" TYPE="string"/>',
             exp_result=CIMProperty(
-                u'Foo\U00010142', value=None, type='string', is_array=True,
+                'Foo\U00010142', value=None, type='string', is_array=True,
                 propagated=False,
             ),
         ),
@@ -8231,7 +8230,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str=b''
             b'<PROPERTY.REFERENCE NAME="Foo\xC3\xA9"/>',
             exp_result=CIMProperty(
-                u'Foo\u00E9', value=None, type='reference',
+                'Foo\u00E9', value=None, type='reference',
                 propagated=False,
             ),
         ),
@@ -8243,7 +8242,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str=b''
             b'<PROPERTY.REFERENCE NAME="Foo\xF0\x90\x85\x82"/>',
             exp_result=CIMProperty(
-                u'Foo\U00010142', value=None, type='reference',
+                'Foo\U00010142', value=None, type='reference',
                 propagated=False,
             ),
         ),
@@ -8509,7 +8508,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=b''
             b'<PARAMETER NAME="Parm\xC3\xA9" TYPE="string"/>',
-            exp_result=CIMParameter(u'Parm\u00E9', type='string'),
+            exp_result=CIMParameter('Parm\u00E9', type='string'),
         ),
         None, None, True
     ),
@@ -8518,7 +8517,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=b''
             b'<PARAMETER NAME="Parm\xF0\x90\x85\x82" TYPE="string"/>',
-            exp_result=CIMParameter(u'Parm\U00010142', type='string'),
+            exp_result=CIMParameter('Parm\U00010142', type='string'),
         ),
         None, None, True
     ),
@@ -8761,7 +8760,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=b''
             b'<PARAMETER.REFERENCE NAME="Parm\xC3\xA9"/>',
-            exp_result=CIMParameter(u'Parm\u00E9', type='reference'),
+            exp_result=CIMParameter('Parm\u00E9', type='reference'),
         ),
         None, None, True
     ),
@@ -8770,7 +8769,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=b''
             b'<PARAMETER.REFERENCE NAME="Parm\xF0\x90\x85\x82"/>',
-            exp_result=CIMParameter(u'Parm\U00010142', type='reference'),
+            exp_result=CIMParameter('Parm\U00010142', type='reference'),
         ),
         None, None, True
     ),
@@ -8872,7 +8871,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str=b''
             b'<PARAMETER.ARRAY NAME="Parm\xC3\xA9" TYPE="string"/>',
             exp_result=CIMParameter(
-                u'Parm\u00E9', type='string', is_array=True),
+                'Parm\u00E9', type='string', is_array=True),
         ),
         None, None, True
     ),
@@ -8882,7 +8881,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str=b''
             b'<PARAMETER.ARRAY NAME="Parm\xF0\x90\x85\x82" TYPE="string"/>',
             exp_result=CIMParameter(
-                u'Parm\U00010142', type='string', is_array=True),
+                'Parm\U00010142', type='string', is_array=True),
         ),
         None, None, True
     ),
@@ -9128,7 +9127,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str=b''
             b'<PARAMETER.REFARRAY NAME="Parm\xC3\xA9"/>',
             exp_result=CIMParameter(
-                u'Parm\u00E9', type='reference', is_array=True),
+                'Parm\u00E9', type='reference', is_array=True),
         ),
         None, None, True
     ),
@@ -9138,7 +9137,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str=b''
             b'<PARAMETER.REFARRAY NAME="Parm\xF0\x90\x85\x82"/>',
             exp_result=CIMParameter(
-                u'Parm\U00010142', type='reference', is_array=True),
+                'Parm\U00010142', type='reference', is_array=True),
         ),
         None, None, True
     ),
@@ -9277,7 +9276,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=b''
             b'<METHOD NAME="Foo\xC3\xA9" TYPE="string"/>',
-            exp_result=CIMMethod(u'Foo\u00E9', return_type='string',
+            exp_result=CIMMethod('Foo\u00E9', return_type='string',
                                  propagated=False),
         ),
         None, None, True
@@ -9287,7 +9286,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=b''
             b'<METHOD NAME="Foo\xF0\x90\x85\x82" TYPE="string"/>',
-            exp_result=CIMMethod(u'Foo\U00010142', return_type='string',
+            exp_result=CIMMethod('Foo\U00010142', return_type='string',
                                  propagated=False),
         ),
         None, None, True
@@ -9445,7 +9444,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str=''
             '<SCOPE CLASS="true"/>',
             exp_result={
-                u'CLASS': True,
+                'CLASS': True,
             },
         ),
         None, None, True
@@ -9456,7 +9455,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str=''
             '<SCOPE CLASS="TrUe"/>',
             exp_result={
-                u'CLASS': True,
+                'CLASS': True,
             },
         ),
         None, None, True
@@ -9467,7 +9466,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str=''
             '<SCOPE CLASS="TrUe"/>',
             exp_result={
-                u'CLASS': True,
+                'CLASS': True,
             },
         ),
         None, None, True
@@ -9478,7 +9477,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str=''
             '<SCOPE CLASS="false"/>',
             exp_result={
-                u'CLASS': False,
+                'CLASS': False,
             },
         ),
         None, None, True
@@ -9489,7 +9488,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str=''
             '<SCOPE CLASS="FaLsE"/>',
             exp_result={
-                u'CLASS': False,
+                'CLASS': False,
             },
         ),
         None, None, True
@@ -9500,7 +9499,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str=''
             '<SCOPE CLASS="FALSE"/>',
             exp_result={
-                u'CLASS': False,
+                'CLASS': False,
             },
         ),
         None, None, True
@@ -9537,13 +9536,13 @@ TESTCASES_TUPLEPARSE_XML = [
             ' METHOD="true"'
             '/>',
             exp_result={
-                u'CLASS': True,
-                u'ASSOCIATION': False,
-                u'REFERENCE': True,
-                u'PROPERTY': False,
-                u'METHOD': True,
-                u'PARAMETER': False,
-                u'INDICATION': True,
+                'CLASS': True,
+                'ASSOCIATION': False,
+                'REFERENCE': True,
+                'PROPERTY': False,
+                'METHOD': True,
+                'PARAMETER': False,
+                'INDICATION': True,
             },
         ),
         None, None, True
@@ -9640,7 +9639,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str=b''
             b'<QUALIFIER NAME="Qual\xC3\xA9" TYPE="string"/>',
             exp_result=CIMQualifier(
-                u'Qual\u00E9', value=None, type='string',
+                'Qual\u00E9', value=None, type='string',
                 **qualifier_default_attrs()
             ),
         ),
@@ -9652,7 +9651,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str=b''
             b'<QUALIFIER NAME="Qual\xF0\x90\x85\x82" TYPE="string"/>',
             exp_result=CIMQualifier(
-                u'Qual\U00010142', value=None, type='string',
+                'Qual\U00010142', value=None, type='string',
                 **qualifier_default_attrs()
             ),
         ),
@@ -10650,7 +10649,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str=b''
             b'<QUALIFIER.DECLARATION NAME="Qual\xC3\xA9" TYPE="string"/>',
             exp_result=CIMQualifierDeclaration(
-                u'Qual\u00E9', value=None, type='string',
+                'Qual\u00E9', value=None, type='string',
                 **qualifier_declaration_default_attrs()
             ),
         ),
@@ -10663,7 +10662,7 @@ TESTCASES_TUPLEPARSE_XML = [
             b'<QUALIFIER.DECLARATION NAME="Qual\xF0\x90\x85\x82"'
             b' TYPE="string"/>',
             exp_result=CIMQualifierDeclaration(
-                u'Qual\U00010142', value=None, type='string',
+                'Qual\U00010142', value=None, type='string',
                 **qualifier_declaration_default_attrs()
             ),
         ),
@@ -12032,13 +12031,13 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </SIMPLEREQ>'
             '</MESSAGE>',
             exp_result=(
-                u'MESSAGE',
-                {u'ID': u'42', u'PROTOCOLVERSION': u'1.4'},
+                'MESSAGE',
+                {'ID': '42', 'PROTOCOLVERSION': '1.4'},
                 (
-                    u'SIMPLEREQ',
+                    'SIMPLEREQ',
                     {},
                     (
-                        u'IMETHODCALL', {u'NAME': u'M1'}, u'foo', []
+                        'IMETHODCALL', {'NAME': 'M1'}, 'foo', []
                     ),
                 ),
             ),
@@ -12081,10 +12080,10 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </SIMPLERSP>'
             '</MESSAGE>',
             exp_result=(
-                u'MESSAGE',
-                {u'ID': u'42', u'PROTOCOLVERSION': u'1.4'},
+                'MESSAGE',
+                {'ID': '42', 'PROTOCOLVERSION': '1.4'},
                 (
-                    u'SIMPLERSP',
+                    'SIMPLERSP',
                     {},
                     (
                         'IMETHODRESPONSE', {'NAME': 'M1'},
@@ -12127,12 +12126,12 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </SIMPLEEXPREQ>'
             '</MESSAGE>',
             exp_result=(
-                u'MESSAGE',
-                {u'ID': u'42', u'PROTOCOLVERSION': u'1.4'},
+                'MESSAGE',
+                {'ID': '42', 'PROTOCOLVERSION': '1.4'},
                 (
-                    u'SIMPLEEXPREQ',
+                    'SIMPLEEXPREQ',
                     {},
-                    (u'EXPMETHODCALL', {u'NAME': u'M1'}, []),
+                    ('EXPMETHODCALL', {'NAME': 'M1'}, []),
                 ),
             ),
         ),
@@ -12261,9 +12260,9 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </IMETHODCALL>'
             '</SIMPLEREQ>',
             exp_result=(
-                u'SIMPLEREQ',
+                'SIMPLEREQ',
                 {},
-                (u'IMETHODCALL', {u'NAME': u'M1'}, u'foo', []),
+                ('IMETHODCALL', {'NAME': 'M1'}, 'foo', []),
             ),
         ),
         None, None, True
@@ -12291,16 +12290,16 @@ TESTCASES_TUPLEPARSE_XML = [
             '    </IPARAMVALUE>'
             '  </IMETHODCALL>'
             '</SIMPLEREQ>',
-            exp_result=(u'SIMPLEREQ',
+            exp_result=('SIMPLEREQ',
                         {},
-                        (u'IMETHODCALL',
-                         {u'NAME': u'GetClass'},
-                         u'root/cimv2',
-                         [(u'ClassName',
+                        ('IMETHODCALL',
+                         {'NAME': 'GetClass'},
+                         'root/cimv2',
+                         [('ClassName',
                            CIMClassName(classname='CIM_ComputerSystem',
                                         namespace=None, host=None)),
-                          (u'PropertyList', [u'PowerManagementCapabilities']),
-                          (u'LocalOnly', False)])),
+                          ('PropertyList', ['PowerManagementCapabilities']),
+                          ('LocalOnly', False)])),
         ),
         None, None, True
     ),
@@ -12414,9 +12413,9 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </EXPMETHODCALL>'
             '</SIMPLEEXPREQ>',
             exp_result=(
-                u'SIMPLEEXPREQ',
+                'SIMPLEEXPREQ',
                 {},
-                (u'EXPMETHODCALL', {u'NAME': u'M1'}, []),
+                ('EXPMETHODCALL', {'NAME': 'M1'}, []),
             ),
         ),
         None, None, True
@@ -12482,7 +12481,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </METHODRESPONSE>'
             '</SIMPLERSP>',
             exp_result=(
-                u'SIMPLERSP',
+                'SIMPLERSP',
                 {},
                 (
                     'METHODRESPONSE', {'NAME': 'M1'},
@@ -12520,7 +12519,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </IMETHODRESPONSE>'
             '</SIMPLERSP>',
             exp_result=(
-                u'SIMPLERSP',
+                'SIMPLERSP',
                 {},
                 (
                     'IMETHODRESPONSE', {'NAME': 'M1'},
@@ -12630,13 +12629,13 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </PARAMVALUE>'
             '  <PARAMVALUE NAME="optionalP1"/>'
             '</METHODCALL>',
-            exp_result=(u'METHODCALL',
-                        {u'NAME': u'SendTestIndicationsCount'},
+            exp_result=('METHODCALL',
+                        {'NAME': 'SendTestIndicationsCount'},
                         CIMClassName(classname='Test_IndicationProviderClass',
                                      namespace='test/TestProvider', host=None),
-                        [(u'indicationSendCount', u'uint32', u'0'),
-                         (u'indicationDropCount', u'uint32', u'42'),
-                         (u'optionalP1', None, None)]),
+                        [('indicationSendCount', 'uint32', '0'),
+                         ('indicationDropCount', 'uint32', '42'),
+                         ('optionalP1', None, None)]),
         ),
         None, None, True
     ),
@@ -12653,8 +12652,8 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </LOCALCLASSPATH>'
             '</METHODCALL>',
             exp_result=(
-                u'METHODCALL',
-                {u'NAME': u'M1'},
+                'METHODCALL',
+                {'NAME': 'M1'},
                 CIMClassName(classname='CIM_Foo', namespace='foo'),
                 [],
             ),
@@ -12703,14 +12702,14 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </PARAMVALUE>'
             '  <PARAMVALUE NAME="optionalP1"/>'
             '</METHODCALL>',
-            exp_result=(u'METHODCALL',
-                        {u'NAME': u'SendTestIndicationsCount'},
+            exp_result=('METHODCALL',
+                        {'NAME': 'SendTestIndicationsCount'},
                         CIMInstanceName(
                             classname='Test_IndicationProviderClass',
                             namespace='test/TestProvider', host=None),
-                        [(u'indicationSendCount', u'uint32', u'0'),
-                         (u'indicationDropCount', u'uint32', u'42'),
-                         (u'optionalP1', None, None)]),
+                        [('indicationSendCount', 'uint32', '0'),
+                         ('indicationDropCount', 'uint32', '42'),
+                         ('optionalP1', None, None)]),
         ),
         None, MissingKeybindingsWarning, True
     ),
@@ -12727,8 +12726,8 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </LOCALINSTANCEPATH>'
             '</METHODCALL>',
             exp_result=(
-                u'METHODCALL',
-                {u'NAME': u'M1'},
+                'METHODCALL',
+                {'NAME': 'M1'},
                 CIMInstanceName(classname='CIM_Foo', namespace='foo'),
                 [],
             ),
@@ -13058,7 +13057,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str=''
             '<PARAMVALUE NAME="P1">'
             '</PARAMVALUE>',
-            exp_result=(u'P1', None, None),
+            exp_result=('P1', None, None),
         ),
         None, None, True
     ),
@@ -13069,9 +13068,9 @@ TESTCASES_TUPLEPARSE_XML = [
             '<PARAMVALUE NAME="EnumerationContext">'
             '  <VALUE>z8vmi13hjvfyf9v71gbz----------------</VALUE>'
             '</PARAMVALUE>',
-            exp_result=(u'EnumerationContext',
+            exp_result=('EnumerationContext',
                         None,
-                        u'z8vmi13hjvfyf9v71gbz----------------'),
+                        'z8vmi13hjvfyf9v71gbz----------------'),
         ),
         None, None, True
     ),
@@ -13082,9 +13081,9 @@ TESTCASES_TUPLEPARSE_XML = [
             '<PARAMVALUE NAME="EnumerationContext" PARAMTYPE="string">'
             '  <VALUE>z8vmi13hjvfyf9v71gbz----------------</VALUE>'
             '</PARAMVALUE>',
-            exp_result=(u'EnumerationContext',
-                        u'string',
-                        u'z8vmi13hjvfyf9v71gbz----------------'),
+            exp_result=('EnumerationContext',
+                        'string',
+                        'z8vmi13hjvfyf9v71gbz----------------'),
         ),
         None, None, True
     ),
@@ -13095,9 +13094,9 @@ TESTCASES_TUPLEPARSE_XML = [
             '<PARAMVALUE NAME="EnumerationContext" TYPE="string">'
             '  <VALUE>z8vmi13hjvfyf9v71gbz----------------</VALUE>'
             '</PARAMVALUE>',
-            exp_result=(u'EnumerationContext',
-                        u'string',
-                        u'z8vmi13hjvfyf9v71gbz----------------'),
+            exp_result=('EnumerationContext',
+                        'string',
+                        'z8vmi13hjvfyf9v71gbz----------------'),
         ),
         None, None, True
     ),
@@ -13109,9 +13108,9 @@ TESTCASES_TUPLEPARSE_XML = [
             'PARAMTYPE="string" TYPE="boolean">'
             '  <VALUE>z8vmi13hjvfyf9v71gbz----------------</VALUE>'
             '</PARAMVALUE>',
-            exp_result=(u'EnumerationContext',
-                        u'string',
-                        u'z8vmi13hjvfyf9v71gbz----------------'),
+            exp_result=('EnumerationContext',
+                        'string',
+                        'z8vmi13hjvfyf9v71gbz----------------'),
         ),
         None, None, True
     ),
@@ -13134,7 +13133,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<PARAMVALUE NAME="P1">'
             '  <VALUE>abc</VALUE>'
             '</PARAMVALUE>',
-            exp_result=(u'P1', None, 'abc'),
+            exp_result=('P1', None, 'abc'),
         ),
         None, None, True
     ),
@@ -13163,7 +13162,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
             '  </VALUE.REFERENCE>'
             '</PARAMVALUE>',
-            exp_result=(u'P1',
+            exp_result=('P1',
                         None,
                         CIMInstanceName('CIM_Foo')),
         ),
@@ -13191,7 +13190,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '  <VALUE.ARRAY>'
             '  </VALUE.ARRAY>'
             '</PARAMVALUE>',
-            exp_result=(u'P1',
+            exp_result=('P1',
                         None,
                         []),
         ),
@@ -13219,7 +13218,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '  <VALUE.REFARRAY>'
             '  </VALUE.REFARRAY>'
             '</PARAMVALUE>',
-            exp_result=(u'P1',
+            exp_result=('P1',
                         None,
                         []),
         ),
@@ -13244,7 +13243,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<PARAMVALUE NAME="P1">'
             '  <CLASSNAME NAME="CIM_Foo"/>'
             '</PARAMVALUE>',
-            exp_result=(u'P1',
+            exp_result=('P1',
                         None,
                         CIMClassName('CIM_Foo')),
         ),
@@ -13269,7 +13268,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<PARAMVALUE NAME="P1">'
             '  <INSTANCENAME CLASSNAME="CIM_Foo"/>'
             '</PARAMVALUE>',
-            exp_result=(u'P1',
+            exp_result=('P1',
                         None,
                         CIMInstanceName('CIM_Foo')),
         ),
@@ -13294,7 +13293,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<PARAMVALUE NAME="P1">'
             '  <CLASS NAME="CIM_Foo"/>'
             '</PARAMVALUE>',
-            exp_result=(u'P1',
+            exp_result=('P1',
                         None,
                         CIMClass('CIM_Foo')),
         ),
@@ -13319,7 +13318,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<PARAMVALUE NAME="P1">'
             '  <INSTANCE CLASSNAME="CIM_Foo"/>'
             '</PARAMVALUE>',
-            exp_result=(u'P1',
+            exp_result=('P1',
                         None,
                         CIMInstance('CIM_Foo')),
         ),
@@ -13354,7 +13353,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '    <INSTANCE CLASSNAME="CIM_Foo"/>'
             '  </VALUE.NAMEDINSTANCE>'
             '</PARAMVALUE>',
-            exp_result=(u'P1',
+            exp_result=('P1',
                         None,
                         CIMInstance(
                             'CIM_Foo',
@@ -13400,7 +13399,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<RETURNVALUE PARAMTYPE="sint32">'
             '<VALUE>0</VALUE>'
             '</RETURNVALUE>',
-            exp_result=(u'RETURNVALUE', {u'PARAMTYPE': u'sint32'}, u'0'),
+            exp_result=('RETURNVALUE', {'PARAMTYPE': 'sint32'}, '0'),
         ),
         None, None, True
     ),
@@ -13411,7 +13410,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<RETURNVALUE PARAMTYPE="sint32">'
             '<VALUE>1</VALUE>'
             '</RETURNVALUE>',
-            exp_result=(u'RETURNVALUE', {u'PARAMTYPE': u'sint32'}, u'1'),
+            exp_result=('RETURNVALUE', {'PARAMTYPE': 'sint32'}, '1'),
         ),
         None, None, True
     ),
@@ -13426,9 +13425,9 @@ TESTCASES_TUPLEPARSE_XML = [
             '&lt;PROPERTY NAME="Town" TYPE="string"&gt;'
             '&lt;VALUE&gt;Default Town&lt;/VALUE&gt;'
             '&lt;/PROPERTY&gt;&lt;/CLASS&gt;</VALUE></RETURNVALUE>',
-            exp_result=(u'RETURNVALUE',
-                        {u'EmbeddedObject': u'instance',
-                         u'PARAMTYPE': u'string'},
+            exp_result=('RETURNVALUE',
+                        {'EmbeddedObject': 'instance',
+                         'PARAMTYPE': 'string'},
                         CIMClass(
                             classname='PyWBEM_Address',
                             superclass='PyWBEM_Object',
@@ -13459,9 +13458,9 @@ TESTCASES_TUPLEPARSE_XML = [
             '&lt;/PROPERTY&gt;&lt;PROPERTY NAME="Town" TYPE="string"&gt;'
             '&lt;VALUE&gt;Default Town&lt;/VALUE&gt;'
             '&lt;/PROPERTY&gt;&lt;/CLASS&gt;</VALUE></RETURNVALUE>',
-            exp_result=(u'RETURNVALUE',
-                        {u'EMBEDDEDOBJECT': u'instance',
-                         u'PARAMTYPE': u'string'},
+            exp_result=('RETURNVALUE',
+                        {'EMBEDDEDOBJECT': 'instance',
+                         'PARAMTYPE': 'string'},
                         CIMClass(
                             classname='PyWBEM_Address',
                             superclass='PyWBEM_Object',
@@ -13487,7 +13486,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<RETURNVALUE PARAMTYPE="sint32">'
             '<VALUE>hi</VALUE>'
             '</RETURNVALUE>',
-            exp_result=(u'RETURNVALUE', {u'PARAMTYPE': u'sint32'}, u'hi'),
+            exp_result=('RETURNVALUE', {'PARAMTYPE': 'sint32'}, 'hi'),
         ),
         None, None, True
     ),
@@ -13498,7 +13497,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<RETURNVALUE PARAMTYPE="sint32">'
             '<VALUE>1</VALUE>'
             '</RETURNVALUE>',
-            exp_result=(u'RETURNVALUE', {u'PARAMTYPE': u'sint32'}, u'1'),
+            exp_result=('RETURNVALUE', {'PARAMTYPE': 'sint32'}, '1'),
         ),
         None, None, True
     ),
@@ -13539,7 +13538,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '    <INSTANCENAME CLASSNAME="CIM_Foo"/>'
             '  </VALUE.REFERENCE>'
             '</RETURNVALUE>',
-            exp_result=(u'RETURNVALUE',
+            exp_result=('RETURNVALUE',
                         {},
                         CIMInstanceName(classname='CIM_Foo')),
         ),
@@ -13609,10 +13608,10 @@ TESTCASES_TUPLEPARSE_XML = [
             '  <EXPPARAMVALUE NAME="P1"/>'
             '</EXPMETHODCALL>',
             exp_result=(
-                u'EXPMETHODCALL',
-                {u'NAME': u'M1'},
+                'EXPMETHODCALL',
+                {'NAME': 'M1'},
                 [
-                    (u'P1', None),
+                    ('P1', None),
                 ],
             ),
         ),
@@ -13627,11 +13626,11 @@ TESTCASES_TUPLEPARSE_XML = [
             '  <EXPPARAMVALUE NAME="P2"/>'
             '</EXPMETHODCALL>',
             exp_result=(
-                u'EXPMETHODCALL',
-                {u'NAME': u'M1'},
+                'EXPMETHODCALL',
+                {'NAME': 'M1'},
                 [
-                    (u'P1', None),
-                    (u'P2', None),
+                    ('P1', None),
+                    ('P2', None),
                 ],
             ),
         ),
@@ -13691,7 +13690,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str=''
             '<EXPPARAMVALUE NAME="P1">'
             '</EXPPARAMVALUE>',
-            exp_result=(u'P1', None),
+            exp_result=('P1', None),
         ),
         None, None, True
     ),
@@ -13702,7 +13701,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<EXPPARAMVALUE NAME="P1">'
             '  <INSTANCE CLASSNAME="CIM_Foo"/>'
             '</EXPPARAMVALUE>',
-            exp_result=(u'P1', CIMInstance('CIM_Foo')),
+            exp_result=('P1', CIMInstance('CIM_Foo')),
         ),
         None, None, True
     ),
@@ -13816,9 +13815,9 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </LOCALNAMESPACEPATH>'
             '</IMETHODCALL>',
             exp_result=(
-                u'IMETHODCALL',
-                {u'NAME': u'M1'},
-                u'foo',
+                'IMETHODCALL',
+                {'NAME': 'M1'},
+                'foo',
                 [],
             ),
         ),
@@ -13845,14 +13844,14 @@ TESTCASES_TUPLEPARSE_XML = [
             '    <VALUE>FALSE</VALUE>'
             '  </IPARAMVALUE>'
             '</IMETHODCALL>',
-            exp_result=(u'IMETHODCALL',
-                        {u'NAME': u'GetClass'},
-                        u'root/cimv2',
-                        [(u'ClassName',
+            exp_result=('IMETHODCALL',
+                        {'NAME': 'GetClass'},
+                        'root/cimv2',
+                        [('ClassName',
                           CIMClassName(classname='CIM_ComputerSystem',
                                        namespace=None, host=None)),
-                         (u'PropertyList', [u'PowerManagementCapabilities']),
-                         (u'LocalOnly', False)]),
+                         ('PropertyList', ['PowerManagementCapabilities']),
+                         ('LocalOnly', False)]),
         ),
         None, None, True
     ),
@@ -14105,7 +14104,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<IPARAMVALUE NAME="LocalOnly">'
             '  <VALUE>FALSE</VALUE>'
             '</IPARAMVALUE>',
-            exp_result=(u'LocalOnly', False),
+            exp_result=('LocalOnly', False),
         ),
         None, None, True
     ),
@@ -14116,7 +14115,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<IPARAMVALUE NAME="LocalOnly">'
             '  <VALUE>TRUE</VALUE>'
             '</IPARAMVALUE>',
-            exp_result=(u'LocalOnly', True),
+            exp_result=('LocalOnly', True),
         ),
         None, None, True
     ),
@@ -14130,7 +14129,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '    <VALUE>2</VALUE>'
             '  </VALUE.ARRAY>'
             '</IPARAMVALUE>',
-            exp_result=(u'ARRAYINT', [u'1', u'2']),
+            exp_result=('ARRAYINT', ['1', '2']),
         ),
         None, None, True
     ),
@@ -14155,7 +14154,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '    <CLASSNAME NAME="CIM_Foo"/>'
             '  </VALUE.REFERENCE>'
             '</IPARAMVALUE>',
-            exp_result=(u'P1', CIMClassName('CIM_Foo')),
+            exp_result=('P1', CIMClassName('CIM_Foo')),
         ),
         None, None, True
     ),
@@ -14182,7 +14181,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<IPARAMVALUE NAME="P1">'
             '  <INSTANCENAME CLASSNAME="CIM_Foo"/>'
             '</IPARAMVALUE>',
-            exp_result=(u'P1', CIMInstanceName("CIM_Foo")),
+            exp_result=('P1', CIMInstanceName("CIM_Foo")),
         ),
         None, MissingKeybindingsWarning, True
     ),
@@ -14205,7 +14204,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<IPARAMVALUE NAME="P1">'
             '  <CLASSNAME NAME="CIM_Foo"/>'
             '</IPARAMVALUE>',
-            exp_result=(u'P1', CIMClassName("CIM_Foo")),
+            exp_result=('P1', CIMClassName("CIM_Foo")),
         ),
         None, None, True
     ),
@@ -14232,7 +14231,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </VALUE.NAMEDINSTANCE>'
             '</IPARAMVALUE>',
             exp_result=(
-                u'P1',
+                'P1',
                 CIMInstance(
                     'CIM_Foo',
                     path=CIMInstanceName('CIM_Foo'),
@@ -14266,7 +14265,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<IPARAMVALUE NAME="P1">'
             '  <CLASS NAME="CIM_Foo"/>'
             '</IPARAMVALUE>',
-            exp_result=(u'P1', CIMClass('CIM_Foo')),
+            exp_result=('P1', CIMClass('CIM_Foo')),
         ),
         None, None, True
     ),
@@ -14289,7 +14288,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<IPARAMVALUE NAME="P1">'
             '  <INSTANCE CLASSNAME="CIM_Foo"/>'
             '</IPARAMVALUE>',
-            exp_result=(u'P1', CIMInstance('CIM_Foo')),
+            exp_result=('P1', CIMInstance('CIM_Foo')),
         ),
         None, None, True
     ),
@@ -14313,7 +14312,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '  <QUALIFIER.DECLARATION NAME="Qual" TYPE="string"/>'
             '</IPARAMVALUE>',
             exp_result=(
-                u'P1',
+                'P1',
                 CIMQualifierDeclaration(
                     'Qual', value=None, type='string',
                     **qualifier_declaration_default_attrs()
@@ -14383,7 +14382,7 @@ TESTCASES_TUPLEPARSE_XML = [
             xml_str=''
             '<IRETURNVALUE>'
             '</IRETURNVALUE>',
-            exp_result=(u'IRETURNVALUE', {}, []),
+            exp_result=('IRETURNVALUE', {}, []),
         ),
         None, None, True
     ),
@@ -14394,7 +14393,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<IRETURNVALUE>'
             '  <VALUE>abc</VALUE>'
             '</IRETURNVALUE>',
-            exp_result=(u'IRETURNVALUE', {}, [u'abc']),
+            exp_result=('IRETURNVALUE', {}, ['abc']),
         ),
         None, None, True
     ),
@@ -14406,7 +14405,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '  <VALUE>abc</VALUE>'
             '  <VALUE>42</VALUE>'
             '</IRETURNVALUE>',
-            exp_result=(u'IRETURNVALUE', {}, [u'abc', u'42']),
+            exp_result=('IRETURNVALUE', {}, ['abc', '42']),
         ),
         None, None, True
     ),
@@ -14417,7 +14416,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<IRETURNVALUE>'
             '  <VALUE.ARRAY/>'
             '</IRETURNVALUE>',
-            exp_result=(u'IRETURNVALUE', {}, [[]]),
+            exp_result=('IRETURNVALUE', {}, [[]]),
         ),
         None, None, True
     ),
@@ -14430,7 +14429,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '  <VALUE.ARRAY/>'
             '  <VALUE.ARRAY/>'
             '</IRETURNVALUE>',
-            exp_result=(u'IRETURNVALUE', {}, [[], []]),
+            exp_result=('IRETURNVALUE', {}, [[], []]),
         ),
         None, None, True
     ),
@@ -14444,7 +14443,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </VALUE.REFERENCE>'
             '</IRETURNVALUE>',
             exp_result=(
-                u'IRETURNVALUE', {},
+                'IRETURNVALUE', {},
                 [
                     CIMClassName('CIM_Foo'),
                 ]
@@ -14466,7 +14465,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </VALUE.REFERENCE>'
             '</IRETURNVALUE>',
             exp_result=(
-                u'IRETURNVALUE', {},
+                'IRETURNVALUE', {},
                 [
                     CIMClassName('CIM_Foo'),
                     CIMClassName('CIM_Bar'),
@@ -14493,10 +14492,10 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </OBJECTPATH>'
             '</IRETURNVALUE>',
             exp_result=(
-                u'IRETURNVALUE', {},
+                'IRETURNVALUE', {},
                 [
                     (
-                        u'OBJECTPATH', {},
+                        'OBJECTPATH', {},
                         CIMClassName(
                             'CIM_Foo',
                             namespace='foo',
@@ -14537,10 +14536,10 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </OBJECTPATH>'
             '</IRETURNVALUE>',
             exp_result=(
-                u'IRETURNVALUE', {},
+                'IRETURNVALUE', {},
                 [
                     (
-                        u'OBJECTPATH', {},
+                        'OBJECTPATH', {},
                         CIMClassName(
                             'CIM_Foo',
                             namespace='foo',
@@ -14548,7 +14547,7 @@ TESTCASES_TUPLEPARSE_XML = [
                         ),
                     ),
                     (
-                        u'OBJECTPATH', {},
+                        'OBJECTPATH', {},
                         CIMClassName(
                             'CIM_Bar',
                             namespace='foo',
@@ -14576,7 +14575,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </INSTANCEPATH>'
             '</IRETURNVALUE>',
             exp_result=(
-                u'IRETURNVALUE', {},
+                'IRETURNVALUE', {},
                 [
                     CIMInstanceName(
                         'CIM_Foo',
@@ -14613,7 +14612,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </INSTANCEPATH>'
             '</IRETURNVALUE>',
             exp_result=(
-                u'IRETURNVALUE', {},
+                'IRETURNVALUE', {},
                 [
                     CIMInstanceName(
                         'CIM_Foo',
@@ -14637,7 +14636,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<IRETURNVALUE>'
             '  <CLASSNAME NAME="CIM_Foo"/>'
             '</IRETURNVALUE>',
-            exp_result=(u'IRETURNVALUE', {},
+            exp_result=('IRETURNVALUE', {},
                         [CIMClassName('CIM_Foo')]),
         ),
         None, None, True
@@ -14650,7 +14649,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '  <CLASSNAME NAME="CIM_Foo"/>'
             '  <CLASSNAME NAME="CIM_Bar"/>'
             '</IRETURNVALUE>',
-            exp_result=(u'IRETURNVALUE', {},
+            exp_result=('IRETURNVALUE', {},
                         [CIMClassName('CIM_Foo'), CIMClassName('CIM_Bar')]),
         ),
         None, None, True
@@ -14662,7 +14661,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '<IRETURNVALUE>'
             '  <INSTANCENAME CLASSNAME="CIM_Foo"/>'
             '</IRETURNVALUE>',
-            exp_result=(u'IRETURNVALUE', {},
+            exp_result=('IRETURNVALUE', {},
                         [CIMInstanceName('CIM_Foo')]),
         ),
         None, MissingKeybindingsWarning, True
@@ -14675,7 +14674,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '  <INSTANCENAME CLASSNAME="CIM_Foo"/>'
             '  <INSTANCENAME CLASSNAME="CIM_Bar"/>'
             '</IRETURNVALUE>',
-            exp_result=(u'IRETURNVALUE', {},
+            exp_result=('IRETURNVALUE', {},
                         [CIMInstanceName('CIM_Foo'),
                          CIMInstanceName('CIM_Bar')]),
         ),
@@ -14700,10 +14699,10 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </VALUE.OBJECTWITHPATH>'
             '</IRETURNVALUE>',
             exp_result=(
-                u'IRETURNVALUE', {},
+                'IRETURNVALUE', {},
                 [
                     (
-                        u'VALUE.OBJECTWITHPATH', {},
+                        'VALUE.OBJECTWITHPATH', {},
                         (
                             CIMClassName(
                                 'CIM_Foo',
@@ -14756,10 +14755,10 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </VALUE.OBJECTWITHPATH>'
             '</IRETURNVALUE>',
             exp_result=(
-                u'IRETURNVALUE', {},
+                'IRETURNVALUE', {},
                 [
                     (
-                        u'VALUE.OBJECTWITHPATH', {},
+                        'VALUE.OBJECTWITHPATH', {},
                         (
                             CIMClassName(
                                 'CIM_Foo',
@@ -14777,7 +14776,7 @@ TESTCASES_TUPLEPARSE_XML = [
                         ),
                     ),
                     (
-                        u'VALUE.OBJECTWITHPATH', {},
+                        'VALUE.OBJECTWITHPATH', {},
                         (
                             CIMClassName(
                                 'CIM_Bar',
@@ -14815,10 +14814,10 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </VALUE.OBJECTWITHLOCALPATH>'
             '</IRETURNVALUE>',
             exp_result=(
-                u'IRETURNVALUE', {},
+                'IRETURNVALUE', {},
                 [
                     (
-                        u'VALUE.OBJECTWITHLOCALPATH', {},
+                        'VALUE.OBJECTWITHLOCALPATH', {},
                         (
                             CIMClassName(
                                 'CIM_Foo',
@@ -14863,10 +14862,10 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </VALUE.OBJECTWITHLOCALPATH>'
             '</IRETURNVALUE>',
             exp_result=(
-                u'IRETURNVALUE', {},
+                'IRETURNVALUE', {},
                 [
                     (
-                        u'VALUE.OBJECTWITHLOCALPATH', {},
+                        'VALUE.OBJECTWITHLOCALPATH', {},
                         (
                             CIMClassName(
                                 'CIM_Foo',
@@ -14882,7 +14881,7 @@ TESTCASES_TUPLEPARSE_XML = [
                         ),
                     ),
                     (
-                        u'VALUE.OBJECTWITHLOCALPATH', {},
+                        'VALUE.OBJECTWITHLOCALPATH', {},
                         (
                             CIMClassName(
                                 'CIM_Bar',
@@ -14921,7 +14920,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </VALUE.INSTANCEWITHPATH>'
             '</IRETURNVALUE>',
             exp_result=(
-                u'IRETURNVALUE', {},
+                'IRETURNVALUE', {},
                 [
                     CIMInstance(
                         'CIM_Foo',
@@ -14967,7 +14966,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </VALUE.INSTANCEWITHPATH>'
             '</IRETURNVALUE>',
             exp_result=(
-                u'IRETURNVALUE', {},
+                'IRETURNVALUE', {},
                 [
                     CIMInstance(
                         'CIM_Foo',
@@ -15001,7 +15000,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </VALUE.NAMEDINSTANCE>'
             '</IRETURNVALUE>',
             exp_result=(
-                u'IRETURNVALUE', {},
+                'IRETURNVALUE', {},
                 [
                     CIMInstance(
                         'CIM_Foo',
@@ -15027,7 +15026,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </VALUE.NAMEDINSTANCE>'
             '</IRETURNVALUE>',
             exp_result=(
-                u'IRETURNVALUE', {},
+                'IRETURNVALUE', {},
                 [
                     CIMInstance(
                         'CIM_Foo',
@@ -15052,9 +15051,9 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </VALUE.OBJECT>'
             '</IRETURNVALUE>',
             exp_result=(
-                u'IRETURNVALUE', {},
+                'IRETURNVALUE', {},
                 [
-                    (u'VALUE.OBJECT', {}, CIMClass('CIM_Foo')),
+                    ('VALUE.OBJECT', {}, CIMClass('CIM_Foo')),
                 ],
             ),
         ),
@@ -15073,10 +15072,10 @@ TESTCASES_TUPLEPARSE_XML = [
             '  </VALUE.OBJECT>'
             '</IRETURNVALUE>',
             exp_result=(
-                u'IRETURNVALUE', {},
+                'IRETURNVALUE', {},
                 [
-                    (u'VALUE.OBJECT', {}, CIMClass('CIM_Foo')),
-                    (u'VALUE.OBJECT', {}, CIMClass('CIM_Bar')),
+                    ('VALUE.OBJECT', {}, CIMClass('CIM_Foo')),
+                    ('VALUE.OBJECT', {}, CIMClass('CIM_Bar')),
                 ],
             ),
         ),
@@ -15090,7 +15089,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '  <CLASS NAME="CIM_Foo"/>'
             '</IRETURNVALUE>',
             exp_result=(
-                u'IRETURNVALUE', {},
+                'IRETURNVALUE', {},
                 [
                     CIMClass('CIM_Foo'),
                 ],
@@ -15107,7 +15106,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '  <CLASS NAME="CIM_Bar"/>'
             '</IRETURNVALUE>',
             exp_result=(
-                u'IRETURNVALUE', {},
+                'IRETURNVALUE', {},
                 [
                     CIMClass('CIM_Foo'),
                     CIMClass('CIM_Bar'),
@@ -15124,7 +15123,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '  <INSTANCE CLASSNAME="CIM_Foo"/>'
             '</IRETURNVALUE>',
             exp_result=(
-                u'IRETURNVALUE', {},
+                'IRETURNVALUE', {},
                 [
                     CIMInstance('CIM_Foo'),
                 ],
@@ -15141,7 +15140,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '  <INSTANCE CLASSNAME="CIM_Bar"/>'
             '</IRETURNVALUE>',
             exp_result=(
-                u'IRETURNVALUE', {},
+                'IRETURNVALUE', {},
                 [
                     CIMInstance('CIM_Foo'),
                     CIMInstance('CIM_Bar'),
@@ -15158,7 +15157,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '  <QUALIFIER.DECLARATION NAME="Qual" TYPE="string"/>'
             '</IRETURNVALUE>',
             exp_result=(
-                u'IRETURNVALUE', {},
+                'IRETURNVALUE', {},
                 [
                     CIMQualifierDeclaration(
                         'Qual', value=None, type='string',
@@ -15178,7 +15177,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '  <QUALIFIER.DECLARATION NAME="Qua2" TYPE="string"/>'
             '</IRETURNVALUE>',
             exp_result=(
-                u'IRETURNVALUE', {},
+                'IRETURNVALUE', {},
                 [
                     CIMQualifierDeclaration(
                         'Qual', value=None, type='string',
@@ -15225,7 +15224,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<ERROR CODE="5"/>',
-            exp_result=(u'ERROR', {u'CODE': u'5'}, []),
+            exp_result=('ERROR', {'CODE': '5'}, []),
         ),
         None, None, True
     ),
@@ -15234,7 +15233,7 @@ TESTCASES_TUPLEPARSE_XML = [
         dict(
             xml_str=''
             '<ERROR CODE="5" DESCRIPTION="bla"/>',
-            exp_result=(u'ERROR', {u'CODE': u'5', u'DESCRIPTION': u'bla'}, []),
+            exp_result=('ERROR', {'CODE': '5', 'DESCRIPTION': 'bla'}, []),
         ),
         None, None, True
     ),
@@ -15246,7 +15245,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '  <INSTANCE CLASSNAME="CIM_Foo"/>'
             '</ERROR>',
             exp_result=(
-                u'ERROR', {u'CODE': u'5'},
+                'ERROR', {'CODE': '5'},
                 [
                     CIMInstance('CIM_Foo'),
                 ]
@@ -15263,7 +15262,7 @@ TESTCASES_TUPLEPARSE_XML = [
             '  <INSTANCE CLASSNAME="CIM_Bar"/>'
             '</ERROR>',
             exp_result=(
-                u'ERROR', {u'CODE': u'5'},
+                'ERROR', {'CODE': '5'},
                 [
                     CIMInstance('CIM_Foo'),
                     CIMInstance('CIM_Bar'),

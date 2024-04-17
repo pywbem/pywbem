@@ -23,7 +23,6 @@ Test for the WBEMServer class  in pywbem._server.py that uses the pywbem_mock
 support package the methods of the class. Mock is required since, testing
 WBEMServer requires access to a WBEM server.
 """
-from __future__ import absolute_import, print_function
 
 import os
 import pytest
@@ -49,7 +48,7 @@ VERBOSE = True
 TESTSUITE_SCHEMA_DIR = os.path.join('tests', 'schema')
 
 
-class BaseMethodsForTests(object):  # pylint: disable=too-few-public-methods
+class BaseMethodsForTests:  # pylint: disable=too-few-public-methods
     """
     Common methods for test of WBEMServer class.  This includes methods to
     build the DMTF schema and to build individual instances.
@@ -93,7 +92,7 @@ class TestServerClass(BaseMethodsForTests):
         assert server.brand == "Mock_Test"
         # assert server.version == "2.15.0"
         assert server.interop_ns == tst_namespace
-        assert set(server.namespaces) == set([tst_namespace])
+        assert set(server.namespaces) == {tst_namespace}
 
         # Test basic profiles methods
         org_vm = ValueMapping.for_property(server, server.interop_ns,
@@ -168,7 +167,7 @@ TESTCASES_CREATE_NAMESPACE = [
         "New top level namespace",
         dict(
             new_namespace='abc',
-            exp_namespace=u'abc',
+            exp_namespace='abc',
         ),
         None, None, True
     ),
@@ -176,7 +175,7 @@ TESTCASES_CREATE_NAMESPACE = [
         "New top level namespace with leading and trailing slash",
         dict(
             new_namespace='/abc/',
-            exp_namespace=u'abc',
+            exp_namespace='abc',
         ),
         None, None, True
     ),
@@ -184,7 +183,7 @@ TESTCASES_CREATE_NAMESPACE = [
         "New two-segment namespace with leading and trailing slash",
         dict(
             new_namespace='/abc/def/',
-            exp_namespace=u'abc/def',
+            exp_namespace='abc/def',
         ),
         None, None, True
     ),
@@ -192,7 +191,7 @@ TESTCASES_CREATE_NAMESPACE = [
         "New two-segment namespace where first segment already exists",
         dict(
             new_namespace='interop/def',
-            exp_namespace=u'interop/def',
+            exp_namespace='interop/def',
         ),
         None, None, True
     ),
@@ -257,7 +256,7 @@ TESTCASES_DELETE_NAMESPACE = [
         dict(
             namespace='abc',
             namespace_content={'abc': []},
-            exp_namespace=u'abc',
+            exp_namespace='abc',
         ),
         None, None, True
     ),
@@ -266,7 +265,7 @@ TESTCASES_DELETE_NAMESPACE = [
         dict(
             namespace='/abc/',
             namespace_content={'abc': []},
-            exp_namespace=u'abc',
+            exp_namespace='abc',
         ),
         None, None, True
     ),
@@ -275,7 +274,7 @@ TESTCASES_DELETE_NAMESPACE = [
         dict(
             namespace='/abc/def/',
             namespace_content={'abc/def': []},
-            exp_namespace=u'abc/def',
+            exp_namespace='abc/def',
         ),
         None, None, True
     ),
@@ -284,7 +283,7 @@ TESTCASES_DELETE_NAMESPACE = [
         dict(
             namespace='interop/def',
             namespace_content={'interop/def': []},
-            exp_namespace=u'interop/def',
+            exp_namespace='interop/def',
         ),
         None, None, True
     ),

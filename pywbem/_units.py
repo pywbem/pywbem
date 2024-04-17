@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -109,7 +108,7 @@ try:
     from collections.abc import Sequence
 except ImportError:
     # pylint: disable=deprecated-class
-    from collections import Sequence
+    from collections.abc import Sequence
 import six
 
 from ._vendor.nocasedict import NocaseDict
@@ -241,30 +240,30 @@ def siunit(punit=None, units=None, use_ascii=False):
 
 
 # Unicode characters used in the output, by default
-UC_DEGREE = u'\u00B0'  # U+00B0: DEGREE SIGN
+UC_DEGREE = '\u00B0'  # U+00B0: DEGREE SIGN
 # U+2103 (DEGREE CELSIUS) and U+2109 (DEGREE FAHRENHEIT) are intentionally
 # not used, for better font/terminal compatibility.
-UC_DEGREE_CELSIUS = u'{}C'.format(UC_DEGREE)  # Avoid U+2103: DEGREE CELSIUS
-UC_DEGREE_FAHRENHEIT = u'{}F'.format(UC_DEGREE)  # Avoid U+2109: DEGREE FAHR.
-UC_PERMILLE = u'\u2030'  # U+2030: PER MILLE SIGN
-UC_MICRO = u'\u00B5'  # U+00B5: MICRO SIGN
-UC_OHM = u'\u2126'  # U+2126: OHM SIGN
-UC_SUP_2 = u'\u00B2'  # U+00B2: SUPERSCRIPT TWO
-UC_SUP_3 = u'\u00B3'  # U+00B3: SUPERSCRIPT THREE
+UC_DEGREE_CELSIUS = f'{UC_DEGREE}C'  # Avoid U+2103: DEGREE CELSIUS
+UC_DEGREE_FAHRENHEIT = f'{UC_DEGREE}F'  # Avoid U+2109: DEGREE FAHR.
+UC_PERMILLE = '\u2030'  # U+2030: PER MILLE SIGN
+UC_MICRO = '\u00B5'  # U+00B5: MICRO SIGN
+UC_OHM = '\u2126'  # U+2126: OHM SIGN
+UC_SUP_2 = '\u00B2'  # U+00B2: SUPERSCRIPT TWO
+UC_SUP_3 = '\u00B3'  # U+00B3: SUPERSCRIPT THREE
 # U+2074 (SUPERSCRIPT FOUR) and adjacent characters up to U+2079
 # (SUPERSCRIPT NINE) are intentionally not used, for better font/terminal
 # compatibility.
 
 # 7-bit ASCII replacements for the Unicode characters above
 UC2ASCII = {
-    UC_DEGREE: u'deg',
-    UC_DEGREE_CELSIUS: u'degC',
-    UC_DEGREE_FAHRENHEIT: u'degF',
-    UC_PERMILLE: u'1/1000',
-    UC_MICRO: u'u',
-    UC_OHM: u'Ohm',
-    UC_SUP_2: u'^2',
-    UC_SUP_3: u'^3',
+    UC_DEGREE: 'deg',
+    UC_DEGREE_CELSIUS: 'degC',
+    UC_DEGREE_FAHRENHEIT: 'degF',
+    UC_PERMILLE: '1/1000',
+    UC_MICRO: 'u',
+    UC_OHM: 'Ohm',
+    UC_SUP_2: '^2',
+    UC_SUP_3: '^3',
 }
 
 # Components in the PUnit regexp pattern, named consistent with ABNF in
@@ -275,11 +274,11 @@ SP = r'[ ]?'  # optionality already included
 POSITIVE_WHOLE_NUMBER = r'[1-9][0-9]*'
 POSITIVE_NUMBER = r'(?:{pwn}|(?:{pwn}|0)\.[0-9]*)'. \
     format(pwn=POSITIVE_WHOLE_NUMBER)
-NUMBER = r'[\+\-]?{pn}'.format(pn=POSITIVE_NUMBER)
-EXPONENT = r'[\+\-]?{pwn}'.format(pwn=POSITIVE_WHOLE_NUMBER)
-DECIBEL_BASE_UNIT = r'decibel{sp}\({sn}\)'.format(sp=SP, sn=SIMPLE_NAME)
+NUMBER = fr'[\+\-]?{POSITIVE_NUMBER}'
+EXPONENT = fr'[\+\-]?{POSITIVE_WHOLE_NUMBER}'
+DECIBEL_BASE_UNIT = fr'decibel{SP}\({SIMPLE_NAME}\)'
 
-BASE_UNIT = r'(?:{sn}|{dbu})'.format(sn=SIMPLE_NAME, dbu=DECIBEL_BASE_UNIT)
+BASE_UNIT = fr'(?:{SIMPLE_NAME}|{DECIBEL_BASE_UNIT})'
 
 # The top-level components in the (extended) PUnit formula
 TOP_COMP = r'(?:{bu}|{n}|{pwn}{ws}\^{ws}{e})'. \
@@ -430,7 +429,7 @@ PUNIT_MOD2_SIPREFIX = {
 # Dictionary to map unit power integer numbers to a suitable superscript
 # Unicode character.
 PUNIT_POWER = {
-    1: u'',
+    1: '',
     2: UC_SUP_2,
     3: UC_SUP_3,
 }
@@ -624,7 +623,7 @@ def _siunit_from_punit(punit):
       ValueError: Unknown base unit in PUnit qualifier value
     """
 
-    if not isinstance(punit, six.string_types):
+    if not isinstance(punit, str):
         raise TypeError("Invalid type for punit: {}, must be string".
                         format(type(punit)))
 
@@ -635,7 +634,7 @@ def _siunit_from_punit(punit):
     m = PUNIT_PATTERN.match(punit)
     if m is None:
         raise ValueError(
-            "Invalid format in PUnit qualifier: {!r}".format(punit))
+            f"Invalid format in PUnit qualifier: {punit!r}")
 
     base_unit = m.group(1)
     comp_str = m.group(2)
@@ -669,13 +668,13 @@ def _siunit_from_punit(punit):
             try:
                 mod2_prefix = PUNIT_MOD2_SIPREFIX[(mod2_base, mod2_exp)]
             except KeyError:
-                mod2_prefix = "{}^{} ".format(mod2_base, mod2_exp)
+                mod2_prefix = f"{mod2_base}^{mod2_exp} "
         else:
             assert mod2_op == '/'
             try:
                 mod2_prefix = PUNIT_MOD2_SIPREFIX[(mod2_base, -mod2_exp)]
             except KeyError:
-                mod2_prefix = "{}^{} ".format(mod2_base, -mod2_exp)
+                mod2_prefix = f"{mod2_base}^{-mod2_exp} "
     else:
         mod2_prefix = ""
 
@@ -683,24 +682,24 @@ def _siunit_from_punit(punit):
     if mod1:
         mod1_op, mod1_num = mod1
         if mod1_op == '*':
-            mod1_str = "{}".format(mod1_num)
+            mod1_str = f"{mod1_num}"
             if mod2_prefix:
-                mod1_prefix = "{} ".format(mod1_str)
+                mod1_prefix = f"{mod1_str} "
             else:
                 try:
                     mod1_prefix = PUNIT_MOD1_SIPREFIX[mod1_str]
                 except KeyError:
-                    mod1_prefix = "{} ".format(mod1_str)
+                    mod1_prefix = f"{mod1_str} "
         else:
             assert mod1_op == '/'
-            mod1_str = "1/{}".format(mod1_num)
+            mod1_str = f"1/{mod1_num}"
             if mod2_prefix:
-                mod1_prefix = "{} ".format(mod1_str)
+                mod1_prefix = f"{mod1_str} "
             else:
                 try:
                     mod1_prefix = PUNIT_MOD1_SIPREFIX[mod1_str]
                 except KeyError:
-                    mod1_prefix = "{} ".format(mod1_str)
+                    mod1_prefix = f"{mod1_str} "
     else:
         mod1_prefix = ""
 
@@ -780,7 +779,7 @@ def _get_punit_siunit(punit):
         _siunit = PUNIT_SIUNIT[punit]
     except KeyError:
         new_exc = ValueError(
-            "Unknown base unit in PUnit qualifier value: {}".format(punit))
+            f"Unknown base unit in PUnit qualifier value: {punit}")
         new_exc.__cause__ = None
         raise new_exc
     return _siunit
@@ -790,11 +789,11 @@ def _get_punit_power(power):
     """
     Return the power integer as a string.
     """
-    assert isinstance(power, six.integer_types)
+    assert isinstance(power, int)
     try:
         _power = PUNIT_POWER[power]
     except KeyError:
-        _power = "^{}".format(power)
+        _power = f"^{power}"
     return _power
 
 
@@ -820,7 +819,7 @@ def _siunit_from_units(units):
       ValueError: Unknown unit in Units qualifier
     """
 
-    if not isinstance(units, six.string_types):
+    if not isinstance(units, str):
         raise TypeError("Invalid type for units: {}, must be string".
                         format(type(units)))
 
@@ -828,6 +827,6 @@ def _siunit_from_units(units):
         return UNITS_SIUNIT[units]
     except KeyError:
         new_exc = ValueError(
-            "Unknown unit in Units qualifier: {!r}".format(units))
+            f"Unknown unit in Units qualifier: {units!r}")
         new_exc.__cause__ = None
         raise new_exc

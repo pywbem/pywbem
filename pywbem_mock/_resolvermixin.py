@@ -36,7 +36,6 @@ GetClass or EnumerateClass methods.
 For documentation, see mocksupport.rst.
 """
 
-from __future__ import absolute_import, print_function
 
 import six
 
@@ -48,7 +47,7 @@ from pywbem._utils import _format
 __all__ = []
 
 
-class ResolverMixin(object):  # pylint: disable=too-few-public-methods
+class ResolverMixin:  # pylint: disable=too-few-public-methods
     """
     Mixin class that adds the methods for resolving class and the properties,
     methods, and parameters that are contained in the classes to be useful
@@ -163,14 +162,14 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
         """
 
         if not superclass:
-            for new_obj in six.itervalues(new_objects):
+            for new_obj in new_objects.values():
                 self._set_new_object(new_obj, None, new_class, None,
                                      qualifier_store,
                                      False, type_str)
             return
 
         # Process objects if superclass exists
-        for obj_name, new_obj in six.iteritems(new_objects):
+        for obj_name, new_obj in new_objects.items():
             # If obj_name not in superclass, set into new class
             if obj_name not in superclass_objects:
                 self._set_new_object(new_obj, None, new_class,
@@ -252,7 +251,7 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                                 superclass.classname))
             else:
                 # This is our programming error
-                assert True, "Invalid Type {0}" .format(type(super_obj))
+                assert True, "Invalid Type {}" .format(type(super_obj))
 
             self._set_new_object(new_obj, super_obj,
                                  new_class,
@@ -271,7 +270,7 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
         # Copy objects from from superclass that are not in new_class
         # Placed after loop with items in new_object so they are not part
         # of that loop.
-        for obj_name, obj in six.iteritems(superclass_objects):
+        for obj_name, obj in superclass_objects.items():
             if obj_name not in new_objects:
                 new_obj = obj.copy()
                 new_obj.propagated = True
@@ -427,7 +426,7 @@ class ResolverMixin(object):  # pylint: disable=too-few-public-methods
                             namespace))
 
         # validate no reference properties in non-association
-        for new_prop in six.itervalues(new_class.properties):
+        for new_prop in new_class.properties.values():
             if not is_association_class and new_prop.type == 'reference':
                 raise CIMError(
                     CIM_ERR_INVALID_PARAMETER,

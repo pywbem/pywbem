@@ -22,7 +22,6 @@
 Utility functionsto support pywbem_mock.
 """
 
-from __future__ import absolute_import, print_function
 
 import sys
 import io
@@ -52,9 +51,9 @@ def _uprint(dest, text):
     Otherwise, dest must be a file path, and the text is encoded to a UTF-8
     Byte sequence and is appended to the file (opening and closing the file).
     """
-    if isinstance(text, six.text_type):
-        text = text + u'\n'
-    elif isinstance(text, six.binary_type):
+    if isinstance(text, str):
+        text = text + '\n'
+    elif isinstance(text, bytes):
         text = text + b'\n'
     else:
         raise TypeError(
@@ -63,19 +62,19 @@ def _uprint(dest, text):
     if dest is None:
         if six.PY2:
             # On py2, stdout.write() requires byte strings
-            if isinstance(text, six.text_type):
+            if isinstance(text, str):
                 text = text.encode(STDOUT_ENCODING, 'replace')
         else:
             # On py3, stdout.write() requires unicode strings
-            if isinstance(text, six.binary_type):
+            if isinstance(text, bytes):
                 text = text.decode('utf-8')
         sys.stdout.write(text)
-    elif isinstance(dest, (six.text_type, six.binary_type)):
-        if isinstance(text, six.text_type):
+    elif isinstance(dest, (str, bytes)):
+        if isinstance(text, str):
             kw = {'mode': 'a', 'encoding': 'utf-8'}
         else:
             kw = {'mode': 'ab'}
-        with io.open(dest, **kw) as f:  # pylint: disable=unspecified-encoding
+        with open(dest, **kw) as f:  # pylint: disable=unspecified-encoding
             f.write(text)
     else:
         raise TypeError(

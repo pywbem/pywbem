@@ -32,7 +32,7 @@ __all__ = ['Error', 'ConnectionError', 'AuthError', 'HTTPError', 'TimeoutError',
            'ListenerPortError', 'ListenerPromptError']
 
 
-class _RequestExceptionMixin(object):
+class _RequestExceptionMixin:
     # pylint: disable=too-few-public-methods
     """
     An internal mixin class for pywbem specific exceptions that provides the
@@ -66,7 +66,7 @@ class _RequestExceptionMixin(object):
         else:
             request_data = None
         self.request_data = request_data
-        super(_RequestExceptionMixin, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     @property
     def request_data(self):
@@ -82,7 +82,7 @@ class _RequestExceptionMixin(object):
         self._request_data = request_data
 
 
-class _ResponseExceptionMixin(object):
+class _ResponseExceptionMixin:
     # pylint: disable=too-few-public-methods
     """
     Mixin class into pywbem specific exceptions that provides the ability to
@@ -116,7 +116,7 @@ class _ResponseExceptionMixin(object):
         else:
             response_data = None
         self.response_data = response_data
-        super(_ResponseExceptionMixin, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     @property
     def response_data(self):
@@ -158,7 +158,7 @@ class Error(Exception):
         self._conn_id = conn_id
         # The Python Exception class cannot be initialized with keyword args
         assert not kwargs, str(kwargs)
-        super(Error, self).__init__(*args)
+        super().__init__(*args)
 
     @property
     def conn_id(self):
@@ -177,7 +177,7 @@ class Error(Exception):
         :term:`unicode string`: String that identifies the connection in
         exception messages.
         """
-        ret_str = "Connection id: {0}".format(self.conn_id)
+        ret_str = f"Connection id: {self.conn_id}"
         return ret_str
 
 
@@ -204,9 +204,9 @@ class ConnectionError(Error):
         :ivar args: A tuple (message, ) set from the corresponding init
             arguments.
         """
-        assert message is None or isinstance(message, six.string_types), \
+        assert message is None or isinstance(message, str), \
             str(type(message))
-        super(ConnectionError, self).__init__(message, conn_id=conn_id)
+        super().__init__(message, conn_id=conn_id)
 
 
 class AuthError(Error):
@@ -231,9 +231,9 @@ class AuthError(Error):
         :ivar args: A tuple (message, ) set from the corresponding init
             arguments.
         """
-        assert message is None or isinstance(message, six.string_types), \
+        assert message is None or isinstance(message, str), \
             str(type(message))
-        super(AuthError, self).__init__(message, conn_id=conn_id)
+        super().__init__(message, conn_id=conn_id)
 
 
 class HTTPError(_RequestExceptionMixin, _ResponseExceptionMixin, Error):
@@ -290,7 +290,7 @@ class HTTPError(_RequestExceptionMixin, _ResponseExceptionMixin, Error):
         """
         if cimdetails is None:
             cimdetails = {}
-        super(HTTPError, self).__init__(
+        super().__init__(
             status, reason, cimerror, cimdetails, conn_id=conn_id,
             request_data=request_data, response_data=response_data)
 
@@ -344,11 +344,11 @@ class HTTPError(_RequestExceptionMixin, _ResponseExceptionMixin, Error):
         return self.args[3]  # pylint: disable=unsubscriptable-object
 
     def __str__(self):
-        ret_str = "{0} ({1})".format(self.status, self.reason)
+        ret_str = f"{self.status} ({self.reason})"
         if self.cimerror is not None:
-            ret_str += ", CIMError: {0}".format(self.cimerror)
+            ret_str += f", CIMError: {self.cimerror}"
         for key in self.cimdetails:
-            ret_str += ", {0}: {1}".format(key, self.cimdetails[key])
+            ret_str += f", {key}: {self.cimdetails[key]}"
         return ret_str
 
 
@@ -375,9 +375,9 @@ class TimeoutError(Error):
         :ivar args: A tuple (message, ) set from the corresponding init
             arguments.
         """
-        assert message is None or isinstance(message, six.string_types), \
+        assert message is None or isinstance(message, str), \
             str(type(message))
-        super(TimeoutError, self).__init__(message, conn_id=conn_id)
+        super().__init__(message, conn_id=conn_id)
 
 
 class ParseError(_RequestExceptionMixin, _ResponseExceptionMixin, Error):
@@ -425,14 +425,14 @@ class ParseError(_RequestExceptionMixin, _ResponseExceptionMixin, Error):
         :ivar args: A tuple (message, ) set from the corresponding init
             argument.
         """
-        assert message is None or isinstance(message, six.string_types), \
+        assert message is None or isinstance(message, str), \
             str(type(message))
-        super(ParseError, self).__init__(
+        super().__init__(
             message, conn_id=conn_id, request_data=request_data,
             response_data=response_data)
 
     def __str__(self):
-        error_str = super(ParseError, self).__str__()
+        error_str = super().__str__()
         ret_str = "{0}\nCIM-XML response: {1}". \
             format(error_str, self.response_data)
         return ret_str
@@ -509,9 +509,9 @@ class VersionError(Error):
         :ivar args: A tuple (message, ) set from the corresponding init
             argument.
         """
-        assert message is None or isinstance(message, six.string_types), \
+        assert message is None or isinstance(message, str), \
             str(type(message))
-        super(VersionError, self).__init__(message, conn_id=conn_id)
+        super().__init__(message, conn_id=conn_id)
 
 
 class CIMVersionError(VersionError):
@@ -610,7 +610,7 @@ class CIMError(_RequestExceptionMixin, Error):
         :ivar args: A tuple (status_code, status_description, instances) set
             from the corresponding init arguments.
         """
-        super(CIMError, self).__init__(
+        super().__init__(
             status_code, status_description, instances, conn_id=conn_id,
             request_data=request_data)
 
@@ -671,9 +671,9 @@ class CIMError(_RequestExceptionMixin, Error):
         return self.args[2]  # pylint: disable=unsubscriptable-object
 
     def __str__(self):
-        inst_str = " ({0} instances)".format(len(self.instances)) \
+        inst_str = f" ({len(self.instances)} instances)" \
             if self.instances else ""
-        ret_str = "{0} ({1}): {2}{3}".format(
+        ret_str = "{} ({}): {}{}".format(
             self.status_code, self.status_code_name, self.status_description,
             inst_str)
         return ret_str
@@ -706,9 +706,9 @@ class ModelError(Error):
         :ivar args: A tuple (message, ) set from the corresponding init
             argument.
         """
-        assert message is None or isinstance(message, six.string_types), \
+        assert message is None or isinstance(message, str), \
             str(type(message))
-        super(ModelError, self).__init__(message, conn_id=conn_id)
+        super().__init__(message, conn_id=conn_id)
 
 
 class ListenerError(Exception):
@@ -730,9 +730,9 @@ class ListenerError(Exception):
         :ivar args: A tuple (message, ) set from the corresponding init
             argument.
         """
-        assert message is None or isinstance(message, six.string_types), \
+        assert message is None or isinstance(message, str), \
             str(type(message))
-        super(ListenerError, self).__init__(message)
+        super().__init__(message)
 
 
 class ListenerCertificateError(ListenerError):

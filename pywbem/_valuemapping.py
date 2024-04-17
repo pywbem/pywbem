@@ -39,7 +39,7 @@ from ._exceptions import ModelError
 __all__ = ['ValueMapping']
 
 
-class ValueMapping(object):
+class ValueMapping:
     """
     *New in pywbem 0.9 as experimental and finalized in 0.10.*
 
@@ -636,7 +636,7 @@ class ValueMapping(object):
         valuemap_qual = element_obj.qualifiers.get('ValueMap', None)
         if valuemap_qual is None:
             # DSP0004 defines a default of consecutive index numbers
-            valuemap_list = ["{}".format(v) for v in range(0, len(values_list))]
+            valuemap_list = [f"{v}" for v in range(0, len(values_list))]
         else:
             valuemap_list = valuemap_qual.value
 
@@ -862,7 +862,7 @@ class ValueMapping(object):
           TypeError: Element value is not an integer type.
         """
 
-        if not isinstance(element_value, (six.integer_types, CIMInt)):
+        if not isinstance(element_value, ((int,), CIMInt)):
             raise TypeError(
                 _format("The value for value-mapped {0} is not "
                         "integer-typed, but has Python type: {1}",
@@ -931,7 +931,7 @@ class ValueMapping(object):
           TypeError: `Values` string is not a string type.
         """
 
-        if not isinstance(values_str, six.string_types):
+        if not isinstance(values_str, str):
             raise TypeError(
                 _format("The values string for value-mapped {0} is not "
                         "string-typed, but has Python type: {1}",

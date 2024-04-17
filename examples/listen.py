@@ -58,8 +58,8 @@ def status(reset=None):
         is True, reset the counter.
     '''
     global RECEIVED_INDICATION_DICT
-    for host, count in six.iteritems(RECEIVED_INDICATION_DICT):
-        print('Host %s Received %s indications' % (host, count))
+    for host, count in RECEIVED_INDICATION_DICT.items():
+        print('Host {} Received {} indications'.format(host, count))
 
     if reset:
         for host in RECEIVED_INDICATION_DICT:
@@ -99,11 +99,11 @@ def _main():
     try:
         listener.start()
     except pywbem.ListenerError as exc:
-        print("Error: {}".format(exc))
+        print(f"Error: {exc}")
         return 1
 
     banner = """
-WBEM listener started on host %s (HTTP port: %s, HTTPS port: %s).
+WBEM listener started on host {} (HTTP port: {}, HTTPS port: {}).
 The host parameter may be:
 
   * a specific host name or host IP address on the computer; only
@@ -127,7 +127,7 @@ Modify logger characteristics through listener.logger:
      (ex. listener.logger.setLevel(logging.ERROR))
 
 Ctrl-d to exit
-""" % (host, http_port, https_port)
+""".format(host, http_port, https_port)
 
     # Determine file path of history file
     home_dir = '.'

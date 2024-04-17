@@ -127,7 +127,6 @@ Syntax elements:
   by the pywbem code.
 """
 
-from __future__ import absolute_import, print_function
 
 import sys
 import doctest
@@ -285,7 +284,7 @@ class YamlItem(pytest.Item):
 
           filepath (string): Path name of the testclient .yaml file.
         """
-        super(YamlItem, self).__init__(name, parent)
+        super().__init__(name, parent)
         self.testcase = testcase
         self.filepath = filepath
 
@@ -321,7 +320,7 @@ class YamlItem(pytest.Item):
         about the test case. The third tuple item is a string that
         identifies the test case in a human readable way.
         """
-        return self.fspath, 0, "%s in %s" % (self.name, self.filepath)
+        return self.fspath, 0, "{} in {}".format(self.name, self.filepath)
 
 
 class ClientTestError(Exception):
@@ -338,8 +337,8 @@ def show_diff(conn, expected, actual, display_text):
     """Display the actual and expected data"""
 
     print("Details for the following assertion error:")
-    print("- Expected result %s: %s" % (display_text, expected))
-    print("- Actual result %s: %s" % (display_text, actual))
+    print("- Expected result {}: {}".format(display_text, expected))
+    print("- Actual result {}: {}".format(display_text, actual))
     if conn is not None and conn.debug:
         print("- HTTP response data: %r" % conn.last_raw_reply)
 
@@ -353,7 +352,7 @@ def str_tuple(tuple_):
 
     Returns str rep of tuple on None if tuple_ is None
     """
-    return 'NoneType' if tuple_ is None else '%s' % (tuple_,)
+    return 'NoneType' if tuple_ is None else '{}'.format(tuple_)
 
 
 def obj(value, tc_name):
@@ -490,7 +489,7 @@ def tc_hasattr(dict_, key):
     return key in dict_
 
 
-class Callback(object):
+class Callback:
     """
     A class with static methods that are requests_mock callback functions for
     raising expected exceptions at the socket level.
@@ -584,12 +583,12 @@ def xml_escape(s):  # pylint: disable=invalid-name
     """
     Return the XML-escaped input string.
     """
-    if isinstance(str, six.text_type):
-        s = s.replace(u"&", u"&amp;")
-        s = s.replace(u"<", u"&lt;")
-        s = s.replace(u">", u"&gt;")
-        s = s.replace(u"\"", u"&quot;")
-        s = s.replace(u"'", u"&apos;")
+    if isinstance(str, str):
+        s = s.replace("&", "&amp;")
+        s = s.replace("<", "&lt;")
+        s = s.replace(">", "&gt;")
+        s = s.replace("\"", "&quot;")
+        s = s.replace("'", "&apos;")
     else:
         s = s.replace(b"&", b"&amp;")
         s = s.replace(b"<", b"&lt;")
@@ -626,12 +625,12 @@ def xml_unescape(s):  # pylint: disable=invalid-name
     """
     Return the XML-unescaped input string.
     """
-    if isinstance(s, six.text_type):
-        s = s.replace(u"&lt;", u"<")
-        s = s.replace(u"&gt;", u">")
-        s = s.replace(u"&quot;", u"\"")
-        s = s.replace(u"&apos;", u"'")
-        s = s.replace(u"&amp;", u"&")
+    if isinstance(s, str):
+        s = s.replace("&lt;", "<")
+        s = s.replace("&gt;", ">")
+        s = s.replace("&quot;", "\"")
+        s = s.replace("&apos;", "'")
+        s = s.replace("&amp;", "&")
     else:
         s = s.replace(b"&lt;", b"<")
         s = s.replace(b"&gt;", b">")
@@ -666,8 +665,8 @@ def assertXMLEqual(s_act, s_exp, entity):
     """
 
     # Make sure that None values are already excluded by the caller
-    assert isinstance(s_act, (six.text_type, six.binary_type))
-    assert isinstance(s_exp, (six.text_type, six.binary_type))
+    assert isinstance(s_act, (str, bytes))
+    assert isinstance(s_exp, (str, bytes))
 
     # Ensure Unicode strings and remove encoding from XML declaration
     encoding_pattern = re.compile(
@@ -785,11 +784,7 @@ def utf8_with_surrogate_issues(in_str):
     function converts the unicode body string to a UTF-8 byte string in a way
     that tolerates surrogate issues in both Python 2 and Python 3.
     """
-    if six.PY2:
-        utf8_str = codecs.encode(in_str, 'utf-8')
-        # does not support 'surrogatepass', but behaves like that
-    else:
-        utf8_str = codecs.encode(in_str, 'utf-8', 'surrogatepass')
+    utf8_str = codecs.encode(in_str, 'utf-8', 'surrogatepass')
     return utf8_str
 
 

@@ -29,7 +29,6 @@ Python 2.7 support has been deprecated with pywbem 1.0.0.
 # Importing just this module is enough.
 # These are explicitly safe for 'import *'
 
-from __future__ import absolute_import
 
 import sys
 import logging

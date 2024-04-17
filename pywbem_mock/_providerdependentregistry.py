@@ -24,7 +24,7 @@ from pywbem._utils import _format
 __all__ = ['ProviderDependentRegistry']
 
 
-class ProviderDependentRegistry(object):
+class ProviderDependentRegistry:
     """
     A registry for provider dependent files in context of a mock script.
 
@@ -110,7 +110,7 @@ class ProviderDependentRegistry(object):
         """  # noqa: E501
         # pylint: enable=line-too-long
 
-        if isinstance(dependent_paths, six.string_types):
+        if isinstance(dependent_paths, str):
             dependent_paths = [dependent_paths]
 
         mock_script_normpath = self._normpath(mock_script_path)

@@ -30,7 +30,6 @@
 The only class exposed by this package is :class:`nocasedict.NocaseDict`.
 """
 
-from __future__ import print_function, absolute_import
 
 import sys
 import os
@@ -40,7 +39,7 @@ try:
     from collections.abc import MutableMapping, KeysView, ValuesView, ItemsView
 except ImportError:
     # pylint: disable=deprecated-class
-    from collections import MutableMapping, KeysView, ValuesView, ItemsView
+    from collections.abc import MutableMapping, KeysView, ValuesView, ItemsView
 
 import six
 
@@ -64,7 +63,7 @@ BUILDING_DOCS = os.environ.get('BUILDING_DOCS', False)
 _OMITTED = object()
 
 
-class _DictView(object):
+class _DictView:
     # pylint: disable=too-few-public-methods
     """
     Base class for directory views, with common methods.
@@ -325,7 +324,7 @@ class NocaseDict(MutableMapping):
         try:
             return self._data[k][1]
         except KeyError:
-            key_error = KeyError("Key {0!r} not found".format(key))
+            key_error = KeyError(f"Key {key!r} not found")
             key_error.__cause__ = None  # Suppress 'During handling..'
             raise key_error  # pylint: disable=raise-missing-from
 
@@ -357,7 +356,7 @@ class NocaseDict(MutableMapping):
         try:
             del self._data[k]
         except KeyError:
-            key_error = KeyError("Key {0!r} not found".format(key))
+            key_error = KeyError(f"Key {key!r} not found")
             key_error.__cause__ = None  # Suppress 'During handling..'
             raise key_error  # pylint: disable=raise-missing-from
 
@@ -635,10 +634,10 @@ class NocaseDict(MutableMapping):
 
         Invoked when using e.g.: ``repr(ncd)``
         """
-        items = ["{0!r}: {1!r}".format(key, value)
-                 for key, value in six.iteritems(self)]
+        items = [f"{key!r}: {value!r}"
+                 for key, value in self.items()]
         items_str = ', '.join(items)
-        return "{0.__class__.__name__}({{{1}}})".format(self, items_str)
+        return f"{self.__class__.__name__}({{{items_str}}})"
 
     def update(self, *args, **kwargs):
         # pylint: disable=arguments-differ,signature-differs
@@ -791,7 +790,7 @@ class NocaseDict(MutableMapping):
           AttributeError: The key does not have the casefold method.
         """
         # Issue #1062: Could compare hash values for better performance
-        for key, self_value in six.iteritems(self):
+        for key, self_value in self.items():
             if key not in other:
                 return False
             other_value = other[key]

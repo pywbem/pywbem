@@ -76,7 +76,6 @@ representation of CIM in XML by having the following properties:
 
 # This module is meant to be safe for 'import *'.
 
-from __future__ import absolute_import
 import re
 import warnings
 import six
@@ -144,10 +143,10 @@ def pcdata(tup_tree):
     # performance reasons:
     # assert all([isinstance(n, six.string_types) for n in k])
 
-    return u''.join(k)
+    return ''.join(k)
 
 
-class TupleParser(object):
+class TupleParser:
     """
     Parser for a CIM XML tupletree.
     """
@@ -238,7 +237,7 @@ class TupleParser(object):
 
         if not allow_pcdata:
             for child in tup_tree[2]:
-                if isinstance(child, six.string_types):
+                if isinstance(child, str):
                     if child.lstrip(' \t\n') != '':
                         raise CIMXMLParseError(
                             _format("Element {0!A} has unexpected non-blank "
@@ -804,7 +803,7 @@ class TupleParser(object):
         # faster.
         ns_list = self.list_of_various(tup_tree, ('NAMESPACE',))
 
-        return u'/'.join(ns_list)
+        return '/'.join(ns_list)
 
     def parse_host(self, tup_tree):
         """
@@ -2254,7 +2253,7 @@ class TupleParser(object):
                                      'INSTANCE', 'VALUE.NAMEDINSTANCE'))
 
         _name = attrs(tup_tree)['NAME']
-        if isinstance(child, six.string_types) and \
+        if isinstance(child, str) and \
                 _name.lower() in ('deepinheritance', 'localonly',
                                   'includequalifiers', 'includeclassorigin'):
             if child.lower() in ('true', 'false'):

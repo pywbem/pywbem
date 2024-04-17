@@ -3,7 +3,6 @@
 Tests for _utils module
 """
 
-from __future__ import absolute_import
 
 import platform
 try:
@@ -64,7 +63,7 @@ TESTCASES_ASCII2 = [
     (
         "Unicode string, empty",
         dict(
-            value=u'',
+            value='',
             exp_result="''",
         ),
         None, None, True
@@ -80,7 +79,7 @@ TESTCASES_ASCII2 = [
     (
         "Unicode string, ASCII",
         dict(
-            value=u'abc',
+            value='abc',
             exp_result="'abc'",
         ),
         None, None, True
@@ -96,7 +95,7 @@ TESTCASES_ASCII2 = [
     (
         "Unicode string, printable UCS-2 char below U+00FF",
         dict(
-            value=u'\u00E0',
+            value='\u00E0',
             exp_result="'\\u00e0'",
         ),
         None, None, True
@@ -104,7 +103,7 @@ TESTCASES_ASCII2 = [
     (
         "Unicode string, printable UCS-2 char above U+00FF",
         dict(
-            value=u'\u041F',
+            value='\u041F',
             exp_result="'\\u041f'",
         ),
         None, None, True
@@ -112,7 +111,7 @@ TESTCASES_ASCII2 = [
     (
         "Unicode string, printable UCS-4 char",
         dict(
-            value=u'\U0001D122',
+            value='\U0001D122',
             exp_result="'\\U0001d122'",
         ),
         None, None, True
@@ -120,7 +119,7 @@ TESTCASES_ASCII2 = [
     (
         "Unicode string, multiple printable UCS-2 chars below U+00FF",
         dict(
-            value=u'\u00E0\u00E1\u00E2',
+            value='\u00E0\u00E1\u00E2',
             exp_result="'\\u00e0\\u00e1\\u00e2'",
         ),
         None, None, True
@@ -128,7 +127,7 @@ TESTCASES_ASCII2 = [
     (
         "Unicode string, multiple printable UCS-2 chars above U+00FF",
         dict(
-            value=u'\u041F\u0440\u6C2E',
+            value='\u041F\u0440\u6C2E',
             exp_result="'\\u041f\\u0440\\u6c2e'",
         ),
         None, None, True
@@ -136,7 +135,7 @@ TESTCASES_ASCII2 = [
     (
         "Unicode string, multiple printable UCS-4 chars",
         dict(
-            value=u'\U0001D122\U0001D11E\U0001D106',
+            value='\U0001D122\U0001D11E\U0001D106',
             exp_result="'\\U0001d122\\U0001d11e\\U0001d106'",
         ),
         None, None, True
@@ -144,7 +143,7 @@ TESTCASES_ASCII2 = [
     (
         "Unicode string, one backslash escape and rest of UCS-2 char",
         dict(
-            value=u'\\xE0',
+            value='\\xE0',
             exp_result="'\\\\xE0'",
         ),
         None, None, True
@@ -152,7 +151,7 @@ TESTCASES_ASCII2 = [
     (
         "Unicode string, one backslash escape and UCS-2 char",
         dict(
-            value=u'\\\u00E0',
+            value='\\\u00E0',
             exp_result="'\\\\\\u00e0'",
         ),
         None, None, True
@@ -160,7 +159,7 @@ TESTCASES_ASCII2 = [
     (
         "Unicode string, two backslash escapes and rest of UCS-2 char",
         dict(
-            value=u'\\\\xE0',
+            value='\\\\xE0',
             exp_result="'\\\\\\\\xE0'",
         ),
         None, None, True
@@ -168,7 +167,7 @@ TESTCASES_ASCII2 = [
     (
         "Unicode string, two backslash escapes and UCS-2 char",
         dict(
-            value=u'\\\\\u00E0',
+            value='\\\\\u00E0',
             exp_result="'\\\\\\\\\\u00e0'",
         ),
         None, None, True
@@ -192,7 +191,7 @@ TESTCASES_ASCII2 = [
     (
         "Set of strings",
         dict(
-            value=set(['a']),
+            value={'a'},
             exp_result="{'a'}",
         ),
         None, None, True
@@ -262,7 +261,7 @@ TESTCASES_FORMAT_FIXED = [
     (
         "Unicode format string, empty",
         dict(
-            format_str=u"",
+            format_str="",
             format_args=[],
             format_kwargs={},
             exp_result="",
@@ -292,10 +291,10 @@ TESTCASES_FORMAT_FIXED = [
     (
         "Unicode format string without conversion and unicode string ASCII",
         dict(
-            format_str=u"{0}",
-            format_args=[u"abc"],
+            format_str="{0}",
+            format_args=["abc"],
             format_kwargs={},
-            exp_result=u"abc",
+            exp_result="abc",
         ),
         None, None, True
     ),
@@ -303,9 +302,9 @@ TESTCASES_FORMAT_FIXED = [
         "Byte format string without conversion and unicode string ASCII",
         dict(
             format_str=b"{0}",
-            format_args=[u"abc"],
+            format_args=["abc"],
             format_kwargs={},
-            exp_result=u"abc",
+            exp_result="abc",
         ),
         None if BYTE_FORMAT_SUPPORTED else TypeError, None, True
     ),
@@ -313,16 +312,16 @@ TESTCASES_FORMAT_FIXED = [
         "Format string without conversion and unicode string ASCII",
         dict(
             format_str="{0}",
-            format_args=[u"abc"],
+            format_args=["abc"],
             format_kwargs={},
-            exp_result=u"abc",
+            exp_result="abc",
         ),
         None, None, True
     ),
     (
         "Unicode format string without conversion and byte string ASCII",
         dict(
-            format_str=u"{0}",
+            format_str="{0}",
             format_args=[b"abc"],
             format_kwargs={},
             exp_result="abc" if six.PY2 else "b'abc'",
@@ -352,7 +351,7 @@ TESTCASES_FORMAT_FIXED = [
     (
         "Unicode format string with 's' and byte string ASCII",
         dict(
-            format_str=u"{0!s}",
+            format_str="{0!s}",
             format_args=[b"abc"],
             format_kwargs={},
             exp_result="abc" if six.PY2 else "b'abc'",
@@ -362,8 +361,8 @@ TESTCASES_FORMAT_FIXED = [
     (
         "Unicode format string with 's' and unicode string ASCII",
         dict(
-            format_str=u"{0!s}",
-            format_args=[u"abc"],
+            format_str="{0!s}",
+            format_args=["abc"],
             format_kwargs={},
             exp_result="abc",
         ),
@@ -383,7 +382,7 @@ TESTCASES_FORMAT_FIXED = [
         "Format string with 'r' and unicode string ASCII",
         dict(
             format_str="{0!r}",
-            format_args=[u"abc"],
+            format_args=["abc"],
             format_kwargs={},
             exp_result="u'abc'" if six.PY2 else "'abc'",
         ),
@@ -403,7 +402,7 @@ TESTCASES_FORMAT_FIXED = [
         "Format string with 'a' and unicode string ASCII",
         dict(
             format_str="{0!a}",
-            format_args=[u"abc"],
+            format_args=["abc"],
             format_kwargs={},
             exp_result="u'abc'" if six.PY2 else "'abc'",
         ),
@@ -423,7 +422,7 @@ TESTCASES_FORMAT_FIXED = [
         "Format string with 'A' and unicode string ASCII",
         dict(
             format_str="{0!A}",
-            format_args=[u"abc"],
+            format_args=["abc"],
             format_kwargs={},
             exp_result="'abc'",
         ),
@@ -433,7 +432,7 @@ TESTCASES_FORMAT_FIXED = [
         "Format string with 'A' and unicode string UCS-2 below U+0100",
         dict(
             format_str="{0!A}",
-            format_args=[u"a\u00E0b"],
+            format_args=["a\u00E0b"],
             format_kwargs={},
             exp_result="'a\\u00e0b'",
         ),
@@ -443,7 +442,7 @@ TESTCASES_FORMAT_FIXED = [
         "Format string with 'A' and unicode string UCS-2 above U+00FF",
         dict(
             format_str="{0!A}",
-            format_args=[u"a\u0412b"],
+            format_args=["a\u0412b"],
             format_kwargs={},
             exp_result="'a\\u0412b'",
         ),
@@ -453,7 +452,7 @@ TESTCASES_FORMAT_FIXED = [
         "Format string with 'A' and unicode string UCS-4 above U+FFFF",
         dict(
             format_str="{0!A}",
-            format_args=[u"a\U0001D122b"],
+            format_args=["a\U0001D122b"],
             format_kwargs={},
             exp_result="'a\\U0001d122b'",
         ),
@@ -483,7 +482,7 @@ TESTCASES_FORMAT_FIXED = [
         "Format string with 'A' and set of strings",
         dict(
             format_str="{0!A}",
-            format_args=[set(['a'])],
+            format_args=[{'a'}],
             format_kwargs={},
             exp_result="{'a'}",
         ),
@@ -556,7 +555,7 @@ def test_format_fixed(testcase, format_str, format_args, format_kwargs,
 UNICODE_CP_LIST = [
     0x000a, 0x0020, 0x0022, 0x0027, 0x005c, 0x00e0, 0x0412, 0x0001d122,
 ]
-UNICODE_CP_LIST.extend(random.sample(six.moves.range(0, 0x10ffff), 100))
+UNICODE_CP_LIST.extend(random.sample(range(0, 0x10ffff), 100))
 
 
 @pytest.fixture(params=UNICODE_CP_LIST, scope='module')
@@ -606,11 +605,11 @@ def test_format_random(unicode_cp):
             # to be doubled.
             exp_result = "'\\\\'"
         else:
-            exp_result = "'{0}'".format(unicode_char)
+            exp_result = f"'{unicode_char}'"
     elif unicode_cp < 0x10000:
-        exp_result = "'\\u{0:04x}'".format(unicode_cp)
+        exp_result = f"'\\u{unicode_cp:04x}'"
     else:
-        exp_result = "'\\U{0:08x}'".format(unicode_cp)
+        exp_result = f"'\\U{unicode_cp:08x}'"
 
     # pylint: disable=unidiomatic-typecheck
     assert type(act_result) is type(exp_result)

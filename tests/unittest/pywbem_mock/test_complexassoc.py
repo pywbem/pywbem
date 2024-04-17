@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # (C) Copyright 2018 InovaDevelopment.com
 #
@@ -25,7 +24,6 @@ they were added later than original tests. They provide a test of the logic
 of processing complex associations including ternary associations (more than
 2 reference properties and subclasses of the association and result classes)
 """
-from __future__ import absolute_import, print_function
 
 import os
 import io
@@ -226,11 +224,11 @@ def save_data(conn, mof, request, response, exp_response):
             conn.display_repository(dest=COMPLEX_MODEL_OUT_MOF)
 
         if not os.path.exists(COMPLEX_MODEL_MOF):
-            with io.open('complex_association_model.mof', 'w',
+            with open('complex_association_model.mof', 'w',
                          encoding='utf-8') as f:
                 print(mof, file=f)
 
-        with io.open(PYWBEMCLI_CMDS, 'a', encoding='utf-8') as f:
+        with open(PYWBEMCLI_CMDS, 'a', encoding='utf-8') as f:
             print('%s ' % request, file=f)
             print("Resp : %s" % response, file=f)
             print("ExpResp : %s" % exp_response, file=f)
@@ -359,11 +357,11 @@ def test_complexref_classnames(conn, ns, target, ro, rc, mof, exp_rslt,
     save_data(conn, complex_assoc_mof, request, response, exp_response)
 
     if VERBOSE:
-        print('\nACT %s\nEXP %s' % ([c.classname for c in rtn_clns],
+        print('\nACT {}\nEXP {}'.format([c.classname for c in rtn_clns],
                                     [c.classname for c in exp_clns]))
 
-    assert set(cln.classname.lower() for cln in exp_clns) == \
-        set(cln.classname.lower() for cln in rtn_clns)
+    assert {cln.classname.lower() for cln in exp_clns} == \
+        {cln.classname.lower() for cln in rtn_clns}
 
 
 @pytest.mark.parametrize(
@@ -526,7 +524,7 @@ def test_complexref_instnames(conn, ns, target, ro, rc, mof, exp_rslt,
     rtn_instnames_str = [str(n) for n in rtn_instnames]
     exp_instnames_str = [str(n) for n in exp_instnames]
     if VERBOSE:
-        print('\nACT:\n%s\nEXP:\n%s' % ("\n".join(rtn_instnames_str),
+        print('\nACT:\n{}\nEXP:\n{}'.format("\n".join(rtn_instnames_str),
                                         "\n".join(exp_instnames_str)))
 
     request = "pywbemcli class references {0} --role {1} --result_class {2}". \
@@ -641,7 +639,7 @@ def test_complexassoc_classnames(conn, ns, target, ro, rr, ac,
     exp_clns = [CIMClassName(classname=n, namespace=exp_ns, host=conn.host)
                 for n in exp_rslt]
     if VERBOSE:
-        print('\nACT %s\nEXP %s' % ([c.classname for c in rtn_clns],
+        print('\nACT {}\nEXP {}'.format([c.classname for c in rtn_clns],
                                     [c.classname for c in exp_clns]))
 
     request = "pywbemcli class associators {0} --role {1} --assoc-class {2} " \
@@ -649,8 +647,8 @@ def test_complexassoc_classnames(conn, ns, target, ro, rr, ac,
         format(target, ro, ac, rr, rc)
     save_data(conn, complex_assoc_mof, request, rtn_clns, exp_clns)
 
-    assert set(cln.classname.lower() for cln in exp_clns) == \
-        set(cln.classname.lower() for cln in rtn_clns)
+    assert {cln.classname.lower() for cln in exp_clns} == \
+        {cln.classname.lower() for cln in rtn_clns}
 
 
 @pytest.mark.parametrize(
@@ -1192,7 +1190,7 @@ def test_complexassoc_instnames(conn, ns, target, ro, rr, ac,
     rtn_instnames_str = [str(n) for n in rtn_instnames]
     exp_instnames_str = [str(n) for n in exp_instnames]
     if VERBOSE:
-        print('\nACT:\n%s\nEXP:\n%s' % ("\n".join(rtn_instnames_str),
+        print('\nACT:\n{}\nEXP:\n{}'.format("\n".join(rtn_instnames_str),
                                         "\n".join(exp_instnames_str)))
 
     request = "pywbemcli class associators {0} --role {1} --assoc-class {2} " \

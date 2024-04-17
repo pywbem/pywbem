@@ -2,7 +2,6 @@
 Pytest fixtures for pywbem end2end tests.
 """
 
-from __future__ import absolute_import
 
 import os
 import io
@@ -40,7 +39,7 @@ PROFILES_YAML_FILE = os.path.join('tests', 'profiles', 'profiles.yml')
 # Profile definition list.
 # The list items are profile definition items, as described in the profile
 # definition file.
-with io.open(PROFILES_YAML_FILE, 'r', encoding='utf-8') as _fp:
+with open(PROFILES_YAML_FILE, encoding='utf-8') as _fp:
     PROFILE_DEFINITION_LIST = yaml.safe_load(_fp)
 del _fp  # pylint: disable=undefined-loop-variable
 
@@ -89,9 +88,9 @@ def server_from_docker(image_name, image_port, host_port, container_name,
             inspect_out = subprocess.check_output(
                 ['docker', 'container', 'inspect', container_name],
                 stderr=DEVNULL)
-        except EnvironmentError as exc:
+        except OSError as exc:
             raise RuntimeError(
-                "Docker does not seem to be installed: {}".format(exc))
+                f"Docker does not seem to be installed: {exc}")
         except subprocess.CalledProcessError as exc:
             if exc.returncode > 1:
                 raise RuntimeError(
@@ -101,7 +100,7 @@ def server_from_docker(image_name, image_port, host_port, container_name,
             container_running = False
         else:
             container_exists = True
-            if isinstance(inspect_out, six.binary_type):
+            if isinstance(inspect_out, bytes):
                 inspect_out = inspect_out.decode('utf-8')
             _inspect_dict = json.loads(inspect_out)
             _status = _inspect_dict[0]['State']['Status']
@@ -115,7 +114,7 @@ def server_from_docker(image_name, image_port, host_port, container_name,
             subprocess.check_call(
                 ['docker', 'create',
                  '--name', container_name,
-                 '--publish', '{}:{}'.format(host_port, image_port),
+                 '--publish', f'{host_port}:{image_port}',
                  image_name],
                 stdout=DEVNULL)
         else:
@@ -125,7 +124,7 @@ def server_from_docker(image_name, image_port, host_port, container_name,
 
         if not container_running:
             if verbose:
-                print("Starting Docker container {}".format(container_name))
+                print(f"Starting Docker container {container_name}")
             subprocess.check_call(
                 ['docker', 'start', container_name],
                 stdout=DEVNULL)
@@ -134,7 +133,7 @@ def server_from_docker(image_name, image_port, host_port, container_name,
                 print("Docker container {} was already running".
                       format(container_name))
 
-        yield 'https://localhost:{}'.format(host_port)
+        yield f'https://localhost:{host_port}'
 
         # Leave the container running on exit.
     else:
@@ -179,7 +178,7 @@ def docker_pull_with_cache(image_name, verbose=False):
     if not os.path.exists(image_tar_path):
 
         if verbose:
-            print("Pulling image from Docker Hub: {}".format(image_name))
+            print(f"Pulling image from Docker Hub: {image_name}")
         subprocess.check_call(
             ['docker', 'pull', image_name],
             stdout=DEVNULL)
@@ -279,14 +278,14 @@ def wbem_connection(request, es_server):  # noqa: F811
         if port_mapping:
             image_port = int(port_mapping['image'])
             host_port = int(port_mapping['host'])
-        container_name = 'pywbem_end2endtest_{}'.format(nickname)
+        container_name = f'pywbem_end2endtest_{nickname}'
 
     with server_from_docker(
             image_name, image_port, host_port, container_name,
             verbose=verbose):
 
         if verbose:
-            print("Creating WBEM connection to: {}".format(url))
+            print(f"Creating WBEM connection to: {url}")
 
         conn = WBEMConnectionAsserted(
             url, (user, password), x509=x509,
@@ -328,7 +327,7 @@ def wbem_connection(request, es_server):  # noqa: F811
         yield conn
 
         if verbose:
-            print("Closing WBEM connection to: {}".format(url))
+            print(f"Closing WBEM connection to: {url}")
         conn.close()
 
 
@@ -341,7 +340,7 @@ def fixtureid_default_namespace(fixture_value):
       * fixture_value (string): The default namespace for the test.
     """
     ns = fixture_value
-    return "default_namespace={0}".format(ns)
+    return f"default_namespace={ns}"
 
 
 @pytest.fixture(
@@ -392,7 +391,7 @@ def _apply_profile_definition_defaults(pd):
             raise ValueError(
                 "Profile definition error: The reference_direction item of a "
                 "profile definition can only be defaulted when the registered "
-                "organisation is DMTF or SNIA, but it is {0}".format(org))
+                "organisation is DMTF or SNIA, but it is {}".format(org))
     if 'scoping_class' not in pd:
         pd['scoping_class'] = None
     if 'scoping_path' not in pd:
@@ -505,7 +504,7 @@ def assert_association_func(request):
     return request.param
 
 
-class ProfileTest(object):
+class ProfileTest:
     """
     Base class for end2end tests on a specific profile.
     """
@@ -544,7 +543,7 @@ class ProfileTest(object):
             self.profile_org, self.profile_name, self.profile_version)
         assert self.profile_definition is not None
 
-        self.profile_id = "{0}:{1}:{2}".format(
+        self.profile_id = "{}:{}:{}".format(
             self.profile_org, self.profile_name, self.profile_version or 'any')
         profile_insts_id = self.profile_id + ':profile_insts'
 

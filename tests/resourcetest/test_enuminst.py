@@ -33,10 +33,10 @@ def test_enuminst_mock(num_props, num_insts):
     result_size = total_sizeof(result)
 
     print("  Elapsed time: {:>12} ms".
-          format("{:.3f}".format(rm.elapsed_time_ms)))
-    print("  CPU time:     {:>12} ms".format("{:.3f}".format(rm.cpu_time_ms)))
-    print("  Peak usage:   {:>12} B".format(rm.peak_size))
-    print("  Result size:  {:>12} B".format(result_size))
+          format(f"{rm.elapsed_time_ms:.3f}"))
+    print("  CPU time:     {:>12} ms".format(f"{rm.cpu_time_ms:.3f}"))
+    print(f"  Peak usage:   {rm.peak_size:>12} B")
+    print(f"  Result size:  {result_size:>12} B")
 
 
 @pytest.mark.parametrize(
@@ -62,7 +62,7 @@ def test_enuminstnames_mock(num_props, num_insts):
     result_size = total_sizeof(result)
 
     print("  Elapsed time: {:>12} ms".
-          format("{:.3f}".format(rm.elapsed_time_ms)))
-    print("  CPU time:     {:>12} ms".format("{:.3f}".format(rm.cpu_time_ms)))
-    print("  Peak usage:   {:>12} B".format(rm.peak_size))
-    print("  Result size:  {:>12} B".format(result_size))
+          format(f"{rm.elapsed_time_ms:.3f}"))
+    print("  CPU time:     {:>12} ms".format(f"{rm.cpu_time_ms:.3f}"))
+    print(f"  Peak usage:   {rm.peak_size:>12} B")
+    print(f"  Result size:  {result_size:>12} B")

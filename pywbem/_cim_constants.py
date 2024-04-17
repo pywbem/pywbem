@@ -269,7 +269,7 @@ DEFAULT_NAMESPACE = 'root/cimv2'
 
 #: Default URL scheme for WBEM connection
 #: *New in pywbem 1.0.*
-DEFAULT_URL_SCHEME = u'http'
+DEFAULT_URL_SCHEME = 'http'
 
 #: Default port number for http WBEM connection
 #: *New in pywbem 1.0.*

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # (C) Copyright 2018 InovaDevelopment.com
 #

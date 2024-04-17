@@ -2,7 +2,6 @@
 Test for memory_utils module.
 """
 
-from __future__ import absolute_import, print_function
 
 import sys
 import struct
@@ -27,7 +26,7 @@ else:
 
 if ENABLE_TESTS:
 
-    class EmptyClass(object):
+    class EmptyClass:
         # pylint: disable=too-few-public-methods
         "Empty class for determining size of its objects"
         pass
@@ -99,8 +98,8 @@ if ENABLE_TESTS:
         (
             "Test unicode string with two chars",
             dict(
-                obj=u'CD',
-                exp_size=size_obj(u'CD'),
+                obj='CD',
+                exp_size=size_obj('CD'),
             ),
             None, None, True
         ),
@@ -226,8 +225,8 @@ if ENABLE_TESTS:
                     # size of the object.
                     size_obj(pywbem.CIMQualifier(
                         'Q1', type='string', value=None)) +
-                    size_obj(u'Q1') +  # _name
-                    size_obj(u'string') +  # _type
+                    size_obj('Q1') +  # _name
+                    size_obj('string') +  # _type
                     size_obj(None) +  # _value (first None object)
                     SIZE_REF +  # _propagated
                     SIZE_REF +  # _overridable
@@ -250,7 +249,7 @@ if ENABLE_TESTS:
         """
 
         if testcase.condition == 'debug':
-            print("\nDebug: Testcase: {}".format(testcase.desc))
+            print(f"\nDebug: Testcase: {testcase.desc}")
             memory_utils.DEBUG = True
 
         # The code to be tested

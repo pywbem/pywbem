@@ -11,8 +11,8 @@ elif len(c) == 2:
     size1 = 'narrow'
 else:
     raise AssertionError(
-        "python_unicodesize.py: Length of Unicode character {0} returned from "
-        "s.decode() must be 1 or 2 but is: {1}".format(s, len(c)))
+        "python_unicodesize.py: Length of Unicode character {} returned from "
+        "s.decode() must be 1 or 2 but is: {}".format(s, len(c)))
 
 # Method 2: Test whether unichr() fails
 try:
@@ -31,4 +31,4 @@ if size1 != size2:
         "s.decode() method: {0}, unichr() method: {1}".
         format(size1, size2))
 
-print("Unicode size of Python environment: {0}".format(size1))
+print(f"Unicode size of Python environment: {size1}")

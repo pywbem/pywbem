@@ -185,7 +185,7 @@ def validate_persistence_type(pt):
     """
     if pt is None:
         return None
-    if not isinstance(pt, six.string_types):
+    if not isinstance(pt, str):
         raise ValueError(
             _format("The persistence_type must be a string. Type {0} not "
                     "allowed.", type(pt)))
@@ -201,7 +201,7 @@ def validate_persistence_type(pt):
     return persistence_type_dict[pt]
 
 
-class WBEMSubscriptionManager(object):
+class WBEMSubscriptionManager:
     """
     *New in pywbem 0.9 as experimental and finalized in 0.10.*
 
@@ -242,7 +242,7 @@ class WBEMSubscriptionManager(object):
 
         if subscription_manager_id is None:
             raise ValueError("Subscription manager ID must not be None")
-        if not isinstance(subscription_manager_id, six.string_types):
+        if not isinstance(subscription_manager_id, str):
             raise TypeError(
                 _format("Invalid type for subscription manager ID: {0!A}",
                         subscription_manager_id))
@@ -476,7 +476,7 @@ class WBEMSubscriptionManager(object):
         if server_id in self._owned_subscriptions:
             inst_list = self._owned_subscriptions[server_id]
             # We iterate backwards because we change the list
-            for i in six.moves.range(len(inst_list) - 1, -1, -1):
+            for i in range(len(inst_list) - 1, -1, -1):
                 inst = inst_list[i]
                 server.conn.DeleteInstance(inst.path)
                 del inst_list[i]
@@ -485,7 +485,7 @@ class WBEMSubscriptionManager(object):
         if server_id in self._owned_filters:
             inst_list = self._owned_filters[server_id]
             # We iterate backwards because we change the list
-            for i in six.moves.range(len(inst_list) - 1, -1, -1):
+            for i in range(len(inst_list) - 1, -1, -1):
                 inst = inst_list[i]
                 server.conn.DeleteInstance(inst.path)
                 del inst_list[i]
@@ -494,7 +494,7 @@ class WBEMSubscriptionManager(object):
         if server_id in self._owned_destinations:
             inst_list = self._owned_destinations[server_id]
             # We iterate backwards because we change the list
-            for i in six.moves.range(len(inst_list) - 1, -1, -1):
+            for i in range(len(inst_list) - 1, -1, -1):
                 inst = inst_list[i]
                 server.conn.DeleteInstance(inst.path)
                 del inst_list[i]
@@ -805,7 +805,7 @@ class WBEMSubscriptionManager(object):
 
         inst_list = self._owned_destinations[server_id]
         # We iterate backwards because we change the list
-        for i in six.moves.range(len(inst_list) - 1, -1, -1):
+        for i in range(len(inst_list) - 1, -1, -1):
             inst = inst_list[i]
             if inst.path == dest_path:
                 del inst_list[i]
@@ -949,7 +949,7 @@ class WBEMSubscriptionManager(object):
                                  "parameter must not be specified")
 
         if filter_id is not None:
-            if not isinstance(filter_id, six.string_types):
+            if not isinstance(filter_id, str):
                 raise TypeError(
                     _format("Invalid type for filter ID: {0!A}", filter_id))
             if ':' in filter_id:
@@ -957,13 +957,13 @@ class WBEMSubscriptionManager(object):
                     _format("Filter ID contains ':': {0!A}", filter_id))
 
         if source_namespaces is not None:
-            if not isinstance(source_namespaces, (six.string_types, list)):
+            if not isinstance(source_namespaces, ((str,), list)):
                 raise TypeError(
                     _format("source_namespaces must string or list. {0} is "
                             "type {1}.", source_namespace,
                             type(source_namespace)))
 
-            if isinstance(source_namespaces, six.string_types):
+            if isinstance(source_namespaces, str):
                 source_namespaces = [source_namespaces]
 
         filter_inst = self._create_filter(
@@ -1079,7 +1079,7 @@ class WBEMSubscriptionManager(object):
 
         inst_list = self._owned_filters[server_id]
         # We iterate backwards because we change the list
-        for i in six.moves.range(len(inst_list) - 1, -1, -1):
+        for i in range(len(inst_list) - 1, -1, -1):
             inst = inst_list[i]
             if inst.path == filter_path:
                 del inst_list[i]
@@ -1293,7 +1293,7 @@ class WBEMSubscriptionManager(object):
 
         inst_list = self._owned_subscriptions[server_id]
         # We iterate backwards because we change the list
-        for i in six.moves.range(len(inst_list) - 1, -1, -1):
+        for i in range(len(inst_list) - 1, -1, -1):
             inst = inst_list[i]
             if inst.path == sub_path:
                 del inst_list[i]
@@ -1403,8 +1403,8 @@ class WBEMSubscriptionManager(object):
             if name_prop and name_prop.value == name:
                 raise CIMError(
                     CIM_ERR_ALREADY_EXISTS,
-                    "Listener destination instance with Name='{0}' already "
-                    "exists: {1}".format(name, inst.path))
+                    "Listener destination instance with Name='{}' already "
+                    "exists: {}".format(name, inst.path))
 
         if owned:
             # If an owned destination instance for the same destination and

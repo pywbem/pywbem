@@ -3,7 +3,6 @@
 Test cases for _tupletree module and Unicode/XML check functions.
 """
 
-from __future__ import absolute_import, print_function
 
 import sys as _sys
 import os as _os
@@ -69,9 +68,9 @@ def _uprint(dest, text):  # pylint: disable=too-many-branches
     Otherwise, dest must be a file path, and the text is encoded to a UTF-8
     Byte sequence and is appended to the file (opening and closing the file).
     """
-    if isinstance(text, six.text_type):
-        text = text + u'\n'
-    elif isinstance(text, six.binary_type):
+    if isinstance(text, str):
+        text = text + '\n'
+    elif isinstance(text, bytes):
         text = text + b'\n'
     else:
         raise TypeError(
@@ -80,20 +79,20 @@ def _uprint(dest, text):  # pylint: disable=too-many-branches
     if dest is None:
         if six.PY2:
             # On py2, stdout.write() requires byte strings
-            if isinstance(text, six.text_type):
+            if isinstance(text, str):
                 text = text.encode(STDOUT_ENCODING, 'replace')
         else:
             # On py3, stdout.write() requires unicode strings
-            if isinstance(text, six.binary_type):
+            if isinstance(text, bytes):
                 text = text.decode('utf-8')
         _sys.stdout.write(text)
 
-    elif isinstance(dest, (six.text_type, six.binary_type)):
-        if isinstance(text, six.text_type):
+    elif isinstance(dest, (str, bytes)):
+        if isinstance(text, str):
             kw = dict(mode='a', encoding='utf-8')
         else:
             kw = dict(mode='ab')
-        with io.open(dest, **kw) as fn:  # pylint: disable=unspecified-encoding
+        with open(dest, **kw) as fn:  # pylint: disable=unspecified-encoding
             fn.write(text)
     else:
         raise TypeError(
@@ -119,7 +118,7 @@ class _PywbemCustomFormatter(_SmartFormatter,
     pass  # pylint: disable=unnecessary-pass
 
 
-TEMPLATE = u"""\n<VALUE.NAMEDINSTANCE>
+TEMPLATE = """\n<VALUE.NAMEDINSTANCE>
 <INSTANCENAME CLASSNAME="TST_ResponseStressTestCxx">
   <KEYBINDING NAME="Id"><KEYVALUE VALUETYPE="string">{0}</KEYVALUE>
     </KEYBINDING></INSTANCENAME><INSTANCE CLASSNAME="PERFTEST_Class" >
@@ -157,7 +156,7 @@ def build_xml_obj(number, size):
         fill_repeat = int((fill_size / len(pattern)) / 2)
 
     s1_value = pattern * fill_repeat
-    a1_value = "<VALUE>{0}</VALUE>\n".format(pattern) * fill_repeat
+    a1_value = f"<VALUE>{pattern}</VALUE>\n" * fill_repeat
 
     return TEMPLATE.format(number, pattern, s1_value, a1_value)
 
@@ -185,7 +184,7 @@ def create_xml(count=1000, size=100):
     """
     Create the xml response message
     """
-    xml = u'<?xml version="1.0" encoding="utf-8" ?>' \
+    xml = '<?xml version="1.0" encoding="utf-8" ?>' \
           '<CIM CIMVERSION="2.0" DTDVERSION="2.0">' \
           '<MESSAGE ID="1001" PROTOCOLVERSION="1.0"><SIMPLERSP>' \
           '<IMETHODRESPONSE NAME="EnumerateInstances"><IRETURNVALUE>'
@@ -235,7 +234,7 @@ def execute_with_time(xml_string, profiler):
     return time.time() - start_time
 
 
-class ExecuteTests(object):
+class ExecuteTests:
     # pylint: disable=too-few-public-methods, too-many-instance-attributes
     """
     Params class contains args parameters but lets us create new parameters
@@ -258,7 +257,7 @@ class ExecuteTests(object):
         # set logfile name if log option set. If the individual
         # option set, this will be modified
         if self.log:
-            self.logfile = "{0}_{1}_{2}_{3}.{4}".format(
+            self.logfile = "{}_{}_{}_{}.{}".format(
                 PROFILE_OUT_PREFIX,
                 self.runid,
                 self.profiler,
@@ -268,7 +267,7 @@ class ExecuteTests(object):
             self.logfile = None
 
         # define a dumpfile for the cprofile save.
-        self.dumpfilename = "{0}_{1}_{2}_{3}.{4}".format(
+        self.dumpfilename = "{}_{}_{}_{}.{}".format(
             PROFILE_OUT_PREFIX,
             self.runid,
             self.profiler,
@@ -295,10 +294,10 @@ class ExecuteTests(object):
         self.cprofilesort = ["tottime", "ncalls"]
 
     def __repr__(self):
-        return "ExecuteTests(runid={0}, response_size={1} response_count={2} " \
-               "profiler={3} verbose={4}, log={5}, file_datetime={6}, " \
-               "logfile={7}, dumpfilename={8}, top_n_rows={9}, " \
-               "cprofilesort={10})".format(
+        return "ExecuteTests(runid={}, response_size={} response_count={} " \
+               "profiler={} verbose={}, log={}, file_datetime={}, " \
+               "logfile={}, dumpfilename={}, top_n_rows={}, " \
+               "cprofilesort={})".format(
                    self.runid,
                    self.response_size,
                    self.response_count,
@@ -326,7 +325,7 @@ class ExecuteTests(object):
                        int(avg_resp_size),
                        response_count,
                        len(xml),
-                       "{0:5.2f}".format(execution_time),
+                       f"{execution_time:5.2f}",
                        int(response_count / execution_time))
                 table_rows.append(row)
         return table_rows
@@ -358,7 +357,7 @@ class ExecuteTests(object):
 
         # if dest defined, output to file defined by dest
         if self.logfile:
-            with io.open(self.logfile, 'w', encoding='utf-8') as stream:
+            with open(self.logfile, 'w', encoding='utf-8') as stream:
                 ps = pstats.Stats(profiler, stream=stream)
                 ps.strip_dirs()
                 ps.sort_stats(*self.cprofilesort)
@@ -403,8 +402,8 @@ class ExecuteTests(object):
                   "XML\nsize",
                   "Parse time\nsec.",
                   "Instances\nper sec"]
-        title = 'Results: profile={0}, response_counts={1},\n   ' \
-                'response-sizes={2}, runid={3} {4}'.format(self.profiler,
+        title = 'Results: profile={}, response_counts={},\n   ' \
+                'response-sizes={}, runid={} {}'.format(self.profiler,
                                                            self.response_count,
                                                            self.response_size,
                                                            self.runid,
@@ -438,7 +437,7 @@ def execute_individual_tests(args):
             # define a dump file name for each execution
             tests.response_count = [response_count]
             tests.response_size = [response_size]
-            tests.dumpfilename = "{0}_{1}_{2}_{3}_{4}_{5}.{6}".format(
+            tests.dumpfilename = "{}_{}_{}_{}_{}_{}.{}".format(
                 PROFILE_OUT_PREFIX,
                 tests.runid,
                 args.profiler,
@@ -451,7 +450,7 @@ def execute_individual_tests(args):
             # for each individual  test suffixes the name with the
             # response_size and response_count
             if args.log:
-                tests.logfile = "{0}_{1}_{2}_{3}_{4}_{5}.{6}".format(
+                tests.logfile = "{}_{}_{}_{}_{}_{}.{}".format(
                     PROFILE_OUT_PREFIX,
                     tests.runid,
                     args.profiler,
@@ -492,18 +491,18 @@ NOTE: Running with a profiler heavily affects the runtime.
 """
     epilog = """
 Examples:
-  %s
+  {}
 
      Execute a minimal test with default input arguments and display time to
      execute. It does not use either of the profilers.
 
-  %s  -p cprofile --response-count 10000 20000 \\
+  {}  -p cprofile --response-count 10000 20000 \\
     --response-size 100 1000
 
      Execute the test for all combinations of response counts of 10,000 and
      20,000 and for response sizes of 500 and 1000 bytes using cprofile
      profiler to generate and output a profile of the operation.
-""" % (prog, prog)  # noqa: E501
+""".format(prog, prog)  # noqa: E501
 # pylint: enable=line-too-long
 
     argparser = _argparse.ArgumentParser(
@@ -595,7 +594,7 @@ Examples:
 
     if args.top_n_rows <= 0:
         argparser.error("top-n-rows must be postive integer. "
-                        "{0} not allowed".format(args.top_n_rows))
+                        "{} not allowed".format(args.top_n_rows))
 
     return args
 
@@ -607,8 +606,8 @@ def main():
     """
     args = parse_args()
 
-    print('Starting profiler={0}, response-count={1} response-size={2} '
-          'runid={3} log={4}'.format(args.profiler, args.response_count,
+    print('Starting profiler={}, response-count={} response-size={} '
+          'runid={} log={}'.format(args.profiler, args.response_count,
                                      args.response_size, args.runid,
                                      args.log))
 

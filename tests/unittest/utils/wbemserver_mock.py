@@ -3,7 +3,6 @@
     other test mocks
 """
 
-from __future__ import print_function, absolute_import
 
 import os
 
@@ -125,7 +124,7 @@ DEFAULT_WBEM_SERVER_MOCK_DICT = {
 }
 
 
-class WbemServerMock(object):
+class WbemServerMock:
     """
     Class that mocks the classes and methods used by the pywbem
     WBEMServer class so that the WBEMServer class will produce valid data
@@ -303,7 +302,7 @@ class WbemServerMock(object):
             org_vm_dict[org_vm.tovalues(value)] = value
 
         for p in profiles:
-            instance_id = '%s+%s+%s' % (p[0], p[1], p[2])
+            instance_id = '{}+{}+{}'.format(p[0], p[1], p[2])
             reg_prof_dict = {'RegisteredOrganization': org_vm_dict[p[0]],
                              'RegisteredName': p[1],
                              'RegisteredVersion': p[2],
@@ -320,7 +319,7 @@ class WbemServerMock(object):
                                               namespace=self.interop_ns)
 
         assert len(rtn_rpinsts) == len(profiles), \
-            "Expected registered profiles: %r, got %s" % (len(profiles),
+            "Expected registered profiles: {!r}, got {}".format(len(profiles),
                                                           len(rtn_rpinsts))
 
     def build_elementconformstoprofile_inst(self, conn, profile_path,
@@ -370,9 +369,9 @@ class WbemServerMock(object):
                 registered_version=dependent[2])
 
             assert len(antecedent_inst) == 1, \
-                "Antecedent: {0}".format(antecedent)
+                f"Antecedent: {antecedent}"
             assert len(dependent_inst) == 1, \
-                "Dependent: {0}".format(dependent)
+                f"Dependent: {dependent}"
 
             ref_profile_dict = {'Antecedent': antecedent_inst[0].path,
                                 'Dependent': dependent_inst[0].path}

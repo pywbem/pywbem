@@ -30,7 +30,6 @@ way to output the test string (e.g. normal print(), or raising an exception).
 That is for manually figuring out the behavior for non-ASCII test strings.
 """
 
-from __future__ import absolute_import, print_function
 
 import sys
 import locale
@@ -160,7 +159,7 @@ def mode_small_ascii(run_func):
     """
     Run the specified run function with ASCII characters as unicode string.
     """
-    test_string = u'ASCII-unicode: H e l l o'
+    test_string = 'ASCII-unicode: H e l l o'
     run_func(test_string)
 
 
@@ -168,8 +167,8 @@ def mode_small_latin(run_func):
     """
     Run the specified run function with UCS-2 Latin-1 characters.
     """
-    test_string = u'UCS-2 Latin-1: ' \
-        u'\u00E0 \u00E1 \u00E2 \u00F9 \u00FA \u00FB'
+    test_string = 'UCS-2 Latin-1: ' \
+        '\u00E0 \u00E1 \u00E2 \u00F9 \u00FA \u00FB'
     run_func(test_string)
 
 
@@ -177,8 +176,8 @@ def mode_small_cyrillic(run_func):
     """
     Run the specified run function with UCS-2 Cyrillic characters.
     """
-    test_string = u'UCS-2 Cyrillic: ' \
-        u'\u041F \u0440 \u0438 \u0432 \u0435 \u0442'
+    test_string = 'UCS-2 Cyrillic: ' \
+        '\u041F \u0440 \u0438 \u0432 \u0435 \u0442'
     run_func(test_string)
 
 
@@ -186,8 +185,8 @@ def mode_small_chinese(run_func):
     """
     Run the specified run function with UCS-2 Chinese characters.
     """
-    test_string = u'UCS-2 Chinese: ' \
-        u'\u6C2E \u6C22 \u94A0 \u6CB8 \u98DF \u70F9 \u6797'
+    test_string = 'UCS-2 Chinese: ' \
+        '\u6C2E \u6C22 \u94A0 \u6CB8 \u98DF \u70F9 \u6797'
     run_func(test_string)
 
 
@@ -195,8 +194,8 @@ def mode_small_musical(run_func):
     """
     Run the specified run function with UCS-4 Musical characters.
     """
-    test_string = u'UCS-4 Musical: ' \
-        u'\U0001D122 \U0001D11E \U0001D106 \U0001D107'
+    test_string = 'UCS-4 Musical: ' \
+        '\U0001D122 \U0001D11E \U0001D106 \U0001D107'
     run_func(test_string)
 
 
@@ -204,8 +203,8 @@ def mode_small_emoticons(run_func):
     """
     Run the specified run function with UCS-4 Emoticon characters.
     """
-    test_string = u'UCS-4 Emoticons: ' \
-        u'\U0001F600 \U0001F607 \U0001F60E \U0001F627'
+    test_string = 'UCS-4 Emoticons: ' \
+        '\U0001F600 \U0001F607 \U0001F60E \U0001F627'
     run_func(test_string)
 
 
@@ -213,9 +212,9 @@ def mode_ucs2(run_func):
     """
     Run the specified run function with all UCS-2 characters.
     """
-    for cp in six.moves.xrange(0, MAX_UCS2_CP):
+    for cp in range(0, MAX_UCS2_CP):
         cp_char = unichr2(cp)
-        test_string = u'U+%06X: %s' % (cp, cp_char)
+        test_string = 'U+{:06X}: {}'.format(cp, cp_char)
         run_func(test_string)
 
 
@@ -223,9 +222,9 @@ def mode_all(run_func):
     """
     Run the specified run function with all UCS-4 characters.
     """
-    for cp in six.moves.xrange(0, MAX_UNICODE_CP):
+    for cp in range(0, MAX_UNICODE_CP):
         cp_char = unichr2(cp)
-        test_string = u'U+%06X: %s' % (cp, cp_char)
+        test_string = 'U+{:06X}: {}'.format(cp, cp_char)
         run_func(test_string)
 
 

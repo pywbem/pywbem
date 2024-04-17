@@ -3,7 +3,6 @@ End2end tests for generic profile related stuff (advertisement, central
 instances).
 """
 
-from __future__ import absolute_import, print_function
 
 import pytest
 
@@ -111,7 +110,7 @@ def test_undefined_profiles(wbem_connection):  # noqa: F811
         version = inst['RegisteredVersion']
         if not single_profile_definition(org, name, version):
             undefined_profile_ids.append(
-                "{0} {1!r} {2}".format(org, name, version))
+                f"{org} {name!r} {version}")
 
     if undefined_profile_ids:
         undefined_profile_lines = '\n'.join(undefined_profile_ids)

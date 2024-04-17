@@ -72,7 +72,6 @@ objects, :term:`string`, in addition to
 
 # This module is meant to be safe for 'import *'.
 
-from __future__ import absolute_import
 
 import copy
 import re
@@ -83,15 +82,10 @@ from .config import ENFORCE_INTEGER_RANGE
 from ._utils import _ensure_unicode, _hash_item, _format, _to_unicode, \
     _eq_item
 
-if six.PY3:
-    from datetime import timezone
+from datetime import timezone
 
-if six.PY2:
-    # pylint: disable=invalid-name,undefined-variable
-    _Longint = long  # noqa: F821
-else:
-    # pylint: disable=invalid-name
-    _Longint = int
+# pylint: disable=invalid-name
+_Longint = int
 
 
 __all__ = ['cimtype', 'type_from_name', 'MinutesFromUTC', 'CIMType',
@@ -100,7 +94,7 @@ __all__ = ['cimtype', 'type_from_name', 'MinutesFromUTC', 'CIMType',
            'Real64', 'Char16', '_CIMComparisonMixin']
 
 
-class _CIMComparisonMixin(object):  # pylint: disable=too-few-public-methods
+class _CIMComparisonMixin:  # pylint: disable=too-few-public-methods
     """
     Mixin class providing default implementations for equality test
     operators and hash function.
@@ -175,7 +169,7 @@ class _CIMComparisonMixin(object):  # pylint: disable=too-few-public-methods
         raise NotImplementedError
 
 
-class SlottedPickleMixin(object):
+class SlottedPickleMixin:
     """
     On Python 2, the built-in 'pickle' module uses pickle protocol 0 by default.
     Using protocol 0 causes pickle to raise TypeError for objects with slots
@@ -350,7 +344,7 @@ class MinutesFromUTC(SlottedPickleMixin, tzinfo):
         # input. Therefore we handle the sign separately.
         sign = '-' if self._offset < 0 else ''
         hh, mm = divmod(abs(self._offset), 60)
-        return "{sign}{hh:02d}:{mm:02d}".format(sign=sign, hh=hh, mm=mm)
+        return f"{sign}{hh:02d}:{mm:02d}"
 
 
 class CIMType(SlottedPickleMixin):  # pylint: disable=too-few-public-methods
@@ -363,7 +357,7 @@ class CIMType(SlottedPickleMixin):  # pylint: disable=too-few-public-methods
     cimtype = None
 
 
-class Char16(CIMType, six.text_type):
+class Char16(CIMType, str):
     """
     A value of CIM data type char16.
 
@@ -385,7 +379,7 @@ class Char16(CIMType, six.text_type):
     # Changing the string content requires using __new__() instead of __init__()
     def __new__(cls, content=''):
         ""  # Avoids docstring to be inherited
-        return super(Char16, cls).__new__(cls, _ensure_unicode(content))
+        return super().__new__(cls, _ensure_unicode(content))
 
 
 class CIMDateTime(_CIMComparisonMixin, CIMType):
@@ -441,7 +435,7 @@ class CIMDateTime(_CIMComparisonMixin, CIMType):
         self.__datetime = None  # datetime value, if timestamp
         self.__precision = None  # 0-based index of first asterisk, or None
         dtarg = _ensure_unicode(dtarg)
-        if isinstance(dtarg, six.text_type):
+        if isinstance(dtarg, str):
             m = self._timestamp_pattern.search(dtarg)
             if m is not None:
                 # timestamp format
@@ -658,13 +652,7 @@ class CIMDateTime(_CIMComparisonMixin, CIMType):
         A positive value indicates minutes east of UTC, and a negative
         value indicates minutes west of UTC.
         """
-        if six.PY2:
-            # Effective Python 3.12, utcnow() deprecated, it returns
-            # naive datetime object and warning msg. timezone does
-            # not exist for python 2.7; use utcnow(timezone.utc).
-            utc_unaware = datetime.utcnow()
-        else:
-            utc_unaware = datetime.now(timezone.utc).replace(tzinfo=None)
+        utc_unaware = datetime.now(timezone.utc).replace(tzinfo=None)
 
         local_unaware = datetime.now()
         if local_unaware < utc_unaware:
@@ -751,7 +739,7 @@ class CIMDateTime(_CIMComparisonMixin, CIMType):
             seconds_str = self._to_str(seconds, 12, 2)
             microsecs_str = self._to_str(microsecs, 15, 6)
 
-            ret_str = '{0}{1}{2}{3}.{4}:000'.format(
+            ret_str = '{}{}{}{}.{}:000'.format(
                 days_str, hours_str, minutes_str, seconds_str,
                 microsecs_str)
             return ret_str
@@ -779,7 +767,7 @@ class CIMDateTime(_CIMComparisonMixin, CIMType):
             second_str = self._to_str(second, 12, 2)
             microsec_str = self._to_str(microsec, 15, 6)
 
-            ret_str = '{0}{1}{2}{3}{4}{5}.{6}{7}{8:03d}'.format(
+            ret_str = '{}{}{}{}{}{}.{}{}{:03d}'.format(
                 year_str, month_str, day_str, hour_str, minute_str,
                 second_str, microsec_str, sign, offset)
             return ret_str
@@ -920,7 +908,7 @@ class CIMInt(CIMType, _Longint):
                     _format("Integer value {0} is out of range for CIM "
                             "datatype {1}", value, cls.cimtype))
         # The value needs to be processed here, because int/long is immutable
-        return super(CIMInt, cls).__new__(cls, *args, **kwargs)
+        return super().__new__(cls, *args, **kwargs)
 
     # Note: __str__() is added later, for Python 3.
 
@@ -1141,7 +1129,7 @@ class Real64(CIMFloat):
 
 
 # Python number types listed in :term:`number`.
-number_types = six.integer_types + (float,)  # pylint: disable=invalid-name
+number_types = (int,) + (float,)  # pylint: disable=invalid-name
 
 
 # Python 3.8 removed __str__() on int and float and thereby caused an infinite
@@ -1151,11 +1139,10 @@ number_types = six.integer_types + (float,)  # pylint: disable=invalid-name
 # representing the values using int/float.__repr__(). In Python 3, these
 # methods return exactly what is needed for a string representation. Note that
 # in Python 2, repr(long) has a trailing 'L' which would not be suitable.
-if six.PY3:  # all Python 3.x, for simplicity.
-    CIMInt.__str__ = int.__repr__
-    CIMFloat.__str__ = float.__repr__
-    # MinutesFromUTC.__repr__() does not call str() on itself
-    # CIMDatetime has its own __str__()
+CIMInt.__str__ = int.__repr__
+CIMFloat.__str__ = float.__repr__
+# MinutesFromUTC.__repr__() does not call str() on itself
+# CIMDatetime has its own __str__()
 
 
 def cimtype(obj):
@@ -1193,7 +1180,7 @@ def cimtype(obj):
     if isinstance(obj, bool):
         return 'boolean'
 
-    if isinstance(obj, (six.binary_type, six.text_type)):
+    if isinstance(obj, (bytes, str)):
         # accept both possible types
         return 'string'
 
@@ -1234,8 +1221,8 @@ def cimtype(obj):
 
 _TYPE_FROM_NAME = {
     'boolean': bool,
-    'string': six.text_type,  # return the preferred type
-    'char16': six.text_type,  # return the preferred type
+    'string': str,  # return the preferred type
+    'char16': str,  # return the preferred type
     'datetime': CIMDateTime,
     # 'reference' covered at run time
     'uint8': Uint8,
@@ -1337,23 +1324,23 @@ def atomic_to_cim_xml(obj):
     """
     if obj is None:  # pylint: disable=no-else-return
         return obj
-    elif isinstance(obj, six.text_type):
+    elif isinstance(obj, str):
         return obj
-    elif isinstance(obj, six.binary_type):
+    elif isinstance(obj, bytes):
         return _to_unicode(obj)
     elif isinstance(obj, bool):
-        return u'TRUE' if obj else u'FALSE'
-    elif isinstance(obj, (CIMInt, six.integer_types, CIMDateTime)):
-        return six.text_type(obj)
+        return 'TRUE' if obj else 'FALSE'
+    elif isinstance(obj, (CIMInt, (int,), CIMDateTime)):
+        return str(obj)
     elif isinstance(obj, datetime):
-        return six.text_type(CIMDateTime(obj))
+        return str(CIMDateTime(obj))
     elif isinstance(obj, Real32):
         # DSP0201 requirements for representing real32:
         # The significand must be represented with at least 11 digits.
         # The special values must have the case: INF, -INF, NaN.
-        s = u'{0:.11G}'.format(obj)
+        s = f'{obj:.11G}'
         if s == 'NAN':
-            s = u'NaN'
+            s = 'NaN'
         elif s in ('INF', '-INF'):
             pass
         elif '.' not in s:
@@ -1365,9 +1352,9 @@ def atomic_to_cim_xml(obj):
         # DSP0201 requirements for representing real64:
         # The significand must be represented with at least 17 digits.
         # The special values must have the case: INF, -INF, NaN.
-        s = u'{0:.17G}'.format(obj)
+        s = f'{obj:.17G}'
         if s == 'NAN':
-            s = u'NaN'
+            s = 'NaN'
         elif s in ('INF', '-INF'):
             pass
         elif '.' not in s:

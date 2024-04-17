@@ -2,7 +2,6 @@
 Utility functions for pywbem end2end tests.
 """
 
-from __future__ import absolute_import, print_function
 
 from copy import deepcopy
 
@@ -84,7 +83,7 @@ def path_in(inst_path, inst_path_list):
     return False
 
 
-class ServerObjectCache(object):
+class ServerObjectCache:
     """
     A cache for named lists of CIM objects from a particular WBEM server.
 
@@ -242,7 +241,7 @@ class WBEMConnectionAsserted(WBEMConnection):
         """
         es_server = kwargs['es_server']
         del kwargs['es_server']
-        super(WBEMConnectionAsserted, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.es_server = es_server
 
     def _call_op(self, funcname, *args, **kwargs):
@@ -259,7 +258,7 @@ class WBEMConnectionAsserted(WBEMConnection):
             # The default must be non-asserted, in order to allow all the
             # operation invocations in WBEMServer to do their error handling.
             asserted = False
-        func = getattr(super(WBEMConnectionAsserted, self), funcname)
+        func = getattr(super(), funcname)
         # returns a bound method
         if asserted:
             try:
@@ -273,8 +272,8 @@ class WBEMConnectionAsserted(WBEMConnection):
         """
         Return an AssertionError about the specified exception.
         """
-        parm_list = ["{0!r}".format(a) for a in args]
-        parm_list.extend(["{0}={1!r}".format(k, v) for k, v in kwargs.items()])
+        parm_list = [f"{a!r}" for a in args]
+        parm_list.extend([f"{k}={v!r}" for k, v in kwargs.items()])
         parm_str = ", ".join(parm_list)
         return AssertionError(
             "Server {0} at {1}: WBEMConnection.{2}() failed and raised "
@@ -453,8 +452,8 @@ def server_func_asserted(server, funcname, *args, **kwargs):
     try:
         return func(*args, **kwargs)
     except Error as exc:
-        parm_list = ["{0!r}".format(a) for a in args]
-        parm_list.extend(["{0}={1!r}".format(k, v) for k, v in kwargs.items()])
+        parm_list = [f"{a!r}" for a in args]
+        parm_list.extend([f"{k}={v!r}" for k, v in kwargs.items()])
         parm_str = ", ".join(parm_list)
         raise AssertionError(
             "Server {0} at {1}: Calling WBEMServer.{2}() failed and "

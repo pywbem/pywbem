@@ -25,7 +25,6 @@ pywbem client without requiring a running WBEM server.
 For documentation, see mocksupport.rst.
 """
 
-from __future__ import absolute_import, print_function
 
 from pywbem import CIMError, CIM_ERR_INVALID_PARAMETER, \
     CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_SUPERCLASS

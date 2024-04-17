@@ -61,13 +61,10 @@ def compatibleabstractproperty(func):
         @abstractproperty
     """
 
-    if PY2:  # pylint: disable=no-else-return
-        return abstractproperty(func)
-    else:
-        return property(abstractmethod(func))
+    return property(abstractmethod(func))
 
 
-class BaseObjectStore(object):
+class BaseObjectStore:
     """
     An abstract class that defines the APIs for the methods of an object store
     for CIM objects including CIMClass, CIMInstance, and CIMQualifierDeclaration
@@ -255,7 +252,7 @@ class BaseObjectStore(object):
         pass
 
 
-class BaseRepository(object):
+class BaseRepository:
     """
     An abstract base class defining the required  APIs to provide access to a
     a CIM repository.

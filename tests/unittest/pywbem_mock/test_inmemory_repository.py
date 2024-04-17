@@ -16,7 +16,6 @@ Test of pywbem_mock package.  This tests the implementation of pywbem_mock
 using a set of local mock qualifiers, classes, and instances.
 
 """
-from __future__ import absolute_import, print_function
 
 import pickle
 import pytest

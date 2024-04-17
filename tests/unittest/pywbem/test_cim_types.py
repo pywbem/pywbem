@@ -4,7 +4,6 @@
 Test CIM types.
 """
 
-from __future__ import absolute_import, print_function
 
 import re
 from datetime import timedelta, datetime
@@ -41,27 +40,27 @@ from pywbem import CIMType, CIMInt, CIMFloat, Uint8, Uint16, Uint32, Uint64, \
     # )
     (
         None,
-        u'None',
+        'None',
         None,
     ),
     (
-        u'foo',
-        u'foo',
+        'foo',
+        'foo',
         None,
     ),
     (
         b'foo',
-        u'foo',
+        'foo',
         None,
     ),
     (
         42,
-        u'42',
+        '42',
         None,
     ),
     (
         Char16('foo'),
-        u'foo',
+        'foo',
         None,
     ),
 ], scope='module')
@@ -84,7 +83,7 @@ def test_char16_class_attrs_inst():
 def test_char16_inheritance():
     """Test inheritance"""
     obj = Char16('foo')
-    assert isinstance(obj, six.text_type)
+    assert isinstance(obj, str)
     assert isinstance(obj, CIMType)
 
 
@@ -349,16 +348,16 @@ def test_real_init_str(real_tuple):
 
     # Each list item is a tuple of:
     # (obj_type, init_arg, exp_str, exp_repr_pattern)
-    (Uint8, 42, u'42', r'^Uint8\(.*, 42\)'),
-    (Uint16, 42, u'42', r'^Uint16\(.*, 42\)'),
-    (Uint32, 42, u'42', r'^Uint32\(.*, 42\)'),
-    (Uint64, 42, u'42', r'^Uint64\(.*, 42\)'),
-    (Sint8, -42, u'-42', r'^Sint8\(.*, -42\)'),
-    (Sint16, -42, u'-42', r'^Sint16\(.*, -42\)'),
-    (Sint32, -42, u'-42', r'^Sint32\(.*, -42\)'),
-    (Sint64, -42, u'-42', r'^Sint64\(.*, -42\)'),
-    (Real32, -42.1, u'-42.1', r'^Real32\(.*, -42.1\)'),
-    (Real64, -42.1, u'-42.1', r'^Real64\(.*, -42.1\)'),
+    (Uint8, 42, '42', r'^Uint8\(.*, 42\)'),
+    (Uint16, 42, '42', r'^Uint16\(.*, 42\)'),
+    (Uint32, 42, '42', r'^Uint32\(.*, 42\)'),
+    (Uint64, 42, '42', r'^Uint64\(.*, 42\)'),
+    (Sint8, -42, '-42', r'^Sint8\(.*, -42\)'),
+    (Sint16, -42, '-42', r'^Sint16\(.*, -42\)'),
+    (Sint32, -42, '-42', r'^Sint32\(.*, -42\)'),
+    (Sint64, -42, '-42', r'^Sint64\(.*, -42\)'),
+    (Real32, -42.1, '-42.1', r'^Real32\(.*, -42.1\)'),
+    (Real64, -42.1, '-42.1', r'^Real64\(.*, -42.1\)'),
 ], scope='module')
 def number_str_repr_tuple(request):
     """Utility function to return param from request"""
@@ -1316,7 +1315,7 @@ TESTCASES_CIMTYPE = [
         "Object is a bool",
         dict(
             obj=True,
-            exp_type_name=u'boolean',
+            exp_type_name='boolean',
         ),
         None, None, True
     ),
@@ -1325,8 +1324,8 @@ TESTCASES_CIMTYPE = [
     (
         "Object is a unicode string",
         dict(
-            obj=u"abc",
-            exp_type_name=u'string',
+            obj="abc",
+            exp_type_name='string',
         ),
         None, None, True
     ),
@@ -1334,7 +1333,7 @@ TESTCASES_CIMTYPE = [
         "Object is a byte string",
         dict(
             obj=b"abc",
-            exp_type_name=u'string',
+            exp_type_name='string',
         ),
         None, None, True
     ),
@@ -1352,7 +1351,7 @@ TESTCASES_CIMTYPE = [
         "Object is a Uint8 number",
         dict(
             obj=Uint8(42),
-            exp_type_name=u'uint8',
+            exp_type_name='uint8',
         ),
         None, None, True
     ),
@@ -1360,7 +1359,7 @@ TESTCASES_CIMTYPE = [
         "Object is a Uint16 number",
         dict(
             obj=Uint16(42),
-            exp_type_name=u'uint16',
+            exp_type_name='uint16',
         ),
         None, None, True
     ),
@@ -1368,7 +1367,7 @@ TESTCASES_CIMTYPE = [
         "Object is a Uint32 number",
         dict(
             obj=Uint32(42),
-            exp_type_name=u'uint32',
+            exp_type_name='uint32',
         ),
         None, None, True
     ),
@@ -1376,7 +1375,7 @@ TESTCASES_CIMTYPE = [
         "Object is a Uint64 number",
         dict(
             obj=Uint64(42),
-            exp_type_name=u'uint64',
+            exp_type_name='uint64',
         ),
         None, None, True
     ),
@@ -1384,7 +1383,7 @@ TESTCASES_CIMTYPE = [
         "Object is a Sint8 number",
         dict(
             obj=Sint8(42),
-            exp_type_name=u'sint8',
+            exp_type_name='sint8',
         ),
         None, None, True
     ),
@@ -1392,7 +1391,7 @@ TESTCASES_CIMTYPE = [
         "Object is a Sint16 number",
         dict(
             obj=Sint16(42),
-            exp_type_name=u'sint16',
+            exp_type_name='sint16',
         ),
         None, None, True
     ),
@@ -1400,7 +1399,7 @@ TESTCASES_CIMTYPE = [
         "Object is a Sint32 number",
         dict(
             obj=Sint32(42),
-            exp_type_name=u'sint32',
+            exp_type_name='sint32',
         ),
         None, None, True
     ),
@@ -1408,7 +1407,7 @@ TESTCASES_CIMTYPE = [
         "Object is a Sint64 number",
         dict(
             obj=Sint64(42),
-            exp_type_name=u'sint64',
+            exp_type_name='sint64',
         ),
         None, None, True
     ),
@@ -1426,7 +1425,7 @@ TESTCASES_CIMTYPE = [
         "Object is a Real32 number",
         dict(
             obj=Real32(42.0),
-            exp_type_name=u'real32',
+            exp_type_name='real32',
         ),
         None, None, True
     ),
@@ -1434,7 +1433,7 @@ TESTCASES_CIMTYPE = [
         "Object is a Real64 number",
         dict(
             obj=Real64(42.0),
-            exp_type_name=u'real64',
+            exp_type_name='real64',
         ),
         None, None, True
     ),
@@ -1446,7 +1445,7 @@ TESTCASES_CIMTYPE = [
             obj=datetime(year=2014, month=9, day=24, hour=19, minute=30,
                          second=40, microsecond=654321,
                          tzinfo=MinutesFromUTC(120)),
-            exp_type_name=u'datetime',
+            exp_type_name='datetime',
         ),
         None, None, True
     ),
@@ -1455,7 +1454,7 @@ TESTCASES_CIMTYPE = [
         dict(
             obj=timedelta(days=12345678, hours=22, minutes=44, seconds=55,
                           microseconds=654321),
-            exp_type_name=u'datetime',
+            exp_type_name='datetime',
         ),
         None, None, True
     ),
@@ -1463,7 +1462,7 @@ TESTCASES_CIMTYPE = [
         "Object is a CIMDateTime object",
         dict(
             obj=CIMDateTime('20140924193040.654321+000'),
-            exp_type_name=u'datetime',
+            exp_type_name='datetime',
         ),
         None, None, True
     ),
@@ -1473,7 +1472,7 @@ TESTCASES_CIMTYPE = [
         "Object is a CIMClass object",
         dict(
             obj=CIMClass('CIM_Foo'),
-            exp_type_name=u'string',  # embedded object
+            exp_type_name='string',  # embedded object
         ),
         None, None, True
     ),
@@ -1481,7 +1480,7 @@ TESTCASES_CIMTYPE = [
         "Object is a CIMInstance object",
         dict(
             obj=CIMInstance('CIM_Foo'),
-            exp_type_name=u'string',  # embedded object
+            exp_type_name='string',  # embedded object
         ),
         None, None, True
     ),
@@ -1489,7 +1488,7 @@ TESTCASES_CIMTYPE = [
         "Object is a CIMInstanceName object",
         dict(
             obj=CIMInstanceName('CIM_Foo'),
-            exp_type_name=u'reference',
+            exp_type_name='reference',
         ),
         None, None, True
     ),
@@ -1652,7 +1651,7 @@ TESTCASES_TYPE_FROM_NAME = [
         "Type name is string",
         dict(
             type_name='string',
-            exp_type_obj=six.text_type,
+            exp_type_obj=str,
         ),
         None, None, True
     ),
@@ -1660,7 +1659,7 @@ TESTCASES_TYPE_FROM_NAME = [
         "Type name is char16",
         dict(
             type_name='char16',
-            exp_type_obj=six.text_type,
+            exp_type_obj=str,
         ),
         None, None, True
     ),
