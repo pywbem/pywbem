@@ -25,6 +25,9 @@ Released: not yet
 
 **Bug fixes:**
 
+* Fix issue where pywbemlistener that fails startup can cause thread
+  exception. See issue #3157
+
 **Enhancements:**
 
 **Cleanup:**
