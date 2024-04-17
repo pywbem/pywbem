@@ -72,7 +72,6 @@ sections of this chapter:
   that can be raised by the MOF compiler API.
 """
 
-from __future__ import print_function, absolute_import
 
 import sys
 import os
@@ -231,7 +230,7 @@ utf8_4_1 = r'\xF0[\x90-\xBF][\x80-\xBF][\x80-\xBF]'
 utf8_4_2 = r'[\xF1-\xF3][\x80-\xBF][\x80-\xBF][\x80-\xBF]'
 utf8_4_3 = r'\xF4[\x80-\x8F][\x80-\xBF][\x80-\xBF]'
 
-utf8Char = r'({0})|({1})|({2})|({3})|({4})|({5})|({6})|({7})'.format(
+utf8Char = r'({})|({})|({})|({})|({})|({})|({})|({})'.format(
     utf8_2, utf8_3_1, utf8_3_2, utf8_3_3, utf8_3_4, utf8_4_1, utf8_4_2,
     utf8_4_3)
 
@@ -303,11 +302,11 @@ def t_decimalValue(t):
 
 simpleEscape = r"""[bfnrt'"\\]"""
 hexEscape = r'[xX][0-9a-fA-F]{1,4}'
-escapeSequence = r'[\\](({0})|({1}))'.format(simpleEscape, hexEscape)
-cChar = r"[^'\\\n\r]|({0})".format(escapeSequence)
-sChar = r'[^"\\\n\r]|({0})'.format(escapeSequence)
+escapeSequence = fr'[\\](({simpleEscape})|({hexEscape}))'
+cChar = fr"[^'\\\n\r]|({escapeSequence})"
+sChar = fr'[^"\\\n\r]|({escapeSequence})'
 
-charvalue_re = r"'({0})'".format(cChar)
+charvalue_re = fr"'({cChar})'"
 
 
 @lex.TOKEN(charvalue_re)
@@ -315,7 +314,7 @@ def t_charValue(t):  # pylint: disable=missing-docstring
     return t
 
 
-stringvalue_re = r'"({0})*"'.format(sChar)
+stringvalue_re = fr'"({sChar})*"'
 
 
 @lex.TOKEN(stringvalue_re)
@@ -452,7 +451,7 @@ class MOFCompileError(Error):
 
           :term:`string`: Multi-line error message.
         """
-        ret_str = '{0}:'.format(self.error_kind)
+        ret_str = f'{self.error_kind}:'
         disp_file = 'String' if not self.file else self.file
         if self.lineno is not None:
             ret_str += _format("{0}:{1}:{2}",
@@ -518,7 +517,7 @@ class MOFRepositoryError(MOFCompileError):
           cim_error (:class:`~pywbem.CIMError`):
             CIM error returned by the CIM repository.
         """
-        super(MOFRepositoryError, self).__init__(msg, parser_token)
+        super().__init__(msg, parser_token)
         self._cim_error = cim_error
 
     @property
@@ -545,8 +544,8 @@ class MOFRepositoryError(MOFCompileError):
 
           :term:`string`: Multi-line error message.
         """
-        ret_str = super(MOFRepositoryError, self).get_err_msg()
-        ret_str += "\n{0}".format(self.cim_error)
+        ret_str = super().get_err_msg()
+        ret_str += f"\n{self.cim_error}"
         return ret_str
 
 
@@ -985,7 +984,7 @@ def p_classDeclaration(p):
     superclass = None
     alias = None
     quals = []
-    if isinstance(p[1], six.string_types):  # no class qualifiers
+    if isinstance(p[1], str):  # no class qualifiers
         cname = p[2]
         if p[3][0] == '$':  # alias present
             alias = p[3]
@@ -1063,7 +1062,7 @@ def p_alias(p):
 
 def p_aliasIdentifier(p):
     """aliasIdentifier : '$' identifier"""
-    p[0] = '${0}'.format(p[2])
+    p[0] = f'${p[2]}'
 
 
 def p_superClass(p):
@@ -1291,7 +1290,7 @@ def p_methodDeclaration(p):
                          """  # noqa: E501
     paramlist = []
     quals = []
-    if isinstance(p[1], six.string_types):  # no quals
+    if isinstance(p[1], str):  # no quals
         dt = p[1]
         mname = p[2]
         if p[4] != ')':
@@ -1519,7 +1518,7 @@ def _fixStringValue(s, p):
                     msg="Unicode escape sequence (e.g. '\\x12AB') requires "
                         "at least one hex character",
                     parser_token=p)
-            rv += six.unichr(hexc)
+            rv += chr(hexc)
             i += j - 1
 
         esc = False
@@ -1774,7 +1773,7 @@ def p_instanceDeclaration(p):
     alias = None
     quals = OrderedDict()
     ns = p.parser.target_namespace or p.parser.handle.default_namespace
-    if isinstance(p[1], six.string_types):  # no qualifiers
+    if isinstance(p[1], str):  # no qualifiers
         cname = p[3]
         if p[4] == '{':
             props = p[5]
@@ -2071,8 +2070,7 @@ def _get_error_context(input_, token):
     return lines
 
 
-@six.add_metaclass(ABCMeta)
-class BaseRepositoryConnection(object):
+class BaseRepositoryConnection(metaclass=ABCMeta):
     """
     An abstract base class for implementing CIM repository connections (or an
     entire CIM repository) for use by the MOF compiler. This class defines the
@@ -2696,7 +2694,7 @@ def _print_logger(msg):
     print(msg)
 
 
-class MOFCompiler(object):
+class MOFCompiler:
     """
     A MOF compiler. See :ref:`MOF Compiler` for an explanation of MOF
     compilers in general.
@@ -2798,7 +2796,7 @@ class MOFCompiler(object):
 
         if search_paths is None:
             search_paths = []
-        elif isinstance(search_paths, six.string_types):
+        elif isinstance(search_paths, str):
             search_paths = [search_paths]
         elif not isinstance(search_paths, (list, tuple)):
             raise TypeError(
@@ -3055,10 +3053,10 @@ class MOFCompiler(object):
             # try to find in search path
             rfilename = self.find_mof(os.path.basename(filename[:-4]).lower())
             if rfilename is None:
-                raise IOError(
+                raise OSError(
                     _format("No such file: {0!A}", filename))
             filename = rfilename
-        with io.open(filename, "r", encoding='utf-8') as f:
+        with open(filename, encoding='utf-8') as f:
             mof = f.read()
 
         return self.compile_string(mof, ns, filename=filename)
@@ -3163,7 +3161,7 @@ def _yacc(verbose=False, out_dir=None):
             outputdir=out_dir, write_tables=write_tables, debug=verbose,
             debuglog=yacc.NullLogger(), errorlog=yacc.PlyLogger(log_stream))
     except yacc.YaccError as exc:
-        raise MOFCompilerSetupError("{}: {}".format(exc, log_stream.getvalue()))
+        raise MOFCompilerSetupError(f"{exc}: {log_stream.getvalue()}")
     if verbose:
         print(log_stream.getvalue())
     return parser
@@ -3207,7 +3205,7 @@ def _lex(verbose=False, out_dir=None):
             # debuglog=lex.PlyLogger(sys.stdout),
             errorlog=yacc.PlyLogger(log_stream))
     except SyntaxError as exc:
-        raise MOFCompilerSetupError("{}: {}".format(exc, log_stream.getvalue()))
+        raise MOFCompilerSetupError(f"{exc}: {log_stream.getvalue()}")
     if verbose:
         print(log_stream.getvalue())
     return lexer

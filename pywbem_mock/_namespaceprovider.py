@@ -81,7 +81,7 @@ class CIMNamespaceProvider(InstanceWriteProvider):
           cimrepository (:class:`~pywbem_mock.BaseRepository` or subclass):
             Defines the CIM repository to be used by the provider.
         """
-        super(CIMNamespaceProvider, self).__init__(cimrepository)
+        super().__init__(cimrepository)
 
         if not self.find_interop_namespace():
             raise CIMError(
@@ -202,7 +202,7 @@ class CIMNamespaceProvider(InstanceWriteProvider):
 
         # Create the CIM instance for the new namespace in the CIM repository,
         # by delegating to the default provider method.
-        return super(CIMNamespaceProvider, self).CreateInstance(
+        return super().CreateInstance(
             namespace, new_instance)
 
     def ModifyInstance(self, modified_instance, IncludeQualifiers=None):

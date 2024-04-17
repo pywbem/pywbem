@@ -9,7 +9,6 @@ implementation of OpenPegasus.
 
 """
 
-from __future__ import absolute_import, print_function
 
 import socket
 import time
@@ -86,7 +85,7 @@ def test_indications(wbem_connection):  # noqa: F811
                           verbose=verbose)
 
 
-class RunIndicationTest(object):  # pylint: disable=too-many-instance-attributes
+class RunIndicationTest:  # pylint: disable=too-many-instance-attributes
     """
     Runs a test that:
     1. Creates a server
@@ -210,7 +209,7 @@ class RunIndicationTest(object):  # pylint: disable=too-many-instance-attributes
 
         if os.path.exists(self.logfile):
             if verbose:
-                print("Removing old indication logfile {}".format(self.logfile))
+                print(f"Removing old indication logfile {self.logfile}")
             os.remove(self.logfile)
 
         logging.basicConfig(filename='pegasusindicationtest.log',
@@ -249,7 +248,7 @@ class RunIndicationTest(object):  # pylint: disable=too-many-instance-attributes
         success = self.repeat_test_loop(self.repeat_loop)
 
         completion_status = "Success" if success else "Failed"
-        print("Indication test completed: {}".format(completion_status))
+        print(f"Indication test completed: {completion_status}")
 
         # Remove server_id which removes owned subscriptions for this server_id
         sub_mgr.remove_server(self.server_id)
@@ -277,7 +276,7 @@ class RunIndicationTest(object):  # pylint: disable=too-many-instance-attributes
         self.listener.add_callback(self.consume_indication)
 
         if self.verbose:
-            print("Starting listener\n {}".format(self.listener))
+            print(f"Starting listener\n {self.listener}")
         self.listener.start()
 
     def create_subscription(self, server_id, sub_mgr):
@@ -289,7 +288,7 @@ class RunIndicationTest(object):  # pylint: disable=too-many-instance-attributes
 
         # Create the destination instance
         indication_dest_url = \
-            "http://{0}:{1}".format(self.indication_destination_host,
+            "http://{}:{}".format(self.indication_destination_host,
                                     self.http_listener_port)
 
         destination = sub_mgr.add_destination(
@@ -473,7 +472,7 @@ class RunIndicationTest(object):  # pylint: disable=too-many-instance-attributes
                     last_indication_count = self.received_indication_count
                     stall_ctr = 0
 
-                    print("Rcvd {} indications.".format(last_indication_count))
+                    print(f"Rcvd {last_indication_count} indications.")
                     continue
 
                 # Nothing received in last loop and requested number not rcvd.
@@ -551,7 +550,7 @@ class RunIndicationTest(object):  # pylint: disable=too-many-instance-attributes
             return True
 
         except Error as er:  # pylint: disable=invalid-name
-            print('Error: Indication Method exception {}'.format(er))
+            print(f'Error: Indication Method exception {er}')
             return False
 
     @staticmethod

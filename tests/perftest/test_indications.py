@@ -4,7 +4,6 @@
 Measure performance of sending indications to the pywbem listener.
 """
 
-from __future__ import absolute_import
 
 import sys
 from time import sleep
@@ -111,7 +110,7 @@ def send_indications(host, http_port, send_count):
     global RCV_COUNT  # pylint: disable=global-statement
     global RCV_ERRORS  # pylint: disable=global-statement
 
-    url = 'http://{}:{}'.format(host, http_port)
+    url = f'http://{host}:{http_port}'
     cim_protocol_version = '1.4'
     headers = {
         'Content-Type': 'application/xml; charset=utf-8',

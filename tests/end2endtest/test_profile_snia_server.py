@@ -2,7 +2,6 @@
 End2end tests for SNIA 'Server' profile.
 """
 
-from __future__ import absolute_import, print_function
 
 import warnings
 
@@ -35,7 +34,7 @@ class Test_SNIA_Server_Profile(ProfileTest):
     """
 
     def init_profile(self, conn):  # pylint: disable=arguments-differ
-        super(Test_SNIA_Server_Profile, self).init_profile(
+        super().init_profile(
             conn, profile_org='SNIA', profile_name='Server')
 
     def test_get_central_instances(self, wbem_connection):  # noqa: F811

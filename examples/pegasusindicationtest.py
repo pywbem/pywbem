@@ -16,7 +16,6 @@ This example:
 1. Only handles http WBEM server and listener because parameters do not include
    certificates.
 """
-from __future__ import print_function, absolute_import
 
 import sys
 import socket
@@ -55,11 +54,11 @@ def get_real_ip_address(verbose):
     ip_address = sock.getsockname()[0]
     sock.close()
     if verbose:
-        print("Using IP {} as listener bind address".format(ip_address))
+        print(f"Using IP {ip_address} as listener bind address")
     return ip_address
 
 
-class RunIndicationTest(object):
+class RunIndicationTest:
     # pylint: disable=too-many-instance-attributes, useless-object-inheritance
     """
     Sets up and runs the indication test and removes subscriptions at the
@@ -201,7 +200,7 @@ class RunIndicationTest(object):
         if cmd is None or cmd == "run":
             success = self.repeat_test_loop(self.repeat_loop)
             completion_status = "Success" if success else "Failed"
-            print("Indication test completed: {}".format(completion_status))
+            print(f"Indication test completed: {completion_status}")
             if not success:
                 sys.exit(1)
 
@@ -231,7 +230,7 @@ class RunIndicationTest(object):
         self.listener.add_callback(self.indication_consumer)
 
         if self.verbose:
-            print("Starting listener\n {}".format(self.listener))
+            print(f"Starting listener\n {self.listener}")
         self.listener.start()
 
     def create_subscription(self, server_id, sub_mgr):
@@ -243,7 +242,7 @@ class RunIndicationTest(object):
 
         # Create the destination instance
         indication_dest_url = \
-            "http://{0}:{1}".format(self.indication_destination_host,
+            "http://{}:{}".format(self.indication_destination_host,
                                     self.http_listener_port)
 
         destination = sub_mgr.add_destination(
@@ -420,7 +419,7 @@ class RunIndicationTest(object):
                     last_indication_count = self.received_indication_count
                     stall_ctr = 0
 
-                    print("Rcvd {} indications.".format(last_indication_count))
+                    print(f"Rcvd {last_indication_count} indications.")
                     continue
 
                 # Nothing received in last loop and requested number not rcvd.
@@ -514,7 +513,7 @@ class RunIndicationTest(object):
             return True
 
         except Error as er:  # pylint: disable=invalid-name
-            print('Error: Indication Method exception {}'.format(er))
+            print(f'Error: Indication Method exception {er}')
             return False
 
     @staticmethod
@@ -702,7 +701,7 @@ def main():  # pylint: disable=too-many-branches
 
     # Setup logging for requests to server and indications if --log set
     basename = prog_name.rsplit(".", 1)[0]
-    log_file_name = "{}.log".format(basename) if args.log else None
+    log_file_name = f"{basename}.log" if args.log else None
     if args.log:
         if args.verbose:
             print("Configure pywbem logger to files: requests={}, "
@@ -712,7 +711,7 @@ def main():  # pylint: disable=too-many-branches
 
         if os.path.exists(log_file_name):
             if args.verbose:
-                print("Removing old logfile {}".format(log_file_name))
+                print(f"Removing old logfile {log_file_name}")
             os.remove(log_file_name)
 
         logging.basicConfig(filename=log_file_name,

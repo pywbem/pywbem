@@ -143,11 +143,11 @@ def build_schema_mof(class_names, schema_pragma_file):
         ValueError: If any of the classnames in `schema_classes` are not in
         the `CIM schema pragma file`.
     """
-    if isinstance(class_names, six.string_types):
+    if isinstance(class_names, str):
         class_names = [class_names]
 
     schema_lines = []
-    with io.open(schema_pragma_file, 'r', encoding='utf-8') as f:
+    with open(schema_pragma_file, encoding='utf-8') as f:
         schema_lines = f.readlines()
 
     # Build list  classname/line number pairs
@@ -183,7 +183,7 @@ def build_schema_mof(class_names, schema_pragma_file):
     return ''.join(output_lines)
 
 
-class DMTFCIMSchema(object):
+class DMTFCIMSchema:
     """
     :class:`DMTFCIMSchema` represents a DMTF CIM Schema downloaded from the
     DMTF web site.
@@ -261,7 +261,7 @@ class DMTFCIMSchema(object):
                         "(major, minor, update version) not {v!A}",
                         v=schema_version))  # is a tuple
         for i in schema_version:
-            if not isinstance(i, six.integer_types):
+            if not isinstance(i, int):
                 raise TypeError(
                     _format("{0!A} in schema_version {v!A} not integer",
                             i, v=schema_version))  # is a tuple
@@ -269,11 +269,11 @@ class DMTFCIMSchema(object):
         self._schema_version = schema_version
         self._schema_root_dir = schema_root_dir
 
-        mof_dir = 'mof{0}{1}'.format(schema_type, self.schema_version_str)
+        mof_dir = f'mof{schema_type}{self.schema_version_str}'
         self._schema_mof_dir = os.path.join(self._schema_root_dir, mof_dir)
 
-        cim_schema_version = 'cim_schema_{0}'.format(self.schema_version_str)
-        mof_zip_bn = '{0}{1}-MOFs.zip'.format(cim_schema_version, schema_type)
+        cim_schema_version = f'cim_schema_{self.schema_version_str}'
+        mof_zip_bn = f'{cim_schema_version}{schema_type}-MOFs.zip'
         self._schema_zip_url = \
             'https://www.dmtf.org/sites/default/files/cim/' \
             'cim_schema_v{0}{1}{2}/{3}'. \
@@ -311,7 +311,7 @@ class DMTFCIMSchema(object):
 
         Example: "2.49.0" defines DMTF CIM schema version 2.49.0.
         """
-        return '{0}.{1}.{2}'.format(*self.schema_version)
+        return '{}.{}.{}'.format(*self.schema_version)
 
     @property
     def schema_root_dir(self):
@@ -378,9 +378,9 @@ class DMTFCIMSchema(object):
         This displays the major properties of the object.
         """
 
-        return '{0}(schema_version_str={1}, schema_root_dir={2}, ' \
-               'schema_mof_dir={3}, ' \
-               'schema_pragma_file={4})'.format(
+        return '{}(schema_version_str={}, schema_root_dir={}, ' \
+               'schema_mof_dir={}, ' \
+               'schema_pragma_file={})'.format(
                    self.__class__.__name__,
                    self.schema_version_str,
                    self.schema_root_dir,
@@ -393,9 +393,9 @@ class DMTFCIMSchema(object):
         :class:`~pywbem_mock.DMTFCIMSchema` object that is suitable for
         debugging.
         """
-        return '{0}(schema_version={1}, schema_root_dir={2}, ' \
-               'schema_zip_file={3}, schema_mof_dir={4}, ' \
-               'schema_pragma_file={5}, schema_zip_url={6})' \
+        return '{}(schema_version={}, schema_root_dir={}, ' \
+               'schema_zip_file={}, schema_mof_dir={}, ' \
+               'schema_pragma_file={}, schema_zip_url={})' \
                .format(self.__class__.__name__,
                        self.schema_version,
                        self.schema_root_dir,
@@ -455,13 +455,13 @@ class DMTFCIMSchema(object):
 
             try:
                 ufo = urlopen(self.schema_zip_url)
-            except IOError as ie:
+            except OSError as ie:
                 os.rmdir(self.schema_root_dir)
                 raise ValueError(
                     _format("DMTF Schema archive not found at url {0}: {1}",
                             self.schema_zip_url, ie))
 
-            with io.open(self.schema_zip_file, 'wb') as fp:
+            with open(self.schema_zip_file, 'wb') as fp:
                 for data in ufo:
                     fp.write(data)
 
@@ -483,7 +483,7 @@ class DMTFCIMSchema(object):
                     if not os.path.exists(dfile):
                         os.mkdir(dfile)
                 else:
-                    with io.open(dfile, 'w+b') as dfp:
+                    with open(dfile, 'w+b') as dfp:
                         dfp.write(zfp.read(file_))
 
     def build_schema_mof(self, class_names):

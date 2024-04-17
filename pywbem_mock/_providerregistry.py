@@ -46,7 +46,7 @@ from ._utils import _uprint
 __all__ = ['ProviderRegistry']
 
 
-class ProviderRegistry(object):
+class ProviderRegistry:
     """
     This class defines the provider registry with methods to register
     a provider and to get the registered provider for a particular classname
@@ -98,14 +98,14 @@ class ProviderRegistry(object):
 
             widths = [max(map(len, col)) for col in zip(*rows)]
             for row in rows:
-                _uprint(dest, u"  {0}".format(
-                    u"  ".join((val.ljust(width) for
-                                (val, width) in zip(row, widths)))))
+                _uprint(dest, "  {}".format(
+                    "  ".join(val.ljust(width) for
+                                (val, width) in zip(row, widths))))
 
         _uprint(dest, "Registered Providers:")
         for ns in self.provider_namespaces():
             rows = []
-            _uprint(dest, _format(u'namespace: {0}', ns))
+            _uprint(dest, _format('namespace: {0}', ns))
             for class_name in sorted(self.provider_classes(ns)):
                 for type_ in sorted(self.provider_types(ns, class_name)):
                     provider = self.provider_obj(ns, class_name, type_)
@@ -205,7 +205,7 @@ class ProviderRegistry(object):
         # pylint: enable=line-too-long
 
         if schema_pragma_files:
-            if isinstance(schema_pragma_files, six.string_types):
+            if isinstance(schema_pragma_files, str):
                 schema_pragma_files = [schema_pragma_files]
 
         try:
@@ -242,7 +242,7 @@ class ProviderRegistry(object):
         if namespaces is None:
             namespaces = [conn.default_namespace]
 
-        if isinstance(namespaces, six.string_types):
+        if isinstance(namespaces, str):
             namespaces = [namespaces]
 
         if not isinstance(namespaces, (list, tuple)):
@@ -252,7 +252,7 @@ class ProviderRegistry(object):
                         namespaces, type(namespaces)))
 
         for namespace in namespaces:
-            if not isinstance(namespace, six.string_types):
+            if not isinstance(namespace, str):
                 raise TypeError(
                     _format('Namespace "{0!A}" in namespaces argument not '
                             'a string. ', namespace))
@@ -264,12 +264,12 @@ class ProviderRegistry(object):
                             'Existing namespaces are: {1!A}. ',
                             namespace, conn.namespaces))
 
-        if isinstance(provider_classnames, six.string_types):
+        if isinstance(provider_classnames, str):
             provider_classnames = [provider_classnames]
         assert isinstance(provider_classnames, (list, tuple))
 
         for classname in provider_classnames:
-            assert isinstance(classname, six.string_types)
+            assert isinstance(classname, str)
 
         # For each namespace in which the provider is to be registered,
         # if the class is not in that namespace, either compile it in if

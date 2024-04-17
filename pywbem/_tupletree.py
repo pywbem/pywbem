@@ -53,7 +53,6 @@ The fourth element is reserved.
 #       in Nov. 2016. The dom tupletree code is in the file
 #       tests/unittest/pywbem/test_tupletree.py
 
-from __future__ import absolute_import
 
 import xml.sax
 import re
@@ -116,7 +115,7 @@ class CIMContentHandler(xml.sax.ContentHandler):
         children = self.element[2]  # mutable list
         # If the last node is a character node, append the content to it.
         # Otherwise, append a new character node with the content.
-        if children and isinstance(children[-1], six.text_type):
+        if children and isinstance(children[-1], str):
             children[-1] += content
         else:
             children.append(content)
@@ -200,7 +199,7 @@ def xml_to_tupletree_sax(xml_string, meaning, conn_id=None):
             _format("XML parsing error encountered in {0}: {1}\n{2}\n",
                     meaning, exc, xml_msg),
             conn_id=conn_id)
-        six.reraise(type(pe), pe, org_tb)  # ignore this call in traceback!
+        raise pe.with_traceback(org_tb)  # ignore this call in traceback!
 
     return handler.root
 
@@ -247,7 +246,7 @@ def get_failing_line(xml_string, exc_msg):
     max_before = 500  # max characters before reported position
     max_after = 500  # max characters after reported position
     max_unknown = 1000  # max characters when position cannot be determined
-    assert isinstance(xml_string, six.binary_type)
+    assert isinstance(xml_string, bytes)
     m = re.search(r':(\d+):(\d+):', exc_msg)
     if not m:
         xml_string, _ = truncate_line(xml_string, 1, 0, max_unknown - 1)
@@ -371,7 +370,7 @@ def check_invalid_utf8_sequences(utf8_string, meaning, conn_id=None):
     context_after = 16     # number of chars to print after any bad chars
 
     try:
-        assert isinstance(utf8_string, six.binary_type)
+        assert isinstance(utf8_string, bytes)
     except AssertionError:
         raise TypeError(
             _format("utf8_string parameter is not a byte string, but has "
@@ -390,9 +389,9 @@ def check_invalid_utf8_sequences(utf8_string, meaning, conn_id=None):
         exc_txt = _format("Ill-formed (surrogate) UTF-8 Byte sequences found "
                           "in {0}:", meaning)
         for (ifs_pos, ifs_seq) in ifs_list:
-            exc_txt += "\n  At offset {0}:".format(ifs_pos)
-            for ifs_ord in six.iterbytes(ifs_seq):
-                exc_txt += " 0x{0:02X}".format(ifs_ord)
+            exc_txt += f"\n  At offset {ifs_pos}:"
+            for ifs_ord in iter(ifs_seq):
+                exc_txt += f" 0x{ifs_ord:02X}"
             cpos1 = max(ifs_pos - context_before, 0)
             cpos2 = min(ifs_pos + context_after, len(utf8_string))
             exc_txt += _format(", CIM-XML snippet: {0!A}",
@@ -416,10 +415,10 @@ def check_invalid_utf8_sequences(utf8_string, meaning, conn_id=None):
 
         exc_txt = "Incorrectly encoded UTF-8 Byte sequences found in {0}". \
             format(meaning)
-        exc_txt += "\n  At offset {0}:".format(_p1)
+        exc_txt += f"\n  At offset {_p1}:"
         ies_seq = utf8_string[_p1:_p2 + 1]
-        for ies_ord in six.iterbytes(ies_seq):
-            exc_txt += " 0x{0:02X}".format(ies_ord)
+        for ies_ord in iter(ies_seq):
+            exc_txt += f" 0x{ies_ord:02X}"
         cpos1 = max(_p1 - context_before, 0)
         cpos2 = min(_p2 + context_after, len(utf8_string))
         exc_txt += _format(", CIM-XML snippet: {0!A}",
@@ -430,14 +429,14 @@ def check_invalid_utf8_sequences(utf8_string, meaning, conn_id=None):
 
 
 # Patterns for check_invalid_xml_chars()
-if len(u'\U00010122') == 2:
+if len('\U00010122') == 2:
     # This is a "narrow" Unicode build of Python (the normal case).
     _ILLEGAL_XML_CHARS_RE = re.compile(
-        u'([\u0000-\u0008\u000B-\u000C\u000E-\u001F\uFFFE\uFFFF])')
+        '([\u0000-\u0008\u000B-\u000C\u000E-\u001F\uFFFE\uFFFF])')
 else:
     # This is a "wide" Unicode build of Python.
     _ILLEGAL_XML_CHARS_RE = re.compile(
-        u'([\u0000-\u0008\u000B-\u000C\u000E-\u001F\uD800-\uDFFF\uFFFE\uFFFF])')
+        '([\u0000-\u0008\u000B-\u000C\u000E-\u001F\uD800-\uDFFF\uFFFE\uFFFF])')
 
 
 def check_invalid_xml_chars(xml_string, meaning, conn_id=None):
@@ -485,7 +484,7 @@ def check_invalid_xml_chars(xml_string, meaning, conn_id=None):
     context_after = 16     # number of chars to print after any bad chars
 
     try:
-        assert isinstance(xml_string, six.text_type)
+        assert isinstance(xml_string, str)
     except AssertionError:
         raise TypeError(
             _format("xml_string parameter is not a unicode string, but has "
@@ -502,7 +501,7 @@ def check_invalid_xml_chars(xml_string, meaning, conn_id=None):
             ixc_list.append((ixc_pos, ixc_char))
         last_ixc_pos = ixc_pos
     if ixc_list:
-        exc_txt = "Invalid XML characters found in {0}:".format(meaning)
+        exc_txt = f"Invalid XML characters found in {meaning}:"
         for (ixc_pos, ixc_char) in ixc_list:
             cpos1 = max(ixc_pos - context_before, 0)
             cpos2 = min(ixc_pos + context_after, len(xml_string))

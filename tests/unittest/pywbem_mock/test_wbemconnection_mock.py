@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # (C) Copyright 2018 InovaDevelopment.com
 #
@@ -28,7 +27,6 @@ completely incompatible because fixtures are resolved as test parameters and
 simplified_test_function completely controls the test parameters.
 
 """
-from __future__ import absolute_import, print_function
 
 import os
 import io
@@ -47,7 +45,7 @@ import six
 try:
     from unittest.mock import Mock
 except ImportError:
-    from mock import Mock
+    from unittest.mock import Mock
 
 import pytest
 from testfixtures import OutputCapture
@@ -169,7 +167,7 @@ def fix_instname_namespace_keys(inst_name, ns):
     inst_name = inst_name.copy()  # copy so we do not change original
     # iterate through the keybindings for any that are CIMInstanceName
     # If the namespace component is None, modify to the value of ns
-    for value in six.itervalues(inst_name.keybindings):
+    for value in inst_name.keybindings.values():
         if isinstance(value, CIMInstanceName):
             if value.namespace is None:
                 value.namespace = ns
@@ -247,7 +245,7 @@ def objs_equal(objdict1, objdict2, obj_type, parent_obj_name):
     if objdict1 == objdict2:
         return True
 
-    print('Mismatch: Obj type=%s parent name %s' % (obj_type, parent_obj_name))
+    print('Mismatch: Obj type={} parent name {}'.format(obj_type, parent_obj_name))
 
     if len(objdict1) != len(objdict2):
         print('Number of %s(s):%s differ\n  p1(len=%s)=%s\n  p2(len=%s)=%s' %
@@ -258,7 +256,7 @@ def objs_equal(objdict1, objdict2, obj_type, parent_obj_name):
 
     for name, value in objdict1.items():
         if name not in objdict2:
-            print('%s:%s %s in %s not in %s' % (obj_type, parent_obj_name,
+            print('{}:{} {} in {} not in {}'.format(obj_type, parent_obj_name,
                                                 name,
                                                 objdict1.keys().sort(),
                                                 objdict2.keys().sort()))
@@ -317,10 +315,10 @@ def classes_equal(cls1, cls2):
     if cls1 == cls2:
         return True
     if cls1.classname != cls2.classname:
-        print("Classname mismatch %s != %s" % (cls1.classname, cls2.classname))
+        print("Classname mismatch {} != {}".format(cls1.classname, cls2.classname))
         return False
     if cls1.superclass and cls1.superclass != cls2.superclass:
-        print("Class %s superclass mismatch %s != %s" % (cls1. classname,
+        print("Class {} superclass mismatch {} != {}".format(cls1. classname,
                                                          cls1.superclass,
                                                          cls2.superclass))
         return False
@@ -505,7 +503,7 @@ def build_cimfoo_instance(id_):
     used to create the unique identity. The input parameter id_ is used
     to create the value for the key property InstanceID.
     """
-    iname = 'CIM_Foo{}'.format(id_)
+    iname = f'CIM_Foo{id_}'
     return CIMInstance('CIM_Foo',
                        properties={'InstanceID': iname},
                        path=CIMInstanceName('CIM_Foo', {'InstanceID': iname}))
@@ -516,7 +514,7 @@ def build_cimfoosub_instance(id_):
     Build a single instance of an instance of CIM_Foo where id is
     used to create the unique identity.
     """
-    inst_id = 'CIM_Foo_sub{}'.format(id_)
+    inst_id = f'CIM_Foo_sub{id_}'
     inst = CIMInstance('CIM_Foo_sub',
                        properties={
                            'InstanceID': inst_id,
@@ -531,7 +529,7 @@ def build_cimfoosub2_instance(id_):
     Build a single instance of an instance of CIM_Foo_sub2 where id is
     used to create the unique identity.
     """
-    inst_id = 'CIM_Foo_sub{}'.format(id_)
+    inst_id = f'CIM_Foo_sub{id_}'
     inst = CIMInstance('CIM_Foo_sub2',
                        properties={
                            'InstanceID': inst_id,
@@ -547,11 +545,11 @@ def build_cimfoosub_sub_instance(id_):
     Build a single instance of an instance of CIM_Foo_sub2 where id is
     used to create the unique identity.
     """
-    inst_id = 'CIM_Foo_sub_sub{}'.format(id_)
+    inst_id = f'CIM_Foo_sub_sub{id_}'
     inst = CIMInstance('CIM_Foo_sub_sub',
                        properties={
                            'InstanceID': inst_id,
-                           'cimfoo_sub': 'cimfoo_sub prop:{}'.format(inst_id),
+                           'cimfoo_sub': f'cimfoo_sub prop:{inst_id}',
                            'cimfoo_sub_sub': 'cimfoo_sub_sub:{}'.
                                              format(inst_id)},
                        path=CIMInstanceName('CIM_Foo_sub_sub',
@@ -577,7 +575,7 @@ def tst_instances():
     rtn = []
     # Build 3 instance of each of the classes useing the classname<integer) as
     # the instance name
-    for i in six.moves.range(1, 4):
+    for i in range(1, 4):
         rtn.append(build_cimfoo_instance(i))
         rtn.append(build_cimfoosub_instance(i))
         rtn.append(build_cimfoosub2_instance(i))
@@ -606,7 +604,7 @@ def tst_insts_big():
     list_size = 100
     big_list = []
 
-    for i in six.moves.range(4, list_size + 1):
+    for i in range(4, list_size + 1):
         big_list.append(build_cimfoo_instance(i))
     return big_list
 
@@ -940,7 +938,7 @@ def add_objects_to_repo(conn, namespace, objects_list):
     assert isinstance(objects_list, (list, tuple))
 
     for obj in objects_list:
-        if isinstance(obj, six.string_types):
+        if isinstance(obj, str):
             conn.compile_mof_string(obj, namespace=namespace)
         else:
             conn.add_cimobjects(obj, namespace=namespace)
@@ -963,7 +961,7 @@ def add_objects_to_repo(conn, namespace, objects_list):
 #########################################################################
 
 
-class TestFakedWBEMConnection(object):
+class TestFakedWBEMConnection:
     """
     Test the basic characteristics of the FakedWBEMConnection including
     init parameters.
@@ -1156,7 +1154,7 @@ class TestFakedWBEMConnection(object):
         assert conn2.url == 'http://FakedUrl2:5988'
 
 
-class TestRepoMethods(object):
+class TestRepoMethods:
     """
     Test the repository support methods including the ability to add objects
     to the repository, _get_subclass_names, _get_superclass_names, _get_class,
@@ -1323,28 +1321,28 @@ class TestRepoMethods(object):
                                                include_classorigin=ico,
                                                property_list=pl)
 
-        cl_props = [p.name for p in six.itervalues(rslt_cl.properties)]
+        cl_props = [p.name for p in rslt_cl.properties.values()]
 
         class_store = conn.cimrepository.get_class_store(ns)
         tst_class = class_store.get(cln)
 
         if ico:
-            for prop in six.itervalues(rslt_cl.properties):
+            for prop in rslt_cl.properties.values():
                 assert prop.class_origin
-            for method in six.itervalues(rslt_cl.methods):
+            for method in rslt_cl.methods.values():
                 assert method.class_origin
         else:
-            for prop in six.itervalues(rslt_cl.properties):
+            for prop in rslt_cl.properties.values():
                 assert not prop.class_origin
-            for method in six.itervalues(rslt_cl.methods):
+            for method in rslt_cl.methods.values():
                 assert not method.class_origin
 
         if not iq:
             assert not rslt_cl.qualifiers
-            for prop in six.itervalues(rslt_cl.properties):
+            for prop in rslt_cl.properties.values():
                 assert not prop.qualifiers
-            for method in six.itervalues(rslt_cl.methods):
-                for param in six.itervalues(method.parameters):
+            for method in rslt_cl.methods.values():
+                for param in method.parameters.values():
                     assert not param.qualifiers
         else:
             assert rslt_cl.qualifiers == tst_class.qualifiers
@@ -1471,31 +1469,31 @@ class TestRepoMethods(object):
             assert inst.path.host is None
 
             if IGNORE_INSTANCE_ICO_PARAM:
-                for prop in six.itervalues(inst.properties):
+                for prop in inst.properties.values():
                     assert not prop.class_origin
             else:
                 if ico:
-                    for prop in six.itervalues(inst.properties):
+                    for prop in inst.properties.values():
                         assert prop.class_origin
                 else:
-                    for prop in six.itervalues(inst.properties):
+                    for prop in inst.properties.values():
                         assert not prop.class_origin
 
             if IGNORE_INSTANCE_IQ_PARAM:
                 assert not inst.qualifiers
-                for prop in six.itervalues(inst.properties):
+                for prop in inst.properties.values():
                     assert not prop.qualifiers
             else:
                 if not iq:
                     assert not inst.qualifiers
-                    for prop in six.itervalues(inst.properties):
+                    for prop in inst.properties.values():
                         assert not prop.qualifiers
                 else:
                     bare_inst = conn._mainprovider._get_bare_instance(
                         iname, instance_store)
                     if bare_inst.qualifiers:
                         assert inst.qualifiers
-                    for prop in six.itervalues(inst.properties):
+                    for prop in inst.properties.values():
                         if bare_inst.properties[prop.name].qualifiers:
                             assert prop.qualifiers
 
@@ -1588,7 +1586,7 @@ class TestRepoMethods(object):
 
             inst_id = 'CIM_foo_sub_sub_test_unicode'
 
-            str_data = u'\u212b \u0420 \u043e \u0441 \u0441\u0438 \u044f \u00e0'
+            str_data = '\u212b \u0420 \u043e \u0441 \u0441\u0438 \u044f \u00e0'
             inst = CIMInstance(
                 'CIM_Foo_sub_sub',
                 properties={
@@ -1694,7 +1692,7 @@ class TestRepoMethods(object):
         conn.display_repository(dest=tst_file)
 
         assert os.path.isfile(tst_file)
-        with io.open(tst_file, 'r', encoding='utf-8') as f:
+        with open(tst_file, encoding='utf-8') as f:
             data = f.read()
         # test key parts of resulting file.
         assert data.startswith(
@@ -1934,7 +1932,7 @@ class TestRepoMethods(object):
             Flavor(DisableOverride, ToSubclass);
         """
 
-        cmof = u"""
+        cmof = """
         class CIM_Foo {
                 [Key,
                  Description ("\u212b \u0420\u043e\u0441\u0441\u0438"
@@ -2080,7 +2078,7 @@ class TestRepoMethods(object):
         assert len(clns) == 5
         cls = conn.EnumerateClasses(namespace=ns, DeepInheritance=True)
         assert len(cls) == 5
-        assert set(clns) == set([cl_.classname for cl_ in cls])
+        assert set(clns) == {cl_.classname for cl_ in cls}
 
     def test_compile_classes_multiple_ns(self, conn, tst_classes_mof):
         # pylint: disable=no-self-use
@@ -2108,7 +2106,7 @@ class TestRepoMethods(object):
         assert len(clns) == 5
         cls = conn.EnumerateClasses(namespace=ns, DeepInheritance=True)
         assert len(cls) == 5
-        assert set(clns) == set([cl_.classname for cl_ in cls])
+        assert set(clns) == {cl_.classname for cl_ in cls}
 
         quals = conn.EnumerateQualifiers()
 
@@ -2147,7 +2145,7 @@ class TestRepoMethods(object):
         assert len(clns) == 5
         cls = conn.EnumerateClasses(namespace=ns, DeepInheritance=True)
         assert len(cls) == 5
-        assert set(clns) == set([cl_.classname for cl_ in cls])
+        assert set(clns) == {cl_.classname for cl_ in cls}
 
         quals = conn.EnumerateQualifiers()
 
@@ -2155,7 +2153,7 @@ class TestRepoMethods(object):
         # the namespace pragma in the mof
         ns = 'new_namespace'
         conn.add_namespace(ns)
-        new_class_mof = '#pragma namespace ("{}")'.format(ns) + tst_classes_mof
+        new_class_mof = f'#pragma namespace ("{ns}")' + tst_classes_mof
         conn.compile_mof_string(new_class_mof, namespace=ns)
 
         assert conn.EnumerateQualifiers(namespace=ns) == quals
@@ -2189,7 +2187,7 @@ class TestRepoMethods(object):
         assert len(clns) == 5
         cls = conn.EnumerateClasses(namespace=ns, DeepInheritance=True)
         assert len(cls) == 5
-        assert set(clns) == set([cl_.classname for cl_ in cls])
+        assert set(clns) == {cl_.classname for cl_ in cls}
 
         quals = conn.EnumerateQualifiers()
 
@@ -2197,7 +2195,7 @@ class TestRepoMethods(object):
         # the namespace pragma in the mof
         ns = 'new_namespace'
         conn.add_namespace(ns)
-        new_class_mof = '#pragma namespace ("{}")'.format(ns) + tst_classes_mof
+        new_class_mof = f'#pragma namespace ("{ns}")' + tst_classes_mof
         # Compile without the ns parameter. The pragma should determine
         # the namespace
         conn.compile_mof_string(new_class_mof)
@@ -2221,7 +2219,7 @@ class TestRepoMethods(object):
         # the namespace pragma in the mof
         conn.add_namespace('interop')
         ns = 'new_namespace'
-        new_class_mof = '#pragma namespace ("{}")'.format(ns) + tst_classes_mof
+        new_class_mof = f'#pragma namespace ("{ns}")' + tst_classes_mof
         # Compile without the ns parameter and namespace does not exist.
         # should fail.
         try:
@@ -2244,7 +2242,7 @@ class TestRepoMethods(object):
         # Compile into second repository added by add_namespaces and with
         # the namespace pragma in the mof with no interop namespace defined.
         ns = 'new_namespace'
-        new_class_mof = '#pragma namespace ("{}")'.format(ns) + tst_classes_mof
+        new_class_mof = f'#pragma namespace ("{ns}")' + tst_classes_mof
         # Compile without the ns parameter and namespace does not exist.
         # should fail.
         try:
@@ -2275,7 +2273,7 @@ class TestRepoMethods(object):
             """
         # compile as single unit by combining classes and instances
         # The compiler builds the instance paths.
-        all_mof = '%s\n\n%s' % (tst_classes_mof, insts_mof)
+        all_mof = '{}\n\n{}'.format(tst_classes_mof, insts_mof)
 
         # The code to be tested
         conn.compile_mof_string(all_mof, namespace=ns)
@@ -2701,7 +2699,7 @@ class UserInstanceTestProvider(InstanceWriteProvider):
         """
         Init of test provider
         """
-        super(UserInstanceTestProvider, self).__init__(cimrepository)
+        super().__init__(cimrepository)
 
     def __repr__(self):
         return _format(
@@ -2713,13 +2711,13 @@ class UserInstanceTestProvider(InstanceWriteProvider):
     def CreateInstance(self, namespace, new_instance):
         """Test Create instance just calls super class method"""
         # pylint: disable=useless-super-delegation
-        return super(UserInstanceTestProvider, self).CreateInstance(
+        return super().CreateInstance(
             namespace, new_instance)
 
     def DeleteInstance(self, InstanceName):
         """Test Create instance just calls super class method"""
         # pylint: disable=useless-super-delegation
-        return super(UserInstanceTestProvider, self).DeleteInstance(
+        return super().DeleteInstance(
             InstanceName)
 
 
@@ -2734,7 +2732,7 @@ class UserInstanceTestProvider2(InstanceWriteProvider):
         """
         Init of test provider
         """
-        super(UserInstanceTestProvider2, self).__init__(cimrepository)
+        super().__init__(cimrepository)
 
     def __repr__(self):
         return _format(
@@ -2746,13 +2744,13 @@ class UserInstanceTestProvider2(InstanceWriteProvider):
     def CreateInstance(self, namespace, new_instance):
         """Test Create instance just calls super class method"""
         # pylint: disable=useless-super-delegation
-        return super(UserInstanceTestProvider2, self).CreateInstance(
+        return super().CreateInstance(
             namespace, new_instance)
 
     def DeleteInstance(self, InstanceName):
         """Test Create instance just calls super class method"""
         # pylint: disable=useless-super-delegation
-        return super(UserInstanceTestProvider2, self).DeleteInstance(
+        return super().DeleteInstance(
             InstanceName)
 
 
@@ -2766,7 +2764,7 @@ class UserMethodTestProvider(MethodProvider):
         """
         Init of test provider
         """
-        super(UserMethodTestProvider, self).__init__(cimrepository)
+        super().__init__(cimrepository)
 
     def __repr__(self):
         return _format(
@@ -2781,7 +2779,7 @@ class UserMethodTestProvider(MethodProvider):
         return (0, None)
 
 
-class TestUserDefinedProviders(object):
+class TestUserDefinedProviders:
     """
     Test the repository support for use of user providers that are
     registered and substituted for the default provider.
@@ -2847,7 +2845,7 @@ class TestUserDefinedProviders(object):
             if not isinstance(provider_classnames, (list, tuple)):
                 provider_classnames = [provider_classnames]
 
-            if isinstance(tst_ns, six.string_types):
+            if isinstance(tst_ns, str):
                 tst_ns = [tst_ns]
 
             if not tst_ns:
@@ -3132,7 +3130,7 @@ class TestUserDefinedProviders(object):
             assert "CIM_Foo  instance  UserInstanceTestProvider" in result
 
             for ns in nss:
-                assert "namespace: {0}".format(ns) in result
+                assert f"namespace: {ns}" in result
 
     def test_user_provider1(self, conn, tst_classeswqualifiers, tst_instances):
         """
@@ -3153,7 +3151,7 @@ class TestUserDefinedProviders(object):
                 """
                 Init of test provider
                 """
-                super(CIM_FooUserProvider, self).__init__(cimrepository)
+                super().__init__(cimrepository)
 
             def CreateInstance(self, namespace, new_instance):
                 """
@@ -3166,7 +3164,7 @@ class TestUserDefinedProviders(object):
 
                 # send back to the superclass to complete insertion into
                 # the repository.
-                return super(CIM_FooUserProvider, self).CreateInstance(
+                return super().CreateInstance(
                     namespace, new_instance)
 
         skip_if_moftab_regenerated()
@@ -3222,7 +3220,7 @@ class TestUserDefinedProviders(object):
                 """
                 Init of test provider
                 """
-                super(CIM_FooSubUserProvider, self).__init__(cimrepository)
+                super().__init__(cimrepository)
 
             def ModifyInstance(self, modified_instance, IncludeQualifiers=None):
                 """
@@ -3240,7 +3238,7 @@ class TestUserDefinedProviders(object):
 
                 # send back to the superclass to complete insertion into
                 # the repository.
-                return super(CIM_FooSubUserProvider, self).ModifyInstance(
+                return super().ModifyInstance(
                     modified_instance, IncludeQualifiers)
 
         skip_if_moftab_regenerated()
@@ -3296,7 +3294,7 @@ class TestUserDefinedProviders(object):
                 Test user-defined provider that has only the DeleteInstance
                 method.  Note that this provider constructor includes conn
                 """
-                super(CIM_FooSubUserProvider, self).__init__(cimrepository)
+                super().__init__(cimrepository)
 
                 self.conn = conn
                 self.createinstance = False
@@ -3313,7 +3311,7 @@ class TestUserDefinedProviders(object):
                 # modify the InstanceID property
                 new_instance.properties["InstanceID"].value = "USER_PROVIDER3"
 
-                return super(CIM_FooSubUserProvider, self).CreateInstance(
+                return super().CreateInstance(
                     namespace, new_instance)
 
             def ModifyInstance(self, modified_instance, IncludeQualifiers=None):
@@ -3321,7 +3319,7 @@ class TestUserDefinedProviders(object):
                 My user ModifyInstance.  Change value of the property as a flag
                 """
                 self.modifyinstance = True
-                return super(CIM_FooSubUserProvider, self).ModifyInstance(
+                return super().ModifyInstance(
                     modified_instance)
 
             def DeleteInstance(self, InstanceName):
@@ -3329,7 +3327,7 @@ class TestUserDefinedProviders(object):
                 Delete the defined instance
                 """
                 self.deleteinstance = True
-                return super(CIM_FooSubUserProvider, self).DeleteInstance(
+                return super().DeleteInstance(
                     InstanceName)
 
             def post_register_setup(self, conn):
@@ -3401,7 +3399,7 @@ def assert_resolved_classes_equal(conn, ns, exp_class, tst_class):
     assert_classes_equal(exp_resolved, tst_class)
 
 
-class TestClassOperations(object):
+class TestClassOperations:
     """
     Test mocking of Class level operations including getClass,
     EnumerateClasses, EnumerateClassNames, CreateClass, DeleteClass.
@@ -3687,7 +3685,7 @@ class TestClassOperations(object):
                                                  DeepInheritance=di)
 
         for cln_ in rslt_clns:
-            assert isinstance(cln_, six.string_types)
+            assert isinstance(cln_, str)
         assert len(rslt_clns) == len(exp_rslt)
         assert set(rslt_clns) == set(exp_rslt)
 
@@ -3804,7 +3802,7 @@ class TestClassOperations(object):
                                                  IncludeQualifiers=iq,
                                                  IncludeClassOrigin=ico)
 
-        assert isinstance(exp_rslt, six.integer_types)
+        assert isinstance(exp_rslt, int)
         assert len(rslt_classes) == exp_rslt
 
         for rslt_cl in rslt_classes:
@@ -3840,34 +3838,34 @@ class TestClassOperations(object):
                 set(rslt_cl.methods.keys())
 
             if ico:
-                for prop in six.itervalues(get_cl.properties):
+                for prop in get_cl.properties.values():
                     assert prop.class_origin is not None
 
-                for method in six.itervalues(get_cl.methods):
+                for method in get_cl.methods.values():
                     assert method.class_origin is not None
             else:
-                for prop in six.itervalues(get_cl.properties):
+                for prop in get_cl.properties.values():
                     assert prop.class_origin is None
 
-                for method in six.itervalues(get_cl.methods):
+                for method in get_cl.methods.values():
                     assert method.class_origin is None
 
             if iq is True or iq is None:
                 if get_cl.qualifiers:
                     assert rslt_cl.qualifiers
-                for prop in six.itervalues(get_cl.properties):
+                for prop in get_cl.properties.values():
                     if get_cl.properties[prop.name].qualifiers:
                         assert prop.qualifiers is not None
 
-                for method in six.itervalues(get_cl.methods):
+                for method in get_cl.methods.values():
                     if get_cl.methods[method.name].qualifiers:
                         assert method.qualifiers is not None
             else:
                 assert not rslt_cl.qualifiers
-                for prop in six.itervalues(get_cl.properties):
+                for prop in get_cl.properties.values():
                     assert not prop.qualifiers
 
-                for method in six.itervalues(get_cl.methods):
+                for method in get_cl.methods.values():
                     assert not method.qualifiers
 
     def process_pretcl(self, conn, pre_tst_classes, ns, tst_classes):
@@ -3898,7 +3896,7 @@ class TestClassOperations(object):
                     self.process_pretcl(conn, cln, ns, tst_classes)
 
             # If string, it is a classname of class in tst_classes
-            elif isinstance(pre_tst_classes, six.string_types):
+            elif isinstance(pre_tst_classes, str):
                 for tst_cls in tst_classes:
                     if tst_cls.classname == pre_tst_classes:
                         conn.CreateClass(tst_cls, namespace=ns)
@@ -4465,7 +4463,7 @@ class TestClassOperations(object):
         # Create the new_class to send to CreateClass from the
         # existing tst_classes (if tst_cls is a string) or class defined
         # for this test
-        if isinstance(tst_cls, six.string_types):
+        if isinstance(tst_cls, str):
             for cl_ in tst_classes:
                 if cl_.classname == tst_cls:
                     new_class = cl_
@@ -4510,7 +4508,7 @@ class TestClassOperations(object):
                 assert_classes_equal(get_cl, exp_rslt)
 
             # if exp_rslt is string, resolve item from tst_classes
-            elif isinstance(exp_rslt, six.string_types):
+            elif isinstance(exp_rslt, str):
                 for cl_ in tst_classes:
                     if cl_.classname == exp_rslt:
                         clsr = resolve_class(conn, cl_, ns)
@@ -4727,7 +4725,7 @@ class TestClassOperations(object):
 
             exc = exec_info.value
             if isinstance(exp_exc, CIMError):
-                assert exc.status_code == exp_exc.status_code, "{}".format(desc)
+                assert exc.status_code == exp_exc.status_code, f"{desc}"
 
         else:
             assert exp_rslt is None
@@ -5078,7 +5076,7 @@ class TestClassOperations(object):
         # Create the modified_class to send to ModifyClass from the
         # existing tst_classes (if tst_cls is a string) or class defined
         # for this test
-        if isinstance(tst_cls, six.string_types):
+        if isinstance(tst_cls, str):
             for cl_ in tst_classes:
                 if cl_.classname == tst_cls:
                     modified_class = cl_
@@ -5131,7 +5129,7 @@ class TestClassOperations(object):
                 assert_classes_equal(get_cl, exp_rslt)
 
             # if exp_rslt is string, resolve item from tst_classes
-            elif isinstance(exp_rslt, six.string_types):
+            elif isinstance(exp_rslt, str):
                 for cl_ in tst_classes:
                     if cl_.classname == exp_rslt:
                         clsr = resolve_class(conn, cl_, ns)
@@ -5295,7 +5293,7 @@ class TestClassOperations(object):
                 assert exc.status_code == exp_exc.status_code
 
 
-class TestInstanceOperations(object):
+class TestInstanceOperations:
     """
     Test the Instance mock operations including get, enumerate, create
     delete, modify, execquery, and invoke method on instance.
@@ -5392,8 +5390,8 @@ class TestInstanceOperations(object):
 
         if inst_ns is None:
             inst_ns = tst_ns
-        if isinstance(inst_ns, six.string_types) and \
-                isinstance(inst_cln, six.string_types):
+        if isinstance(inst_ns, str) and \
+                isinstance(inst_cln, str):
             req_inst_path = CIMInstanceName(inst_cln, {'InstanceID': inst_id},
                                             namespace=inst_ns)
         else:
@@ -5417,7 +5415,7 @@ class TestInstanceOperations(object):
                     org_inst = inst
                     break
             assert org_inst, \
-                "org_inst_path={}, inst_id={}".format(org_inst_path, inst_id)
+                f"org_inst_path={org_inst_path}, inst_id={inst_id}"
 
             assert rslt_inst.path == req_inst_path
             assert rslt_inst.classname == org_inst.classname
@@ -5429,7 +5427,7 @@ class TestInstanceOperations(object):
 
             if pl == "":
                 assert not rslt_inst.properties
-            if isinstance(pl, six.string_types):
+            if isinstance(pl, str):
                 pl = [pl]
             if pl:
                 pl = NocaseList(pl)
@@ -5524,7 +5522,7 @@ class TestInstanceOperations(object):
                 org_inst = inst
                 break
         assert org_inst, \
-            "org_inst_path={}, inst_id={}".format(org_inst_path, inst_id)
+            f"org_inst_path={org_inst_path}, inst_id={inst_id}"
 
         assert rslt_inst.path == req_inst_path
         assert rslt_inst.classname == org_inst.classname
@@ -6284,7 +6282,7 @@ class TestInstanceOperations(object):
             conn.add_cimobjects(new_inst, namespace=ns)
 
         assert len(rec_warnings) == 0, \
-            "Unexpected warnings: {}".format(list(rec_warnings))
+            f"Unexpected warnings: {list(rec_warnings)}"
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
@@ -6338,7 +6336,7 @@ class TestInstanceOperations(object):
             conn.CreateInstance(new_inst)
 
         assert len(rec_warnings) == 1, \
-            "Expected warning(s) missing: {}".format(exp_warn_types)
+            f"Expected warning(s) missing: {exp_warn_types}"
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
@@ -6365,7 +6363,7 @@ class TestInstanceOperations(object):
             conn.compile_mof_string(tst_mof, namespace=ns)
 
         assert len(rec_warnings) >= 1, \
-            "Expected warning(s) missing: {}".format(exp_warn_types)
+            f"Expected warning(s) missing: {exp_warn_types}"
 
     @pytest.mark.parametrize(
         "interop_ns",
@@ -6691,7 +6689,7 @@ class TestInstanceOperations(object):
 
         # Get an instance from the CIM_Foo_sub_sub class to use as orig_instance
         insts = conn.EnumerateInstances('CIM_Foo_sub_sub', namespace=ns)
-        assert insts, "desc {}".format(desc)
+        assert insts, f"desc {desc}"
         orig_instance = insts[0]
         modified_instance = orig_instance.copy()
 
@@ -6699,7 +6697,7 @@ class TestInstanceOperations(object):
         if nv:
             # if first items is string, this is a single modification
             # since that item would be the name of the property to modify.
-            if isinstance(nv[0], six.string_types):
+            if isinstance(nv[0], str):
                 nv = [nv]
             for property_def in nv:
                 # NOTE: If key property changes, the path is also changed.
@@ -6825,7 +6823,7 @@ class TestInstanceOperations(object):
                     exp_exc.status_code == CIM_ERR_INVALID_NAMESPACE:
                 tst_ns = 'BadNamespaceName'
 
-            if isinstance(cln, six.string_types):
+            if isinstance(cln, str):
                 iname = CIMInstanceName(
                     cln, keybindings={'InstanceID': inst_id}, namespace=tst_ns)
             else:
@@ -6967,7 +6965,7 @@ class TestInstanceOperations(object):
                 assert exc.status_code == exp_exc.status_code
 
 
-class TestPullOperations(object):
+class TestPullOperations:
     """
     Test the Open and pull operations.
     """
@@ -7566,7 +7564,7 @@ class TestPullOperations(object):
             assert False, 'Invalid test code %s' % test
 
 
-class TestQualifierOperations(object):
+class TestQualifierOperations:
     """
     Tests the qualifier set, enumerate, get and delete operations.
     Note this is really QualifierDeclarations
@@ -7613,7 +7611,7 @@ class TestQualifierOperations(object):
 
         exp_qual = None
         for q in tst_quals:
-            if isinstance(qname, six.string_types) and \
+            if isinstance(qname, str) and \
                     q.name.lower() == qname.lower():
                 exp_qual = q
 
@@ -7830,7 +7828,7 @@ MEMBER_FAM2MIKE_NME = CIMInstanceName(
                  ('member', PERSON_MIKE_NME)))
 
 
-class TestReferenceOperations(object):
+class TestReferenceOperations:
     """
     Tests of References class and instance operations
     """
@@ -7850,8 +7848,8 @@ class TestReferenceOperations(object):
         # The code to be tested
         conn.compile_mof_string(tst_assoc_mof, namespace=ns)
 
-        classes = [u'TST_Lineage', u'TST_MemberOfFamilyCollection',
-                   u'TST_Person', u'TST_Personsub', u'TST_FamilyCollection']
+        classes = ['TST_Lineage', 'TST_MemberOfFamilyCollection',
+                   'TST_Person', 'TST_Personsub', 'TST_FamilyCollection']
         assert set(classes) == set(
             conn.EnumerateClassNames(namespace=ns, DeepInheritance=True))
 
@@ -7911,7 +7909,7 @@ class TestReferenceOperations(object):
         # account for api where string classname only allowed with default
         # classname
         if ns is not None:
-            if isinstance(cln, six.string_types):
+            if isinstance(cln, str):
                 cim_cln = CIMClassName(classname=cln, namespace=ns)
             else:
                 cim_cln = cln.copy()
@@ -7943,7 +7941,7 @@ class TestReferenceOperations(object):
             exp_exc = exp_rslt
 
             # Fix the targetclassname for some of the tests
-            if isinstance(cim_cln, six.string_types):
+            if isinstance(cim_cln, str):
                 cim_cln = CIMClassName(classname=cln)
 
             if isinstance(exp_exc, CIMError) and \
@@ -8044,7 +8042,7 @@ class TestReferenceOperations(object):
         # account for api where string classname only allowed with default
         # classname
         if ns is not None:
-            if isinstance(cln, six.string_types):
+            if isinstance(cln, str):
                 cim_cln = CIMClassName(classname=cln, namespace=ns)
             else:
                 cim_cln = cln.copy()
@@ -8114,7 +8112,7 @@ class TestReferenceOperations(object):
             exp_exc = exp_rslt
 
             # Fix the targetclassname for some of the tests
-            if isinstance(cim_cln, six.string_types):
+            if isinstance(cim_cln, str):
                 cim_cln = CIMClassName(classname=cln)
 
             if isinstance(exp_exc, CIMError) and \
@@ -8388,10 +8386,10 @@ class TestReferenceOperations(object):
 
         paths = [i.path for i in insts]
 
-        assert isinstance(insts, list), "desc {}".format(desc)
-        assert len(insts) == len(exp_rslt), "desc {}".format(desc)
+        assert isinstance(insts, list), f"desc {desc}"
+        assert len(insts) == len(exp_rslt), f"desc {desc}"
         for inst in insts:
-            assert isinstance(inst, CIMInstance), "desc {}".format(desc)
+            assert isinstance(inst, CIMInstance), f"desc {desc}"
 
         exp_ns = ns or conn.default_namespace
 
@@ -8443,7 +8441,7 @@ class TestReferenceOperations(object):
         assert exc.status_code == CIM_ERR_INVALID_PARAMETER
 
 
-class TestAssociatorOperations(object):
+class TestAssociatorOperations:
     """
     Tests of Associator class and instance operations
     """
@@ -8496,7 +8494,7 @@ class TestAssociatorOperations(object):
 
         add_objects_to_repo(conn, ns, [tst_assoc_mof])
 
-        if isinstance(target_cln, six.string_types):
+        if isinstance(target_cln, str):
             target_cln = CIMClassName(target_cln, namespace=ns)
         else:
             assert isinstance(exp_rslt, Exception)
@@ -8521,8 +8519,8 @@ class TestAssociatorOperations(object):
                                      host=conn.host)
                         for n in exp_rslt]
 
-            assert set(cln.classname.lower() for cln in exp_clns) == \
-                set(cln.classname.lower() for cln in rslt_clns)
+            assert {cln.classname.lower() for cln in exp_clns} == \
+                {cln.classname.lower() for cln in rslt_clns}
 
         else:
             assert isinstance(exp_rslt, Exception)
@@ -8531,7 +8529,7 @@ class TestAssociatorOperations(object):
             # Set up test for invalid namespace exception
             if isinstance(exp_exc, CIMError) and \
                     exp_exc.status_code == CIM_ERR_INVALID_NAMESPACE:
-                if isinstance(target_cln, six.string_types):
+                if isinstance(target_cln, str):
                     target_cln = CIMClassName(target_cln,
                                               namespace='badnamespacename')
                 else:
@@ -8828,7 +8826,7 @@ class TestAssociatorOperations(object):
                 for propname in pl:
                     for inst in rslt_insts:
                         assert propname in inst.properties, \
-                            "desc: {}".format(desc)
+                            f"desc: {desc}"
                 assert sorted(inst.properties) == sorted(pl)
             elif pl is None:
                 for inst in rslt_insts:
@@ -8836,7 +8834,7 @@ class TestAssociatorOperations(object):
                     assert sorted(inst.properties) == \
                         sorted(repo_inst.properties)
             else:
-                assert False, "Invalid pl parameter {}".format(pl)
+                assert False, f"Invalid pl parameter {pl}"
 
             # Build the expected result instances list
             exp_insts = []
@@ -8978,8 +8976,8 @@ class TestAssociatorOperations(object):
                                        IncludeClassOrigin=ico,
                                        PropertyList=pl)
 
-            assert isinstance(results, list), "desc: {}".format(desc)
-            assert len(results) == len(exp_rslt), "desc: {}".format(desc)
+            assert isinstance(results, list), f"desc: {desc}"
+            assert len(results) == len(exp_rslt), f"desc: {desc}"
             for result in results:
                 assert isinstance(result, tuple)
                 assert isinstance(result[0], CIMClassName)
@@ -8993,16 +8991,16 @@ class TestAssociatorOperations(object):
                 for propname in pl:
                     for cls in results:
                         assert propname in cls.properties, \
-                            "desc: {}".format(desc)
+                            f"desc: {desc}"
                         assert len(pl) == len(cls.properties), \
-                            "desc: {}".format(desc)
+                            f"desc: {desc}"
             elif pl is None:
                 repo_cls = conn.GetClass(cln)
                 prop_count = len(repo_cls.properties)
                 for _, cls in results:
                     assert len(cls.properties) == prop_count
             else:
-                assert False, "Invalid pl parameter {}".format(pl)
+                assert False, f"Invalid pl parameter {pl}"
 
             if iq:
                 for _, cls in results:
@@ -9019,7 +9017,7 @@ class TestAssociatorOperations(object):
                         assert prop.class_origin is None
 
             clns = [result[0].classname for result in results]
-            assert set(clns) == set(exp_rslt), "desc: {}".format(desc)
+            assert set(clns) == set(exp_rslt), f"desc: {desc}"
 
         else:
             assert isinstance(exp_rslt, Exception)
@@ -9027,7 +9025,7 @@ class TestAssociatorOperations(object):
 
             if isinstance(exp_exc, CIMError) and \
                     exp_exc.status_code == CIM_ERR_INVALID_NAMESPACE:
-                if isinstance(cln, six.string_types):
+                if isinstance(cln, str):
                     cln = CIMClassName(cln, namespace='badnamespacename')
                 else:
                     cln.namespace = 'badnamespacename'
@@ -9041,7 +9039,7 @@ class TestAssociatorOperations(object):
             exc = exec_info.value
             if isinstance(exp_exc, CIMError):
                 assert exc.status_code == exp_exc.status_code, \
-                    "desc: {}".format(desc)
+                    f"desc: {desc}"
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
@@ -9077,15 +9075,15 @@ def assert_invokemethod_guarantees(
     """
 
     # Verify Python parameter types
-    assert isinstance(methodname, six.string_types)
+    assert isinstance(methodname, str)
     assert isinstance(localobject, (CIMInstanceName, CIMClassName))
     assert isinstance(params, NocaseDict)
 
     namespace = localobject.namespace
-    assert isinstance(namespace, six.string_types)
+    assert isinstance(namespace, str)
 
     classname = localobject.classname
-    assert isinstance(classname, six.string_types)
+    assert isinstance(classname, str)
 
     # Verify guarantee that namespace exists in repo
     try:
@@ -9123,7 +9121,7 @@ def assert_invokemethod_guarantees(
     for pn in params:
 
         # Verify guarantee that Params has the correct Python types
-        assert isinstance(pn, six.string_types)
+        assert isinstance(pn, str)
         param_in = params[pn]
         assert isinstance(param_in, CIMParameter)
 
@@ -9160,7 +9158,7 @@ class Method1UserProvider(MethodProvider):
     provider_classnames = 'CIM_Foo_sub_sub'
 
     def __init__(self, cimrepository):
-        super(Method1UserProvider, self).__init__(cimrepository)
+        super().__init__(cimrepository)
 
     def InvokeMethod(self, methodname, localobject, params):
         """
@@ -9331,7 +9329,7 @@ class Method1UserProvider(MethodProvider):
         raise CIMError(CIM_ERR_METHOD_NOT_AVAILABLE)
 
 
-class TestInvokeMethod(object):
+class TestInvokeMethod:
     # pylint: disable=too-few-public-methods
     """
     Test invoking extrinsic methods in FakedWBEMConnection
@@ -9880,7 +9878,7 @@ class TestInvokeMethod(object):
                 assert exc.status_code == exp_exc.status_code
 
 
-class TestBaseProvider(object):
+class TestBaseProvider:
     # pylint: disable=too-few-public-methods
     """
     Tests for some methods of BaseProvider
@@ -10089,7 +10087,7 @@ def test_schema_root_dir():
         shutil.rmtree(schema_dir)
 
 
-class TestDMTFCIMSchema(object):
+class TestDMTFCIMSchema:
     """
     Test the DMTFCIMSchema class in pywbem_mock.  Since we do not want to always
     be downloading the DMTF schema for CI testing, we will generally skip the
@@ -10332,7 +10330,7 @@ class TestDMTFCIMSchema(object):
         schema = DMTFCIMSchema(DMTF_TEST_SCHEMA_VER, TESTSUITE_SCHEMA_DIR,
                                verbose=False)
 
-        if isinstance(exp_rslt, six.string_types):
+        if isinstance(exp_rslt, str):
 
             # The code to be tested
             schema_mof = schema.build_schema_mof(clns)
@@ -10348,7 +10346,7 @@ class TestDMTFCIMSchema(object):
 
             exc = exec_info.value
             exc_str = str(exc)
-            if isinstance(clns, six.string_types):
+            if isinstance(clns, str):
                 clns = [clns]
             for cln in clns:
                 assert exc_str.find(cln)

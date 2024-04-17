@@ -2,7 +2,6 @@
 Unit test cases for _cim_http.py
 """
 
-from __future__ import absolute_import
 
 import re
 import requests
@@ -106,9 +105,9 @@ TESTCASES_PARSE_URL = [
                 url='myhost:5000',
                 allow_defaults=True,
             ),
-            exp_scheme='{scheme}'.format(scheme=DEFAULT_SCHEME),
+            exp_scheme=f'{DEFAULT_SCHEME}',
             exp_hostport='myhost:5000',
-            exp_url='{scheme}://myhost:5000'.format(scheme=DEFAULT_SCHEME),
+            exp_url=f'{DEFAULT_SCHEME}://myhost:5000',
         ),
         None, None, True
     ),
@@ -133,8 +132,8 @@ TESTCASES_PARSE_URL = [
                 allow_defaults=True,
             ),
             exp_scheme='https',
-            exp_hostport='myhost:{port}'.format(port=DEFAULT_PORT_HTTPS),
-            exp_url='https://myhost:{port}'.format(port=DEFAULT_PORT_HTTPS),
+            exp_hostport=f'myhost:{DEFAULT_PORT_HTTPS}',
+            exp_url=f'https://myhost:{DEFAULT_PORT_HTTPS}',
         ),
         None, None, True
     ),
@@ -159,8 +158,8 @@ TESTCASES_PARSE_URL = [
                 allow_defaults=True,
             ),
             exp_scheme='http',
-            exp_hostport='myhost:{port}'.format(port=DEFAULT_PORT_HTTP),
-            exp_url='http://myhost:{port}'.format(port=DEFAULT_PORT_HTTP),
+            exp_hostport=f'myhost:{DEFAULT_PORT_HTTP}',
+            exp_url=f'http://myhost:{DEFAULT_PORT_HTTP}',
         ),
         None, None, True
     ),
@@ -197,8 +196,8 @@ TESTCASES_PARSE_URL = [
                 url='http',
                 allow_defaults=True,
             ),
-            exp_scheme='{scheme}'.format(scheme=DEFAULT_SCHEME),
-            exp_hostport='http:{port}'.format(port=DEFAULT_PORT_HTTP),
+            exp_scheme=f'{DEFAULT_SCHEME}',
+            exp_hostport=f'http:{DEFAULT_PORT_HTTP}',
             exp_url='{scheme}://http:{port}'.
             format(scheme=DEFAULT_SCHEME, port=DEFAULT_PORT_HTTP),
         ),
@@ -211,8 +210,8 @@ TESTCASES_PARSE_URL = [
                 url='https',
                 allow_defaults=True,
             ),
-            exp_scheme='{scheme}'.format(scheme=DEFAULT_SCHEME),
-            exp_hostport='https:{port}'.format(port=DEFAULT_PORT_HTTP),
+            exp_scheme=f'{DEFAULT_SCHEME}',
+            exp_hostport=f'https:{DEFAULT_PORT_HTTP}',
             exp_url='{scheme}://https:{port}'.
             format(scheme=DEFAULT_SCHEME, port=DEFAULT_PORT_HTTP),
         ),
@@ -252,8 +251,8 @@ TESTCASES_PARSE_URL = [
                 allow_defaults=True,
             ),
             exp_scheme='http',
-            exp_hostport='myhost:{port}'.format(port=DEFAULT_PORT_HTTP),
-            exp_url='http://myhost:{port}'.format(port=DEFAULT_PORT_HTTP),
+            exp_hostport=f'myhost:{DEFAULT_PORT_HTTP}',
+            exp_url=f'http://myhost:{DEFAULT_PORT_HTTP}',
         ),
         None, None, True
     ),
@@ -265,8 +264,8 @@ TESTCASES_PARSE_URL = [
                 allow_defaults=True,
             ),
             exp_scheme='http',
-            exp_hostport='myhost:{port}'.format(port=DEFAULT_PORT_HTTP),
-            exp_url='http://myhost:{port}'.format(port=DEFAULT_PORT_HTTP),
+            exp_hostport=f'myhost:{DEFAULT_PORT_HTTP}',
+            exp_url=f'http://myhost:{DEFAULT_PORT_HTTP}',
         ),
         None, None, True
     ),
@@ -304,8 +303,8 @@ TESTCASES_PARSE_URL = [
                 allow_defaults=True,
             ),
             exp_scheme='http',
-            exp_hostport='9.10.11.12:{port}'.format(port=DEFAULT_PORT_HTTP),
-            exp_url='http://9.10.11.12:{port}'.format(port=DEFAULT_PORT_HTTP),
+            exp_hostport=f'9.10.11.12:{DEFAULT_PORT_HTTP}',
+            exp_url=f'http://9.10.11.12:{DEFAULT_PORT_HTTP}',
         ),
         None, None, True
     ),
@@ -316,7 +315,7 @@ TESTCASES_PARSE_URL = [
                 url='[2001:db8::7348]',
                 allow_defaults=True,
             ),
-            exp_scheme='{scheme}'.format(scheme=DEFAULT_SCHEME),
+            exp_scheme=f'{DEFAULT_SCHEME}',
             exp_hostport='[2001:db8::7348]:{port}'.
             format(port=DEFAULT_PORT_HTTP),
             exp_url='{scheme}://[2001:db8::7348]:{port}'.
@@ -480,7 +479,7 @@ TESTCASES_PARSE_URL = [
                 url='2001:db8::7348:1234',
                 allow_defaults=True,
             ),
-            exp_scheme='{scheme}'.format(scheme=DEFAULT_SCHEME),
+            exp_scheme=f'{DEFAULT_SCHEME}',
             exp_hostport='[2001:db8::7348]:1234',
             exp_url='{scheme}://[2001:db8::7348]:1234'.
             format(scheme=DEFAULT_SCHEME),

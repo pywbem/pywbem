@@ -1,4 +1,3 @@
-
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -21,7 +20,6 @@
 Operation recorder interface and implementations.
 """
 
-from __future__ import print_function, absolute_import
 import io
 from collections import namedtuple
 try:
@@ -49,12 +47,8 @@ __all__ = ['BaseOperationRecorder', 'TestClientRecorder',
            'LogOperationRecorder',
            'OpArgs', 'OpResult', 'HttpRequest', 'HttpResponse']
 
-if six.PY2:
-    # pylint: disable=invalid-name, undefined-variable
-    _Longint = long  # noqa: F821
-else:
-    # pylint: disable=invalid-name
-    _Longint = int
+# pylint: disable=invalid-name
+_Longint = int
 
 OpArgsTuple = namedtuple("OpArgsTuple", ["method", "args"])
 
@@ -209,7 +203,7 @@ class HttpResponse(HttpResponseTuple):
             s=self)
 
 
-class BaseOperationRecorder(object):
+class BaseOperationRecorder:
     # pylint: disable=too-many-instance-attributes
     """
     Abstract base class defining the interface to an operation recorder,
@@ -309,7 +303,7 @@ class BaseOperationRecorder(object):
             recorder_file.close()
         """
         # pylint: disable=consider-using-with
-        return io.open(filename, file_mode, encoding='utf-8')
+        return open(filename, file_mode, encoding='utf-8')
 
     def reset(self, pull_op=None):
         """Reset all the attributes in the class. This also allows setting
@@ -491,7 +485,7 @@ class LogOperationRecorder(BaseOperationRecorder):
             :data:`~pywbem._logging.LOG_DETAIL_LEVELS`, or an integer that
             specifies the maximum size of each log record.
         """
-        super(LogOperationRecorder, self).__init__()
+        super().__init__()
 
         self._conn_id = conn_id
 
@@ -596,8 +590,8 @@ class LogOperationRecorder(BaseOperationRecorder):
 
             # Order kwargs.  Note that this is done automatically starting
             # with python 3.6
-            kwstr = ', '.join([('{0}={1!r}'.format(key, kwargs[key]))
-                               for key in sorted(six.iterkeys(kwargs))])
+            kwstr = ', '.join([(f'{key}={kwargs[key]!r}')
+                               for key in sorted(kwargs.keys())])
 
             if self.api_maxlen and (len(kwstr) > self.api_maxlen):
                 kwstr = kwstr[:self.api_maxlen] + '...'
@@ -723,11 +717,11 @@ class LogOperationRecorder(BaseOperationRecorder):
                 headers['Authorization'] = _format(
                     "{0} {1}", authtype, 'X' * len(cred))
 
-            header_str = ' '.join('{0}:{1!r}'.format(k, v)
+            header_str = ' '.join(f'{k}:{v!r}'
                                   for k, v in headers.items())
             if self.http_detail_level == 'summary':
                 upayload = ""
-            elif isinstance(payload, six.binary_type):
+            elif isinstance(payload, bytes):
                 upayload = payload.decode('utf-8')
             else:
                 upayload = payload
@@ -760,7 +754,7 @@ class LogOperationRecorder(BaseOperationRecorder):
                 self.httplogger.isEnabledFor(logging.DEBUG):
             if self._http_response_headers:
                 header_str = \
-                    ' '.join('{0}:{1!r}'.format(k, v)
+                    ' '.join(f'{k}:{v!r}'
                              for k, v in self._http_response_headers.items())
             else:
                 header_str = ''
@@ -847,7 +841,7 @@ class TestClientRecorder(BaseOperationRecorder):
           recorder = TestClientRecorder(
               io.open('recorder.log', mode='w', encoding='utf-8')
         """
-        super(TestClientRecorder, self).__init__()
+        super().__init__()
         self._fp = fp
 
     def copy(self):
@@ -996,9 +990,9 @@ class TestClientRecorder(BaseOperationRecorder):
             return ret_dict
         if obj is None:
             return obj
-        if isinstance(obj, six.binary_type):
+        if isinstance(obj, bytes):
             return obj.decode("utf-8")
-        if isinstance(obj, six.text_type):
+        if isinstance(obj, str):
             return obj
         if isinstance(obj, bool):
             # The check for bool must be before any integer checks, because
@@ -1008,7 +1002,7 @@ class TestClientRecorder(BaseOperationRecorder):
             # CIMInt is _Longint and therefore may exceed the value range of
             # int in Python 2. Therefore, we convert it to _Longint.
             return _Longint(obj)
-        if isinstance(obj, six.integer_types):
+        if isinstance(obj, int):
             # This case must be after CIMInt, because CIMInt is _Longint and
             # would match a long value in Python 2.
             # We don't convert six.integer_types to _Longint, because the value

@@ -4,7 +4,6 @@ Test CIM objects (e.g. `CIMInstance`).
 Note that class `NocaseDict` is tested in test_nocasedict.py.
 """
 
-from __future__ import absolute_import, print_function
 
 import sys
 import re
@@ -12,7 +11,7 @@ from datetime import timedelta, datetime
 try:
     from unittest.mock import patch
 except ImportError:
-    from mock import patch
+    from unittest.mock import patch
 try:
     from collections import OrderedDict
 except ImportError:
@@ -102,26 +101,26 @@ unimplemented = pytest.mark.skipif(True, reason="test not implemented")
 version_info = parse_version(__version__).release
 
 # Values for expected 'type' property; since 0.12 they are converted to unicode
-exp_type_char16 = u'char16'
-exp_type_string = u'string'
-exp_type_boolean = u'boolean'
-exp_type_uint8 = u'uint8'
-exp_type_uint16 = u'uint16'
-exp_type_uint32 = u'uint32'
-exp_type_uint64 = u'uint64'
-exp_type_sint8 = u'sint8'
-exp_type_sint16 = u'sint16'
-exp_type_sint32 = u'sint32'
-exp_type_sint64 = u'sint64'
-exp_type_real32 = u'real32'
-exp_type_real64 = u'real64'
-exp_type_datetime = u'datetime'
-exp_type_reference = u'reference'
+exp_type_char16 = 'char16'
+exp_type_string = 'string'
+exp_type_boolean = 'boolean'
+exp_type_uint8 = 'uint8'
+exp_type_uint16 = 'uint16'
+exp_type_uint32 = 'uint32'
+exp_type_uint64 = 'uint64'
+exp_type_sint8 = 'sint8'
+exp_type_sint16 = 'sint16'
+exp_type_sint32 = 'sint32'
+exp_type_sint64 = 'sint64'
+exp_type_real32 = 'real32'
+exp_type_real64 = 'real64'
+exp_type_datetime = 'datetime'
+exp_type_reference = 'reference'
 
 # Values for expected 'embedded_object' property; since 0.12 they are converted
 # to unicode
-exp_eo_object = u'object'
-exp_eo_instance = u'instance'
+exp_eo_object = 'object'
+exp_eo_instance = 'instance'
 
 # Ranges of the CIM integer datatypes
 
@@ -525,10 +524,10 @@ TESTCASES_CIMINSTANCENAME_INIT = [
             ],
             init_kwargs={},
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 keybindings=NocaseDict(P1=True),
-                host=u'woot.com',
-                namespace=u'cimv2',
+                host='woot.com',
+                namespace='cimv2',
             ),
         ),
         None, None, True
@@ -540,7 +539,7 @@ TESTCASES_CIMINSTANCENAME_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(classname=b'CIM_Foo'),
-            exp_attrs=dict(classname=u'CIM_Foo'),
+            exp_attrs=dict(classname='CIM_Foo'),
         ),
         None, None, True
     ),
@@ -548,8 +547,8 @@ TESTCASES_CIMINSTANCENAME_INIT = [
         "Verify that unicode classname remains unicode",
         dict(
             init_args=[],
-            init_kwargs=dict(classname=u'CIM_Foo'),
-            exp_attrs=dict(classname=u'CIM_Foo'),
+            init_kwargs=dict(classname='CIM_Foo'),
+            exp_attrs=dict(classname='CIM_Foo'),
         ),
         None, None, True
     ),
@@ -563,7 +562,7 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 classname='CIM_Foo',
                 keybindings=dict(UNNAMED_KEY_NCD)),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 keybindings=UNNAMED_KEY_NCD),
         ),
         None, None, True
@@ -580,7 +579,7 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 ]
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 keybindings=NocaseDict([
                     ('K1', 'Ham'),
                     ('K2', 'Cheese'),
@@ -601,7 +600,7 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 ])
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 keybindings=NocaseDict([
                     ('K1', 'Ham'),
                     ('K2', 'Cheese'),
@@ -622,7 +621,7 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 ]
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 keybindings=NocaseDict([
                     ('K1', 'Ham'),
                     ('K2', 'Cheese'),
@@ -639,8 +638,8 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 classname='CIM_Foo',
                 keybindings=dict(K1=b'Ham')),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(K1=u'Ham')),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(K1='Ham')),
         ),
         None, None, True
     ),
@@ -651,10 +650,10 @@ TESTCASES_CIMINSTANCENAME_INIT = [
             init_kwargs=dict(
                 classname='CIM_Foo',
                 # lower case a umlaut
-                keybindings=dict(K1=u'H\u00E4m')),
+                keybindings=dict(K1='H\u00E4m')),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(K1=u'H\u00E4m')),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(K1='H\u00E4m')),
         ),
         None, None, True
     ),
@@ -666,7 +665,7 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 classname='CIM_Foo',
                 keybindings=dict(K1=True)),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 keybindings=NocaseDict(K1=True)),
         ),
         None, None, True
@@ -679,7 +678,7 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 classname='CIM_Foo',
                 keybindings=dict(K1=False)),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 keybindings=NocaseDict(K1=False)),
         ),
         None, None, True
@@ -692,7 +691,7 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 classname='CIM_Foo',
                 keybindings=dict(K1=42)),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 keybindings=NocaseDict(K1=42)),
         ),
         None, None, True
@@ -705,7 +704,7 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 classname='CIM_Foo',
                 keybindings=dict(K1=Uint8(42))),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 keybindings=NocaseDict(K1=42)),
         ),
         None, None, True
@@ -718,7 +717,7 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 classname='CIM_Foo',
                 keybindings=dict(K1=Uint16(4216))),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 keybindings=NocaseDict(K1=4216)),
         ),
         None, None, True
@@ -731,7 +730,7 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 classname='CIM_Foo',
                 keybindings=dict(K1=Uint32(4232))),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 keybindings=NocaseDict(K1=4232)),
         ),
         None, None, True
@@ -744,7 +743,7 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 classname='CIM_Foo',
                 keybindings=dict(K1=Uint64(4264))),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 keybindings=NocaseDict(K1=4264)),
         ),
         None, None, True
@@ -757,7 +756,7 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 classname='CIM_Foo',
                 keybindings=dict(K1=Sint8(-42))),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 keybindings=NocaseDict(K1=-42)),
         ),
         None, None, True
@@ -770,7 +769,7 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 classname='CIM_Foo',
                 keybindings=dict(K1=Sint16(-4216))),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 keybindings=NocaseDict(K1=-4216)),
         ),
         None, None, True
@@ -783,7 +782,7 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 classname='CIM_Foo',
                 keybindings=dict(K1=Sint32(-4232))),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 keybindings=NocaseDict(K1=-4232)),
         ),
         None, None, True
@@ -796,7 +795,7 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 classname='CIM_Foo',
                 keybindings=dict(K1=Sint64(-4264))),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 keybindings=NocaseDict(K1=-4264)),
         ),
         None, None, True
@@ -809,7 +808,7 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 classname='CIM_Foo',
                 keybindings=dict(K1=42.1)),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 keybindings=NocaseDict(K1=42.1)),
         ),
         None, None, True
@@ -822,7 +821,7 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 classname='CIM_Foo',
                 keybindings=dict(K1=Real32(-42.32))),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 keybindings=NocaseDict(K1=-42.32)),
         ),
         None, None, True
@@ -835,7 +834,7 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 classname='CIM_Foo',
                 keybindings=dict(K1=Real64(-42.64))),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 keybindings=NocaseDict(K1=-42.64)),
         ),
         None, None, True
@@ -848,7 +847,7 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 classname='CIM_Foo',
                 keybindings=dict(K1=DATETIME1_OBJ)),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 keybindings=NocaseDict(K1=DATETIME1_OBJ)),
         ),
         None, None, True
@@ -861,7 +860,7 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 classname='CIM_Foo',
                 keybindings=dict(K1=TIMEDELTA1_OBJ)),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 keybindings=NocaseDict(K1=TIMEDELTA1_OBJ)),
         ),
         None, None, True
@@ -874,7 +873,7 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 classname='CIM_Foo',
                 keybindings=dict(K1=CIMINSTANCENAME_C1_OBJ)),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 keybindings=NocaseDict(K1=CIMINSTANCENAME_C1_OBJ)),
         ),
         None, None, True
@@ -887,7 +886,7 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 classname='CIM_Foo',
                 keybindings=dict(K1=CIMCLASSNAME_C1_OBJ)),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 keybindings=NocaseDict(K1=CIMCLASSNAME_C1_OBJ)),
         ),
         TypeError, None, True
@@ -902,8 +901,8 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 classname='CIM_Foo',
                 keybindings=dict(K1=CIMProperty('K1', value='Ham'))),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict([('K1', u'Ham')])),
+                classname='CIM_Foo',
+                keybindings=NocaseDict([('K1', 'Ham')])),
         ),
         None, None, True
     ),
@@ -913,10 +912,10 @@ TESTCASES_CIMINSTANCENAME_INIT = [
             init_args=[],
             init_kwargs=dict(
                 classname='CIM_Foo',
-                keybindings=OrderedDict([('K1', u'Ham'), ('K2', Uint8(42))])),
+                keybindings=OrderedDict([('K1', 'Ham'), ('K2', Uint8(42))])),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict([('K1', u'Ham'), ('K2', Uint8(42))])),
+                classname='CIM_Foo',
+                keybindings=NocaseDict([('K1', 'Ham'), ('K2', Uint8(42))])),
         ),
         None, None, True
     ),
@@ -928,8 +927,8 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 classname='CIM_Foo',
                 keybindings=dict(Key1='Ham')),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict([('kEY1', u'Ham')])),
+                classname='CIM_Foo',
+                keybindings=NocaseDict([('kEY1', 'Ham')])),
         ),
         None, None, True
     ),
@@ -954,8 +953,8 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 classname='CIM_Foo',
                 namespace=b'root/cimv2'),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2'),
+                classname='CIM_Foo',
+                namespace='root/cimv2'),
         ),
         None, None, True
     ),
@@ -965,10 +964,10 @@ TESTCASES_CIMINSTANCENAME_INIT = [
             init_args=[],
             init_kwargs=dict(
                 classname='CIM_Foo',
-                namespace=u'root/cimv2'),
+                namespace='root/cimv2'),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2'),
+                classname='CIM_Foo',
+                namespace='root/cimv2'),
         ),
         None, None, True
     ),
@@ -981,8 +980,8 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 classname='CIM_Foo',
                 namespace='/root/cimv2/'),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2'),
+                classname='CIM_Foo',
+                namespace='root/cimv2'),
         ),
         None, None, True
     ),
@@ -995,8 +994,8 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 classname='CIM_Foo',
                 namespace='//root/cimv2//'),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2'),
+                classname='CIM_Foo',
+                namespace='root/cimv2'),
         ),
         None, None, True
     ),
@@ -1011,9 +1010,9 @@ TESTCASES_CIMINSTANCENAME_INIT = [
                 namespace='root/cimv2',
                 host=b'woot.com'),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
-                host=u'woot.com'),
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='woot.com'),
         ),
         None, None, True
     ),
@@ -1024,11 +1023,11 @@ TESTCASES_CIMINSTANCENAME_INIT = [
             init_kwargs=dict(
                 classname='CIM_Foo',
                 namespace='root/cimv2',
-                host=u'woot.com'),
+                host='woot.com'),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
-                host=u'woot.com'),
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='woot.com'),
         ),
         None, None, True
     ),
@@ -1175,7 +1174,7 @@ TESTCASES_KEYBINDING_CONFIG = [
                 classname='CIM_Foo',
                 keybindings=dict(Key1=None)),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 keybindings=dict(Key1=None)),
         ),
         ValueError, None, True
@@ -1189,7 +1188,7 @@ TESTCASES_KEYBINDING_CONFIG = [
                 classname='CIM_Foo',
                 keybindings=dict(Key1=None)),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 keybindings=dict(Key1=None)),
         ),
         None, None, True
@@ -1367,7 +1366,7 @@ TESTCASES_CIMINSTANCENAME_SETATTR = [
             item='classname',
             new_value='CIM_Bar',
             exp_attrs=dict(
-                classname=u'CIM_Bar',
+                classname='CIM_Bar',
             ),
         ),
         None, None, True
@@ -1474,7 +1473,7 @@ TESTCASES_CIMINSTANCENAME_SETATTR = [
             new_value={None: 'bar'},
             exp_attrs=dict(
                 # NocaseDict does not allow None as key, so we use dict:
-                keybindings=dict([(None, u'bar')]),
+                keybindings=dict([(None, 'bar')]),
             ),
         ),
         None, None, True
@@ -1668,7 +1667,7 @@ TESTCASES_CIMINSTANCENAME_SETATTR = [
             new_value='foo',
             exp_attrs=dict(
                 # NocaseDict does not allow None as key, so we use dict:
-                keybindings=dict([('P1', True), (None, u'foo')]),
+                keybindings=dict([('P1', True), (None, 'foo')]),
             ),
         ),
         None, None, True
@@ -1682,7 +1681,7 @@ TESTCASES_CIMINSTANCENAME_SETATTR = [
             item='host',
             new_value='foo',
             exp_attrs=dict(
-                host=u'foo',
+                host='foo',
             ),
         ),
         None, None, True
@@ -1708,7 +1707,7 @@ TESTCASES_CIMINSTANCENAME_SETATTR = [
             item='namespace',
             new_value='foo',
             exp_attrs=dict(
-                namespace=u'foo',
+                namespace='foo',
             ),
         ),
         None, None, True
@@ -1815,12 +1814,12 @@ def test_CIMInstanceName_eq_keybindings_order():
               "quality of this test.")
         print("  Hash values of keys: k1=%r (hash: %s), k2=%r (hash: %s)" %
               (key1, hash(key1) % 8, key2, hash(key2) % 8))
-        print("  First keys: k1=%r, k2=%r" % (k1_first, k2_first))
-        print("  Input dicts: d1=%r, d2=%r" % (d1, d2))
-        print("  Input key bindings: kb1=%r, kb2=%r" % (kb1, kb2))
+        print("  First keys: k1={!r}, k2={!r}".format(k1_first, k2_first))
+        print("  Input dicts: d1={!r}, d2={!r}".format(d1, d2))
+        print("  Input key bindings: kb1={!r}, kb2={!r}".format(kb1, kb2))
         print("  Object key bindings: obj1.kb=%r, obj2.kb=%r" %
               (obj1.keybindings, obj2.keybindings))
-        print("  Objects:\n    obj1=%r\n    obj2=%r" % (obj1, obj2))
+        print("  Objects:\n    obj1={!r}\n    obj2={!r}".format(obj1, obj2))
     assert obj1 == obj2, \
         "CIMInstanceName objects with different iteration order of " \
         "key bindings do not compare equal:\n" \
@@ -2069,7 +2068,7 @@ TESTCASES_CIMINSTANCENAME_HASH_EQ = [
         "Matching keybindings, with values that is unicode / string",
         dict(
             obj1=CIMInstanceName('CIM_Foo', keybindings={'Cheepy': 'Birds'}),
-            obj2=CIMInstanceName('CIM_Foo', keybindings={'Cheepy': u'Birds'}),
+            obj2=CIMInstanceName('CIM_Foo', keybindings={'Cheepy': 'Birds'}),
             exp_equal=True,
         ),
         None, None, True
@@ -2660,7 +2659,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
     (
         "Classname with one keybinding with value of Char16 with unicode value",
         dict(
-            obj=CIMInstanceName('CIM_Foo', {'Cheepy': Char16(u'Birds')}),
+            obj=CIMInstanceName('CIM_Foo', {'Cheepy': Char16('Birds')}),
             kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
@@ -2690,7 +2689,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
     (
         "Classname with one keybinding with value of unicode string type",
         dict(
-            obj=CIMInstanceName('CIM_Foo', {'Cheepy': u'Birds'}),
+            obj=CIMInstanceName('CIM_Foo', {'Cheepy': 'Birds'}),
             kwargs={},
             exp_xml_str=(
                 '<INSTANCENAME CLASSNAME="CIM_Foo">',
@@ -3482,7 +3481,7 @@ def test_CIMInstanceName_tocimxmlstr(testcase, obj, kwargs, exp_xml_str):
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
-    assert isinstance(obj_xml_str, six.text_type)
+    assert isinstance(obj_xml_str, str)
 
     exp_xml_str = ''.join(exp_xml_str)
     validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str)
@@ -3641,10 +3640,10 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri='https://10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root/cimv2',
-                host=u'10.11.12.13:5989'),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root/cimv2',
+                host='10.11.12.13:5989'),
         ),
         None, None, True
     ),
@@ -3653,9 +3652,9 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri='https:/root/cimv2:CIM_Foo.k1="v1"',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root/cimv2',
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root/cimv2',
                 host=None),
         ),
         None, None, True
@@ -3665,10 +3664,10 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri='https://jdd:test@10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root/cimv2',
-                host=u'jdd:test@10.11.12.13:5989'),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root/cimv2',
+                host='jdd:test@10.11.12.13:5989'),
         ),
         None, None, True
     ),
@@ -3677,10 +3676,10 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri='https://jdd@10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root/cimv2',
-                host=u'jdd@10.11.12.13:5989'),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root/cimv2',
+                host='jdd@10.11.12.13:5989'),
         ),
         None, None, True
     ),
@@ -3689,10 +3688,10 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri='https://10.11.12.13/root/cimv2:CIM_Foo.k1="v1"',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root/cimv2',
-                host=u'10.11.12.13'),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root/cimv2',
+                host='10.11.12.13'),
         ),
         None, None, True
     ),
@@ -3701,10 +3700,10 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri='https://[10:11:12:13]/root/cimv2:CIM_Foo.k1="v1"',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root/cimv2',
-                host=u'[10:11:12:13]'),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root/cimv2',
+                host='[10:11:12:13]'),
         ),
         None, None, True
     ),
@@ -3713,10 +3712,10 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri='https://[10:11:12:13]:5989/root/cimv2:CIM_Foo.k1="v1"',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root/cimv2',
-                host=u'[10:11:12:13]:5989'),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root/cimv2',
+                host='[10:11:12:13]:5989'),
         ),
         None, None, True
     ),
@@ -3725,10 +3724,10 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri='//10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root/cimv2',
-                host=u'10.11.12.13:5989'),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root/cimv2',
+                host='10.11.12.13:5989'),
         ),
         None, None, True
     ),
@@ -3737,10 +3736,10 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri='http://10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root/cimv2',
-                host=u'10.11.12.13:5989'),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root/cimv2',
+                host='10.11.12.13:5989'),
         ),
         None, None, True
     ),
@@ -3749,10 +3748,10 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri='HTTP://10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root/cimv2',
-                host=u'10.11.12.13:5989'),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root/cimv2',
+                host='10.11.12.13:5989'),
         ),
         None, None, True
     ),
@@ -3761,10 +3760,10 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri='HttpS://10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root/cimv2',
-                host=u'10.11.12.13:5989'),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root/cimv2',
+                host='10.11.12.13:5989'),
         ),
         None, None, True
     ),
@@ -3773,10 +3772,10 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri='cimxml-wbem://10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root/cimv2',
-                host=u'10.11.12.13:5989'),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root/cimv2',
+                host='10.11.12.13:5989'),
         ),
         None, None, True
     ),
@@ -3785,10 +3784,10 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri='cimxml-wbems://10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root/cimv2',
-                host=u'10.11.12.13:5989'),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root/cimv2',
+                host='10.11.12.13:5989'),
         ),
         None, None, True
     ),
@@ -3797,10 +3796,10 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri='xyz://10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root/cimv2',
-                host=u'10.11.12.13:5989'),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root/cimv2',
+                host='10.11.12.13:5989'),
         ),
         None, UserWarning, True
     ),
@@ -3809,9 +3808,9 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri='/root/cimv2:CIM_Foo.k1="v1"',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root/cimv2',
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root/cimv2',
                 host=None),
         ),
         None, None, True
@@ -3821,9 +3820,9 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri='root/cimv2:CIM_Foo.k1="v1"',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root/cimv2',
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root/cimv2',
                 host=None),
         ),
         None, None, True
@@ -3833,8 +3832,8 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri='/:CIM_Foo.k1="v1"',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
                 namespace=None,
                 host=None),
         ),
@@ -3845,8 +3844,8 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri=':CIM_Foo.k1="v1"',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
                 namespace=None,
                 host=None),
         ),
@@ -3857,8 +3856,8 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri='CIM_Foo.k1="v1"',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
                 namespace=None,
                 host=None),
         ),
@@ -3869,9 +3868,9 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri='/root:CIM_Foo.k1="v1"',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root',
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root',
                 host=None),
         ),
         None, None, True
@@ -3881,9 +3880,9 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri='/root/cimv2/test:CIM_Foo.k1="v1"',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root/cimv2/test',
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root/cimv2/test',
                 host=None),
         ),
         None, None, True
@@ -3893,12 +3892,12 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri='/n:C.k1=false,k2=true,k3=False,k4=True,k5=FALSE,k6=TRUE',
             exp_attrs=dict(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict([
                     ('k1', False), ('k2', True),
                     ('k3', False), ('k4', True),
                     ('k5', False), ('k6', True)]),
-                namespace=u'n',
+                namespace='n',
                 host=None),
         ),
         None, None, True
@@ -3908,12 +3907,12 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri='/n:C.k1=false,k3=False,k2=true,k4=True,k5=FALSE,k6=TRUE',
             exp_attrs=dict(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict([
                     ('k1', False), ('k3', False),
                     ('k2', True), ('k4', True),
                     ('k5', False), ('k6', True)]),
-                namespace=u'n',
+                namespace='n',
                 host=None),
         ),
         None, None, True
@@ -3928,7 +3927,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 'kmin64=-9223372036854775808,'
                 'klong=9223372036854775808',
             exp_attrs=dict(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict([
                     ('k1', 0), ('k2', -1), ('k3', -32769),
                     ('k4', 42), ('k5', 42),
@@ -3937,7 +3936,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                     ('kmax64', 9223372036854775807),
                     ('kmin64', -9223372036854775808),
                     ('klong', 9223372036854775808)]),
-                namespace=u'n',
+                namespace='n',
                 host=None),
         ),
         None, None, True
@@ -3945,7 +3944,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
     (
         "int key with invalid decimal digit U+0661 (ARABIC-INDIC ONE)",
         dict(
-            uri=u'/n:C.k1=\u0661',
+            uri='/n:C.k1=\u0661',
             exp_attrs=None,
         ),
         ValueError, None, True
@@ -3953,7 +3952,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
     (
         "int key with invalid decimal digit U+1D7CF (MATHEM. BOLD ONE)",
         dict(
-            uri=u'/n:C.k1=\U0001d7cf',
+            uri='/n:C.k1=\U0001d7cf',
             exp_attrs=None,
         ),
         ValueError, None, True
@@ -3961,7 +3960,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
     (
         "int key with invalid decimal digit U+2081 (SUBSCRIPT ONE)",
         dict(
-            uri=u'/n:C.k1=\u2081',
+            uri='/n:C.k1=\u2081',
             exp_attrs=None,
         ),
         ValueError, None, True
@@ -3969,7 +3968,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
     (
         "int key with invalid decimal digit U+00B9 (SUPERSCRIPT ONE)",
         dict(
-            uri=u'/n:C.k1=\u00b9',
+            uri='/n:C.k1=\u00b9',
             exp_attrs=None,
         ),
         ValueError, None, True
@@ -3977,7 +3976,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
     (
         "int key with invalid non-decimal digit U+10A44 (KHAROSHTHI TEN)",
         dict(
-            uri=u'/n:C.k1=\U00010a44',
+            uri='/n:C.k1=\U00010a44',
             exp_attrs=None,
         ),
         ValueError, None, True
@@ -3985,11 +3984,11 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
     (
         "positive int key in octal representation",
         dict(
-            uri=u'/n:C.k1=015',
+            uri='/n:C.k1=015',
             exp_attrs=dict(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict([('k1', 13)]),
-                namespace=u'n',
+                namespace='n',
                 host=None),
         ),
         None, None, True
@@ -3997,11 +3996,11 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
     (
         "negative int key in octal representation",
         dict(
-            uri=u'/n:C.k1=-017',
+            uri='/n:C.k1=-017',
             exp_attrs=dict(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict([('k1', -15)]),
-                namespace=u'n',
+                namespace='n',
                 host=None),
         ),
         None, None, True
@@ -4009,7 +4008,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
     (
         "int key in octal representation with invalid octal digits",
         dict(
-            uri=u'/n:C.k1=018',
+            uri='/n:C.k1=018',
             exp_attrs=None,
         ),
         ValueError, None, True
@@ -4017,11 +4016,11 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
     (
         "positive int key in binary representation (upper case)",
         dict(
-            uri=u'/n:C.k1=0101B',
+            uri='/n:C.k1=0101B',
             exp_attrs=dict(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict([('k1', 5)]),
-                namespace=u'n',
+                namespace='n',
                 host=None),
         ),
         None, None, True
@@ -4029,11 +4028,11 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
     (
         "negative int key in binary representation (lower case)",
         dict(
-            uri=u'/n:C.k1=-0101b',
+            uri='/n:C.k1=-0101b',
             exp_attrs=dict(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict([('k1', -5)]),
-                namespace=u'n',
+                namespace='n',
                 host=None),
         ),
         None, None, True
@@ -4041,7 +4040,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
     (
         "int key in binary representation with invalid binary digits",
         dict(
-            uri=u'/n:C.k1=0102',
+            uri='/n:C.k1=0102',
             exp_attrs=None,
         ),
         ValueError, None, True
@@ -4049,11 +4048,11 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
     (
         "positive int key in hex representation (upper case)",
         dict(
-            uri=u'/n:C.k1=0X19AF',
+            uri='/n:C.k1=0X19AF',
             exp_attrs=dict(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict([('k1', 0x19AF)]),
-                namespace=u'n',
+                namespace='n',
                 host=None),
         ),
         None, None, True
@@ -4061,11 +4060,11 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
     (
         "negative int key in hex representation (lower case)",
         dict(
-            uri=u'/n:C.k1=-0x19af',
+            uri='/n:C.k1=-0x19af',
             exp_attrs=dict(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict([('k1', -0x19AF)]),
-                namespace=u'n',
+                namespace='n',
                 host=None),
         ),
         None, None, True
@@ -4073,7 +4072,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
     (
         "int key in hex representation with invalid hex digits",
         dict(
-            uri=u'/n:C.k1=0x19afg',
+            uri='/n:C.k1=0x19afg',
             exp_attrs=None,
         ),
         ValueError, None, True
@@ -4087,7 +4086,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                 'kmax64=1.7976931348623157E308,'
                 'kmin64=4.9E-324',
             exp_attrs=dict(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict([
                     ('k1', 0.0), ('k2', -0.1), ('k3', 0.1),
                     ('k4', 31.4E-1), ('k5', 0.4E1),
@@ -4096,7 +4095,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                     ('kmax64', 1.7976931348623157E308),
                     ('kmin64', 4.9E-324),
                 ]),
-                namespace=u'n',
+                namespace='n',
                 host=None),
         ),
         None, None, True
@@ -4114,9 +4113,9 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri='/n:C.k1=INF',
             exp_attrs=dict(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict(k1=float('inf')),
-                namespace=u'n',
+                namespace='n',
                 host=None),
         ),
         None, None, True
@@ -4126,9 +4125,9 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri='/n:C.k1=-INF',
             exp_attrs=dict(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict(k1=float('-inf')),
-                namespace=u'n',
+                namespace='n',
                 host=None),
         ),
         None, None, True
@@ -4138,9 +4137,9 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri='/n:C.k1=NAN',
             exp_attrs=dict(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict(k1=float('nan')),
-                namespace=u'n',
+                namespace='n',
                 host=None),
         ),
         None, None, False  # float('nan') does not compare equal to itself
@@ -4150,12 +4149,12 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri=r'/n:C.k1="",k2="a",k3="42",k4="\"",k5="\\",k6="\\\"",k7="\'"',
             exp_attrs=dict(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict([
                     ('k1', ''), ('k2', 'a'), ('k3', '42'), ('k4', '"'),
                     ('k5', '\\'), ('k6', '\\"'), ('k7', "'"),
                 ]),
-                namespace=u'n',
+                namespace='n',
                 host=None),
         ),
         None, None, True
@@ -4165,9 +4164,9 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri=r'/n:C.k1="k2=42,k3=3"',
             exp_attrs=dict(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict(k1='k2=42,k3=3'),
-                namespace=u'n',
+                namespace='n',
                 host=None),
         ),
         None, None, True
@@ -4177,12 +4176,12 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri="/n:C.k1='a',k3='\"',k2='1',k4='\\'',k5='\\\\'",
             exp_attrs=dict(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict([
                     ('k1', 'a'), ('k3', '"'), ('k2', '1'), ('k4', "'"),
                     ('k5', '\\'),
                 ]),
-                namespace=u'n',
+                namespace='n',
                 host=None),
         ),
         None, None, True
@@ -4208,11 +4207,11 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri='/n:C.k1="19980125133015.123456-300"',
             exp_attrs=dict(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict([
                     ('k1', CIMDateTime('19980125133015.123456-300')),
                 ]),
-                namespace=u'n',
+                namespace='n',
                 host=None),
         ),
         None, None, True
@@ -4222,11 +4221,11 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri='/n:C.k1="12345678133015.123456:000"',
             exp_attrs=dict(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict([
                     ('k1', CIMDateTime('12345678133015.123456:000')),
                 ]),
-                namespace=u'n',
+                namespace='n',
                 host=None),
         ),
         None, None, True
@@ -4236,11 +4235,11 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri='/n:C.k1=19980125133015.123456-300',
             exp_attrs=dict(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict([
                     ('k1', CIMDateTime('19980125133015.123456-300')),
                 ]),
-                namespace=u'n',
+                namespace='n',
                 host=None),
         ),
         None, UserWarning, True
@@ -4250,11 +4249,11 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri='/n:C.k1=12345678133015.123456:000',
             exp_attrs=dict(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict([
                     ('k1', CIMDateTime('12345678133015.123456:000')),
                 ]),
-                namespace=u'n',
+                namespace='n',
                 host=None),
         ),
         None, UserWarning, True
@@ -4265,7 +4264,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri='/n1:C1.k1="/n2:C2.k2=1"',
             exp_attrs=dict(
-                classname=u'C1',
+                classname='C1',
                 keybindings=NocaseDict([
                     ('k1', CIMInstanceName(
                         classname='C2',
@@ -4274,7 +4273,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                         ]),
                         namespace='n2')),
                 ]),
-                namespace=u'n1',
+                namespace='n1',
                 host=None),
         ),
         None, None, True
@@ -4285,7 +4284,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri=r'/n1:C1.k1="/n2:C2.k2=\"v2\""',
             exp_attrs=dict(
-                classname=u'C1',
+                classname='C1',
                 keybindings=NocaseDict([
                     ('k1', CIMInstanceName(
                         classname='C2',
@@ -4294,7 +4293,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                         ]),
                         namespace='n2')),
                 ]),
-                namespace=u'n1',
+                namespace='n1',
                 host=None),
         ),
         None, None, True
@@ -4308,11 +4307,11 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri=r'/n1:C1.k1="/n2:C2."',
             exp_attrs=dict(
-                classname=u'C1',
+                classname='C1',
                 keybindings=NocaseDict([
                     ('k1', '/n2:C2.'),
                 ]),
-                namespace=u'n1',
+                namespace='n1',
                 host=None),
         ),
         None, None, True
@@ -4326,11 +4325,11 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri=r'/n1:C1.k1="/n2:C2"',
             exp_attrs=dict(
-                classname=u'C1',
+                classname='C1',
                 keybindings=NocaseDict([
                     ('k1', '/n2:C2'),
                 ]),
-                namespace=u'n1',
+                namespace='n1',
                 host=None),
         ),
         None, None, True
@@ -4340,7 +4339,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri=r'/n1:C1.k1="/n2:C2.k2=\"/n3:C3.k3=3\""',
             exp_attrs=dict(
-                classname=u'C1',
+                classname='C1',
                 keybindings=NocaseDict([
                     ('k1', CIMInstanceName(
                         classname='C2',
@@ -4354,7 +4353,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                         ]),
                         namespace='n2')),
                 ]),
-                namespace=u'n1',
+                namespace='n1',
                 host=None,
             ),
         ),
@@ -4366,7 +4365,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
         dict(
             uri=r'/n1:C1.k1="/n2:C2.k2=\"/n3:C3.k3=\\\"v3\\\"\""',
             exp_attrs=dict(
-                classname=u'C1',
+                classname='C1',
                 keybindings=NocaseDict([
                     ('k1', CIMInstanceName(
                         classname='C2',
@@ -4380,7 +4379,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
                         ]),
                         namespace='n2')),
                 ]),
-                namespace=u'n1',
+                namespace='n1',
                 host=None,
             ),
         ),
@@ -4595,7 +4594,7 @@ TESTCASES_CIMINSTANCENAME_FROM_INSTANCE = [
             host=None,
             strict=True,
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 keybindings=NocaseDict(P1='Ham')
             ),
         ),
@@ -4632,7 +4631,7 @@ TESTCASES_CIMINSTANCENAME_FROM_INSTANCE = [
             host=None,
             strict=True,
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 keybindings=NocaseDict([('P1', 'Ham'), ('P2', 'Cheese')])
             ),
         ),
@@ -4691,7 +4690,7 @@ TESTCASES_CIMINSTANCENAME_FROM_INSTANCE = [
             host=None,
             strict=False,
             exp_attrs=dict(
-                classname=u'CIM_Foo'
+                classname='CIM_Foo'
             ),
         ),
         None, None, True
@@ -4724,7 +4723,7 @@ TESTCASES_CIMINSTANCENAME_FROM_INSTANCE = [
             host=None,
             strict=False,
             exp_attrs=dict(
-                classname=u'CIM_Foo'
+                classname='CIM_Foo'
             ),
         ),
         None, None, True
@@ -4756,7 +4755,7 @@ TESTCASES_CIMINSTANCENAME_FROM_INSTANCE = [
             host=None,
             strict=True,
             exp_attrs=dict(
-                classname=u'CIM_Ref',
+                classname='CIM_Ref',
                 keybindings=NocaseDict(R1=CIMInstanceName('CIM_X', {'x': "X"}))
             ),
         ),
@@ -4790,10 +4789,10 @@ TESTCASES_CIMINSTANCENAME_FROM_INSTANCE = [
             host='Fred',
             strict=True,
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 keybindings=NocaseDict(P1='Ham'),
-                namespace=u'root/blah',
-                host=u'Fred'
+                namespace='root/blah',
+                host='Fred'
             ),
         ),
         None, None, True
@@ -4858,10 +4857,10 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "all components, standard format",
         dict(
             obj=CIMInstanceName(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root/cimv2',
-                host=u'10.11.12.13:5989'),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root/cimv2',
+                host='10.11.12.13:5989'),
             kwargs=dict(
                 format='standard',
             ),
@@ -4873,10 +4872,10 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "all components, canonical format",
         dict(
             obj=CIMInstanceName(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(K1=u'V1'),
-                namespace=u'root/CIMv2',
-                host=u'MyHost:5989'),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(K1='V1'),
+                namespace='root/CIMv2',
+                host='MyHost:5989'),
             kwargs=dict(
                 format='canonical',
             ),
@@ -4888,10 +4887,10 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "all components, cimobject format (host is ignored)",
         dict(
             obj=CIMInstanceName(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root/cimv2',
-                host=u'10.11.12.13:5989'),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root/cimv2',
+                host='10.11.12.13:5989'),
             kwargs=dict(
                 format='cimobject',
             ),
@@ -4903,10 +4902,10 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "all components, historical format",
         dict(
             obj=CIMInstanceName(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root/cimv2',
-                host=u'10.11.12.13:5989'),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root/cimv2',
+                host='10.11.12.13:5989'),
             kwargs=dict(
                 format='historical',
             ),
@@ -4918,10 +4917,10 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "all components, invalid format",
         dict(
             obj=CIMInstanceName(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(K1=u'V1'),
-                namespace=u'root/CIMv2',
-                host=u'MyHost:5989'),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(K1='V1'),
+                namespace='root/CIMv2',
+                host='MyHost:5989'),
             kwargs=dict(
                 format='xxx_invalid_format',
             ),
@@ -4933,9 +4932,9 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "no authority, standard format",
         dict(
             obj=CIMInstanceName(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root/cimv2',
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root/cimv2',
                 host=None),
             kwargs=dict(
                 format='standard',
@@ -4948,9 +4947,9 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "no authority, canonical format",
         dict(
             obj=CIMInstanceName(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(K1=u'V1'),
-                namespace=u'root/CIMv2',
+                classname='CIM_Foo',
+                keybindings=NocaseDict(K1='V1'),
+                namespace='root/CIMv2',
                 host=None),
             kwargs=dict(
                 format='canonical',
@@ -4963,9 +4962,9 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "no authority, cimobject format",
         dict(
             obj=CIMInstanceName(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root/cimv2',
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root/cimv2',
                 host=None),
             kwargs=dict(
                 format='cimobject',
@@ -4978,9 +4977,9 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "no authority, historical format",
         dict(
             obj=CIMInstanceName(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root/cimv2',
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root/cimv2',
                 host=None),
             kwargs=dict(
                 format='historical',
@@ -4993,10 +4992,10 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "authority with user:password",
         dict(
             obj=CIMInstanceName(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root/cimv2',
-                host=u'jdd:test@10.11.12.13:5989'),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root/cimv2',
+                host='jdd:test@10.11.12.13:5989'),
             kwargs=dict(
                 format='standard',
             ),
@@ -5008,10 +5007,10 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "authority with user (no password)",
         dict(
             obj=CIMInstanceName(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root/cimv2',
-                host=u'jdd@10.11.12.13:5989'),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root/cimv2',
+                host='jdd@10.11.12.13:5989'),
             kwargs=dict(
                 format='standard',
             ),
@@ -5023,10 +5022,10 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "authority without port",
         dict(
             obj=CIMInstanceName(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root/cimv2',
-                host=u'10.11.12.13'),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root/cimv2',
+                host='10.11.12.13'),
             kwargs=dict(
                 format='standard',
             ),
@@ -5038,10 +5037,10 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "authority with IPv6 address",
         dict(
             obj=CIMInstanceName(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root/cimv2',
-                host=u'[10:11:12:13]'),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root/cimv2',
+                host='[10:11:12:13]'),
             kwargs=dict(
                 format='standard',
             ),
@@ -5053,10 +5052,10 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "authority with IPv6 address and port",
         dict(
             obj=CIMInstanceName(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root/cimv2',
-                host=u'[10:11:12:13]:5989'),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root/cimv2',
+                host='[10:11:12:13]:5989'),
             kwargs=dict(
                 format='standard',
             ),
@@ -5068,9 +5067,9 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "local WBEM URI",
         dict(
             obj=CIMInstanceName(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root/cimv2',
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root/cimv2',
                 host=None),
             kwargs=dict(
                 format='standard',
@@ -5083,8 +5082,8 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "local WBEM URI with only class name, standard format",
         dict(
             obj=CIMInstanceName(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
                 namespace=None,
                 host=None),
             kwargs=dict(
@@ -5098,8 +5097,8 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "local WBEM URI with only class name, canonical format",
         dict(
             obj=CIMInstanceName(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(K1=u'V1'),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(K1='V1'),
                 namespace=None,
                 host=None),
             kwargs=dict(
@@ -5113,8 +5112,8 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "local WBEM URI with only class name, cimobject format",
         dict(
             obj=CIMInstanceName(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
                 namespace=None,
                 host=None),
             kwargs=dict(
@@ -5128,8 +5127,8 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "local WBEM URI with only class name, historical format",
         dict(
             obj=CIMInstanceName(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
                 namespace=None,
                 host=None),
             kwargs=dict(
@@ -5143,9 +5142,9 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "local WBEM URI with namespace that has only one component",
         dict(
             obj=CIMInstanceName(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root',
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root',
                 host=None),
             kwargs=dict(
                 format='standard',
@@ -5158,9 +5157,9 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "local WBEM URI with namespace that has three components",
         dict(
             obj=CIMInstanceName(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root/cimv2/test',
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root/cimv2/test',
                 host=None),
             kwargs=dict(
                 format='standard',
@@ -5173,9 +5172,9 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "multiple keys (bool) in alphabetical order, standard format",
         dict(
             obj=CIMInstanceName(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict([('k1', False), ('k2', True)]),
-                namespace=u'n',
+                namespace='n',
                 host=None),
             kwargs=dict(
                 format='standard',
@@ -5189,9 +5188,9 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "canonical format",
         dict(
             obj=CIMInstanceName(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict([('j1', False), ('K2', True)]),
-                namespace=u'N',
+                namespace='N',
                 host=None),
             kwargs=dict(
                 format='canonical',
@@ -5205,9 +5204,9 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "standard format",
         dict(
             obj=CIMInstanceName(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict([('k2', True), ('k1', False)]),
-                namespace=u'n',
+                namespace='n',
                 host=None),
             kwargs=dict(
                 format='standard',
@@ -5221,9 +5220,9 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "standard format",
         dict(
             obj=CIMInstanceName(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict([('K2', True), ('k1', False)]),
-                namespace=u'n',
+                namespace='n',
                 host=None),
             kwargs=dict(
                 format='standard',
@@ -5237,9 +5236,9 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "canonical format",
         dict(
             obj=CIMInstanceName(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict([('K2', True), ('j1', False)]),
-                namespace=u'N',
+                namespace='N',
                 host=None),
             kwargs=dict(
                 format='canonical',
@@ -5252,7 +5251,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "multiple keys (int) - created in non-alphabetical order",
         dict(
             obj=CIMInstanceName(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict([('k1', 0), ('k3', -32769), ('k2', -1),
                                         ('k4', 42), ('k5', 42),
                                         ('kmin32', -4294967296),
@@ -5260,7 +5259,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
                                         ('kmin64', -9223372036854775808),
                                         ('kmax64', 9223372036854775807),
                                         ('klong', 9223372036854775808)]),
-                namespace=u'n',
+                namespace='n',
                 host=None),
             kwargs=dict(
                 format='standard',
@@ -5278,14 +5277,14 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "multiple float keys - created in non-alphabetical order",
         dict(
             obj=CIMInstanceName(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict([('k1', 0.0), ('k3', 0.1), ('k2', -0.1),
                                         ('k4', 31.4E-1), ('k5', 0.4E1),
                                         ('kmin32', 1.175494351E-38),
                                         ('kmax32', 3.402823466E38),
                                         ('kmin64', 2.2250738585072014E-308),
                                         ('kmax64', 1.7976931348623157E308)]),
-                namespace=u'n',
+                namespace='n',
                 host=None),
             kwargs=dict(
                 format='standard',
@@ -5302,9 +5301,9 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "float key with special value INF (allowed by extension)",
         dict(
             obj=CIMInstanceName(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict(k1=float('inf')),
-                namespace=u'n',
+                namespace='n',
                 host=None),
             kwargs=dict(
                 format='standard',
@@ -5317,9 +5316,9 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "float key with special value -INF (allowed by extension)",
         dict(
             obj=CIMInstanceName(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict(k1=float('-inf')),
-                namespace=u'n',
+                namespace='n',
                 host=None),
             kwargs=dict(
                 format='standard',
@@ -5332,9 +5331,9 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "float key with special value NAN (allowed by extension)",
         dict(
             obj=CIMInstanceName(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict(k1=float('nan')),
-                namespace=u'n',
+                namespace='n',
                 host=None),
             kwargs=dict(
                 format='standard',
@@ -5347,11 +5346,11 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "multiple string keys - created in alphabetical order",
         dict(
             obj=CIMInstanceName(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict([('k1', ''), ('k2', 'a'), ('k3', '42'),
                                         ('k4', '"'), ('k5', '\\'),
                                         ('k6', '\\"'), ('k7', "'")]),
-                namespace=u'n',
+                namespace='n',
                 host=None),
             kwargs=dict(
                 format='standard',
@@ -5365,9 +5364,9 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "string key with keybindings syntax in its value",
         dict(
             obj=CIMInstanceName(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict(k1='k2=42,k3=3'),
-                namespace=u'n',
+                namespace='n',
                 host=None),
             kwargs=dict(
                 format='standard',
@@ -5380,10 +5379,10 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "multiple char16 keys - created in non-alphabetical order",
         dict(
             obj=CIMInstanceName(
-                classname=u'C',
+                classname='C',
                 keybindings=NocaseDict([('k1', 'a'), ('k3', '"'), ('k2', '1'),
                                         ('k4', "'"), ('k5', '\\')]),
-                namespace=u'n',
+                namespace='n',
                 host=None),
             kwargs=dict(
                 format='standard',
@@ -5396,11 +5395,11 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "datetime key for point in time (in quotes)",
         dict(
             obj=CIMInstanceName(
-                classname=u'C',
+                classname='C',
                 keybindings=[
                     ('k1', CIMDateTime('19980125133015.123456-300')),
                 ],
-                namespace=u'n',
+                namespace='n',
                 host=None),
             kwargs=dict(
                 format='standard',
@@ -5413,11 +5412,11 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "datetime key for interval (in quotes)",
         dict(
             obj=CIMInstanceName(
-                classname=u'C',
+                classname='C',
                 keybindings=[
                     ('k1', CIMDateTime('12345678133015.123456:000')),
                 ],
-                namespace=u'n',
+                namespace='n',
                 host=None),
             kwargs=dict(
                 format='standard',
@@ -5431,7 +5430,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "standard format",
         dict(
             obj=CIMInstanceName(
-                classname=u'C1',
+                classname='C1',
                 keybindings=[
                     ('k1', CIMInstanceName(
                         classname='C2',
@@ -5440,7 +5439,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
                         ],
                         namespace='n2')),
                 ],
-                namespace=u'n1',
+                namespace='n1',
                 host=None),
             kwargs=dict(
                 format='standard',
@@ -5454,7 +5453,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "canonical format",
         dict(
             obj=CIMInstanceName(
-                classname=u'C1',
+                classname='C1',
                 keybindings=[
                     ('K1', CIMInstanceName(
                         classname='C2',
@@ -5463,7 +5462,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
                         ],
                         namespace='N2')),
                 ],
-                namespace=u'N1',
+                namespace='N1',
                 host=None),
             kwargs=dict(
                 format='canonical',
@@ -5476,7 +5475,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "reference key that has a string key (normal association)",
         dict(
             obj=CIMInstanceName(
-                classname=u'C1',
+                classname='C1',
                 keybindings=[
                     ('k1', CIMInstanceName(
                         classname='C2',
@@ -5485,7 +5484,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
                         ],
                         namespace='n2')),
                 ],
-                namespace=u'n1',
+                namespace='n1',
                 host=None),
             kwargs=dict(
                 format='standard',
@@ -5498,14 +5497,14 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "reference key to instance that has no keys",
         dict(
             obj=CIMInstanceName(
-                classname=u'C1',
+                classname='C1',
                 keybindings=[
                     ('k1', CIMInstanceName(
                         classname='C2',
                         keybindings=[],
                         namespace='n2')),
                 ],
-                namespace=u'n1',
+                namespace='n1',
                 host=None),
             kwargs=dict(
                 format='standard',
@@ -5518,7 +5517,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "double nested reference to int key (association to association)",
         dict(
             obj=CIMInstanceName(
-                classname=u'C1',
+                classname='C1',
                 keybindings=[
                     ('k1', CIMInstanceName(
                         classname='C2',
@@ -5532,7 +5531,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
                         ],
                         namespace='n2')),
                 ],
-                namespace=u'n1',
+                namespace='n1',
                 host=None),
             kwargs=dict(
                 format='standard',
@@ -5546,7 +5545,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "association)",
         dict(
             obj=CIMInstanceName(
-                classname=u'C1',
+                classname='C1',
                 keybindings=[
                     ('k1', CIMInstanceName(
                         classname='C2',
@@ -5560,7 +5559,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
                         ],
                         namespace='n2')),
                 ],
-                namespace=u'n1',
+                namespace='n1',
                 host=None),
             kwargs=dict(
                 format='standard',
@@ -5573,7 +5572,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
         "Just classname, no namespace, host, or keys",
         dict(
             obj=CIMInstanceName(
-                classname=u'C1',
+                classname='C1',
                 keybindings=[],
                 namespace=None,
                 host=None),
@@ -5603,7 +5602,7 @@ def test_CIMInstanceName_to_wbem_uri(testcase, obj, kwargs, exp_uri):
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
-    assert isinstance(uri, six.text_type)
+    assert isinstance(uri, str)
     assert uri == exp_uri
 
 
@@ -5675,7 +5674,7 @@ def test_CIMInstanceName_to_wbem_uri_special_kb(
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
-    assert isinstance(uri, six.text_type)
+    assert isinstance(uri, str)
     assert uri == exp_uri
 
 
@@ -5696,10 +5695,10 @@ TESTCASES_CIMINSTANCENAME_STR = [
         "all components, historical format",
         dict(
             obj=CIMInstanceName(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root/cimv2',
-                host=u'10.11.12.13:5989'),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root/cimv2',
+                host='10.11.12.13:5989'),
             exp_uri='//10.11.12.13:5989/root/cimv2:CIM_Foo.k1="v1"',
         ),
         None, None, True
@@ -5708,9 +5707,9 @@ TESTCASES_CIMINSTANCENAME_STR = [
         "no authority, historical format",
         dict(
             obj=CIMInstanceName(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
-                namespace=u'root/cimv2',
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
+                namespace='root/cimv2',
                 host=None),
             exp_uri='root/cimv2:CIM_Foo.k1="v1"',
         ),
@@ -5720,8 +5719,8 @@ TESTCASES_CIMINSTANCENAME_STR = [
         "local WBEM URI with only class name, historical format",
         dict(
             obj=CIMInstanceName(
-                classname=u'CIM_Foo',
-                keybindings=NocaseDict(k1=u'v1'),
+                classname='CIM_Foo',
+                keybindings=NocaseDict(k1='v1'),
                 namespace=None,
                 host=None),
             exp_uri='CIM_Foo.k1="v1"',
@@ -5747,7 +5746,7 @@ def test_CIMInstanceName_str(testcase, obj, exp_uri):
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
-    assert isinstance(uri, six.text_type)
+    assert isinstance(uri, str)
     assert uri == exp_uri
 
 
@@ -5781,14 +5780,14 @@ TESTCASES_CIMINSTANCE_INIT = [
             ],
             init_kwargs={},
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 properties=NocaseDict([
                     ('Prop1', CIMProperty('Prop1', value=True)),
                 ]),
                 qualifiers=NocaseDict([
                     ('Qual1', CIMQualifier('Qual1', value=True)),
                 ]),
-                path=CIMInstanceName(u'CIM_Foo'),
+                path=CIMInstanceName('CIM_Foo'),
             )
         ),
         None, None, True
@@ -5803,7 +5802,7 @@ TESTCASES_CIMINSTANCE_INIT = [
                 classname=b'CIM_Foo',
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
             )
         ),
         None, None, True
@@ -5813,10 +5812,10 @@ TESTCASES_CIMINSTANCE_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
             )
         ),
         None, None, True
@@ -5835,7 +5834,7 @@ TESTCASES_CIMINSTANCE_INIT = [
                 ]
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 properties=NocaseDict([
                     ('K1', CIMProperty('K1', value='Ham')),
                     ('K2', CIMProperty('K2', value='Cheese')),
@@ -5856,7 +5855,7 @@ TESTCASES_CIMINSTANCE_INIT = [
                 ])
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 properties=NocaseDict([
                     ('K1', CIMProperty('K1', value='Ham')),
                     ('K2', CIMProperty('K2', value='Cheese')),
@@ -5877,7 +5876,7 @@ TESTCASES_CIMINSTANCE_INIT = [
                 ]
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 properties=NocaseDict([
                     ('K1', CIMProperty('K1', value='Ham')),
                     ('K2', CIMProperty('K2', value='Cheese')),
@@ -5897,7 +5896,7 @@ TESTCASES_CIMINSTANCE_INIT = [
                 )
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 properties=NocaseDict([
                     ('K1', CIMProperty('K1', value='Ham')),
                 ]),
@@ -5913,13 +5912,13 @@ TESTCASES_CIMINSTANCE_INIT = [
                 classname='CIM_Foo',
                 # lower case a umlaut
                 properties=dict(
-                    K1=u'H\u00E4m',
+                    K1='H\u00E4m',
                 )
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 properties=NocaseDict([
-                    ('K1', CIMProperty('K1', value=u'H\u00E4m')),
+                    ('K1', CIMProperty('K1', value='H\u00E4m')),
                 ]),
             )
         ),
@@ -5934,7 +5933,7 @@ TESTCASES_CIMINSTANCE_INIT = [
                 properties=dict(K1=True)
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 properties=NocaseDict([
                     ('K1', CIMProperty('K1', value=True)),
                 ]),
@@ -5951,7 +5950,7 @@ TESTCASES_CIMINSTANCE_INIT = [
                 properties=dict(K1=False),
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 properties=NocaseDict([
                     ('K1', CIMProperty('K1', value=False)),
                 ]),
@@ -5968,7 +5967,7 @@ TESTCASES_CIMINSTANCE_INIT = [
                 properties=dict(K1=Uint8(42)),
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 properties=NocaseDict([
                     ('K1', CIMProperty('K1', value=Uint8(42))),
                 ]),
@@ -5985,7 +5984,7 @@ TESTCASES_CIMINSTANCE_INIT = [
                 properties=dict(K1=Uint16(4216)),
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 properties=NocaseDict([
                     ('K1', CIMProperty('K1', value=Uint16(4216))),
                 ]),
@@ -6002,7 +6001,7 @@ TESTCASES_CIMINSTANCE_INIT = [
                 properties=dict(K1=Uint32(4232)),
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 properties=NocaseDict([
                     ('K1', CIMProperty('K1', value=Uint32(4232))),
                 ]),
@@ -6019,7 +6018,7 @@ TESTCASES_CIMINSTANCE_INIT = [
                 properties=dict(K1=Uint64(4264)),
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 properties=NocaseDict([
                     ('K1', CIMProperty('K1', value=Uint64(4264))),
                 ]),
@@ -6036,7 +6035,7 @@ TESTCASES_CIMINSTANCE_INIT = [
                 properties=dict(K1=Sint8(-42)),
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 properties=NocaseDict([
                     ('K1', CIMProperty('K1', value=Sint8(-42))),
                 ]),
@@ -6053,7 +6052,7 @@ TESTCASES_CIMINSTANCE_INIT = [
                 properties=dict(K1=Sint16(-4216)),
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 properties=NocaseDict([
                     ('K1', CIMProperty('K1', value=Sint16(-4216))),
                 ]),
@@ -6070,7 +6069,7 @@ TESTCASES_CIMINSTANCE_INIT = [
                 properties=dict(K1=Sint32(-4232)),
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 properties=NocaseDict([
                     ('K1', CIMProperty('K1', value=Sint32(-4232))),
                 ]),
@@ -6087,7 +6086,7 @@ TESTCASES_CIMINSTANCE_INIT = [
                 properties=dict(K1=Sint64(-4264)),
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 properties=NocaseDict([
                     ('K1', CIMProperty('K1', value=Sint64(-4264))),
                 ]),
@@ -6104,7 +6103,7 @@ TESTCASES_CIMINSTANCE_INIT = [
                 properties=dict(K1=Real32(-42.32)),
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 properties=NocaseDict([
                     ('K1', CIMProperty('K1', value=Real32(-42.32))),
                 ]),
@@ -6121,7 +6120,7 @@ TESTCASES_CIMINSTANCE_INIT = [
                 properties=dict(K1=Real64(-42.64)),
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 properties=NocaseDict([
                     ('K1', CIMProperty('K1', value=Real64(-42.64))),
                 ]),
@@ -6138,7 +6137,7 @@ TESTCASES_CIMINSTANCE_INIT = [
                 properties=dict(K1=DATETIME1_OBJ),
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 properties=NocaseDict([
                     ('K1', CIMProperty('K1', value=DATETIME1_OBJ)),
                 ]),
@@ -6155,7 +6154,7 @@ TESTCASES_CIMINSTANCE_INIT = [
                 properties=dict(K1=TIMEDELTA1_OBJ),
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 properties=NocaseDict([
                     ('K1', CIMProperty('K1', value=TIMEDELTA1_OBJ)),
                 ]),
@@ -6174,9 +6173,9 @@ TESTCASES_CIMINSTANCE_INIT = [
                 properties=dict(K1=CIMProperty('K1', value='Ham')),
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 properties=NocaseDict([
-                    ('K1', CIMProperty('K1', value=u'Ham')),
+                    ('K1', CIMProperty('K1', value='Ham')),
                 ]),
             )
         ),
@@ -6189,14 +6188,14 @@ TESTCASES_CIMINSTANCE_INIT = [
             init_kwargs=dict(
                 classname='CIM_Foo',
                 properties=OrderedDict([
-                    ('K1', u'Ham'),
+                    ('K1', 'Ham'),
                     ('K2', Uint8(42)),
                 ]),
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 properties=NocaseDict([
-                    ('K1', CIMProperty('K1', value=u'Ham')),
+                    ('K1', CIMProperty('K1', value='Ham')),
                     ('K2', CIMProperty('K2', value=Uint8(42))),
                 ]),
             )
@@ -6212,9 +6211,9 @@ TESTCASES_CIMINSTANCE_INIT = [
                 properties=dict(Key1='Ham'),
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 properties=NocaseDict([
-                    ('kEY1', CIMProperty('kEY1', value=u'Ham')),
+                    ('kEY1', CIMProperty('kEY1', value='Ham')),
                 ]),
             )
         ),
@@ -6234,7 +6233,7 @@ TESTCASES_CIMINSTANCE_INIT = [
                 ]
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 qualifiers=NocaseDict([
                     ('Q1', CIMQualifier('Q1', value='Ham')),
                     ('Q2', CIMQualifier('Q2', value='Cheese')),
@@ -6255,7 +6254,7 @@ TESTCASES_CIMINSTANCE_INIT = [
                 ])
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 qualifiers=NocaseDict([
                     ('Q1', CIMQualifier('Q1', value='Ham')),
                     ('Q2', CIMQualifier('Q2', value='Cheese')),
@@ -6276,7 +6275,7 @@ TESTCASES_CIMINSTANCE_INIT = [
                 ],
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 qualifiers=NocaseDict([
                     ('Q1', CIMQualifier('Q1', value='Ham')),
                     ('Q2', CIMQualifier('Q2', value='Cheese')),
@@ -6297,9 +6296,9 @@ TESTCASES_CIMINSTANCE_INIT = [
                 qualifiers=[CIMQualifier('Q1', value='Ham')],
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 qualifiers=NocaseDict([
-                    CIMQualifier('Q1', value=u'Ham'),
+                    CIMQualifier('Q1', value='Ham'),
                 ]),
             )
         ),
@@ -6319,10 +6318,10 @@ TESTCASES_CIMINSTANCE_INIT = [
                 ],
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 qualifiers=NocaseDict([
                     CIMQualifier('Q2', value=True),
-                    CIMQualifier('Q1', value=u'Ham'),
+                    CIMQualifier('Q1', value='Ham'),
                 ]),
             )
         ),
@@ -6340,7 +6339,7 @@ TESTCASES_CIMINSTANCE_INIT = [
                 path=CIMInstanceName('CIM_Foo', keybindings=dict(K1='Key1')),
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 path=CIMInstanceName(
                     'CIM_Foo',
                     keybindings=NocaseDict([('K1', 'Key1')])
@@ -6363,7 +6362,7 @@ TESTCASES_CIMINSTANCE_INIT = [
                 path=CIMInstanceName('CIM_Foo', keybindings=dict(K1='Key1')),
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 properties=NocaseDict([
                     CIMProperty('K1', value='Ham'),
                 ]),
@@ -6715,7 +6714,7 @@ TESTCASES_CIMINSTANCE_SETATTR = [
             item='classname',
             new_value='CIM_Bar',
             exp_attrs=dict(
-                classname=u'CIM_Bar',
+                classname='CIM_Bar',
             ),
         ),
         None, None, True
@@ -7661,7 +7660,7 @@ TESTCASES_CIMINSTANCE_HASH_EQ = [
         "Matching properties, with values that is unicode / string",
         dict(
             obj1=CIMInstance('CIM_Foo', properties={'Cheepy': 'Birds'}),
-            obj2=CIMInstance('CIM_Foo', properties={'Cheepy': u'Birds'}),
+            obj2=CIMInstance('CIM_Foo', properties={'Cheepy': 'Birds'}),
             exp_equal=True,
         ),
         None, None, True
@@ -7836,7 +7835,7 @@ TESTCASES_CIMINSTANCE_HASH_EQ = [
             obj1=CIMInstance('CIM_Foo',
                              qualifiers={'Cheepy': 'Birds'}),
             obj2=CIMInstance('CIM_Foo',
-                             qualifiers={'Cheepy': u'Birds'}),
+                             qualifiers={'Cheepy': 'Birds'}),
             exp_equal=True,
         ),
         None, None, True
@@ -8478,7 +8477,7 @@ def test_CIMInstance_tocimxmlstr(testcase, obj, kwargs, exp_xml_str):
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
-    assert isinstance(obj_xml_str, six.text_type)
+    assert isinstance(obj_xml_str, str)
 
     exp_xml_str = ''.join(exp_xml_str)
     validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str)
@@ -8856,26 +8855,26 @@ def test_CIMInstance_tomof(testcase, obj, kwargs, exp_mof):
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
-    assert isinstance(mof, six.text_type)
+    assert isinstance(mof, str)
     assert mof == exp_mof
 
 
 # Components to build the test class for the CIMInstance.from_class() test
 TST_CLS = 'CIM_Foo'
-ID_PROP = CIMProperty(u'ID', None, type='string', class_origin=TST_CLS,
+ID_PROP = CIMProperty('ID', None, type='string', class_origin=TST_CLS,
                       qualifiers={'Key': CIMQualifier('Key', True)})
-STR_PROP = CIMProperty(u'STR', None, type='string', class_origin=TST_CLS)
-INT_PROP = CIMProperty(u'U32', None, type='uint32', class_origin=TST_CLS)
-ARR_PROP = CIMProperty(u'A32', None, type='uint32', is_array=True,
+STR_PROP = CIMProperty('STR', None, type='string', class_origin=TST_CLS)
+INT_PROP = CIMProperty('U32', None, type='uint32', class_origin=TST_CLS)
+ARR_PROP = CIMProperty('A32', None, type='uint32', is_array=True,
                        class_origin=TST_CLS)
-REF_PROP = CIMProperty(u'REF', None, type='reference', class_origin=TST_CLS,
+REF_PROP = CIMProperty('REF', None, type='reference', class_origin=TST_CLS,
                        reference_class='CIM_Foo')
 # Properties with default in class
-ID_PROP_D = CIMProperty(u'ID', u"cls_id", type='string', class_origin=TST_CLS,
+ID_PROP_D = CIMProperty('ID', "cls_id", type='string', class_origin=TST_CLS,
                         qualifiers={'Key': CIMQualifier('Key', True)})
-STR_PROP_D = CIMProperty(u'STR', u"cls_str", type='string',
+STR_PROP_D = CIMProperty('STR', "cls_str", type='string',
                          class_origin=TST_CLS)
-INT_PROP_D = CIMProperty(u'U32', 4, type='uint32', class_origin=TST_CLS)
+INT_PROP_D = CIMProperty('U32', 4, type='uint32', class_origin=TST_CLS)
 
 
 # Temporary flags to clarify state of each test below.
@@ -8911,11 +8910,11 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
             inst_prop_vals=OrderedDict(
-                [(u'ID', u'inst_id'), (u'STR', u'str_val'),
-                 (u'U32', Uint32(3))]),
+                [('ID', 'inst_id'), ('STR', 'str_val'),
+                 ('U32', Uint32(3))]),
             kwargs={},
-            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
-                       u'U32': Uint32(3)},
+            exp_props={'ID': 'inst_id', 'STR': 'str_val',
+                       'U32': Uint32(3)},
         ),
         None, None, OK
     ),
@@ -8925,11 +8924,11 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
             inst_prop_vals=OrderedDict(
-                [(u'id', u'inst_id'), (u'str', u'str_val'),
-                 (u'u32', Uint32(3))]),
+                [('id', 'inst_id'), ('str', 'str_val'),
+                 ('u32', Uint32(3))]),
             kwargs={'include_path': True},
-            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
-                       u'U32': Uint32(3)},
+            exp_props={'ID': 'inst_id', 'STR': 'str_val',
+                       'U32': Uint32(3)},
         ),
         None, None, OK
     ),
@@ -8939,11 +8938,11 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
             inst_prop_vals=OrderedDict(
-                [(u'id', u'inst_id'), (u'str', u'str_val'),
-                 (u'u32', Uint32(3))]),
+                [('id', 'inst_id'), ('str', 'str_val'),
+                 ('u32', Uint32(3))]),
             kwargs={'include_path': True},
-            exp_props={u'id': u'inst_id', u'str': u'str_val',
-                       u'u32': Uint32(3)},
+            exp_props={'id': 'inst_id', 'str': 'str_val',
+                       'u32': Uint32(3)},
         ),
         None, None, OK
     ),
@@ -8953,16 +8952,16 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP, REF_PROP),
             inst_prop_vals=OrderedDict(
-                [(u'ID', u'inst_id'), (u'STR', u'str_val'),
-                 (u'U32', Uint32(3)),
-                 (u'REF', CIMInstanceName('CIM_Foo',
+                [('ID', 'inst_id'), ('STR', 'str_val'),
+                 ('U32', Uint32(3)),
+                 ('REF', CIMInstanceName('CIM_Foo',
                                           keybindings={'InstID': '1234'},
                                           host='woot.com',
                                           namespace='root/cimv2'))]),
             kwargs={},
-            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
-                       u'U32': Uint32(3),
-                       u'REF': CIMProperty(u'REF',
+            exp_props={'ID': 'inst_id', 'STR': 'str_val',
+                       'U32': Uint32(3),
+                       'REF': CIMProperty('REF',
                                            CIMInstanceName(
                                                'CIM_Foo',
                                                keybindings={'InstID': '1234'},
@@ -8979,10 +8978,10 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
             inst_prop_vals=OrderedDict(
-                [(u'ID', u'inst_id'), (u'STR', u'str_val')]),
+                [('ID', 'inst_id'), ('STR', 'str_val')]),
             kwargs={'include_missing_properties': True},
-            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
-                       u'U32': CIMProperty(u'U32', None, type='uint32')},
+            exp_props={'ID': 'inst_id', 'STR': 'str_val',
+                       'U32': CIMProperty('U32', None, type='uint32')},
         ),
         None, None, OK
     ),
@@ -8991,10 +8990,10 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
             inst_prop_vals=OrderedDict(
-                [(u'ID', u'inst_id'), (u'STR', u'str_val')]),
+                [('ID', 'inst_id'), ('STR', 'str_val')]),
             kwargs={'include_missing_properties': True},
-            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
-                       u'U32': CIMProperty(u'U32', None, type='uint32')},
+            exp_props={'ID': 'inst_id', 'STR': 'str_val',
+                       'U32': CIMProperty('U32', None, type='uint32')},
         ),
         None, None, OK
     ),
@@ -9003,9 +9002,9 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
             inst_prop_vals=OrderedDict(
-                [(u'ID', u'inst_id'), (u'STR', u'str_val')]),
+                [('ID', 'inst_id'), ('STR', 'str_val')]),
             kwargs={'include_missing_properties': False},
-            exp_props={u'ID': u'inst_id', u'STR': u'str_val'},
+            exp_props={'ID': 'inst_id', 'STR': 'str_val'},
         ),
         None, None, OK
     ),
@@ -9017,11 +9016,11 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
             inst_prop_vals=OrderedDict(
-                [(u'ID', u'inst_id'), (u'STR', u'str_val'),
-                 (u'U32', Uint32(3))]),
+                [('ID', 'inst_id'), ('STR', 'str_val'),
+                 ('U32', Uint32(3))]),
             kwargs={'include_path': True},
-            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
-                       u'U32': Uint32(3)},
+            exp_props={'ID': 'inst_id', 'STR': 'str_val',
+                       'U32': Uint32(3)},
         ),
         None, None, OK
     ),
@@ -9030,11 +9029,11 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
             inst_prop_vals=OrderedDict(
-                [(u'ID', u'inst_id'), (u'STR', u'str_val'),
-                 (u'U32', Uint32(3))]),
+                [('ID', 'inst_id'), ('STR', 'str_val'),
+                 ('U32', Uint32(3))]),
             kwargs={'include_path': False},
-            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
-                       u'U32': Uint32(3)},
+            exp_props={'ID': 'inst_id', 'STR': 'str_val',
+                       'U32': Uint32(3)},
         ),
         None, None, OK
     ),
@@ -9046,10 +9045,10 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
             inst_prop_vals=OrderedDict(
-                [(u'ID', u'inst_id'), (u'STR', 'blah'), (u'U32', None)]),
+                [('ID', 'inst_id'), ('STR', 'blah'), ('U32', None)]),
             kwargs={'include_path': False},
-            exp_props={u'ID': u'inst_id', u'STR': "blah",
-                       u'U32': CIMProperty(u'U32', None, 'uint32')},
+            exp_props={'ID': 'inst_id', 'STR': "blah",
+                       'U32': CIMProperty('U32', None, 'uint32')},
         ),
         None, None, OK
     ),
@@ -9059,10 +9058,10 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         "Verify class with one property. include_class_origin=True passes",
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
-            inst_prop_vals=OrderedDict([(u'ID', u'inst_id')]),
+            inst_prop_vals=OrderedDict([('ID', 'inst_id')]),
             kwargs={'include_path': False, 'include_class_origin': True,
                     'include_missing_properties': False},
-            exp_props={u'ID': CIMProperty(u'ID', u'inst_id', type='string',
+            exp_props={'ID': CIMProperty('ID', 'inst_id', type='string',
                                           class_origin='CIM_Foo')},
         ),
         None, None, OK
@@ -9073,11 +9072,11 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
             inst_prop_vals=OrderedDict(
-                [(u'ID', u'inst_id'), (u'STR', 'str_val'),
-                 (u'U32', Uint32(3))]),
+                [('ID', 'inst_id'), ('STR', 'str_val'),
+                 ('U32', Uint32(3))]),
             kwargs={'include_path': True},
-            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
-                       u'U32': Uint32(3)},
+            exp_props={'ID': 'inst_id', 'STR': 'str_val',
+                       'U32': Uint32(3)},
         ),
         None, None, OK
     ),
@@ -9087,11 +9086,11 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
             inst_prop_vals=OrderedDict(
-                [(u'STR', 'str_val'), (u'U32', Uint32(99999))]),
+                [('STR', 'str_val'), ('U32', Uint32(99999))]),
             kwargs={'include_path': True,
                     'include_missing_properties': False},
-            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
-                       u'U32': Uint32(99999)},
+            exp_props={'ID': 'inst_id', 'STR': 'str_val',
+                       'U32': Uint32(99999)},
         ),
         ValueError, None, OK
     ),
@@ -9101,10 +9100,10 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
             inst_prop_vals=OrderedDict(
-                [(u'STR', 'str_val'), (u'U32', Uint32(99999))]),
+                [('STR', 'str_val'), ('U32', Uint32(99999))]),
             kwargs={'include_path': True},
-            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
-                       u'U32': Uint32(99999)},
+            exp_props={'ID': 'inst_id', 'STR': 'str_val',
+                       'U32': Uint32(99999)},
         ),
         ValueError, None, OK
     ),
@@ -9113,11 +9112,11 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
             inst_prop_vals=OrderedDict(
-                [(u'ID', u'inst_id'), (u'STR', 'str_val'), (u'U32', Uint32(3)),
-                 (u'BLAH', Uint64(9))]),
+                [('ID', 'inst_id'), ('STR', 'str_val'), ('U32', Uint32(3)),
+                 ('BLAH', Uint64(9))]),
             kwargs={},
-            exp_props={u'ID': 'inst_id', u'STR': u'str_val',
-                       u'U32': Uint32(3)},
+            exp_props={'ID': 'inst_id', 'STR': 'str_val',
+                       'U32': Uint32(3)},
         ),
         ValueError, None, OK
     ),
@@ -9126,10 +9125,10 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
             inst_prop_vals=OrderedDict(
-                [(u'ID', u'inst_id'), (u'STR', 'str_val'), (u'U32', u'blah')]),
+                [('ID', 'inst_id'), ('STR', 'str_val'), ('U32', 'blah')]),
             kwargs={},
-            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
-                       u'U32': Uint32(3)},
+            exp_props={'ID': 'inst_id', 'STR': 'str_val',
+                       'U32': Uint32(3)},
         ),
         ValueError, None, OK
     ),
@@ -9138,11 +9137,11 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP, ARR_PROP),
             inst_prop_vals=OrderedDict(
-                [(u'ID', u'inst_id'), (u'STR', 'str_val'), (u'U32', Uint32(3)),
-                 (u'A32', [Uint32(3), Uint32(9999)])]),
+                [('ID', 'inst_id'), ('STR', 'str_val'), ('U32', Uint32(3)),
+                 ('A32', [Uint32(3), Uint32(9999)])]),
             kwargs={},
-            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
-                       u'U32': Uint32(3), u'A32': [Uint32(3), Uint32(9999)]},
+            exp_props={'ID': 'inst_id', 'STR': 'str_val',
+                       'U32': Uint32(3), 'A32': [Uint32(3), Uint32(9999)]},
         ),
         None, None, OK
     ),
@@ -9151,11 +9150,11 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP, ARR_PROP),
             inst_prop_vals=OrderedDict(
-                [(u'ID', u'inst_id'), (u'STR', 'str_val'), (u'U32', Uint32(3)),
-                 (u'A32', Uint32(3))]),
+                [('ID', 'inst_id'), ('STR', 'str_val'), ('U32', Uint32(3)),
+                 ('A32', Uint32(3))]),
             kwargs={},
-            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
-                       u'U32': Uint32(3), u'A32': Uint32(3)},
+            exp_props={'ID': 'inst_id', 'STR': 'str_val',
+                       'U32': Uint32(3), 'A32': Uint32(3)},
         ),
         ValueError, None, OK
     ),
@@ -9164,11 +9163,11 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
             inst_prop_vals=OrderedDict(
-                [(u'ID', u'inst_id'), (u'STR', 'str_val'),
-                 (u'U32', Uint32(3))]),
+                [('ID', 'inst_id'), ('STR', 'str_val'),
+                 ('U32', Uint32(3))]),
             kwargs={'namespace': 'root/blah', 'include_path': True},
-            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
-                       u'U32': Uint32(3)},
+            exp_props={'ID': 'inst_id', 'STR': 'str_val',
+                       'U32': Uint32(3)},
         ),
         None, None, OK
     ),
@@ -9182,7 +9181,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
             inst_prop_vals=OrderedDict(),
             kwargs={'include_path': True,
                     'include_missing_properties': False},
-            exp_props={u'ID': u'cls_id', u'STR': u'cls_str', u'U32': Uint32(4)},
+            exp_props={'ID': 'cls_id', 'STR': 'cls_str', 'U32': Uint32(4)},
         ),
         ValueError, None, OK
     ),
@@ -9194,7 +9193,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
             inst_prop_vals=OrderedDict(),
             kwargs={'include_path': True,
                     'include_missing_properties': True},
-            exp_props={u'ID': u'cls_id', u'STR': u'cls_str', u'U32': Uint32(4)},
+            exp_props={'ID': 'cls_id', 'STR': 'cls_str', 'U32': Uint32(4)},
         ),
         None, None, OK
     ),
@@ -9203,12 +9202,12 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         dict(
             cls_props=(ID_PROP_D, STR_PROP_D, INT_PROP_D),
             inst_prop_vals=OrderedDict(
-                [(u'ID', u'inst_id'), (u'STR', 'str_val'), (u'U32', Uint32(3)),
-                 (u'A32', Uint32(3))]),
+                [('ID', 'inst_id'), ('STR', 'str_val'), ('U32', Uint32(3)),
+                 ('A32', Uint32(3))]),
             kwargs={'include_path': True,
                     'include_missing_properties': False},
-            exp_props={u'ID': u'inst_id', u'STR': u'str_val',
-                       u'U32': Uint32(3)},
+            exp_props={'ID': 'inst_id', 'STR': 'str_val',
+                       'U32': Uint32(3)},
         ),
         ValueError, None, OK
     ),
@@ -9339,10 +9338,10 @@ TESTCASES_CIMPROPERTY_INIT = [
             ],
             init_kwargs={},
             exp_attrs=dict(
-                name=u'Prop1',
+                name='Prop1',
                 value=[CIMInstance('CIM_Foo')],
-                type=u'string',
-                class_origin=u'CIM_FooParent',
+                type='string',
+                class_origin='CIM_FooParent',
                 array_size=5,
                 propagated=True,
                 is_array=True,
@@ -9350,7 +9349,7 @@ TESTCASES_CIMPROPERTY_INIT = [
                 qualifiers=NocaseDict([
                     ('Q1', CIMQualifier('Q1', value='Ham')),
                 ]),
-                embedded_object=u'instance',
+                embedded_object='instance',
             )
         ),
         None, None, True
@@ -9362,10 +9361,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=b'FooProp', value=u'abc',
+                name=b'FooProp', value='abc',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=u'abc', type=exp_type_string,
+                name='FooProp', value='abc', type=exp_type_string,
             )
         ),
         None, None, True
@@ -9375,10 +9374,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=u'abc',
+                name='FooProp', value='abc',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=u'abc', type=exp_type_string,
+                name='FooProp', value='abc', type=exp_type_string,
             )
         ),
         None, None, True
@@ -9390,10 +9389,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=b'abc',
+                name='FooProp', value=b'abc',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=u'abc', type=exp_type_string,
+                name='FooProp', value='abc', type=exp_type_string,
             )
         ),
         None, None, True
@@ -9403,10 +9402,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=u'abc',
+                name='FooProp', value='abc',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=u'abc', type=exp_type_string,
+                name='FooProp', value='abc', type=exp_type_string,
             )
         ),
         None, None, True
@@ -9416,10 +9415,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=b'abc', type='string',
+                name='FooProp', value=b'abc', type='string',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=u'abc', type=u'string',
+                name='FooProp', value='abc', type='string',
             )
         ),
         None, None, True
@@ -9429,10 +9428,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=u'abc', type='string',
+                name='FooProp', value='abc', type='string',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=u'abc', type=u'string',
+                name='FooProp', value='abc', type='string',
             )
         ),
         None, None, True
@@ -9442,10 +9441,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=None, type='string',
+                name='FooProp', value=None, type='string',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=None, type=u'string',
+                name='FooProp', value=None, type='string',
             )
         ),
         None, None, True
@@ -9457,10 +9456,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=Uint8(32),
+                name='FooProp', value=Uint8(32),
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=Uint8(32), type=exp_type_uint8,
+                name='FooProp', value=Uint8(32), type=exp_type_uint8,
             )
         ),
         None, None, True
@@ -9470,10 +9469,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=Uint8(32), type='uint8',
+                name='FooProp', value=Uint8(32), type='uint8',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=Uint8(32), type=u'uint8',
+                name='FooProp', value=Uint8(32), type='uint8',
             )
         ),
         None, None, True
@@ -9483,10 +9482,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=None, type='uint8',
+                name='FooProp', value=None, type='uint8',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=None, type=u'uint8',
+                name='FooProp', value=None, type='uint8',
             )
         ),
         None, None, True
@@ -9496,10 +9495,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=Uint16(32),
+                name='FooProp', value=Uint16(32),
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=Uint16(32), type=exp_type_uint16,
+                name='FooProp', value=Uint16(32), type=exp_type_uint16,
             )
         ),
         None, None, True
@@ -9509,10 +9508,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=Uint16(32), type='uint16',
+                name='FooProp', value=Uint16(32), type='uint16',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=Uint16(32), type=u'uint16',
+                name='FooProp', value=Uint16(32), type='uint16',
             )
         ),
         None, None, True
@@ -9522,10 +9521,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=None, type='uint16',
+                name='FooProp', value=None, type='uint16',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=None, type=u'uint16',
+                name='FooProp', value=None, type='uint16',
             )
         ),
         None, None, True
@@ -9535,10 +9534,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=Uint32(32),
+                name='FooProp', value=Uint32(32),
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=Uint32(32), type=exp_type_uint32,
+                name='FooProp', value=Uint32(32), type=exp_type_uint32,
             )
         ),
         None, None, True
@@ -9548,10 +9547,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=Uint32(32), type='uint32',
+                name='FooProp', value=Uint32(32), type='uint32',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=Uint32(32), type=u'uint32',
+                name='FooProp', value=Uint32(32), type='uint32',
             )
         ),
         None, None, True
@@ -9561,10 +9560,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=None, type='uint32',
+                name='FooProp', value=None, type='uint32',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=None, type=u'uint32',
+                name='FooProp', value=None, type='uint32',
             )
         ),
         None, None, True
@@ -9574,10 +9573,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=Uint64(32),
+                name='FooProp', value=Uint64(32),
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=Uint64(32), type=exp_type_uint64,
+                name='FooProp', value=Uint64(32), type=exp_type_uint64,
             )
         ),
         None, None, True
@@ -9587,10 +9586,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=Uint64(32), type='uint64',
+                name='FooProp', value=Uint64(32), type='uint64',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=Uint64(32), type=u'uint64',
+                name='FooProp', value=Uint64(32), type='uint64',
             )
         ),
         None, None, True
@@ -9600,10 +9599,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=None, type='uint64',
+                name='FooProp', value=None, type='uint64',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=None, type=u'uint64',
+                name='FooProp', value=None, type='uint64',
             )
         ),
         None, None, True
@@ -9613,10 +9612,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=Sint8(32),
+                name='FooProp', value=Sint8(32),
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=Sint8(32), type=exp_type_sint8,
+                name='FooProp', value=Sint8(32), type=exp_type_sint8,
             )
         ),
         None, None, True
@@ -9626,10 +9625,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=Sint8(32), type='sint8',
+                name='FooProp', value=Sint8(32), type='sint8',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=Sint8(32), type=u'sint8',
+                name='FooProp', value=Sint8(32), type='sint8',
             )
         ),
         None, None, True
@@ -9639,10 +9638,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=None, type='sint8',
+                name='FooProp', value=None, type='sint8',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=None, type=u'sint8',
+                name='FooProp', value=None, type='sint8',
             )
         ),
         None, None, True
@@ -9652,10 +9651,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=Sint16(32),
+                name='FooProp', value=Sint16(32),
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=Sint16(32), type=exp_type_sint16,
+                name='FooProp', value=Sint16(32), type=exp_type_sint16,
             )
         ),
         None, None, True
@@ -9665,10 +9664,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=Sint16(32), type='sint16',
+                name='FooProp', value=Sint16(32), type='sint16',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=Sint16(32), type=u'sint16',
+                name='FooProp', value=Sint16(32), type='sint16',
             )
         ),
         None, None, True
@@ -9678,10 +9677,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=None, type='sint16',
+                name='FooProp', value=None, type='sint16',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=None, type=u'sint16',
+                name='FooProp', value=None, type='sint16',
             )
         ),
         None, None, True
@@ -9691,10 +9690,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=Sint32(32),
+                name='FooProp', value=Sint32(32),
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=Sint32(32), type=exp_type_sint32,
+                name='FooProp', value=Sint32(32), type=exp_type_sint32,
             )
         ),
         None, None, True
@@ -9704,10 +9703,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=Sint32(32), type='sint32',
+                name='FooProp', value=Sint32(32), type='sint32',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=Sint32(32), type=u'sint32',
+                name='FooProp', value=Sint32(32), type='sint32',
             )
         ),
         None, None, True
@@ -9717,10 +9716,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=None, type='sint32',
+                name='FooProp', value=None, type='sint32',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=None, type=u'sint32',
+                name='FooProp', value=None, type='sint32',
             )
         ),
         None, None, True
@@ -9730,10 +9729,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=Sint64(32),
+                name='FooProp', value=Sint64(32),
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=Sint64(32), type=exp_type_sint64,
+                name='FooProp', value=Sint64(32), type=exp_type_sint64,
             )
         ),
         None, None, True
@@ -9743,10 +9742,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=Sint64(32), type='sint64',
+                name='FooProp', value=Sint64(32), type='sint64',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=Sint64(32), type=u'sint64',
+                name='FooProp', value=Sint64(32), type='sint64',
             )
         ),
         None, None, True
@@ -9756,10 +9755,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=None, type='sint64',
+                name='FooProp', value=None, type='sint64',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=None, type=u'sint64',
+                name='FooProp', value=None, type='sint64',
             )
         ),
         None, None, True
@@ -9771,10 +9770,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=Real32(32.0),
+                name='FooProp', value=Real32(32.0),
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=Real32(32.0), type=exp_type_real32,
+                name='FooProp', value=Real32(32.0), type=exp_type_real32,
             )
         ),
         None, None, True
@@ -9784,10 +9783,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=Real32(32.0), type='real32',
+                name='FooProp', value=Real32(32.0), type='real32',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=Real32(32.0), type=u'real32',
+                name='FooProp', value=Real32(32.0), type='real32',
             )
         ),
         None, None, True
@@ -9797,10 +9796,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=None, type='real32',
+                name='FooProp', value=None, type='real32',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=None, type=u'real32',
+                name='FooProp', value=None, type='real32',
             )
         ),
         None, None, True
@@ -9810,10 +9809,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=Real64(32.0),
+                name='FooProp', value=Real64(32.0),
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=Real64(32.0), type=exp_type_real64,
+                name='FooProp', value=Real64(32.0), type=exp_type_real64,
             )
         ),
         None, None, True
@@ -9823,10 +9822,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=Real64(32.0), type='real64',
+                name='FooProp', value=Real64(32.0), type='real64',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=Real64(32.0), type=u'real64',
+                name='FooProp', value=Real64(32.0), type='real64',
             )
         ),
         None, None, True
@@ -9836,7 +9835,7 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=32.0,
+                name='FooProp', value=32.0,
             ),
             exp_attrs=None
         ),
@@ -9847,10 +9846,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=32.0, type='real64',
+                name='FooProp', value=32.0, type='real64',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=Real64(32.0), type=u'real64',
+                name='FooProp', value=Real64(32.0), type='real64',
             )
         ),
         None, None, True
@@ -9860,10 +9859,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=32.0, type='real32',
+                name='FooProp', value=32.0, type='real32',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=Real32(32.0), type=u'real32',
+                name='FooProp', value=Real32(32.0), type='real32',
             )
         ),
         None, None, True
@@ -9873,10 +9872,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=None, type='real64',
+                name='FooProp', value=None, type='real64',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=None, type=u'real64',
+                name='FooProp', value=None, type='real64',
             )
         ),
         None, None, True
@@ -9888,10 +9887,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=True,
+                name='FooProp', value=True,
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=True, type=exp_type_boolean,
+                name='FooProp', value=True, type=exp_type_boolean,
             )
         ),
         None, None, True
@@ -9901,10 +9900,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=True, type='boolean',
+                name='FooProp', value=True, type='boolean',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=True, type=u'boolean',
+                name='FooProp', value=True, type='boolean',
             )
         ),
         None, None, True
@@ -9914,10 +9913,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=False,
+                name='FooProp', value=False,
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=False, type=exp_type_boolean,
+                name='FooProp', value=False, type=exp_type_boolean,
             )
         ),
         None, None, True
@@ -9927,10 +9926,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=False, type='boolean',
+                name='FooProp', value=False, type='boolean',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=False, type=u'boolean',
+                name='FooProp', value=False, type='boolean',
             )
         ),
         None, None, True
@@ -9940,10 +9939,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=None, type='boolean',
+                name='FooProp', value=None, type='boolean',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=None, type=u'boolean',
+                name='FooProp', value=None, type='boolean',
             )
         ),
         None, None, True
@@ -9955,10 +9954,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=TIMEDELTA1_TD,
+                name='FooProp', value=TIMEDELTA1_TD,
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=TIMEDELTA1_OBJ, type=exp_type_datetime,
+                name='FooProp', value=TIMEDELTA1_OBJ, type=exp_type_datetime,
             )
         ),
         None, None, True
@@ -9968,10 +9967,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=TIMEDELTA1_TD, type='datetime',
+                name='FooProp', value=TIMEDELTA1_TD, type='datetime',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=TIMEDELTA1_OBJ, type=u'datetime',
+                name='FooProp', value=TIMEDELTA1_OBJ, type='datetime',
             )
         ),
         None, None, True
@@ -9981,10 +9980,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=CIMDateTime(TIMEDELTA1_TD),
+                name='FooProp', value=CIMDateTime(TIMEDELTA1_TD),
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=TIMEDELTA1_OBJ, type=exp_type_datetime,
+                name='FooProp', value=TIMEDELTA1_OBJ, type=exp_type_datetime,
             )
         ),
         None, None, True
@@ -9994,11 +9993,11 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=CIMDateTime(TIMEDELTA1_TD),
+                name='FooProp', value=CIMDateTime(TIMEDELTA1_TD),
                 type='datetime',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=TIMEDELTA1_OBJ, type=u'datetime',
+                name='FooProp', value=TIMEDELTA1_OBJ, type='datetime',
             )
         ),
         None, None, True
@@ -10008,10 +10007,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=TIMEDELTA1_STR, type='datetime',
+                name='FooProp', value=TIMEDELTA1_STR, type='datetime',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=TIMEDELTA1_OBJ, type=u'datetime',
+                name='FooProp', value=TIMEDELTA1_OBJ, type='datetime',
             )
         ),
         None, None, True
@@ -10021,10 +10020,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=DATETIME1_DT,
+                name='FooProp', value=DATETIME1_DT,
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=DATETIME1_OBJ, type=exp_type_datetime,
+                name='FooProp', value=DATETIME1_OBJ, type=exp_type_datetime,
             )
         ),
         None, None, True
@@ -10034,10 +10033,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=DATETIME1_DT, type='datetime',
+                name='FooProp', value=DATETIME1_DT, type='datetime',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=DATETIME1_OBJ, type=u'datetime',
+                name='FooProp', value=DATETIME1_OBJ, type='datetime',
             )
         ),
         None, None, True
@@ -10047,10 +10046,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=CIMDateTime(DATETIME1_DT),
+                name='FooProp', value=CIMDateTime(DATETIME1_DT),
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=DATETIME1_OBJ, type=exp_type_datetime,
+                name='FooProp', value=DATETIME1_OBJ, type=exp_type_datetime,
             )
         ),
         None, None, True
@@ -10060,11 +10059,11 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=CIMDateTime(DATETIME1_DT),
+                name='FooProp', value=CIMDateTime(DATETIME1_DT),
                 type='datetime',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=DATETIME1_OBJ, type=u'datetime',
+                name='FooProp', value=DATETIME1_OBJ, type='datetime',
             )
         ),
         None, None, True
@@ -10074,10 +10073,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=DATETIME1_STR, type='datetime',
+                name='FooProp', value=DATETIME1_STR, type='datetime',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=DATETIME1_OBJ, type=u'datetime',
+                name='FooProp', value=DATETIME1_OBJ, type='datetime',
             )
         ),
         None, None, True
@@ -10089,11 +10088,11 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=None, type='reference',
+                name='FooProp', value=None, type='reference',
                 reference_class=None,
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=None, type=u'reference',
+                name='FooProp', value=None, type='reference',
                 reference_class=None,
             )
         ),
@@ -10104,12 +10103,12 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=None, type='reference',
+                name='FooProp', value=None, type='reference',
                 reference_class=b'CIM_Ref',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=None, type=u'reference',
-                reference_class=u'CIM_Ref',
+                name='FooProp', value=None, type='reference',
+                reference_class='CIM_Ref',
             )
         ),
         None, None, True
@@ -10119,12 +10118,12 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=None, type='reference',
-                reference_class=u'CIM_Ref',
+                name='FooProp', value=None, type='reference',
+                reference_class='CIM_Ref',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=None, type=u'reference',
-                reference_class=u'CIM_Ref',
+                name='FooProp', value=None, type='reference',
+                reference_class='CIM_Ref',
             )
         ),
         None, None, True
@@ -10135,11 +10134,11 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp',
+                name='FooProp',
                 value=CIMINSTANCENAME_C1_OBJ,
             ),
             exp_attrs=dict(
-                name=u'FooProp',
+                name='FooProp',
                 value=CIMINSTANCENAME_C1_OBJ,
                 type=exp_type_reference,
             )
@@ -10151,15 +10150,15 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp',
+                name='FooProp',
                 value=CIMINSTANCENAME_C1_OBJ,
                 type='reference',
                 reference_class=CIMINSTANCENAME_C1_OBJ.classname,
             ),
             exp_attrs=dict(
-                name=u'FooProp',
+                name='FooProp',
                 value=CIMINSTANCENAME_C1_OBJ,
-                type=u'reference',
+                type='reference',
                 reference_class=CIMINSTANCENAME_C1_OBJ.classname,
             )
         ),
@@ -10174,16 +10173,16 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp',
+                name='FooProp',
                 value='https://10.1.2.3:5989/root/cimv2:C1.k1="v1",k2=True',
                 type='reference',
             ),
             exp_attrs=dict(
-                name=u'FooProp',
+                name='FooProp',
                 value=CIMInstanceName(
                     'C1', keybindings=dict(k1='v1', k2=True),
                     namespace='root/cimv2', host='10.1.2.3:5989'),
-                type=u'reference',
+                type='reference',
             )
         ),
         None, None, True
@@ -10196,12 +10195,12 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=None, type='string',
+                name='FooProp', value=None, type='string',
                 embedded_object='object',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=None, type=u'string',
-                embedded_object=u'object',
+                name='FooProp', value=None, type='string',
+                embedded_object='object',
             )
         ),
         None, None, True
@@ -10211,10 +10210,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=CIMCLASS_C1_OBJ,
+                name='FooProp', value=CIMCLASS_C1_OBJ,
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=CIMCLASS_C1_OBJ, type=exp_type_string,
+                name='FooProp', value=CIMCLASS_C1_OBJ, type=exp_type_string,
                 embedded_object=exp_eo_object,
             )
         ),
@@ -10226,10 +10225,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=CIMCLASS_C1_OBJ, type='string',
+                name='FooProp', value=CIMCLASS_C1_OBJ, type='string',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=CIMCLASS_C1_OBJ, type=u'string',
+                name='FooProp', value=CIMCLASS_C1_OBJ, type='string',
                 embedded_object=exp_eo_object,
             )
         ),
@@ -10240,12 +10239,12 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=CIMCLASS_C1_OBJ,
+                name='FooProp', value=CIMCLASS_C1_OBJ,
                 embedded_object='object',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=CIMCLASS_C1_OBJ, type=exp_type_string,
-                embedded_object=u'object',
+                name='FooProp', value=CIMCLASS_C1_OBJ, type=exp_type_string,
+                embedded_object='object',
             )
         ),
         None, None, True
@@ -10255,12 +10254,12 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=CIMCLASS_C1_OBJ, type='string',
+                name='FooProp', value=CIMCLASS_C1_OBJ, type='string',
                 embedded_object='object',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=CIMCLASS_C1_OBJ, type=u'string',
-                embedded_object=u'object',
+                name='FooProp', value=CIMCLASS_C1_OBJ, type='string',
+                embedded_object='object',
             )
         ),
         None, None, True
@@ -10271,12 +10270,12 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=CIMINSTANCE_C1_OBJ,
+                name='FooProp', value=CIMINSTANCE_C1_OBJ,
                 embedded_object='object',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=CIMINSTANCE_C1_OBJ, type=exp_type_string,
-                embedded_object=u'object',
+                name='FooProp', value=CIMINSTANCE_C1_OBJ, type=exp_type_string,
+                embedded_object='object',
             )
         ),
         None, None, True
@@ -10287,12 +10286,12 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=CIMINSTANCE_C1_OBJ, type='string',
+                name='FooProp', value=CIMINSTANCE_C1_OBJ, type='string',
                 embedded_object='object',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=CIMINSTANCE_C1_OBJ, type=u'string',
-                embedded_object=u'object',
+                name='FooProp', value=CIMINSTANCE_C1_OBJ, type='string',
+                embedded_object='object',
             )
         ),
         None, None, True
@@ -10305,10 +10304,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=CIMINSTANCE_C1_OBJ,
+                name='FooProp', value=CIMINSTANCE_C1_OBJ,
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=CIMINSTANCE_C1_OBJ, type=exp_type_string,
+                name='FooProp', value=CIMINSTANCE_C1_OBJ, type=exp_type_string,
                 embedded_object=exp_eo_instance,
             )
         ),
@@ -10320,10 +10319,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=CIMINSTANCE_C1_OBJ, type='string',
+                name='FooProp', value=CIMINSTANCE_C1_OBJ, type='string',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=CIMINSTANCE_C1_OBJ, type=u'string',
+                name='FooProp', value=CIMINSTANCE_C1_OBJ, type='string',
                 embedded_object=exp_eo_instance,
             )
         ),
@@ -10335,12 +10334,12 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=CIMINSTANCE_C1_OBJ,
+                name='FooProp', value=CIMINSTANCE_C1_OBJ,
                 embedded_object='instance',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=CIMINSTANCE_C1_OBJ, type=exp_type_string,
-                embedded_object=u'instance',
+                name='FooProp', value=CIMINSTANCE_C1_OBJ, type=exp_type_string,
+                embedded_object='instance',
             )
         ),
         None, None, True
@@ -10351,12 +10350,12 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=CIMINSTANCE_C1_OBJ, type='string',
+                name='FooProp', value=CIMINSTANCE_C1_OBJ, type='string',
                 embedded_object='instance',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=CIMINSTANCE_C1_OBJ, type=u'string',
-                embedded_object=u'instance',
+                name='FooProp', value=CIMINSTANCE_C1_OBJ, type='string',
+                embedded_object='instance',
             )
         ),
         None, None, True
@@ -10368,11 +10367,11 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=u'abc', type='string',
+                name='FooProp', value='abc', type='string',
                 embedded_object=False,
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=u'abc', type=u'string',
+                name='FooProp', value='abc', type='string',
                 embedded_object=None,
             )
         ),
@@ -10386,10 +10385,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[u'abc'], type=u'string', is_array=42,
+                name='FooProp', value=['abc'], type='string', is_array=42,
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[u'abc'], type=u'string', is_array=True,
+                name='FooProp', value=['abc'], type='string', is_array=True,
             )
         ),
         None, None, True
@@ -10400,11 +10399,11 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[u'abc'], type=u'string',
+                name='FooProp', value=['abc'], type='string',
                 is_array='false',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[u'abc'], type=u'string',
+                name='FooProp', value=['abc'], type='string',
                 is_array=True,
             )
         ),
@@ -10416,10 +10415,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=None, type=u'string',
+                name='FooProp', value=None, type='string',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=None, type=u'string',
+                name='FooProp', value=None, type='string',
                 is_array=False,
             )
         ),
@@ -10431,10 +10430,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=u'abc', type=u'string',
+                name='FooProp', value='abc', type='string',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=u'abc', type=u'string',
+                name='FooProp', value='abc', type='string',
                 is_array=False,
             )
         ),
@@ -10446,10 +10445,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[u'abc'], type=u'string',
+                name='FooProp', value=['abc'], type='string',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[u'abc'], type=u'string',
+                name='FooProp', value=['abc'], type='string',
                 is_array=True,
             )
         ),
@@ -10460,11 +10459,11 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[u'abc'], type=u'string',
+                name='FooProp', value=['abc'], type='string',
                 is_array=True, array_size=2,
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[u'abc'], type=u'string',
+                name='FooProp', value=['abc'], type='string',
                 is_array=True, array_size=2,
             )
         ),
@@ -10476,11 +10475,11 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=u'abc', type=u'string',
+                name='FooProp', value='abc', type='string',
                 is_array=False, array_size=2,
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=u'abc', type=u'string',
+                name='FooProp', value='abc', type='string',
                 is_array=False, array_size=2,
             )
         ),
@@ -10494,10 +10493,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=None, type=u'string', is_array=True,
+                name='FooProp', value=None, type='string', is_array=True,
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=None, type=u'string', is_array=True,
+                name='FooProp', value=None, type='string', is_array=True,
             )
         ),
         None, None, True
@@ -10507,10 +10506,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[], type=u'string', is_array=True,
+                name='FooProp', value=[], type='string', is_array=True,
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[], type=u'string', is_array=True,
+                name='FooProp', value=[], type='string', is_array=True,
             )
         ),
         None, None, True
@@ -10520,10 +10519,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[], type=u'string',
+                name='FooProp', value=[], type='string',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[], type=u'string', is_array=True,
+                name='FooProp', value=[], type='string', is_array=True,
             )
         ),
         None, None, True
@@ -10533,10 +10532,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[None], type=u'string', is_array=True,
+                name='FooProp', value=[None], type='string', is_array=True,
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[None], type=u'string', is_array=True,
+                name='FooProp', value=[None], type='string', is_array=True,
             )
         ),
         None, None, True
@@ -10546,10 +10545,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[None], type=u'string',
+                name='FooProp', value=[None], type='string',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[None], type=u'string', is_array=True,
+                name='FooProp', value=[None], type='string', is_array=True,
             )
         ),
         None, None, True
@@ -10559,11 +10558,11 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[u'abc'],
+                name='FooProp', value=['abc'],
                 is_array=True,
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[u'abc'], type=exp_type_string,
+                name='FooProp', value=['abc'], type=exp_type_string,
                 is_array=True,
             )
         ),
@@ -10575,10 +10574,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[u'abc'], type=u'string',
+                name='FooProp', value=['abc'], type='string',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[u'abc'], type=u'string',
+                name='FooProp', value=['abc'], type='string',
                 is_array=True,
             )
         ),
@@ -10590,10 +10589,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[u'abc'],
+                name='FooProp', value=['abc'],
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[u'abc'], type=exp_type_string,
+                name='FooProp', value=['abc'], type=exp_type_string,
                 is_array=True,
             )
         ),
@@ -10604,11 +10603,11 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[Uint8(42)],
+                name='FooProp', value=[Uint8(42)],
                 is_array=True,
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[Uint8(42)], type=exp_type_uint8,
+                name='FooProp', value=[Uint8(42)], type=exp_type_uint8,
                 is_array=True,
             )
         ),
@@ -10620,10 +10619,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[Uint8(42)], type=u'uint8',
+                name='FooProp', value=[Uint8(42)], type='uint8',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[Uint8(42)], type=u'uint8',
+                name='FooProp', value=[Uint8(42)], type='uint8',
                 is_array=True,
             )
         ),
@@ -10635,10 +10634,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[Uint8(42)],
+                name='FooProp', value=[Uint8(42)],
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[Uint8(42)], type=exp_type_uint8,
+                name='FooProp', value=[Uint8(42)], type=exp_type_uint8,
                 is_array=True,
             )
         ),
@@ -10652,10 +10651,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[], type=u'boolean',
+                name='FooProp', value=[], type='boolean',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[], type=u'boolean', is_array=True,
+                name='FooProp', value=[], type='boolean', is_array=True,
             )
         ),
         None, None, True
@@ -10665,10 +10664,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[None], type=u'boolean',
+                name='FooProp', value=[None], type='boolean',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[None], type=u'boolean', is_array=True,
+                name='FooProp', value=[None], type='boolean', is_array=True,
             )
         ),
         None, None, True
@@ -10679,10 +10678,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[True],
+                name='FooProp', value=[True],
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[True], type=exp_type_boolean,
+                name='FooProp', value=[True], type=exp_type_boolean,
                 is_array=True,
             )
         ),
@@ -10694,10 +10693,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[False], type=u'boolean',
+                name='FooProp', value=[False], type='boolean',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[False], type=u'boolean',
+                name='FooProp', value=[False], type='boolean',
                 is_array=True,
             )
         ),
@@ -10709,10 +10708,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[True],
+                name='FooProp', value=[True],
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[True], type=exp_type_boolean,
+                name='FooProp', value=[True], type=exp_type_boolean,
                 is_array=True,
             )
         ),
@@ -10727,10 +10726,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[TIMEDELTA1_TD],
+                name='FooProp', value=[TIMEDELTA1_TD],
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[TIMEDELTA1_OBJ],
+                name='FooProp', value=[TIMEDELTA1_OBJ],
                 type=exp_type_datetime, is_array=True,
             )
         ),
@@ -10742,12 +10741,12 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[TIMEDELTA1_TD],
+                name='FooProp', value=[TIMEDELTA1_TD],
                 type='datetime',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[TIMEDELTA1_OBJ],
-                type=u'datetime', is_array=True,
+                name='FooProp', value=[TIMEDELTA1_OBJ],
+                type='datetime', is_array=True,
             )
         ),
         None, None, True
@@ -10758,10 +10757,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[TIMEDELTA1_OBJ],
+                name='FooProp', value=[TIMEDELTA1_OBJ],
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[TIMEDELTA1_OBJ],
+                name='FooProp', value=[TIMEDELTA1_OBJ],
                 type=exp_type_datetime, is_array=True,
             )
         ),
@@ -10773,12 +10772,12 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[TIMEDELTA1_OBJ],
+                name='FooProp', value=[TIMEDELTA1_OBJ],
                 type='datetime',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[TIMEDELTA1_OBJ],
-                type=u'datetime', is_array=True,
+                name='FooProp', value=[TIMEDELTA1_OBJ],
+                type='datetime', is_array=True,
             )
         ),
         None, None, True
@@ -10789,10 +10788,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[DATETIME1_DT],
+                name='FooProp', value=[DATETIME1_DT],
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[DATETIME1_OBJ],
+                name='FooProp', value=[DATETIME1_OBJ],
                 type=exp_type_datetime, is_array=True,
             )
         ),
@@ -10804,12 +10803,12 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[DATETIME1_DT],
+                name='FooProp', value=[DATETIME1_DT],
                 type='datetime',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[DATETIME1_OBJ],
-                type=u'datetime', is_array=True,
+                name='FooProp', value=[DATETIME1_OBJ],
+                type='datetime', is_array=True,
             )
         ),
         None, None, True
@@ -10820,10 +10819,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[DATETIME1_OBJ],
+                name='FooProp', value=[DATETIME1_OBJ],
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[DATETIME1_OBJ],
+                name='FooProp', value=[DATETIME1_OBJ],
                 type=exp_type_datetime, is_array=True,
             )
         ),
@@ -10835,12 +10834,12 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[DATETIME1_OBJ],
+                name='FooProp', value=[DATETIME1_OBJ],
                 type='datetime',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[DATETIME1_OBJ],
-                type=u'datetime', is_array=True,
+                name='FooProp', value=[DATETIME1_OBJ],
+                type='datetime', is_array=True,
             )
         ),
         None, None, True
@@ -10851,12 +10850,12 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[None],
+                name='FooProp', value=[None],
                 type='datetime',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[None],
-                type=u'datetime', is_array=True,
+                name='FooProp', value=[None],
+                type='datetime', is_array=True,
             )
         ),
         None, None, True
@@ -10870,12 +10869,12 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[None], type='string',
-                embedded_object=u'object',
+                name='FooProp', value=[None], type='string',
+                embedded_object='object',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[None], type=u'string',
-                embedded_object=u'object', is_array=True,
+                name='FooProp', value=[None], type='string',
+                embedded_object='object', is_array=True,
             )
         ),
         None, None, True
@@ -10886,12 +10885,12 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[], type='string',
-                embedded_object=u'object',
+                name='FooProp', value=[], type='string',
+                embedded_object='object',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[], type=u'string',
-                embedded_object=u'object', is_array=True,
+                name='FooProp', value=[], type='string',
+                embedded_object='object', is_array=True,
             )
         ),
         None, None, True
@@ -10902,10 +10901,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[CIMCLASS_C1_OBJ],
+                name='FooProp', value=[CIMCLASS_C1_OBJ],
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[CIMCLASS_C1_OBJ], type=exp_type_string,
+                name='FooProp', value=[CIMCLASS_C1_OBJ], type=exp_type_string,
                 embedded_object=exp_eo_object, is_array=True,
             )
         ),
@@ -10917,10 +10916,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[CIMCLASS_C1_OBJ], type='string',
+                name='FooProp', value=[CIMCLASS_C1_OBJ], type='string',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[CIMCLASS_C1_OBJ], type=u'string',
+                name='FooProp', value=[CIMCLASS_C1_OBJ], type='string',
                 embedded_object=exp_eo_object, is_array=True,
             )
         ),
@@ -10932,12 +10931,12 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[CIMCLASS_C1_OBJ],
+                name='FooProp', value=[CIMCLASS_C1_OBJ],
                 embedded_object='object',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[CIMCLASS_C1_OBJ], type=exp_type_string,
-                embedded_object=u'object', is_array=True,
+                name='FooProp', value=[CIMCLASS_C1_OBJ], type=exp_type_string,
+                embedded_object='object', is_array=True,
             )
         ),
         None, None, True
@@ -10948,12 +10947,12 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[CIMCLASS_C1_OBJ], type='string',
+                name='FooProp', value=[CIMCLASS_C1_OBJ], type='string',
                 embedded_object='object',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[CIMCLASS_C1_OBJ], type=u'string',
-                embedded_object=u'object', is_array=True,
+                name='FooProp', value=[CIMCLASS_C1_OBJ], type='string',
+                embedded_object='object', is_array=True,
             )
         ),
         None, None, True
@@ -10964,15 +10963,15 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp',
+                name='FooProp',
                 value=[CIMINSTANCE_C1_OBJ],
                 embedded_object='object',
             ),
             exp_attrs=dict(
-                name=u'FooProp',
+                name='FooProp',
                 value=[CIMINSTANCE_C1_OBJ],
                 type=exp_type_string,
-                embedded_object=u'object', is_array=True,
+                embedded_object='object', is_array=True,
             )
         ),
         None, None, True
@@ -10983,12 +10982,12 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[CIMINSTANCE_C1_OBJ], type='string',
+                name='FooProp', value=[CIMINSTANCE_C1_OBJ], type='string',
                 embedded_object='object',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[CIMINSTANCE_C1_OBJ], type=u'string',
-                embedded_object=u'object', is_array=True,
+                name='FooProp', value=[CIMINSTANCE_C1_OBJ], type='string',
+                embedded_object='object', is_array=True,
             )
         ),
         None, None, True
@@ -11002,11 +11001,11 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp',
+                name='FooProp',
                 value=[CIMINSTANCE_C1_OBJ],
             ),
             exp_attrs=dict(
-                name=u'FooProp',
+                name='FooProp',
                 value=[CIMINSTANCE_C1_OBJ],
                 type=exp_type_string,
                 embedded_object=exp_eo_instance,
@@ -11021,15 +11020,15 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp',
+                name='FooProp',
                 value=[CIMINSTANCE_C1_OBJ],
                 embedded_object='instance',
             ),
             exp_attrs=dict(
-                name=u'FooProp',
+                name='FooProp',
                 value=[CIMINSTANCE_C1_OBJ],
                 type=exp_type_string,
-                embedded_object=u'instance',
+                embedded_object='instance',
                 is_array=True,
             )
         ),
@@ -11041,10 +11040,10 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[CIMINSTANCE_C1_OBJ], type='string',
+                name='FooProp', value=[CIMINSTANCE_C1_OBJ], type='string',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[CIMINSTANCE_C1_OBJ], type=u'string',
+                name='FooProp', value=[CIMINSTANCE_C1_OBJ], type='string',
                 embedded_object=exp_eo_instance, is_array=True,
             )
         ),
@@ -11056,12 +11055,12 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[CIMINSTANCE_C1_OBJ], type='string',
+                name='FooProp', value=[CIMINSTANCE_C1_OBJ], type='string',
                 embedded_object='instance',
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=[CIMINSTANCE_C1_OBJ], type=u'string',
-                embedded_object=u'instance', is_array=True,
+                name='FooProp', value=[CIMINSTANCE_C1_OBJ], type='string',
+                embedded_object='instance', is_array=True,
             )
         ),
         None, None, True
@@ -11076,7 +11075,7 @@ TESTCASES_CIMPROPERTY_INIT = [
                 name='MyNum', value=42, type='uint8',
             ),
             exp_attrs=dict(
-                name=u'MyNum', value=Uint8(42), type=u'uint8',
+                name='MyNum', value=Uint8(42), type='uint8',
             )
         ),
         None, None, True
@@ -11089,7 +11088,7 @@ TESTCASES_CIMPROPERTY_INIT = [
                 name='MyNum', value=Uint8(42),
             ),
             exp_attrs=dict(
-                name=u'MyNum', value=Uint8(42), type=exp_type_uint8,
+                name='MyNum', value=Uint8(42), type=exp_type_uint8,
             )
         ),
         None, None, True
@@ -11102,8 +11101,8 @@ TESTCASES_CIMPROPERTY_INIT = [
                 name='MyNumArray', value=[1, 2, 3], type='uint8',
             ),
             exp_attrs=dict(
-                name=u'MyNumArray', value=[Uint8(1), Uint8(2), Uint8(3)],
-                type=u'uint8', is_array=True,
+                name='MyNumArray', value=[Uint8(1), Uint8(2), Uint8(3)],
+                type='uint8', is_array=True,
             )
         ),
         None, None, True
@@ -11116,7 +11115,7 @@ TESTCASES_CIMPROPERTY_INIT = [
                 name='MyRef', value=CIMINSTANCENAME_C1_OBJ,
             ),
             exp_attrs=dict(
-                name=u'MyRef', value=CIMINSTANCENAME_C1_OBJ,
+                name='MyRef', value=CIMINSTANCENAME_C1_OBJ,
                 type=exp_type_reference,
             )
         ),
@@ -11130,7 +11129,7 @@ TESTCASES_CIMPROPERTY_INIT = [
                 name='MyEmbObj', value=CIMCLASS_C1_OBJ,
             ),
             exp_attrs=dict(
-                name=u'MyEmbObj', value=CIMCLASS_C1_OBJ, type=exp_type_string,
+                name='MyEmbObj', value=CIMCLASS_C1_OBJ, type=exp_type_string,
                 embedded_object=exp_eo_object,
             )
         ),
@@ -11146,10 +11145,10 @@ TESTCASES_CIMPROPERTY_INIT = [
                 embedded_object='object',
             ),
             exp_attrs=dict(
-                name=u'MyEmbObj',
+                name='MyEmbObj',
                 value=CIMINSTANCE_C1_OBJ,
                 type=exp_type_string,
-                embedded_object=u'object',
+                embedded_object='object',
             )
         ),
         None, None, True
@@ -11163,7 +11162,7 @@ TESTCASES_CIMPROPERTY_INIT = [
                 value=CIMINSTANCE_C1_OBJ,
             ),
             exp_attrs=dict(
-                name=u'MyEmbInst',
+                name='MyEmbInst',
                 value=CIMINSTANCE_C1_OBJ,
                 type=exp_type_string,
                 embedded_object=exp_eo_instance,
@@ -11179,7 +11178,7 @@ TESTCASES_CIMPROPERTY_INIT = [
                 name='MyString', value=None, type='string',
             ),
             exp_attrs=dict(
-                name=u'MyString', value=None, type=u'string',
+                name='MyString', value=None, type='string',
             )
         ),
         None, None, True
@@ -11192,7 +11191,7 @@ TESTCASES_CIMPROPERTY_INIT = [
                 name='MyNum', value=None, type='uint8',
             ),
             exp_attrs=dict(
-                name=u'MyNum', value=None, type=u'uint8',
+                name='MyNum', value=None, type='uint8',
             )
         ),
         None, None, True
@@ -11206,8 +11205,8 @@ TESTCASES_CIMPROPERTY_INIT = [
                 reference_class='MyClass',
             ),
             exp_attrs=dict(
-                name=u'MyRef', value=None, type=u'reference',
-                reference_class=u'MyClass',
+                name='MyRef', value=None, type='reference',
+                reference_class='MyClass',
             )
         ),
         None, None, True
@@ -11221,8 +11220,8 @@ TESTCASES_CIMPROPERTY_INIT = [
                 embedded_object='object',
             ),
             exp_attrs=dict(
-                name=u'MyEmbObj', value=None, type=u'string',
-                embedded_object=u'object',
+                name='MyEmbObj', value=None, type='string',
+                embedded_object='object',
             )
         ),
         None, None, True
@@ -11236,8 +11235,8 @@ TESTCASES_CIMPROPERTY_INIT = [
                 embedded_object='instance',
             ),
             exp_attrs=dict(
-                name=u'MyEmbInst', value=None, type=u'string',
-                embedded_object=u'instance',
+                name='MyEmbInst', value=None, type='string',
+                embedded_object='instance',
             )
         ),
         None, None, True
@@ -11270,7 +11269,7 @@ TESTCASES_CIMPROPERTY_INIT = [
                 ],
             ),
             exp_attrs=dict(
-                name=u'Prop1', value=None, type=u'string',
+                name='Prop1', value=None, type='string',
                 qualifiers=NocaseDict([
                     ('Q1', CIMQualifier('Q1', value='Ham')),
                     ('Q2', CIMQualifier('Q2', value='Cheese')),
@@ -11291,7 +11290,7 @@ TESTCASES_CIMPROPERTY_INIT = [
                 ]),
             ),
             exp_attrs=dict(
-                name=u'Prop1', value=None, type=u'string',
+                name='Prop1', value=None, type='string',
                 qualifiers=NocaseDict([
                     ('Q1', CIMQualifier('Q1', value='Ham')),
                     ('Q2', CIMQualifier('Q2', value='Cheese')),
@@ -11312,7 +11311,7 @@ TESTCASES_CIMPROPERTY_INIT = [
                 ],
             ),
             exp_attrs=dict(
-                name=u'Prop1', value=None, type=u'string',
+                name='Prop1', value=None, type='string',
                 qualifiers=NocaseDict([
                     ('Q1', CIMQualifier('Q1', value='Ham')),
                     ('Q2', CIMQualifier('Q2', value='Cheese')),
@@ -11326,11 +11325,11 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=u'abc', type=u'string',
+                name='FooProp', value='abc', type='string',
                 qualifiers=dict(Q1=CIMQUALIFIER_Q1_OBJ),
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=u'abc', type=u'string',
+                name='FooProp', value='abc', type='string',
                 qualifiers=NocaseDict(Q1=CIMQUALIFIER_Q1_OBJ),
             )
         ),
@@ -11342,11 +11341,11 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=u'abc', type=u'string',
+                name='FooProp', value='abc', type='string',
                 qualifiers=[CIMQUALIFIER_Q1_OBJ],
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=u'abc', type=u'string',
+                name='FooProp', value='abc', type='string',
                 qualifiers=NocaseDict(Q1=CIMQUALIFIER_Q1_OBJ),
             )
         ),
@@ -11357,11 +11356,11 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=u'abc', type=u'string',
+                name='FooProp', value='abc', type='string',
                 qualifiers=NocaseDict(Q1=CIMQUALIFIER_Q1_OBJ),
             ),
             exp_attrs=dict(
-                name=u'FooProp', value=u'abc', type=u'string',
+                name='FooProp', value='abc', type='string',
                 qualifiers=NocaseDict(Q1=CIMQUALIFIER_Q1_OBJ),
             )
         ),
@@ -11518,7 +11517,7 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[None], embedded_object=u'object',
+                name='FooProp', value=[None], embedded_object='object',
             ),
             exp_attrs=None
         ),
@@ -11531,7 +11530,7 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[], embedded_object=u'object',
+                name='FooProp', value=[], embedded_object='object',
             ),
             exp_attrs=None
         ),
@@ -11541,7 +11540,7 @@ TESTCASES_CIMPROPERTY_INIT = [
         "Verify that value None witout type fails also for arrays",
         dict(
             init_args=[],
-            init_kwargs=dict(name=u'FooProp', value=None, is_array=True),
+            init_kwargs=dict(name='FooProp', value=None, is_array=True),
             exp_attrs=None
         ),
         ValueError, None, True
@@ -11550,7 +11549,7 @@ TESTCASES_CIMPROPERTY_INIT = [
         "Verify that value list() without type fails also for arrays",
         dict(
             init_args=[],
-            init_kwargs=dict(name=u'FooProp', value=[], is_array=True),
+            init_kwargs=dict(name='FooProp', value=[], is_array=True),
             exp_attrs=None
         ),
         ValueError, None, True
@@ -11559,7 +11558,7 @@ TESTCASES_CIMPROPERTY_INIT = [
         "Verify that value list(None) without type fails also for arrays",
         dict(
             init_args=[],
-            init_kwargs=dict(name=u'FooProp', value=[None], is_array=True),
+            init_kwargs=dict(name='FooProp', value=[None], is_array=True),
             exp_attrs=None
         ),
         ValueError, None, True
@@ -11570,7 +11569,7 @@ TESTCASES_CIMPROPERTY_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooProp', value=[None, 'abc'], is_array=True,
+                name='FooProp', value=[None, 'abc'], is_array=True,
             ),
             exp_attrs=None
         ),
@@ -11581,7 +11580,7 @@ TESTCASES_CIMPROPERTY_INIT = [
         "is_array is unspecified",
         dict(
             init_args=[],
-            init_kwargs=dict(name=u'FooProp', value=[]),
+            init_kwargs=dict(name='FooProp', value=[]),
             exp_attrs=None
         ),
         ValueError, None, True
@@ -11591,7 +11590,7 @@ TESTCASES_CIMPROPERTY_INIT = [
         "is_array is unspecified",
         dict(
             init_args=[],
-            init_kwargs=dict(name=u'FooProp', value=[None]),
+            init_kwargs=dict(name='FooProp', value=[None]),
             exp_attrs=None
         ),
         ValueError, None, True
@@ -11601,7 +11600,7 @@ TESTCASES_CIMPROPERTY_INIT = [
         "is_array is unspecified",
         dict(
             init_args=[],
-            init_kwargs=dict(name=u'FooProp', value=[None, 'abc']),
+            init_kwargs=dict(name='FooProp', value=[None, 'abc']),
             exp_attrs=None
         ),
         ValueError, None, True
@@ -11611,7 +11610,7 @@ TESTCASES_CIMPROPERTY_INIT = [
         "(raises ValueError instead of TypeError since 0.12)",
         dict(
             init_args=[],
-            init_kwargs=dict(name=u'FooProp', value=[1]),
+            init_kwargs=dict(name='FooProp', value=[1]),
             exp_attrs=None
         ),
         ValueError, None, True
@@ -11621,7 +11620,7 @@ TESTCASES_CIMPROPERTY_INIT = [
         "(raises ValueError instead of TypeError since 0.12)",
         dict(
             init_args=[],
-            init_kwargs=dict(name=u'FooProp', value=[1.1]),
+            init_kwargs=dict(name='FooProp', value=[1.1]),
             exp_attrs=None
         ),
         ValueError, None, True
@@ -11631,7 +11630,7 @@ TESTCASES_CIMPROPERTY_INIT = [
         "(raises ValueError instead of TypeError since 0.12)",
         dict(
             init_args=[],
-            init_kwargs=dict(name=u'FooProp', value=[_Longint(1)]),
+            init_kwargs=dict(name='FooProp', value=[_Longint(1)]),
             exp_attrs=None
         ),
         ValueError, None, True
@@ -12030,7 +12029,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             item='name',
             new_value='P2',
             exp_attrs=dict(
-                name=u'P2',
+                name='P2',
             ),
         ),
         None, None, True
@@ -12063,9 +12062,9 @@ TESTCASES_CIMPROPERTY_SETATTR = [
                 type='string',
             ),
             item='value',
-            new_value=u'V2',
+            new_value='V2',
             exp_attrs=dict(
-                value=u'V2',
+                value='V2',
             ),
         ),
         None, None, True
@@ -12081,7 +12080,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             item='value',
             new_value=b'V2',
             exp_attrs=dict(
-                value=u'V2',
+                value='V2',
             ),
         ),
         None, None, True
@@ -12095,9 +12094,9 @@ TESTCASES_CIMPROPERTY_SETATTR = [
                 type='string',
             ),
             item='value',
-            new_value=u'Foo\U00010142',
+            new_value='Foo\U00010142',
             exp_attrs=dict(
-                value=u'Foo\U00010142',
+                value='Foo\U00010142',
             ),
         ),
         None, None, True
@@ -12113,7 +12112,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             item='value',
             new_value=b'Foo\xF0\x90\x85\x82',
             exp_attrs=dict(
-                value=u'Foo\U00010142',
+                value='Foo\U00010142',
             ),
         ),
         None, None, True
@@ -12147,7 +12146,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             item='value',
             new_value=Char16('U'),
             exp_attrs=dict(
-                value=u'U',
+                value='U',
             ),
         ),
         None, None, True
@@ -12161,9 +12160,9 @@ TESTCASES_CIMPROPERTY_SETATTR = [
                 type='char16',
             ),
             item='value',
-            new_value=u'U',
+            new_value='U',
             exp_attrs=dict(
-                value=u'U',
+                value='U',
             ),
         ),
         None, None, True
@@ -12179,7 +12178,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             item='value',
             new_value=b'U',
             exp_attrs=dict(
-                value=u'U',
+                value='U',
             ),
         ),
         None, None, True
@@ -12193,9 +12192,9 @@ TESTCASES_CIMPROPERTY_SETATTR = [
                 type='char16',
             ),
             item='value',
-            new_value=Char16(u'\U00010142'),
+            new_value=Char16('\U00010142'),
             exp_attrs=dict(
-                value=u'\U00010142',
+                value='\U00010142',
             ),
         ),
         None, None, True
@@ -12209,9 +12208,9 @@ TESTCASES_CIMPROPERTY_SETATTR = [
                 type='char16',
             ),
             item='value',
-            new_value=u'\U00010142',
+            new_value='\U00010142',
             exp_attrs=dict(
-                value=u'\U00010142',
+                value='\U00010142',
             ),
         ),
         None, None, True
@@ -12227,7 +12226,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             item='value',
             new_value=b'\xF0\x90\x85\x82',
             exp_attrs=dict(
-                value=u'\U00010142',
+                value='\U00010142',
             ),
         ),
         None, None, True
@@ -12477,7 +12476,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             new_value=CIMInstanceName('C2'),
             exp_attrs=dict(
                 value=CIMInstanceName('C2'),
-                reference_class=u'C1',  # not set automatically
+                reference_class='C1',  # not set automatically
             ),
         ),
         None, None, True
@@ -12495,7 +12494,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             new_value=None,
             exp_attrs=dict(
                 value=None,
-                reference_class=u'C1',  # not set automatically
+                reference_class='C1',  # not set automatically
             ),
         ),
         None, None, True
@@ -12675,7 +12674,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             item='value',
             new_value='V2',
             exp_attrs=dict(
-                value=u'V2',  # scalar/array mismatch not checked
+                value='V2',  # scalar/array mismatch not checked
             ),
         ),
         None, None, True
@@ -12691,7 +12690,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             item='value',
             new_value=['V2'],
             exp_attrs=dict(
-                value=[u'V2'],  # scalar/array mismatch not checked
+                value=['V2'],  # scalar/array mismatch not checked
             ),
         ),
         None, None, True
@@ -12710,9 +12709,9 @@ TESTCASES_CIMPROPERTY_SETATTR = [
                 array_size=None,
             ),
             item='value',
-            new_value=[u'V2', u'V3'],
+            new_value=['V2', 'V3'],
             exp_attrs=dict(
-                value=[u'V2', u'V3'],
+                value=['V2', 'V3'],
             ),
         ),
         None, None, True
@@ -12731,7 +12730,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             item='value',
             new_value=[b'V2', b'V3'],
             exp_attrs=dict(
-                value=[u'V2', u'V3'],
+                value=['V2', 'V3'],
             ),
         ),
         None, None, True
@@ -12748,9 +12747,9 @@ TESTCASES_CIMPROPERTY_SETATTR = [
                 array_size=None,
             ),
             item='value',
-            new_value=[u'Foo\U00010142'],
+            new_value=['Foo\U00010142'],
             exp_attrs=dict(
-                value=[u'Foo\U00010142'],
+                value=['Foo\U00010142'],
             ),
         ),
         None, None, True
@@ -12769,7 +12768,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             item='value',
             new_value=[b'Foo\xF0\x90\x85\x82'],
             exp_attrs=dict(
-                value=[u'Foo\U00010142'],
+                value=['Foo\U00010142'],
             ),
         ),
         None, None, True
@@ -12841,7 +12840,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             item='value',
             new_value=['V1', 'V2'],
             exp_attrs=dict(
-                value=[u'V1', u'V2'],
+                value=['V1', 'V2'],
             ),
         ),
         None, None, True
@@ -12859,7 +12858,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             item='value',
             new_value=['V1', 'V2', 'V3'],
             exp_attrs=dict(
-                value=[u'V1', u'V2', u'V3'],  # fixed size not checked
+                value=['V1', 'V2', 'V3'],  # fixed size not checked
             ),
         ),
         None, None, True
@@ -12880,7 +12879,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             item='value',
             new_value=[Char16('U'), Char16('V')],
             exp_attrs=dict(
-                value=[u'U', u'V'],
+                value=['U', 'V'],
             ),
         ),
         None, None, True
@@ -12897,9 +12896,9 @@ TESTCASES_CIMPROPERTY_SETATTR = [
                 array_size=None,
             ),
             item='value',
-            new_value=[u'U', u'V'],
+            new_value=['U', 'V'],
             exp_attrs=dict(
-                value=[u'U', u'V'],
+                value=['U', 'V'],
             ),
         ),
         None, None, True
@@ -12918,7 +12917,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             item='value',
             new_value=[b'U', b'V'],
             exp_attrs=dict(
-                value=[u'U', u'V'],
+                value=['U', 'V'],
             ),
         ),
         None, None, True
@@ -12935,9 +12934,9 @@ TESTCASES_CIMPROPERTY_SETATTR = [
                 array_size=None,
             ),
             item='value',
-            new_value=[Char16(u'\U00010142')],
+            new_value=[Char16('\U00010142')],
             exp_attrs=dict(
-                value=[u'\U00010142'],
+                value=['\U00010142'],
             ),
         ),
         None, None, True
@@ -12954,9 +12953,9 @@ TESTCASES_CIMPROPERTY_SETATTR = [
                 array_size=None,
             ),
             item='value',
-            new_value=[u'\U00010142'],
+            new_value=['\U00010142'],
             exp_attrs=dict(
-                value=[u'\U00010142'],
+                value=['\U00010142'],
             ),
         ),
         None, None, True
@@ -12975,7 +12974,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             item='value',
             new_value=[b'\xF0\x90\x85\x82'],
             exp_attrs=dict(
-                value=[u'\U00010142'],
+                value=['\U00010142'],
             ),
         ),
         None, None, True
@@ -13610,7 +13609,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             new_value='uint8',
             exp_attrs=dict(
                 type='uint8',
-                value=u'V1',
+                value='V1',
             ),
         ),
         None, None, True
@@ -13629,7 +13628,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             new_value='uint8',
             exp_attrs=dict(
                 type='uint8',
-                value=[u'V1'],
+                value=['V1'],
             ),
         ),
         None, None, True
@@ -13676,8 +13675,8 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             new_value='C2',
             exp_attrs=dict(
                 type='string',  # inconsistency with type not checked
-                value=u'V1',
-                reference_class=u'C2',
+                value='V1',
+                reference_class='C2',
             ),
         ),
         None, None, True
@@ -13689,7 +13688,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
                 name='P1',
                 value=CIMInstanceName('C1'),
                 type='reference',
-                reference_class=u'C1',
+                reference_class='C1',
             ),
             item='reference_class',
             new_value=None,
@@ -13715,7 +13714,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             new_value='instance',
             exp_attrs=dict(
                 type='string',
-                value=u'V1',
+                value='V1',
                 embedded_object='instance',  # incons. with value not checked
             ),
         ),
@@ -13733,7 +13732,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             new_value='object',
             exp_attrs=dict(
                 type='string',
-                value=u'V1',
+                value='V1',
                 embedded_object='object',  # incons. with value not checked
             ),
         ),
@@ -13752,7 +13751,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             new_value='xxx',
             exp_attrs=dict(
                 type='string',
-                value=u'V1',
+                value='V1',
                 embedded_object='xxx',
             ),
         ),
@@ -13793,7 +13792,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             new_value=True,
             exp_attrs=dict(
                 type='string',
-                value=u'V1',
+                value='V1',
                 is_array=True,  # inconsistency with value not checked
             ),
         ),
@@ -13814,7 +13813,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             new_value='false',
             exp_attrs=dict(
                 type='string',
-                value=u'V1',
+                value='V1',
                 is_array=True,  # inconsistency with value not checked
             ),
         ),
@@ -13834,7 +13833,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             new_value=False,
             exp_attrs=dict(
                 type='string',
-                value=[u'V1'],
+                value=['V1'],
                 is_array=False,  # inconsistency with value not checked
             ),
         ),
@@ -13856,7 +13855,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             new_value=2,
             exp_attrs=dict(
                 type='string',
-                value=u'V1',
+                value='V1',
                 is_array=False,
                 array_size=2,  # inconsistency with is_array not checked
             ),
@@ -13877,7 +13876,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             new_value=2,
             exp_attrs=dict(
                 type='string',
-                value=[u'V1'],
+                value=['V1'],
                 is_array=True,
                 array_size=2,
             ),
@@ -13899,7 +13898,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             new_value=2,
             exp_attrs=dict(
                 type='string',
-                value=[u'V1'],
+                value=['V1'],
                 is_array=True,
                 array_size=2,
             ),
@@ -13921,7 +13920,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             new_value=2,
             exp_attrs=dict(
                 type='string',
-                value=[u'V1', u'V2', u'V3', u'V4', u'V5'],
+                value=['V1', 'V2', 'V3', 'V4', 'V5'],
                 is_array=True,
                 array_size=2,  # inconsistency with actual usage not checked
             ),
@@ -13965,7 +13964,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             new_value=True,
             exp_attrs=dict(
                 propagated=True,
-                class_origin=u'C2',
+                class_origin='C2',
             ),
         ),
         None, None, True
@@ -13985,7 +13984,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             new_value=True,
             exp_attrs=dict(
                 propagated=True,
-                class_origin=u'C2',
+                class_origin='C2',
             ),
         ),
         None, None, True
@@ -14004,7 +14003,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             new_value=False,
             exp_attrs=dict(
                 propagated=False,  # incons. with class origin not checked
-                class_origin=u'C2',
+                class_origin='C2',
             ),
         ),
         None, None, True
@@ -14025,7 +14024,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             new_value='C2',
             exp_attrs=dict(
                 propagated=True,
-                class_origin=u'C2',
+                class_origin='C2',
             ),
         ),
         None, None, True
@@ -14063,7 +14062,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
             new_value='C2',
             exp_attrs=dict(
                 propagated=False,
-                class_origin=u'C2',  # incons. with propagated not checked
+                class_origin='C2',  # incons. with propagated not checked
             ),
         ),
         None, None, True
@@ -14698,7 +14697,7 @@ TESTCASES_CIMPROPERTY_HASH_EQ = [
             obj1=CIMProperty('Prop1', value='',
                              qualifiers={'Cheepy': 'Birds'}),
             obj2=CIMProperty('Prop1', value='',
-                             qualifiers={'Cheepy': u'Birds'}),
+                             qualifiers={'Cheepy': 'Birds'}),
             exp_equal=True,
         ),
         None, None, True
@@ -15017,7 +15016,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
     (
         "Name with ASCII characters, as unicode string",
         dict(
-            obj=CIMProperty(u'Foo', value=None, type='string'),
+            obj=CIMProperty('Foo', value=None, type='string'),
             kwargs={},
             exp_xml_str=(
                 '<PROPERTY NAME="Foo" TYPE="string"/>',
@@ -15031,7 +15030,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(b'Foo\xC3\xA9', value=None, type='string'),
             kwargs={},
             exp_xml_str=(
-                u'<PROPERTY NAME="Foo\u00E9" TYPE="string"/>',
+                '<PROPERTY NAME="Foo\u00E9" TYPE="string"/>',
             )
         ),
         None, None, True
@@ -15039,10 +15038,10 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
     (
         "Name with non-ASCII UCS-2 characters, as unicode string",
         dict(
-            obj=CIMProperty(u'Foo\u00E9', value=None, type='string'),
+            obj=CIMProperty('Foo\u00E9', value=None, type='string'),
             kwargs={},
             exp_xml_str=(
-                u'<PROPERTY NAME="Foo\u00E9" TYPE="string"/>',
+                '<PROPERTY NAME="Foo\u00E9" TYPE="string"/>',
             )
         ),
         None, None, True
@@ -15053,7 +15052,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
             obj=CIMProperty(b'Foo\xF0\x90\x85\x82', value=None, type='string'),
             kwargs={},
             exp_xml_str=(
-                u'<PROPERTY NAME="Foo\U00010142" TYPE="string"/>',
+                '<PROPERTY NAME="Foo\U00010142" TYPE="string"/>',
             )
         ),
         None, None, True
@@ -15061,10 +15060,10 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
     (
         "Name with non-UCS-2 characters, as unicode string",
         dict(
-            obj=CIMProperty(u'Foo\U00010142', value=None, type='string'),
+            obj=CIMProperty('Foo\U00010142', value=None, type='string'),
             kwargs={},
             exp_xml_str=(
-                u'<PROPERTY NAME="Foo\U00010142" TYPE="string"/>',
+                '<PROPERTY NAME="Foo\U00010142" TYPE="string"/>',
             )
         ),
         None, None, True
@@ -15177,13 +15176,13 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
         "UCS-2 characters",
         dict(
             obj=CIMProperty(
-                'Foo', type='string', value=u'foo\u00E9',
+                'Foo', type='string', value='foo\u00E9',
             ),
             kwargs={},
             exp_xml_str=(
-                u'<PROPERTY NAME="Foo" TYPE="string">',
-                u'<VALUE>foo\u00E9</VALUE>',
-                u'</PROPERTY>',
+                '<PROPERTY NAME="Foo" TYPE="string">',
+                '<VALUE>foo\u00E9</VALUE>',
+                '</PROPERTY>',
             )
         ),
         None, None, True
@@ -15193,13 +15192,13 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
         "characters",
         dict(
             obj=CIMProperty(
-                'Foo', type='string', value=u'foo\U00010142',
+                'Foo', type='string', value='foo\U00010142',
             ),
             kwargs={},
             exp_xml_str=(
-                u'<PROPERTY NAME="Foo" TYPE="string">',
-                u'<VALUE>foo\U00010142</VALUE>',
-                u'</PROPERTY>',
+                '<PROPERTY NAME="Foo" TYPE="string">',
+                '<VALUE>foo\U00010142</VALUE>',
+                '</PROPERTY>',
             )
         ),
         None, None, True
@@ -15299,13 +15298,13 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
         "non-ASCII UCS-2 character",
         dict(
             obj=CIMProperty(
-                'Foo', type='char16', value=u'\u00E9',
+                'Foo', type='char16', value='\u00E9',
             ),
             kwargs={},
             exp_xml_str=(
-                u'<PROPERTY NAME="Foo" TYPE="char16">',
-                u'<VALUE>\u00E9</VALUE>',
-                u'</PROPERTY>',
+                '<PROPERTY NAME="Foo" TYPE="char16">',
+                '<VALUE>\u00E9</VALUE>',
+                '</PROPERTY>',
             )
         ),
         None, None, True
@@ -15315,13 +15314,13 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
         "non-UCS-2 character (invalid as per DSP0004, but tolerated by pywbem)",
         dict(
             obj=CIMProperty(
-                'Foo', type='char16', value=u'\U00010142',
+                'Foo', type='char16', value='\U00010142',
             ),
             kwargs={},
             exp_xml_str=(
-                u'<PROPERTY NAME="Foo" TYPE="char16">',
-                u'<VALUE>\U00010142</VALUE>',
-                u'</PROPERTY>',
+                '<PROPERTY NAME="Foo" TYPE="char16">',
+                '<VALUE>\U00010142</VALUE>',
+                '</PROPERTY>',
             )
         ),
         None, None, True
@@ -16138,16 +16137,16 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
         "UCS-2 chars",
         dict(
             obj=CIMProperty(
-                'Foo', type='string', value=[u'foo\u00E9'],
+                'Foo', type='string', value=['foo\u00E9'],
                 is_array=True,
             ),
             kwargs={},
             exp_xml_str=(
-                u'<PROPERTY.ARRAY NAME="Foo" TYPE="string">',
-                u'<VALUE.ARRAY>',
-                u'<VALUE>foo\u00E9</VALUE>',
-                u'</VALUE.ARRAY>',
-                u'</PROPERTY.ARRAY>',
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="string">',
+                '<VALUE.ARRAY>',
+                '<VALUE>foo\u00E9</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
             )
         ),
         None, None, True
@@ -16157,16 +16156,16 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
         "characters",
         dict(
             obj=CIMProperty(
-                'Foo', type='string', value=[u'foo\U00010142'],
+                'Foo', type='string', value=['foo\U00010142'],
                 is_array=True,
             ),
             kwargs={},
             exp_xml_str=(
-                u'<PROPERTY.ARRAY NAME="Foo" TYPE="string">',
-                u'<VALUE.ARRAY>',
-                u'<VALUE>foo\U00010142</VALUE>',
-                u'</VALUE.ARRAY>',
-                u'</PROPERTY.ARRAY>',
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="string">',
+                '<VALUE.ARRAY>',
+                '<VALUE>foo\U00010142</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
             )
         ),
         None, None, True
@@ -16313,16 +16312,16 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
         "non-ASCII UCS-2 character",
         dict(
             obj=CIMProperty(
-                'Foo', type='char16', value=[u'\u00E9'],
+                'Foo', type='char16', value=['\u00E9'],
                 is_array=True,
             ),
             kwargs={},
             exp_xml_str=(
-                u'<PROPERTY.ARRAY NAME="Foo" TYPE="char16">',
-                u'<VALUE.ARRAY>',
-                u'<VALUE>\u00E9</VALUE>',
-                u'</VALUE.ARRAY>',
-                u'</PROPERTY.ARRAY>',
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="char16">',
+                '<VALUE.ARRAY>',
+                '<VALUE>\u00E9</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
             )
         ),
         None, None, True
@@ -16332,16 +16331,16 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
         "non-UCS-2 character (invalid as per DSP0004, but tolerated by pywbem)",
         dict(
             obj=CIMProperty(
-                'Foo', type='char16', value=[u'\U00010142'],
+                'Foo', type='char16', value=['\U00010142'],
                 is_array=True,
             ),
             kwargs={},
             exp_xml_str=(
-                u'<PROPERTY.ARRAY NAME="Foo" TYPE="char16">',
-                u'<VALUE.ARRAY>',
-                u'<VALUE>\U00010142</VALUE>',
-                u'</VALUE.ARRAY>',
-                u'</PROPERTY.ARRAY>',
+                '<PROPERTY.ARRAY NAME="Foo" TYPE="char16">',
+                '<VALUE.ARRAY>',
+                '<VALUE>\U00010142</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PROPERTY.ARRAY>',
             )
         ),
         None, None, True
@@ -17539,9 +17538,9 @@ def test_CIMProperty_tocimxmlstr(testcase, obj, kwargs, exp_xml_str):
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
-    assert isinstance(obj_xml_str, six.text_type)
+    assert isinstance(obj_xml_str, str)
 
-    exp_xml_str = u''.join(exp_xml_str)
+    exp_xml_str = ''.join(exp_xml_str)
     validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str)
 
 
@@ -17631,7 +17630,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 is_instance=False,
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
                [Q1 ( "abc" ),
                 Q2 ( 42 )]
             string P1 = "abc";\n""",
@@ -17650,7 +17649,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 is_instance=False,
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
             string P1;\n""",
         ),
         None, None, True
@@ -17670,7 +17669,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 is_instance=False,
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
                [Q1 ( "abc" )]
             string P1;\n""",
         ),
@@ -17692,7 +17691,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 is_instance=False,
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
                [Q1 (
                    "abc def abc def abc def abc def abc def abc def abc def "
                    "abc def abc def abc def z" )]
@@ -17716,7 +17715,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 is_instance=False,
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
                [Q1 ( "abc" ),
                 Q2 ( 42 )]
             string P1;\n""",
@@ -17741,7 +17740,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 is_instance=False,
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
                [Q1 (
                    "abc def abc def abc def abc def abc def abc def abc def "
                    "abc def abc def abc def z" ),
@@ -17767,7 +17766,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 is_instance=False,
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
                [Q1 { "abc", "def" }]
             string P1;\n""",
         ),
@@ -17791,7 +17790,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 is_instance=False,
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
                [Q1 { "abcdef00", "abcdef01", "abcdef02", "abcdef03",
                    "abcdef04", "abcdef05", "abcdef06", "abcdef07",
                    "abcdef08", "abcdef09" }]
@@ -17818,7 +17817,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 is_instance=False,
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
                [Q1 {
                    "abc def abc def abc def abc def abc def abc def abc def "
                    "abc def abc def abc def z00",
@@ -17840,7 +17839,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 is_instance=False,
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
             string P1;\n""",
         ),
         None, None, True
@@ -17857,7 +17856,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 is_instance=False,
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
             string P1 = "abc";\n""",
         ),
         None, None, True
@@ -17874,7 +17873,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 is_instance=False,
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
             char16 P1;\n""",
         ),
         None, None, True
@@ -17891,7 +17890,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 is_instance=False,
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
             char16 P1 = 'a';\n""",  # bug fixed in 0.12
         ),
         None, None, True
@@ -17909,7 +17908,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 is_instance=False,
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
             uint32 P1[];\n""",
         ),
         None, None, True
@@ -17927,7 +17926,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 is_instance=False,
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
             uint32 P1[] = { 1, 2, 3 };\n""",
         ),
         None, None, True
@@ -17946,7 +17945,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 is_instance=False,
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
             sint64 P1[5];\n""",
         ),
         None, None, True
@@ -17964,7 +17963,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 is_instance=False,
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
             RC REF P1;\n""",
         ),
         None, None, True
@@ -17982,7 +17981,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 is_instance=False,
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
             RC REF P1 = "/:RC.k1=\\"abc\\"";\n""",    # bug fixed in 0.12
         ),
         None, None, True
@@ -18005,7 +18004,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 is_instance=True,
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
             P1 = { "abc", "def" };\n""",  # bug: '= =', fixed in 0.12
         ),
         None, None, True
@@ -18022,7 +18021,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 is_instance=True,
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
             P1 = NULL;\n""",
         ),
         None, None, True
@@ -18042,7 +18041,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 is_instance=True,
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
             P1 =
                "abc def abc def abc def abc def abc def abc def abc def abc "
                "def abc def abc def z";\n""",
@@ -18066,7 +18065,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 is_instance=True,
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
             P1 = { "abcdef00", "abcdef01", "abcdef02", "abcdef03", "abcdef04",
                "abcdef05", "abcdef06", "abcdef07", "abcdef08", "abcdef09" };\n""",  # noqa: E501
             # bug: '= =', fixed in 0.12
@@ -18088,7 +18087,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 is_instance=True,
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
             P1 = 42;\n""",
         ),
         None, None, True
@@ -18106,7 +18105,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 is_instance=True,
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
             P1 = { };\n""",
         ),
         None, None, True
@@ -18124,7 +18123,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 is_instance=True,
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
             P1 = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };\n""",  # bug fixed in 0.12
         ),
         None, None, True
@@ -18142,7 +18141,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 is_instance=True,
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
             P1 = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
                17, 18, 19 };\n""",  # bug fixed in 0.12
         ),
@@ -18208,7 +18207,7 @@ def test_CIMProperty_tomof(testcase, obj, kwargs, exp_mof):
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
-    assert isinstance(mof, six.text_type)
+    assert isinstance(mof, str)
     assert mof == exp_mof
 
 
@@ -18244,7 +18243,7 @@ def test_CIMProperty_tomof_special2():
     obj.value = 42.1
     assert isinstance(obj.value, float)
 
-    exp_mof = u"real32 P1 = 42.1;\n"
+    exp_mof = "real32 P1 = 42.1;\n"
 
     # The code to be tested
     mof = obj.tomof(is_instance=False)
@@ -18282,9 +18281,9 @@ TESTCASES_CIMQUALIFIER_INIT = [
             ],
             init_kwargs={},
             exp_attrs=dict(
-                name=u'FooQual',
-                value=u'abc',
-                type=u'string',
+                name='FooQual',
+                value='abc',
+                type='string',
                 propagated=False,
                 overridable=True,
                 tosubclass=True,
@@ -18301,10 +18300,10 @@ TESTCASES_CIMQUALIFIER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=b'FooParam', value=u'abc'
+                name=b'FooParam', value='abc'
             ),
             exp_attrs=dict(
-                name=u'FooParam', value=u'abc', type=exp_type_string
+                name='FooParam', value='abc', type=exp_type_string
             )
         ),
         None, None, True
@@ -18314,10 +18313,10 @@ TESTCASES_CIMQUALIFIER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam', value=u'abc'
+                name='FooParam', value='abc'
             ),
             exp_attrs=dict(
-                name=u'FooParam', value=u'abc', type=exp_type_string
+                name='FooParam', value='abc', type=exp_type_string
             )
         ),
         None, None, True
@@ -18339,10 +18338,10 @@ TESTCASES_CIMQUALIFIER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam', value=b'abc'
+                name='FooParam', value=b'abc'
             ),
             exp_attrs=dict(
-                name=u'FooParam', value=u'abc',
+                name='FooParam', value='abc',
                 type=exp_type_string
             )
         ),
@@ -18354,10 +18353,10 @@ TESTCASES_CIMQUALIFIER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam', value=u'abc'
+                name='FooParam', value='abc'
             ),
             exp_attrs=dict(
-                name=u'FooParam', value=u'abc', type=exp_type_string
+                name='FooParam', value='abc', type=exp_type_string
             )
         ),
         None, None, True
@@ -18367,10 +18366,10 @@ TESTCASES_CIMQUALIFIER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam', value=Uint8(42)
+                name='FooParam', value=Uint8(42)
             ),
             exp_attrs=dict(
-                name=u'FooParam', value=Uint8(42), type=exp_type_uint8
+                name='FooParam', value=Uint8(42), type=exp_type_uint8
             )
         ),
         None, None, True
@@ -18380,10 +18379,10 @@ TESTCASES_CIMQUALIFIER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam', value=Uint8(42), type='uint8'
+                name='FooParam', value=Uint8(42), type='uint8'
             ),
             exp_attrs=dict(
-                name=u'FooParam', value=Uint8(42), type=u'uint8'
+                name='FooParam', value=Uint8(42), type='uint8'
             )
         ),
         None, None, True
@@ -18393,10 +18392,10 @@ TESTCASES_CIMQUALIFIER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam', value=42.0, type='real64'
+                name='FooParam', value=42.0, type='real64'
             ),
             exp_attrs=dict(
-                name=u'FooParam', value=Real64(42.0), type=u'real64'
+                name='FooParam', value=Real64(42.0), type='real64'
             )
         ),
         None, None, True
@@ -18406,10 +18405,10 @@ TESTCASES_CIMQUALIFIER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam', value=42.0, type='real32'
+                name='FooParam', value=42.0, type='real32'
             ),
             exp_attrs=dict(
-                name=u'FooParam', value=Real32(42.0), type=u'real32'
+                name='FooParam', value=Real32(42.0), type='real32'
             )
         ),
         None, None, True
@@ -18420,10 +18419,10 @@ TESTCASES_CIMQUALIFIER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam', value=True
+                name='FooParam', value=True
             ),
             exp_attrs=dict(
-                name=u'FooParam', value=True, type=exp_type_boolean
+                name='FooParam', value=True, type=exp_type_boolean
             )
         ),
         None, None, True
@@ -18434,10 +18433,10 @@ TESTCASES_CIMQUALIFIER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam', value=False
+                name='FooParam', value=False
             ),
             exp_attrs=dict(
-                name=u'FooParam', value=False, type=exp_type_boolean
+                name='FooParam', value=False, type=exp_type_boolean
             )
         ),
         None, None, True
@@ -18448,10 +18447,10 @@ TESTCASES_CIMQUALIFIER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam', value=[b'abc']
+                name='FooParam', value=[b'abc']
             ),
             exp_attrs=dict(
-                name=u'FooParam', value=[u'abc'],
+                name='FooParam', value=['abc'],
                 type=exp_type_string
             )
         ),
@@ -18463,10 +18462,10 @@ TESTCASES_CIMQUALIFIER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam', value=[u'abc']
+                name='FooParam', value=['abc']
             ),
             exp_attrs=dict(
-                name=u'FooParam', value=[u'abc'], type=exp_type_string
+                name='FooParam', value=['abc'], type=exp_type_string
             )
         ),
         None, None, True
@@ -18477,10 +18476,10 @@ TESTCASES_CIMQUALIFIER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam', value=[False]
+                name='FooParam', value=[False]
             ),
             exp_attrs=dict(
-                name=u'FooParam', value=[False], type=exp_type_boolean
+                name='FooParam', value=[False], type=exp_type_boolean
             )
         ),
         None, None, True
@@ -18491,10 +18490,10 @@ TESTCASES_CIMQUALIFIER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam', value=[True]
+                name='FooParam', value=[True]
             ),
             exp_attrs=dict(
-                name=u'FooParam', value=[True], type=exp_type_boolean
+                name='FooParam', value=[True], type=exp_type_boolean
             )
         ),
         None, None, True
@@ -18505,12 +18504,12 @@ TESTCASES_CIMQUALIFIER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam', value=u'abc',
+                name='FooParam', value='abc',
                 propagated=42, overridable=42, tosubclass=42,
                 toinstance=42, translatable=42
             ),
             exp_attrs=dict(
-                name=u'FooParam', value=u'abc', type=exp_type_string,
+                name='FooParam', value='abc', type=exp_type_string,
                 propagated=True, overridable=True, tosubclass=True,
                 toinstance=True, translatable=True
             )
@@ -18523,12 +18522,12 @@ TESTCASES_CIMQUALIFIER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam', value=u'abc',
+                name='FooParam', value='abc',
                 propagated='false', overridable='false', tosubclass='false',
                 toinstance='false', translatable='false'
             ),
             exp_attrs=dict(
-                name=u'FooParam', value=u'abc', type=exp_type_string,
+                name='FooParam', value='abc', type=exp_type_string,
                 propagated=True, overridable=True, tosubclass=True,
                 toinstance=True, translatable=True
             )
@@ -18541,12 +18540,12 @@ TESTCASES_CIMQUALIFIER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam', value=u'abc',
+                name='FooParam', value='abc',
                 propagated=0, overridable=0, tosubclass=0,
                 toinstance=0, translatable=0
             ),
             exp_attrs=dict(
-                name=u'FooParam', value=u'abc', type=exp_type_string,
+                name='FooParam', value='abc', type=exp_type_string,
                 propagated=False, overridable=False, tosubclass=False,
                 toinstance=False, translatable=False
             )
@@ -18559,8 +18558,8 @@ TESTCASES_CIMQUALIFIER_INIT = [
         "Verify documented example 1",
         dict(
             init_args=[],
-            init_kwargs=dict(name='MyString', value=u'abc'),
-            exp_attrs=dict(name=u'MyString', value=u'abc', type=exp_type_string)
+            init_kwargs=dict(name='MyString', value='abc'),
+            exp_attrs=dict(name='MyString', value='abc', type=exp_type_string)
         ),
         None, None, True
     ),
@@ -18569,7 +18568,7 @@ TESTCASES_CIMQUALIFIER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(name='MyNum', value=42, type='uint8'),
-            exp_attrs=dict(name=u'MyNum', value=Uint8(42), type=exp_type_uint8)
+            exp_attrs=dict(name='MyNum', value=Uint8(42), type=exp_type_uint8)
         ),
         None, None, True
     ),
@@ -18578,7 +18577,7 @@ TESTCASES_CIMQUALIFIER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(name='MyNum', value=Uint8(42)),
-            exp_attrs=dict(name=u'MyNum', value=Uint8(42), type=exp_type_uint8)
+            exp_attrs=dict(name='MyNum', value=Uint8(42), type=exp_type_uint8)
         ),
         None, None, True
     ),
@@ -18590,8 +18589,8 @@ TESTCASES_CIMQUALIFIER_INIT = [
                 name='MyNumArray', value=[1, 2, 3], type='uint8'
             ),
             exp_attrs=dict(
-                name=u'MyNumArray', value=[Uint8(1), Uint8(2), Uint8(3)],
-                type=u'uint8'
+                name='MyNumArray', value=[Uint8(1), Uint8(2), Uint8(3)],
+                type='uint8'
             )
         ),
         None, None, True
@@ -18601,7 +18600,7 @@ TESTCASES_CIMQUALIFIER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(name='MyString', value=None, type='string'),
-            exp_attrs=dict(name=u'MyString', value=None, type=u'string')
+            exp_attrs=dict(name='MyString', value=None, type='string')
         ),
         None, None, True
     ),
@@ -18610,7 +18609,7 @@ TESTCASES_CIMQUALIFIER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(name='MyNum', value=None, type='uint8'),
-            exp_attrs=dict(name=u'MyNum', value=None, type=u'uint8')
+            exp_attrs=dict(name='MyNum', value=None, type='uint8')
         ),
         None, None, True
     ),
@@ -18897,7 +18896,7 @@ TESTCASES_CIMQUALIFIER_SETATTR = [
             item='name',
             new_value='Q2',
             exp_attrs=dict(
-                name=u'Q2',
+                name='Q2',
             ),
         ),
         None, None, True
@@ -18930,9 +18929,9 @@ TESTCASES_CIMQUALIFIER_SETATTR = [
                 type='string',
             ),
             item='value',
-            new_value=u'V2',
+            new_value='V2',
             exp_attrs=dict(
-                value=u'V2',
+                value='V2',
             ),
         ),
         None, None, True
@@ -18948,7 +18947,7 @@ TESTCASES_CIMQUALIFIER_SETATTR = [
             item='value',
             new_value=b'V2',
             exp_attrs=dict(
-                value=u'V2',
+                value='V2',
             ),
         ),
         None, None, True
@@ -18962,9 +18961,9 @@ TESTCASES_CIMQUALIFIER_SETATTR = [
                 type='string',
             ),
             item='value',
-            new_value=u'Foo\U00010142',
+            new_value='Foo\U00010142',
             exp_attrs=dict(
-                value=u'Foo\U00010142',
+                value='Foo\U00010142',
             ),
         ),
         None, None, True
@@ -18980,7 +18979,7 @@ TESTCASES_CIMQUALIFIER_SETATTR = [
             item='value',
             new_value=b'Foo\xF0\x90\x85\x82',
             exp_attrs=dict(
-                value=u'Foo\U00010142',
+                value='Foo\U00010142',
             ),
         ),
         None, None, True
@@ -19014,7 +19013,7 @@ TESTCASES_CIMQUALIFIER_SETATTR = [
             item='value',
             new_value=Char16('U'),
             exp_attrs=dict(
-                value=u'U',
+                value='U',
             ),
         ),
         None, None, True
@@ -19028,9 +19027,9 @@ TESTCASES_CIMQUALIFIER_SETATTR = [
                 type='char16',
             ),
             item='value',
-            new_value=u'U',
+            new_value='U',
             exp_attrs=dict(
-                value=u'U',
+                value='U',
             ),
         ),
         None, None, True
@@ -19046,7 +19045,7 @@ TESTCASES_CIMQUALIFIER_SETATTR = [
             item='value',
             new_value=b'U',
             exp_attrs=dict(
-                value=u'U',
+                value='U',
             ),
         ),
         None, None, True
@@ -19060,9 +19059,9 @@ TESTCASES_CIMQUALIFIER_SETATTR = [
                 type='char16',
             ),
             item='value',
-            new_value=Char16(u'\U00010142'),
+            new_value=Char16('\U00010142'),
             exp_attrs=dict(
-                value=u'\U00010142',
+                value='\U00010142',
             ),
         ),
         None, None, True
@@ -19076,9 +19075,9 @@ TESTCASES_CIMQUALIFIER_SETATTR = [
                 type='char16',
             ),
             item='value',
-            new_value=u'\U00010142',
+            new_value='\U00010142',
             exp_attrs=dict(
-                value=u'\U00010142',
+                value='\U00010142',
             ),
         ),
         None, None, True
@@ -19094,7 +19093,7 @@ TESTCASES_CIMQUALIFIER_SETATTR = [
             item='value',
             new_value=b'\xF0\x90\x85\x82',
             exp_attrs=dict(
-                value=u'\U00010142',
+                value='\U00010142',
             ),
         ),
         None, None, True
@@ -19465,7 +19464,7 @@ TESTCASES_CIMQUALIFIER_SETATTR = [
             new_value='uint8',
             exp_attrs=dict(
                 type='uint8',
-                value=u'V1',
+                value='V1',
             ),
         ),
         None, None, True
@@ -20302,7 +20301,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
     (
         "Name with ASCII characters, as unicode string",
         dict(
-            obj=CIMQualifier(u'Foo', value=None, type='string'),
+            obj=CIMQualifier('Foo', value=None, type='string'),
             kwargs={},
             exp_xml_str=(
                 '<QUALIFIER NAME="Foo" TYPE="string"/>',
@@ -20316,7 +20315,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(b'Foo\xC3\xA9', value=None, type='string'),
             kwargs={},
             exp_xml_str=(
-                u'<QUALIFIER NAME="Foo\u00E9" TYPE="string"/>',
+                '<QUALIFIER NAME="Foo\u00E9" TYPE="string"/>',
             )
         ),
         None, None, True
@@ -20324,10 +20323,10 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
     (
         "Name with non-ASCII UCS-2 characters, as unicode string",
         dict(
-            obj=CIMQualifier(u'Foo\u00E9', value=None, type='string'),
+            obj=CIMQualifier('Foo\u00E9', value=None, type='string'),
             kwargs={},
             exp_xml_str=(
-                u'<QUALIFIER NAME="Foo\u00E9" TYPE="string"/>',
+                '<QUALIFIER NAME="Foo\u00E9" TYPE="string"/>',
             )
         ),
         None, None, True
@@ -20338,7 +20337,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
             obj=CIMQualifier(b'Foo\xF0\x90\x85\x82', value=None, type='string'),
             kwargs={},
             exp_xml_str=(
-                u'<QUALIFIER NAME="Foo\U00010142" TYPE="string"/>',
+                '<QUALIFIER NAME="Foo\U00010142" TYPE="string"/>',
             )
         ),
         None, None, True
@@ -20346,10 +20345,10 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
     (
         "Name with non-UCS-2 characters, as unicode string",
         dict(
-            obj=CIMQualifier(u'Foo\U00010142', value=None, type='string'),
+            obj=CIMQualifier('Foo\U00010142', value=None, type='string'),
             kwargs={},
             exp_xml_str=(
-                u'<QUALIFIER NAME="Foo\U00010142" TYPE="string"/>',
+                '<QUALIFIER NAME="Foo\U00010142" TYPE="string"/>',
             )
         ),
         None, None, True
@@ -20585,13 +20584,13 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
         "non-ASCII UCS-2 characters",
         dict(
             obj=CIMQualifier(
-                'Foo', type='string', value=u'foo\u00E9',
+                'Foo', type='string', value='foo\u00E9',
             ),
             kwargs={},
             exp_xml_str=(
-                u'<QUALIFIER NAME="Foo" TYPE="string">',
-                u'<VALUE>foo\u00E9</VALUE>',
-                u'</QUALIFIER>',
+                '<QUALIFIER NAME="Foo" TYPE="string">',
+                '<VALUE>foo\u00E9</VALUE>',
+                '</QUALIFIER>',
             )
         ),
         None, None, True
@@ -20601,13 +20600,13 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
         "non-UCS-2 characters",
         dict(
             obj=CIMQualifier(
-                'Foo', type='string', value=u'foo\U00010142',
+                'Foo', type='string', value='foo\U00010142',
             ),
             kwargs={},
             exp_xml_str=(
-                u'<QUALIFIER NAME="Foo" TYPE="string">',
-                u'<VALUE>foo\U00010142</VALUE>',
-                u'</QUALIFIER>',
+                '<QUALIFIER NAME="Foo" TYPE="string">',
+                '<VALUE>foo\U00010142</VALUE>',
+                '</QUALIFIER>',
             )
         ),
         None, None, True
@@ -20648,13 +20647,13 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
         "non-ASCII UCS-2 character",
         dict(
             obj=CIMQualifier(
-                'Foo', type='char16', value=u'\u00E9',
+                'Foo', type='char16', value='\u00E9',
             ),
             kwargs={},
             exp_xml_str=(
-                u'<QUALIFIER NAME="Foo" TYPE="char16">',
-                u'<VALUE>\u00E9</VALUE>',
-                u'</QUALIFIER>',
+                '<QUALIFIER NAME="Foo" TYPE="char16">',
+                '<VALUE>\u00E9</VALUE>',
+                '</QUALIFIER>',
             )
         ),
         None, None, True
@@ -20664,13 +20663,13 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
         "non-UCS-2 character (invalid as per DSP0004, but tolerated by pywbem)",
         dict(
             obj=CIMQualifier(
-                'Foo', type='char16', value=u'\U00010142',
+                'Foo', type='char16', value='\U00010142',
             ),
             kwargs={},
             exp_xml_str=(
-                u'<QUALIFIER NAME="Foo" TYPE="char16">',
-                u'<VALUE>\U00010142</VALUE>',
-                u'</QUALIFIER>',
+                '<QUALIFIER NAME="Foo" TYPE="char16">',
+                '<VALUE>\U00010142</VALUE>',
+                '</QUALIFIER>',
             )
         ),
         None, None, True
@@ -21447,15 +21446,15 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
         "UCS-2 characters",
         dict(
             obj=CIMQualifier(
-                'Foo', type='string', value=[u'foo\u00E9'],
+                'Foo', type='string', value=['foo\u00E9'],
             ),
             kwargs={},
             exp_xml_str=(
-                u'<QUALIFIER NAME="Foo" TYPE="string">',
-                u'<VALUE.ARRAY>',
-                u'<VALUE>foo\u00E9</VALUE>',
-                u'</VALUE.ARRAY>',
-                u'</QUALIFIER>',
+                '<QUALIFIER NAME="Foo" TYPE="string">',
+                '<VALUE.ARRAY>',
+                '<VALUE>foo\u00E9</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
             )
         ),
         None, None, True
@@ -21465,15 +21464,15 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
         "characters",
         dict(
             obj=CIMQualifier(
-                'Foo', type='string', value=[u'foo\U00010142'],
+                'Foo', type='string', value=['foo\U00010142'],
             ),
             kwargs={},
             exp_xml_str=(
-                u'<QUALIFIER NAME="Foo" TYPE="string">',
-                u'<VALUE.ARRAY>',
-                u'<VALUE>foo\U00010142</VALUE>',
-                u'</VALUE.ARRAY>',
-                u'</QUALIFIER>',
+                '<QUALIFIER NAME="Foo" TYPE="string">',
+                '<VALUE.ARRAY>',
+                '<VALUE>foo\U00010142</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
             )
         ),
         None, None, True
@@ -21548,15 +21547,15 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
         "non-ASCII UCS-2 character",
         dict(
             obj=CIMQualifier(
-                'Foo', type='char16', value=[u'\u00E9'],
+                'Foo', type='char16', value=['\u00E9'],
             ),
             kwargs={},
             exp_xml_str=(
-                u'<QUALIFIER NAME="Foo" TYPE="char16">',
-                u'<VALUE.ARRAY>',
-                u'<VALUE>\u00E9</VALUE>',
-                u'</VALUE.ARRAY>',
-                u'</QUALIFIER>',
+                '<QUALIFIER NAME="Foo" TYPE="char16">',
+                '<VALUE.ARRAY>',
+                '<VALUE>\u00E9</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
             )
         ),
         None, None, True
@@ -21566,15 +21565,15 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
         "non-UCS-2 character (invalid as per DSP0004, but tolerated by pywbem)",
         dict(
             obj=CIMQualifier(
-                'Foo', type='char16', value=[u'\U00010142'],
+                'Foo', type='char16', value=['\U00010142'],
             ),
             kwargs={},
             exp_xml_str=(
-                u'<QUALIFIER NAME="Foo" TYPE="char16">',
-                u'<VALUE.ARRAY>',
-                u'<VALUE>\U00010142</VALUE>',
-                u'</VALUE.ARRAY>',
-                u'</QUALIFIER>',
+                '<QUALIFIER NAME="Foo" TYPE="char16">',
+                '<VALUE.ARRAY>',
+                '<VALUE>\U00010142</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER>',
             )
         ),
         None, None, True
@@ -22666,7 +22665,7 @@ def test_CIMQualifier_tocimxmlstr(testcase, obj, kwargs, exp_xml_str):
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
-    assert isinstance(obj_xml_str, six.text_type)
+    assert isinstance(obj_xml_str, str)
 
     exp_xml_str = ''.join(exp_xml_str)
     validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str)
@@ -22758,7 +22757,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 { "abc" }""",
+            exp_mof="""Q1 { "abc" }""",
         ),
         None, None, True
     ),
@@ -22773,7 +22772,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 ( NULL )""",
+            exp_mof="""Q1 ( NULL )""",
         ),
         None, None, True
     ),
@@ -22788,7 +22787,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 ( "dq=\\",sq=\\',bs=\\\\" )""",
+            exp_mof="""Q1 ( "dq=\\",sq=\\',bs=\\\\" )""",
         ),
         None, None, True
     ),
@@ -22803,7 +22802,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 ( "bt=\\b,tb=\\t,nl=\\n" )""",
+            exp_mof="""Q1 ( "bt=\\b,tb=\\t,nl=\\n" )""",
         ),
         None, None, True
     ),
@@ -22818,7 +22817,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 ( "vt=\\f,cr=\\r" )""",
+            exp_mof="""Q1 ( "vt=\\f,cr=\\r" )""",
         ),
         None, None, True
     ),
@@ -22833,7 +22832,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 { }""",
+            exp_mof="""Q1 { }""",
         ),
         None, None, True
     ),
@@ -22848,7 +22847,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 { "abc", "def" }""",
+            exp_mof="""Q1 { "abc", "def" }""",
         ),
         None, None, True
     ),
@@ -22863,7 +22862,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 { "abc", NULL }""",
+            exp_mof="""Q1 { "abc", NULL }""",
         ),
         None, None, True
     ),
@@ -22878,7 +22877,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 (
+            exp_mof="""Q1 (
             "abc def abc def abc def abc def abc def abc def abc def abc def "
             "abc def abc def z" )""",
         ),
@@ -22898,7 +22897,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 { "abcdef00", "abcdef01", "abcdef02", "abcdef03", "abcdef04", "abcdef05",
+            exp_mof="""Q1 { "abcdef00", "abcdef01", "abcdef02", "abcdef03", "abcdef04", "abcdef05",
             "abcdef06", "abcdef07", "abcdef08", "abcdef09" }""",  # noqa: E501
         ),
         None, None, True
@@ -22917,7 +22916,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 {
+            exp_mof="""Q1 {
             "abc def abc def abc def abc def abc def abc def abc def abc def "
             "abc def abc def z00",
             "abc def abc def abc def abc def abc def abc def abc def abc def "
@@ -22936,7 +22935,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 ( '\\n' ) """,
+            exp_mof="""Q1 ( '\\n' ) """,
         ),
         None, None, False
         # TODO 01/18 AM Enable test case once char16 produces single quotes
@@ -22952,7 +22951,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 ( false )""",
+            exp_mof="""Q1 ( false )""",
         ),
         None, None, True
     ),
@@ -22967,7 +22966,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 ( 42 )""",
+            exp_mof="""Q1 ( 42 )""",
         ),
         None, None, True
     ),
@@ -22982,7 +22981,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 ( 42.1 )""",
+            exp_mof="""Q1 ( 42.1 )""",
         ),
         # Unpredictable string before 0.12
         None, None, True
@@ -22998,7 +22997,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 ( "20140924193040.654321+120" )""",
+            exp_mof="""Q1 ( "20140924193040.654321+120" )""",
         ),
         None, None, True
     ),
@@ -23015,7 +23014,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 ( "" )""",
+            exp_mof="""Q1 ( "" )""",
         ),
         None, None, True
     ),
@@ -23032,7 +23031,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 ( "" )""",
+            exp_mof="""Q1 ( "" )""",
         ),
         None, None, True
     ),
@@ -23048,7 +23047,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 ( "" )""",
+            exp_mof="""Q1 ( "" )""",
         ),
         None, None, True
     ),
@@ -23064,7 +23063,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 ( "" )""",
+            exp_mof="""Q1 ( "" )""",
         ),
         None, None, True
     ),
@@ -23080,7 +23079,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""Q1 ( "" )""",
+            exp_mof="""Q1 ( "" )""",
         ),
         None, None, True
     ),
@@ -23141,7 +23140,7 @@ def test_CIMQualifier_tomof(testcase, obj, kwargs, exp_mof):
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
-    assert isinstance(mof, six.text_type)
+    assert isinstance(mof, str)
     assert mof == exp_mof
 
 
@@ -23170,9 +23169,9 @@ TESTCASES_CIMCLASSNAME_INIT = [
             ],
             init_kwargs={},
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                host=u'woot.com',
-                namespace=u'cimv2',
+                classname='CIM_Foo',
+                host='woot.com',
+                namespace='cimv2',
             ),
         ),
         None, None, True
@@ -23184,7 +23183,7 @@ TESTCASES_CIMCLASSNAME_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(classname=b'CIM_Foo'),
-            exp_attrs=dict(classname=u'CIM_Foo')
+            exp_attrs=dict(classname='CIM_Foo')
         ),
         None, None, True
     ),
@@ -23192,8 +23191,8 @@ TESTCASES_CIMCLASSNAME_INIT = [
         "Verify that unicode classname remains unicode",
         dict(
             init_args=[],
-            init_kwargs=dict(classname=u'CIM_Foo'),
-            exp_attrs=dict(classname=u'CIM_Foo')
+            init_kwargs=dict(classname='CIM_Foo'),
+            exp_attrs=dict(classname='CIM_Foo')
         ),
         None, None, True
     ),
@@ -23208,8 +23207,8 @@ TESTCASES_CIMCLASSNAME_INIT = [
                 namespace=b'root/cimv2'
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2'
+                classname='CIM_Foo',
+                namespace='root/cimv2'
             )
         ),
         None, None, True
@@ -23220,11 +23219,11 @@ TESTCASES_CIMCLASSNAME_INIT = [
             init_args=[],
             init_kwargs=dict(
                 classname='CIM_Foo',
-                namespace=u'root/cimv2'
+                namespace='root/cimv2'
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2'
+                classname='CIM_Foo',
+                namespace='root/cimv2'
             )
         ),
         None, None, True
@@ -23239,8 +23238,8 @@ TESTCASES_CIMCLASSNAME_INIT = [
                 namespace='/root/cimv2/'
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2'
+                classname='CIM_Foo',
+                namespace='root/cimv2'
             )
         ),
         None, None, True
@@ -23255,8 +23254,8 @@ TESTCASES_CIMCLASSNAME_INIT = [
                 namespace='//root/cimv2//'
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2'
+                classname='CIM_Foo',
+                namespace='root/cimv2'
             )
         ),
         None, None, True
@@ -23273,9 +23272,9 @@ TESTCASES_CIMCLASSNAME_INIT = [
                 host=b'woot.com'
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
-                host=u'woot.com'
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='woot.com'
             )
         ),
         None, None, True
@@ -23287,12 +23286,12 @@ TESTCASES_CIMCLASSNAME_INIT = [
             init_kwargs=dict(
                 classname='CIM_Foo',
                 namespace='root/cimv2',
-                host=u'woot.com'
+                host='woot.com'
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
-                host=u'woot.com'
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='woot.com'
             )
         ),
         None, None, True
@@ -23462,7 +23461,7 @@ TESTCASES_CIMCLASSNAME_SETATTR = [
             item='classname',
             new_value='CIM_Bar',
             exp_attrs=dict(
-                classname=u'CIM_Bar',
+                classname='CIM_Bar',
             ),
         ),
         None, None, True
@@ -23489,7 +23488,7 @@ TESTCASES_CIMCLASSNAME_SETATTR = [
             item='host',
             new_value='foo',
             exp_attrs=dict(
-                host=u'foo',
+                host='foo',
             ),
         ),
         None, None, True
@@ -23515,7 +23514,7 @@ TESTCASES_CIMCLASSNAME_SETATTR = [
             item='namespace',
             new_value='foo',
             exp_attrs=dict(
-                namespace=u'foo',
+                namespace='foo',
             ),
         ),
         None, None, True
@@ -24161,7 +24160,7 @@ def test_CIMClassName_tocimxmlstr(testcase, obj, kwargs, exp_xml_str):
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
-    assert isinstance(obj_xml_str, six.text_type)
+    assert isinstance(obj_xml_str, str)
 
     exp_xml_str = ''.join(exp_xml_str)
     validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str)
@@ -24241,9 +24240,9 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
         dict(
             uri='https://10.11.12.13:5989/root/cimv2:CIM_Foo',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
-                host=u'10.11.12.13:5989'),
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='10.11.12.13:5989'),
         ),
         None, None, True
     ),
@@ -24252,8 +24251,8 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
         dict(
             uri='https:/root/cimv2:CIM_Foo',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
+                classname='CIM_Foo',
+                namespace='root/cimv2',
                 host=None),
         ),
         None, None, True
@@ -24263,9 +24262,9 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
         dict(
             uri='https://jdd:test@10.11.12.13:5989/root/cimv2:CIM_Foo',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
-                host=u'jdd:test@10.11.12.13:5989'),
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='jdd:test@10.11.12.13:5989'),
         ),
         None, None, True
     ),
@@ -24274,9 +24273,9 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
         dict(
             uri='https://jdd@10.11.12.13:5989/root/cimv2:CIM_Foo',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
-                host=u'jdd@10.11.12.13:5989'),
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='jdd@10.11.12.13:5989'),
         ),
         None, None, True
     ),
@@ -24285,9 +24284,9 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
         dict(
             uri='https://10.11.12.13/root/cimv2:CIM_Foo',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
-                host=u'10.11.12.13'),
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='10.11.12.13'),
         ),
         None, None, True
     ),
@@ -24296,9 +24295,9 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
         dict(
             uri='https://[10:11:12:13]/root/cimv2:CIM_Foo',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
-                host=u'[10:11:12:13]'),
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='[10:11:12:13]'),
         ),
         None, None, True
     ),
@@ -24307,9 +24306,9 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
         dict(
             uri='https://[10:11:12:13]:5989/root/cimv2:CIM_Foo',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
-                host=u'[10:11:12:13]:5989'),
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='[10:11:12:13]:5989'),
         ),
         None, None, True
     ),
@@ -24318,9 +24317,9 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
         dict(
             uri='//10.11.12.13:5989/root/cimv2:CIM_Foo',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
-                host=u'10.11.12.13:5989'),
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='10.11.12.13:5989'),
         ),
         None, None, True
     ),
@@ -24329,9 +24328,9 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
         dict(
             uri='http://10.11.12.13:5989/root/cimv2:CIM_Foo',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
-                host=u'10.11.12.13:5989'),
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='10.11.12.13:5989'),
         ),
         None, None, True
     ),
@@ -24340,9 +24339,9 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
         dict(
             uri='HTTP://10.11.12.13:5989/root/cimv2:CIM_Foo',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
-                host=u'10.11.12.13:5989'),
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='10.11.12.13:5989'),
         ),
         None, None, True
     ),
@@ -24351,9 +24350,9 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
         dict(
             uri='HttpS://10.11.12.13:5989/root/cimv2:CIM_Foo',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
-                host=u'10.11.12.13:5989'),
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='10.11.12.13:5989'),
         ),
         None, None, True
     ),
@@ -24362,9 +24361,9 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
         dict(
             uri='cimxml-wbem://10.11.12.13:5989/root/cimv2:CIM_Foo',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
-                host=u'10.11.12.13:5989'),
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='10.11.12.13:5989'),
         ),
         None, None, True
     ),
@@ -24373,9 +24372,9 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
         dict(
             uri='cimxml-wbems://10.11.12.13:5989/root/cimv2:CIM_Foo',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
-                host=u'10.11.12.13:5989'),
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='10.11.12.13:5989'),
         ),
         None, None, True
     ),
@@ -24384,9 +24383,9 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
         dict(
             uri='xyz://10.11.12.13:5989/root/cimv2:CIM_Foo',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
-                host=u'10.11.12.13:5989'),
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='10.11.12.13:5989'),
         ),
         None, UserWarning, True
     ),
@@ -24395,8 +24394,8 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
         dict(
             uri='/root/cimv2:CIM_Foo',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
+                classname='CIM_Foo',
+                namespace='root/cimv2',
                 host=None),
         ),
         None, None, True
@@ -24406,8 +24405,8 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
         dict(
             uri='root/cimv2:CIM_Foo',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
+                classname='CIM_Foo',
+                namespace='root/cimv2',
                 host=None),
         ),
         None, None, True
@@ -24417,7 +24416,7 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
         dict(
             uri='/:CIM_Foo',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 namespace=None,
                 host=None),
         ),
@@ -24428,7 +24427,7 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
         dict(
             uri=':CIM_Foo',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 namespace=None,
                 host=None),
         ),
@@ -24439,7 +24438,7 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
         dict(
             uri='CIM_Foo',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 namespace=None,
                 host=None),
         ),
@@ -24450,8 +24449,8 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
         dict(
             uri='/root:CIM_Foo',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                namespace=u'root',
+                classname='CIM_Foo',
+                namespace='root',
                 host=None),
         ),
         None, None, True
@@ -24461,8 +24460,8 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
         dict(
             uri='/root/cimv2/test:CIM_Foo',
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2/test',
+                classname='CIM_Foo',
+                namespace='root/cimv2/test',
                 host=None),
         ),
         None, None, True
@@ -24577,9 +24576,9 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
         "all components, standard format",
         dict(
             obj=CIMClassName(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
-                host=u'10.11.12.13:5989'),
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='10.11.12.13:5989'),
             kwargs=dict(
                 format='standard',
             ),
@@ -24591,9 +24590,9 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
         "all components, cimobject format (host is ignored)",
         dict(
             obj=CIMClassName(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
-                host=u'10.11.12.13:5989'),
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='10.11.12.13:5989'),
             kwargs=dict(
                 format='cimobject',
             ),
@@ -24605,9 +24604,9 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
         "all components, historical format",
         dict(
             obj=CIMClassName(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
-                host=u'10.11.12.13:5989'),
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='10.11.12.13:5989'),
             kwargs=dict(
                 format='historical',
             ),
@@ -24619,9 +24618,9 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
         "all components, canonical format",
         dict(
             obj=CIMClassName(
-                classname=u'CIM_Foo',
-                namespace=u'Root/CIMv2',
-                host=u'MyServer:5989'),
+                classname='CIM_Foo',
+                namespace='Root/CIMv2',
+                host='MyServer:5989'),
             kwargs=dict(
                 format='canonical',
             ),
@@ -24633,9 +24632,9 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
         "all components, invalid format",
         dict(
             obj=CIMClassName(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
-                host=u'10.11.12.13:5989'),
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='10.11.12.13:5989'),
             kwargs=dict(
                 format='xxx_invalid_format',
             ),
@@ -24647,8 +24646,8 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
         "no authority, standard format",
         dict(
             obj=CIMClassName(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
+                classname='CIM_Foo',
+                namespace='root/cimv2',
                 host=None),
             kwargs=dict(
                 format='standard',
@@ -24661,8 +24660,8 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
         "no authority, cimobject format",
         dict(
             obj=CIMClassName(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
+                classname='CIM_Foo',
+                namespace='root/cimv2',
                 host=None),
             kwargs=dict(
                 format='cimobject',
@@ -24675,8 +24674,8 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
         "no authority, historical format",
         dict(
             obj=CIMClassName(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
+                classname='CIM_Foo',
+                namespace='root/cimv2',
                 host=None),
             kwargs=dict(
                 format='historical',
@@ -24689,9 +24688,9 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
         "authority with user:password",
         dict(
             obj=CIMClassName(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
-                host=u'jdd:test@10.11.12.13:5989'),
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='jdd:test@10.11.12.13:5989'),
             kwargs=dict(
                 format='standard',
             ),
@@ -24703,9 +24702,9 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
         "authority with user (no password)",
         dict(
             obj=CIMClassName(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
-                host=u'jdd@10.11.12.13:5989'),
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='jdd@10.11.12.13:5989'),
             kwargs=dict(
                 format='standard',
             ),
@@ -24717,9 +24716,9 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
         "authority without port",
         dict(
             obj=CIMClassName(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
-                host=u'10.11.12.13'),
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='10.11.12.13'),
             kwargs=dict(
                 format='standard',
             ),
@@ -24731,9 +24730,9 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
         "authority with IPv6 address",
         dict(
             obj=CIMClassName(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
-                host=u'[10:11:12:13]'),
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='[10:11:12:13]'),
             kwargs=dict(
                 format='standard',
             ),
@@ -24745,9 +24744,9 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
         "authority with IPv6 address and port",
         dict(
             obj=CIMClassName(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
-                host=u'[10:11:12:13]:5989'),
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='[10:11:12:13]:5989'),
             kwargs=dict(
                 format='standard',
             ),
@@ -24759,8 +24758,8 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
         "local WBEM URI (no authority)",
         dict(
             obj=CIMClassName(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
+                classname='CIM_Foo',
+                namespace='root/cimv2',
                 host=None),
             kwargs=dict(
                 format='standard',
@@ -24773,7 +24772,7 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
         "local WBEM URI with only class name, standard format",
         dict(
             obj=CIMClassName(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 namespace=None,
                 host=None),
             kwargs=dict(
@@ -24787,7 +24786,7 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
         "local WBEM URI with only class name, cimobject format",
         dict(
             obj=CIMClassName(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 namespace=None,
                 host=None),
             kwargs=dict(
@@ -24801,7 +24800,7 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
         "local WBEM URI with only class name, historical format",
         dict(
             obj=CIMClassName(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 namespace=None,
                 host=None),
             kwargs=dict(
@@ -24815,8 +24814,8 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
         "local WBEM URI with namespace that has only one component",
         dict(
             obj=CIMClassName(
-                classname=u'CIM_Foo',
-                namespace=u'root',
+                classname='CIM_Foo',
+                namespace='root',
                 host=None),
             kwargs=dict(
                 format='standard',
@@ -24829,8 +24828,8 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
         "local WBEM URI with namespace that has three components",
         dict(
             obj=CIMClassName(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2/test',
+                classname='CIM_Foo',
+                namespace='root/cimv2/test',
                 host=None),
             kwargs=dict(
                 format='standard',
@@ -24858,7 +24857,7 @@ def test_CIMClassName_to_wbem_uri(testcase, obj, kwargs, exp_uri):
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
-    assert isinstance(uri, six.text_type)
+    assert isinstance(uri, str)
     assert uri == exp_uri
 
 
@@ -24879,9 +24878,9 @@ TESTCASES_CIMCLASSNAME_STR = [
         "all components, historical format",
         dict(
             obj=CIMClassName(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
-                host=u'10.11.12.13:5989'),
+                classname='CIM_Foo',
+                namespace='root/cimv2',
+                host='10.11.12.13:5989'),
             exp_uri='//10.11.12.13:5989/root/cimv2:CIM_Foo',
         ),
         None, None, True
@@ -24890,8 +24889,8 @@ TESTCASES_CIMCLASSNAME_STR = [
         "no authority, historical format",
         dict(
             obj=CIMClassName(
-                classname=u'CIM_Foo',
-                namespace=u'root/cimv2',
+                classname='CIM_Foo',
+                namespace='root/cimv2',
                 host=None),
             exp_uri='root/cimv2:CIM_Foo',
         ),
@@ -24901,7 +24900,7 @@ TESTCASES_CIMCLASSNAME_STR = [
         "local WBEM URI with only class name, historical format",
         dict(
             obj=CIMClassName(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 namespace=None,
                 host=None),
             exp_uri='CIM_Foo',
@@ -24927,7 +24926,7 @@ def test_CIMClassName_str(testcase, obj, exp_uri):
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
-    assert isinstance(uri, six.text_type)
+    assert isinstance(uri, str)
     assert uri == exp_uri
 
 
@@ -24965,18 +24964,18 @@ TESTCASES_CIMCLASS_INIT = [
             ],
             init_kwargs={},
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 properties=NocaseDict([
                     ('Prop1', CIMProperty('Prop1', value=True)),
                 ]),
                 methods=NocaseDict([
                     ('Meth1', CIMMethod('Meth1', return_type='string')),
                 ]),
-                superclass=u'CIM_FooParent',
+                superclass='CIM_FooParent',
                 qualifiers=NocaseDict([
                     ('Qual1', CIMQualifier('Qual1', value=True)),
                 ]),
-                path=CIMClassName(u'CIM_Foo'),
+                path=CIMClassName('CIM_Foo'),
             )
         ),
         None, None, True
@@ -24988,7 +24987,7 @@ TESTCASES_CIMCLASS_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(classname=b'CIM_Foo'),
-            exp_attrs=dict(classname=u'CIM_Foo')
+            exp_attrs=dict(classname='CIM_Foo')
         ),
         None, None, True
     ),
@@ -24996,8 +24995,8 @@ TESTCASES_CIMCLASS_INIT = [
         "Verify that unicode classname remains unicode",
         dict(
             init_args=[],
-            init_kwargs=dict(classname=u'CIM_Foo'),
-            exp_attrs=dict(classname=u'CIM_Foo')
+            init_kwargs=dict(classname='CIM_Foo'),
+            exp_attrs=dict(classname='CIM_Foo')
         ),
         None, None, True
     ),
@@ -25008,12 +25007,12 @@ TESTCASES_CIMCLASS_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 superclass=b'CIM_Foo'
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                superclass=u'CIM_Foo'
+                classname='CIM_Foo',
+                superclass='CIM_Foo'
             )
         ),
         None, None, True
@@ -25023,12 +25022,12 @@ TESTCASES_CIMCLASS_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                classname=u'CIM_Foo',
-                superclass=u'CIM_Foo'
+                classname='CIM_Foo',
+                superclass='CIM_Foo'
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
-                superclass=u'CIM_Foo'
+                classname='CIM_Foo',
+                superclass='CIM_Foo'
             )
         ),
         None, None, True
@@ -25047,7 +25046,7 @@ TESTCASES_CIMCLASS_INIT = [
                 ]
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 properties=NocaseDict([
                     ('P1', CIMProperty('P1', value='Ham')),
                     ('P2', CIMProperty('P2', value='Cheese')),
@@ -25068,7 +25067,7 @@ TESTCASES_CIMCLASS_INIT = [
                 ])
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 properties=NocaseDict([
                     ('P1', CIMProperty('P1', value='Ham')),
                     ('P2', CIMProperty('P2', value='Cheese')),
@@ -25089,7 +25088,7 @@ TESTCASES_CIMCLASS_INIT = [
                 ]
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 properties=NocaseDict([
                     ('P1', CIMProperty('P1', value='Ham')),
                     ('P2', CIMProperty('P2', value='Cheese')),
@@ -25103,11 +25102,11 @@ TESTCASES_CIMCLASS_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 properties=dict(P1=CIMPROPERTY_P1_OBJ)
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 properties=NocaseDict(P1=CIMPROPERTY_P1_OBJ)
             )
         ),
@@ -25127,7 +25126,7 @@ TESTCASES_CIMCLASS_INIT = [
                 ]
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 methods=NocaseDict([
                     ('M1', CIMMethod('M1', return_type='string')),
                     ('M2', CIMMethod('M2', return_type='uint32')),
@@ -25148,7 +25147,7 @@ TESTCASES_CIMCLASS_INIT = [
                 ])
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 methods=NocaseDict([
                     ('M1', CIMMethod('M1', return_type='string')),
                     ('M2', CIMMethod('M2', return_type='uint32')),
@@ -25169,7 +25168,7 @@ TESTCASES_CIMCLASS_INIT = [
                 ]
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 methods=NocaseDict([
                     ('M1', CIMMethod('M1', return_type='string')),
                     ('M2', CIMMethod('M2', return_type='uint32')),
@@ -25183,11 +25182,11 @@ TESTCASES_CIMCLASS_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 methods=dict(M1=CIMMETHOD_M1_OBJ)
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 methods=NocaseDict(M1=CIMMETHOD_M1_OBJ)
             )
         ),
@@ -25207,7 +25206,7 @@ TESTCASES_CIMCLASS_INIT = [
                 ]
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 qualifiers=NocaseDict([
                     ('Q1', CIMQualifier('Q1', value='Ham')),
                     ('Q2', CIMQualifier('Q2', value='Cheese')),
@@ -25228,7 +25227,7 @@ TESTCASES_CIMCLASS_INIT = [
                 ])
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 qualifiers=NocaseDict([
                     ('Q1', CIMQualifier('Q1', value='Ham')),
                     ('Q2', CIMQualifier('Q2', value='Cheese')),
@@ -25249,7 +25248,7 @@ TESTCASES_CIMCLASS_INIT = [
                 ]
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 qualifiers=NocaseDict([
                     ('Q1', CIMQualifier('Q1', value='Ham')),
                     ('Q2', CIMQualifier('Q2', value='Cheese')),
@@ -25263,11 +25262,11 @@ TESTCASES_CIMCLASS_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 qualifiers=dict(Q1=CIMQUALIFIER_Q1_OBJ)
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 qualifiers=NocaseDict(Q1=CIMQUALIFIER_Q1_OBJ)
             )
         ),
@@ -25279,11 +25278,11 @@ TESTCASES_CIMCLASS_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 qualifiers=dict(Q1=CIMQUALIFIER_Q1_OBJ.value)
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 qualifiers=NocaseDict(Q1=CIMQUALIFIER_Q1_OBJ)
             )
         ),
@@ -25296,11 +25295,11 @@ TESTCASES_CIMCLASS_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 path=CIMCLASSNAME_C1_OBJ
             ),
             exp_attrs=dict(
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 path=CIMCLASSNAME_C1_OBJ
             )
         ),
@@ -25747,7 +25746,7 @@ TESTCASES_CIMCLASS_SETATTR = [
             item='classname',
             new_value='CIM_Bar',
             exp_attrs=dict(
-                classname=u'CIM_Bar',
+                classname='CIM_Bar',
             ),
         ),
         None, None, True
@@ -25772,7 +25771,7 @@ TESTCASES_CIMCLASS_SETATTR = [
             item='superclass',
             new_value='CP2',
             exp_attrs=dict(
-                superclass=u'CP2',
+                superclass='CP2',
             ),
         ),
         None, None, True
@@ -26472,7 +26471,7 @@ TESTCASES_CIMCLASS_HASH_EQ = [
                 CIMProperty('p1', value='v1'),
             ]),
             obj2=CIMClass('CIM_Foo', properties=[
-                CIMProperty('p1', value=u'v1'),
+                CIMProperty('p1', value='v1'),
             ]),
             exp_equal=True,
         ),
@@ -26651,7 +26650,7 @@ TESTCASES_CIMCLASS_HASH_EQ = [
             obj1=CIMClass('CIM_Foo',
                           qualifiers={'Cheepy': 'Birds'}),
             obj2=CIMClass('CIM_Foo',
-                          qualifiers={'Cheepy': u'Birds'}),
+                          qualifiers={'Cheepy': 'Birds'}),
             exp_equal=True,
         ),
         None, None, True
@@ -27098,7 +27097,7 @@ def test_CIMClass_tocimxmlstr(testcase, obj, kwargs, exp_xml_str):
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
-    assert isinstance(obj_xml_str, six.text_type)
+    assert isinstance(obj_xml_str, str)
 
     exp_xml_str = ''.join(exp_xml_str)
     validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str)
@@ -27178,8 +27177,8 @@ TESTCASES_CIMCLASS_TOMOF = [
         "all components",
         dict(
             obj=CIMClass(
-                classname=u'C1',
-                superclass=u'C2',
+                classname='C1',
+                superclass='C2',
                 properties=[
                     CIMProperty(
                         'p2', type='string', value="abc",
@@ -27232,7 +27231,7 @@ class C1 : C2 {
         "class with embedded instance property with a default value",
         dict(
             obj=CIMClass(
-                classname=u'C1',
+                classname='C1',
                 properties=[
                     CIMProperty(
                         'p1',
@@ -27253,7 +27252,7 @@ class C1 : C2 {
                 ],
             ),
             kwargs={},
-            exp_mof=u"""\
+            exp_mof="""\
 class C1 {
 
       [EmbeddedInstance ( "CE" )]
@@ -27270,7 +27269,7 @@ class C1 {
         "class with reference property with a multi-line default value",
         dict(
             obj=CIMClass(
-                classname=u'C1',
+                classname='C1',
                 properties=[
                     CIMProperty(
                         'p1',
@@ -27290,7 +27289,7 @@ class C1 {
             ),
             kwargs={},
             # pylint: disable=line-too-long
-            exp_mof=u"""\
+            exp_mof="""\
 class C1 {
 
    CIM_ReferencedClass REF p1 =
@@ -27372,7 +27371,7 @@ def test_CIMClass_tomof(testcase, obj, kwargs, exp_mof):
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
-    assert isinstance(mof, six.text_type)
+    assert isinstance(mof, str)
     assert mof == exp_mof
 
 
@@ -27408,12 +27407,12 @@ TESTCASES_CIMMETHOD_INIT = [
             ],
             init_kwargs={},
             exp_attrs=dict(
-                name=u'Meth1',
-                return_type=u'string',
+                name='Meth1',
+                return_type='string',
                 parameters=NocaseDict([
                     ('P1', CIMParameter('P1', type='string')),
                 ]),
-                class_origin=u'CIM_FooParent',
+                class_origin='CIM_FooParent',
                 propagated=True,
                 qualifiers=NocaseDict([
                     ('Q1', CIMQualifier('Q1', value='Ham')),
@@ -27433,8 +27432,8 @@ TESTCASES_CIMMETHOD_INIT = [
                 return_type=b'string'
             ),
             exp_attrs=dict(
-                name=u'FooMethod',
-                return_type=u'string'
+                name='FooMethod',
+                return_type='string'
             )
         ),
         None, None, True
@@ -27444,12 +27443,12 @@ TESTCASES_CIMMETHOD_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooMethod',
-                return_type=u'string'
+                name='FooMethod',
+                return_type='string'
             ),
             exp_attrs=dict(
-                name=u'FooMethod',
-                return_type=u'string'
+                name='FooMethod',
+                return_type='string'
             )
         ),
         None, None, True
@@ -27468,7 +27467,7 @@ TESTCASES_CIMMETHOD_INIT = [
                 ]
             ),
             exp_attrs=dict(
-                name=u'Meth1', return_type=u'string',
+                name='Meth1', return_type='string',
                 parameters=NocaseDict([
                     ('P1', CIMParameter('P1', type='string')),
                     ('P2', CIMParameter('P2', type='uint32')),
@@ -27489,7 +27488,7 @@ TESTCASES_CIMMETHOD_INIT = [
                 ])
             ),
             exp_attrs=dict(
-                name=u'Meth1', return_type=u'string',
+                name='Meth1', return_type='string',
                 parameters=NocaseDict([
                     ('P1', CIMParameter('P1', type='string')),
                     ('P2', CIMParameter('P2', type='uint32')),
@@ -27510,7 +27509,7 @@ TESTCASES_CIMMETHOD_INIT = [
                 ]
             ),
             exp_attrs=dict(
-                name=u'Meth1', return_type=u'string',
+                name='Meth1', return_type='string',
                 parameters=NocaseDict([
                     ('P1', CIMParameter('P1', type='string')),
                     ('P2', CIMParameter('P2', type='uint32')),
@@ -27524,13 +27523,13 @@ TESTCASES_CIMMETHOD_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooMethod',
-                return_type=u'string',
+                name='FooMethod',
+                return_type='string',
                 parameters=dict(P1=CIMPARAMETER_P1_OBJ)
             ),
             exp_attrs=dict(
-                name=u'FooMethod',
-                return_type=u'string',
+                name='FooMethod',
+                return_type='string',
                 parameters=NocaseDict(P1=CIMPARAMETER_P1_OBJ)
             )
         ),
@@ -27550,7 +27549,7 @@ TESTCASES_CIMMETHOD_INIT = [
                 ]
             ),
             exp_attrs=dict(
-                name=u'Meth1', return_type=u'string',
+                name='Meth1', return_type='string',
                 qualifiers=NocaseDict([
                     ('Q1', CIMQualifier('Q1', value='Ham')),
                     ('Q2', CIMQualifier('Q2', value='Cheese')),
@@ -27571,7 +27570,7 @@ TESTCASES_CIMMETHOD_INIT = [
                 ])
             ),
             exp_attrs=dict(
-                name=u'Meth1', return_type=u'string',
+                name='Meth1', return_type='string',
                 qualifiers=NocaseDict([
                     ('Q1', CIMQualifier('Q1', value='Ham')),
                     ('Q2', CIMQualifier('Q2', value='Cheese')),
@@ -27592,7 +27591,7 @@ TESTCASES_CIMMETHOD_INIT = [
                 ]
             ),
             exp_attrs=dict(
-                name=u'Meth1', return_type=u'string',
+                name='Meth1', return_type='string',
                 qualifiers=NocaseDict([
                     ('Q1', CIMQualifier('Q1', value='Ham')),
                     ('Q2', CIMQualifier('Q2', value='Cheese')),
@@ -27606,13 +27605,13 @@ TESTCASES_CIMMETHOD_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooMethod',
-                return_type=u'string',
+                name='FooMethod',
+                return_type='string',
                 qualifiers=dict(Q1=CIMQUALIFIER_Q1_OBJ)
             ),
             exp_attrs=dict(
-                name=u'FooMethod',
-                return_type=u'string',
+                name='FooMethod',
+                return_type='string',
                 qualifiers=NocaseDict(Q1=CIMQUALIFIER_Q1_OBJ)
             )
         ),
@@ -27623,14 +27622,14 @@ TESTCASES_CIMMETHOD_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooMethod',
-                return_type=u'string',
+                name='FooMethod',
+                return_type='string',
                 class_origin=b'CIM_Origin'
             ),
             exp_attrs=dict(
-                name=u'FooMethod',
-                return_type=u'string',
-                class_origin=u'CIM_Origin'
+                name='FooMethod',
+                return_type='string',
+                class_origin='CIM_Origin'
             )
         ),
         None, None, True
@@ -27640,14 +27639,14 @@ TESTCASES_CIMMETHOD_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooMethod',
-                return_type=u'string',
-                class_origin=u'CIM_Origin'
+                name='FooMethod',
+                return_type='string',
+                class_origin='CIM_Origin'
             ),
             exp_attrs=dict(
-                name=u'FooMethod',
-                return_type=u'string',
-                class_origin=u'CIM_Origin'
+                name='FooMethod',
+                return_type='string',
+                class_origin='CIM_Origin'
             )
         ),
         None, None, True
@@ -27657,13 +27656,13 @@ TESTCASES_CIMMETHOD_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooMethod',
-                return_type=u'string',
+                name='FooMethod',
+                return_type='string',
                 propagated=42
             ),
             exp_attrs=dict(
-                name=u'FooMethod',
-                return_type=u'string',
+                name='FooMethod',
+                return_type='string',
                 propagated=True
             )
         ),
@@ -27674,13 +27673,13 @@ TESTCASES_CIMMETHOD_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooMethod',
-                return_type=u'string',
+                name='FooMethod',
+                return_type='string',
                 propagated=0
             ),
             exp_attrs=dict(
-                name=u'FooMethod',
-                return_type=u'string',
+                name='FooMethod',
+                return_type='string',
                 propagated=False
             )
         ),
@@ -27691,13 +27690,13 @@ TESTCASES_CIMMETHOD_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooMethod',
-                return_type=u'string',
+                name='FooMethod',
+                return_type='string',
                 propagated='false'
             ),
             exp_attrs=dict(
-                name=u'FooMethod',
-                return_type=u'string',
+                name='FooMethod',
+                return_type='string',
                 propagated=True
             )
         ),
@@ -27708,13 +27707,13 @@ TESTCASES_CIMMETHOD_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooMethod',
-                return_type=u'string',
+                name='FooMethod',
+                return_type='string',
                 propagated='true'
             ),
             exp_attrs=dict(
-                name=u'FooMethod',
-                return_type=u'string',
+                name='FooMethod',
+                return_type='string',
                 propagated=True
             )
         ),
@@ -27725,13 +27724,13 @@ TESTCASES_CIMMETHOD_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooMethod',
-                return_type=u'string',
+                name='FooMethod',
+                return_type='string',
                 propagated=True
             ),
             exp_attrs=dict(
-                name=u'FooMethod',
-                return_type=u'string',
+                name='FooMethod',
+                return_type='string',
                 propagated=True
             )
         ),
@@ -27742,13 +27741,13 @@ TESTCASES_CIMMETHOD_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooMethod',
-                return_type=u'string',
+                name='FooMethod',
+                return_type='string',
                 propagated=False
             ),
             exp_attrs=dict(
-                name=u'FooMethod',
-                return_type=u'string',
+                name='FooMethod',
+                return_type='string',
                 propagated=False
             )
         ),
@@ -28072,7 +28071,7 @@ TESTCASES_CIMMETHOD_SETATTR = [
             item='name',
             new_value='M2',
             exp_attrs=dict(
-                name=u'M2',
+                name='M2',
             ),
         ),
         None, None, True
@@ -28172,7 +28171,7 @@ TESTCASES_CIMMETHOD_SETATTR = [
             new_value=True,
             exp_attrs=dict(
                 propagated=True,
-                class_origin=u'C2',
+                class_origin='C2',
             ),
         ),
         None, None, True
@@ -28191,7 +28190,7 @@ TESTCASES_CIMMETHOD_SETATTR = [
             new_value=True,
             exp_attrs=dict(
                 propagated=True,
-                class_origin=u'C2',
+                class_origin='C2',
             ),
         ),
         None, None, True
@@ -28209,7 +28208,7 @@ TESTCASES_CIMMETHOD_SETATTR = [
             new_value=False,
             exp_attrs=dict(
                 propagated=False,  # incons. with class origin not checked
-                class_origin=u'C2',
+                class_origin='C2',
             ),
         ),
         None, None, True
@@ -28229,7 +28228,7 @@ TESTCASES_CIMMETHOD_SETATTR = [
             new_value='C2',
             exp_attrs=dict(
                 propagated=True,
-                class_origin=u'C2',
+                class_origin='C2',
             ),
         ),
         None, None, True
@@ -28265,7 +28264,7 @@ TESTCASES_CIMMETHOD_SETATTR = [
             new_value='C2',
             exp_attrs=dict(
                 propagated=False,
-                class_origin=u'C2',  # incons. with propagated not checked
+                class_origin='C2',  # incons. with propagated not checked
             ),
         ),
         None, None, True
@@ -28859,7 +28858,7 @@ TESTCASES_CIMMETHOD_HASH_EQ = [
             obj1=CIMMethod('Meth1', return_type='string',
                            qualifiers={'Cheepy': 'Birds'}),
             obj2=CIMMethod('Meth1', return_type='string',
-                           qualifiers={'Cheepy': u'Birds'}),
+                           qualifiers={'Cheepy': 'Birds'}),
             exp_equal=True,
         ),
         None, None, True
@@ -29091,7 +29090,7 @@ TESTCASES_CIMMETHOD_TOCIMXML = [
     (
         "Name with ASCII characters, as unicode string",
         dict(
-            obj=CIMMethod(u'Foo', return_type='string'),
+            obj=CIMMethod('Foo', return_type='string'),
             kwargs={},
             exp_xml_str=(
                 '<METHOD NAME="Foo" TYPE="string"/>',
@@ -29105,7 +29104,7 @@ TESTCASES_CIMMETHOD_TOCIMXML = [
             obj=CIMMethod(b'Foo\xC3\xA9', return_type='string'),
             kwargs={},
             exp_xml_str=(
-                u'<METHOD NAME="Foo\u00E9" TYPE="string"/>',
+                '<METHOD NAME="Foo\u00E9" TYPE="string"/>',
             )
         ),
         None, None, True
@@ -29113,10 +29112,10 @@ TESTCASES_CIMMETHOD_TOCIMXML = [
     (
         "Name with non-ASCII UCS-2 characters, as unicode string",
         dict(
-            obj=CIMMethod(u'Foo\u00E9', return_type='string'),
+            obj=CIMMethod('Foo\u00E9', return_type='string'),
             kwargs={},
             exp_xml_str=(
-                u'<METHOD NAME="Foo\u00E9" TYPE="string"/>',
+                '<METHOD NAME="Foo\u00E9" TYPE="string"/>',
             )
         ),
         None, None, True
@@ -29127,7 +29126,7 @@ TESTCASES_CIMMETHOD_TOCIMXML = [
             obj=CIMMethod(b'Foo\xF0\x90\x85\x82', return_type='string'),
             kwargs={},
             exp_xml_str=(
-                u'<METHOD NAME="Foo\U00010142" TYPE="string"/>',
+                '<METHOD NAME="Foo\U00010142" TYPE="string"/>',
             )
         ),
         None, None, True
@@ -29135,10 +29134,10 @@ TESTCASES_CIMMETHOD_TOCIMXML = [
     (
         "Name with non-UCS-2 characters, as unicode string",
         dict(
-            obj=CIMMethod(u'Foo\U00010142', return_type='string'),
+            obj=CIMMethod('Foo\U00010142', return_type='string'),
             kwargs={},
             exp_xml_str=(
-                u'<METHOD NAME="Foo\U00010142" TYPE="string"/>',
+                '<METHOD NAME="Foo\U00010142" TYPE="string"/>',
             )
         ),
         None, None, True
@@ -29340,7 +29339,7 @@ def test_CIMMethod_tocimxmlstr(testcase, obj, kwargs, exp_xml_str):
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
-    assert isinstance(obj_xml_str, six.text_type)
+    assert isinstance(obj_xml_str, str)
 
     exp_xml_str = ''.join(exp_xml_str)
     validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str)
@@ -29437,7 +29436,7 @@ TESTCASES_CIMMETHOD_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
                [Q1 ( "abc" ),
                 Q2 ( 42 )]
             string M1(
@@ -29457,7 +29456,7 @@ TESTCASES_CIMMETHOD_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
             string M1();\n""",
         ),
         None, None, True
@@ -29475,7 +29474,7 @@ TESTCASES_CIMMETHOD_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
                [Q1 ( "abc" )]
             string M1();\n""",
         ),
@@ -29495,7 +29494,7 @@ TESTCASES_CIMMETHOD_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
                [Q1 (
                    "abc def abc def abc def abc def abc def abc def abc def "
                    "abc def abc def abc def z" )]
@@ -29517,7 +29516,7 @@ TESTCASES_CIMMETHOD_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
                [Q1 ( "abc" ),
                 Q2 ( 42 )]
             string M1();\n""",
@@ -29540,7 +29539,7 @@ TESTCASES_CIMMETHOD_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
                [Q1 (
                    "abc def abc def abc def abc def abc def abc def abc def "
                    "abc def abc def abc def z" ),
@@ -29564,7 +29563,7 @@ TESTCASES_CIMMETHOD_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
                [Q1 { "abc", "def" }]
             string M1();\n""",
         ),
@@ -29586,7 +29585,7 @@ TESTCASES_CIMMETHOD_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
                [Q1 { "abcdef00", "abcdef01", "abcdef02", "abcdef03",
                    "abcdef04", "abcdef05", "abcdef06", "abcdef07",
                    "abcdef08", "abcdef09" }]
@@ -29611,7 +29610,7 @@ TESTCASES_CIMMETHOD_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
                [Q1 {
                    "abc def abc def abc def abc def abc def abc def abc def "
                    "abc def abc def abc def z00",
@@ -29635,7 +29634,7 @@ TESTCASES_CIMMETHOD_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
             string M1(
                string P1,
                string P2);\n""",
@@ -29656,7 +29655,7 @@ TESTCASES_CIMMETHOD_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
             uint32 M1(
                sint32 P1);\n""",
         ),
@@ -29696,7 +29695,7 @@ def test_CIMMethod_tomof(testcase, obj, kwargs, exp_mof):
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
-    assert isinstance(mof, six.text_type)
+    assert isinstance(mof, str)
     assert mof == exp_mof
 
 
@@ -29732,8 +29731,8 @@ TESTCASES_CIMPARAMETER_INIT = [
             ],
             init_kwargs={},
             exp_attrs=dict(
-                name=u'Parm1',
-                type=u'string',
+                name='Parm1',
+                type='string',
                 reference_class=None,
                 is_array=True,
                 array_size=5,
@@ -29741,7 +29740,7 @@ TESTCASES_CIMPARAMETER_INIT = [
                     ('Q1', CIMQualifier('Q1', value='Ham')),
                 ]),
                 value=[CIMInstance('CIM_Foo')],
-                embedded_object=u'instance',
+                embedded_object='instance',
             )
         ),
         None, None, True
@@ -29753,7 +29752,7 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(name=b'FooParam', type=b'string'),
-            exp_attrs=dict(name=u'FooParam', type=u'string')
+            exp_attrs=dict(name='FooParam', type='string')
         ),
         None, None, True
     ),
@@ -29761,8 +29760,8 @@ TESTCASES_CIMPARAMETER_INIT = [
         "Verify that unicode name and type remain unicode",
         dict(
             init_args=[],
-            init_kwargs=dict(name=u'FooParam', type=u'string'),
-            exp_attrs=dict(name=u'FooParam', type=u'string')
+            init_kwargs=dict(name='FooParam', type='string'),
+            exp_attrs=dict(name='FooParam', type='string')
         ),
         None, None, True
     ),
@@ -29771,14 +29770,14 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 reference_class=b'CIM_Ref'
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'string',
-                reference_class=u'CIM_Ref'
+                name='FooParam',
+                type='string',
+                reference_class='CIM_Ref'
             )
         ),
         None, None, True
@@ -29788,14 +29787,14 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam',
-                type=u'string',
-                reference_class=u'CIM_Ref'
+                name='FooParam',
+                type='string',
+                reference_class='CIM_Ref'
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'string',
-                reference_class=u'CIM_Ref'
+                name='FooParam',
+                type='string',
+                reference_class='CIM_Ref'
             )
         ),
         None, None, True
@@ -29805,16 +29804,16 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 is_array=True,
                 reference_class=b'CIM_Ref'
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 is_array=True,
-                reference_class=u'CIM_Ref'
+                reference_class='CIM_Ref'
             )
         ),
         None, None, True
@@ -29824,13 +29823,13 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 is_array=42
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 is_array=True
             )
         ),
@@ -29842,13 +29841,13 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 is_array='false'
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 is_array=True
             )
         ),
@@ -29866,8 +29865,8 @@ TESTCASES_CIMPARAMETER_INIT = [
                 value=None
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 is_array=False,
                 value=None
             )
@@ -29883,13 +29882,13 @@ TESTCASES_CIMPARAMETER_INIT = [
                 name='FooParam',
                 type='string',
                 is_array=None,
-                value=u'abc'
+                value='abc'
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 is_array=False,
-                value=u'abc'
+                value='abc'
             )
         ),
         None, None, True
@@ -29903,13 +29902,13 @@ TESTCASES_CIMPARAMETER_INIT = [
                 name='FooParam',
                 type='string',
                 is_array=None,
-                value=[u'abc']
+                value=['abc']
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 is_array=True,
-                value=[u'abc']
+                value=['abc']
             )
         ),
         None, None, True
@@ -29919,14 +29918,14 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 is_array=True,
                 array_size=2
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 is_array=True,
                 array_size=2
             )
@@ -29939,16 +29938,16 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam',
-                type=u'string',
-                value=u'abc',
+                name='FooParam',
+                type='string',
+                value='abc',
                 is_array=False,
                 array_size=2
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'string',
-                value=u'abc',
+                name='FooParam',
+                type='string',
+                value='abc',
                 is_array=False,
                 array_size=2
             )
@@ -29960,13 +29959,13 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 qualifiers=dict(Q1=CIMQUALIFIER_Q1_OBJ)
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 qualifiers=NocaseDict(Q1=CIMQUALIFIER_Q1_OBJ)
             )
         ),
@@ -29979,14 +29978,14 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 value='abc'
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'string',
-                value=u'abc'
+                name='FooParam',
+                type='string',
+                value='abc'
             )
         ),
         None, None, True
@@ -29996,13 +29995,13 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam',
-                type=u'uint32',
+                name='FooParam',
+                type='uint32',
                 value=42
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'uint32',
+                name='FooParam',
+                type='uint32',
                 value=Uint32(42)
             )
         ),
@@ -30013,13 +30012,13 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam',
-                type=u'boolean',
+                name='FooParam',
+                type='boolean',
                 value=1
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'boolean',
+                name='FooParam',
+                type='boolean',
                 value=True
             )
         ),
@@ -30030,13 +30029,13 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam',
-                type=u'boolean',
+                name='FooParam',
+                type='boolean',
                 value=0
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'boolean',
+                name='FooParam',
+                type='boolean',
                 value=False
             )
         ),
@@ -30047,13 +30046,13 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam',
-                type=u'boolean',
+                name='FooParam',
+                type='boolean',
                 value='FALSE'
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'boolean',
+                name='FooParam',
+                type='boolean',
                 value=True
             )
         ),
@@ -30064,13 +30063,13 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam',
-                type=u'real32',
+                name='FooParam',
+                type='real32',
                 value=42.1
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'real32',
+                name='FooParam',
+                type='real32',
                 value=Real32(42.1)
             )
         ),
@@ -30081,13 +30080,13 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam',
-                type=u'datetime',
+                name='FooParam',
+                type='datetime',
                 value='19980125133015.123456-300'
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'datetime',
+                name='FooParam',
+                type='datetime',
                 value=CIMDateTime('19980125133015.123456-300')
             )
         ),
@@ -30099,15 +30098,15 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 value=CIMInstance('CIM_Emb')
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 value=CIMInstance('CIM_Emb'),
-                embedded_object=u'instance'
+                embedded_object='instance'
             )
         ),
         None, None, True
@@ -30118,16 +30117,16 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 value=CIMInstance('CIM_Emb'),
                 embedded_object='instance'
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 value=CIMInstance('CIM_Emb'),
-                embedded_object=u'instance'
+                embedded_object='instance'
             )
         ),
         None, None, True
@@ -30138,15 +30137,15 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 value=CIMClass('CIM_Emb')
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 value=CIMClass('CIM_Emb'),
-                embedded_object=u'object'
+                embedded_object='object'
             )
         ),
         None, None, True
@@ -30157,16 +30156,16 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 value=CIMClass('CIM_Emb'),
                 embedded_object='object'
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 value=CIMClass('CIM_Emb'),
-                embedded_object=u'object'
+                embedded_object='object'
             )
         ),
         None, None, True
@@ -30178,15 +30177,15 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam',
-                type=u'string',
-                value=u'abc',
+                name='FooParam',
+                type='string',
+                value='abc',
                 embedded_object=False
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'string',
-                value=u'abc',
+                name='FooParam',
+                type='string',
+                value='abc',
                 embedded_object=None
             )
         ),
@@ -30200,15 +30199,15 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 value=['abc']
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 is_array=True,
-                value=[u'abc']
+                value=['abc']
             )
         ),
         None, None, True
@@ -30218,13 +30217,13 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam',
-                type=u'uint32',
+                name='FooParam',
+                type='uint32',
                 value=[42]
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'uint32',
+                name='FooParam',
+                type='uint32',
                 is_array=True,
                 value=[Uint32(42)]
             )
@@ -30236,13 +30235,13 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam',
-                type=u'boolean',
+                name='FooParam',
+                type='boolean',
                 value=[1]
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'boolean',
+                name='FooParam',
+                type='boolean',
                 is_array=True,
                 value=[True]
             )
@@ -30254,13 +30253,13 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam',
-                type=u'boolean',
+                name='FooParam',
+                type='boolean',
                 value=[None]
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'boolean',
+                name='FooParam',
+                type='boolean',
                 is_array=True,
                 value=[None]
             )
@@ -30272,13 +30271,13 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam',
-                type=u'boolean',
+                name='FooParam',
+                type='boolean',
                 value=[0]
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'boolean',
+                name='FooParam',
+                type='boolean',
                 is_array=True,
                 value=[False]
             )
@@ -30291,13 +30290,13 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam',
-                type=u'boolean',
+                name='FooParam',
+                type='boolean',
                 value=['FALSE']
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'boolean',
+                name='FooParam',
+                type='boolean',
                 is_array=True,
                 value=[True]
             )
@@ -30309,13 +30308,13 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam',
-                type=u'real32',
+                name='FooParam',
+                type='real32',
                 value=[42.1]
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'real32',
+                name='FooParam',
+                type='real32',
                 is_array=True,
                 value=[Real32(42.1)]
             )
@@ -30328,13 +30327,13 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam',
-                type=u'datetime',
+                name='FooParam',
+                type='datetime',
                 value=['19980125133015.123456-300']
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'datetime',
+                name='FooParam',
+                type='datetime',
                 is_array=True,
                 value=[CIMDateTime('19980125133015.123456-300')]
             )
@@ -30347,16 +30346,16 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 value=[CIMInstance('CIM_Emb')]
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 is_array=True,
                 value=[CIMInstance('CIM_Emb')],
-                embedded_object=u'instance'
+                embedded_object='instance'
             )
         ),
         None, None, True
@@ -30367,17 +30366,17 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 value=[CIMInstance('CIM_Emb')],
                 embedded_object='instance'
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 is_array=True,
                 value=[CIMInstance('CIM_Emb')],
-                embedded_object=u'instance'
+                embedded_object='instance'
             )
         ),
         None, None, True
@@ -30388,16 +30387,16 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 value=[CIMClass('CIM_Emb')]
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 is_array=True,
                 value=[CIMClass('CIM_Emb')],
-                embedded_object=u'object'
+                embedded_object='object'
             )
         ),
         None, None, True
@@ -30408,17 +30407,17 @@ TESTCASES_CIMPARAMETER_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 value=[CIMClass('CIM_Emb')],
                 embedded_object='object'
             ),
             exp_attrs=dict(
-                name=u'FooParam',
-                type=u'string',
+                name='FooParam',
+                type='string',
                 is_array=True,
                 value=[CIMClass('CIM_Emb')],
-                embedded_object=u'object'
+                embedded_object='object'
             )
         ),
         None, None, True
@@ -30829,7 +30828,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             item='name',
             new_value='P2',
             exp_attrs=dict(
-                name=u'P2',
+                name='P2',
             ),
         ),
         None, None, True
@@ -30862,9 +30861,9 @@ TESTCASES_CIMPARAMETER_SETATTR = [
                 type='string',
             ),
             item='value',
-            new_value=u'V2',
+            new_value='V2',
             exp_attrs=dict(
-                value=u'V2',
+                value='V2',
             ),
         ),
         None, None, True
@@ -30880,7 +30879,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             item='value',
             new_value=b'V2',
             exp_attrs=dict(
-                value=u'V2',
+                value='V2',
             ),
         ),
         None, None, True
@@ -30894,9 +30893,9 @@ TESTCASES_CIMPARAMETER_SETATTR = [
                 type='string',
             ),
             item='value',
-            new_value=u'Foo\U00010142',
+            new_value='Foo\U00010142',
             exp_attrs=dict(
-                value=u'Foo\U00010142',
+                value='Foo\U00010142',
             ),
         ),
         None, None, True
@@ -30912,7 +30911,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             item='value',
             new_value=b'Foo\xF0\x90\x85\x82',
             exp_attrs=dict(
-                value=u'Foo\U00010142',
+                value='Foo\U00010142',
             ),
         ),
         None, None, True
@@ -30946,7 +30945,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             item='value',
             new_value=Char16('U'),
             exp_attrs=dict(
-                value=u'U',
+                value='U',
             ),
         ),
         None, None, True
@@ -30960,9 +30959,9 @@ TESTCASES_CIMPARAMETER_SETATTR = [
                 type='char16',
             ),
             item='value',
-            new_value=u'U',
+            new_value='U',
             exp_attrs=dict(
-                value=u'U',
+                value='U',
             ),
         ),
         None, None, True
@@ -30978,7 +30977,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             item='value',
             new_value=b'U',
             exp_attrs=dict(
-                value=u'U',
+                value='U',
             ),
         ),
         None, None, True
@@ -30992,9 +30991,9 @@ TESTCASES_CIMPARAMETER_SETATTR = [
                 type='char16',
             ),
             item='value',
-            new_value=Char16(u'\U00010142'),
+            new_value=Char16('\U00010142'),
             exp_attrs=dict(
-                value=u'\U00010142',
+                value='\U00010142',
             ),
         ),
         None, None, True
@@ -31008,9 +31007,9 @@ TESTCASES_CIMPARAMETER_SETATTR = [
                 type='char16',
             ),
             item='value',
-            new_value=u'\U00010142',
+            new_value='\U00010142',
             exp_attrs=dict(
-                value=u'\U00010142',
+                value='\U00010142',
             ),
         ),
         None, None, True
@@ -31026,7 +31025,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             item='value',
             new_value=b'\xF0\x90\x85\x82',
             exp_attrs=dict(
-                value=u'\U00010142',
+                value='\U00010142',
             ),
         ),
         None, None, True
@@ -31276,7 +31275,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             new_value=CIMInstanceName('C2'),
             exp_attrs=dict(
                 value=CIMInstanceName('C2'),
-                reference_class=u'C1',  # not set automatically
+                reference_class='C1',  # not set automatically
             ),
         ),
         None, None, True
@@ -31294,7 +31293,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             new_value=None,
             exp_attrs=dict(
                 value=None,
-                reference_class=u'C1',  # not set automatically
+                reference_class='C1',  # not set automatically
             ),
         ),
         None, None, True
@@ -31474,7 +31473,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             item='value',
             new_value='V2',
             exp_attrs=dict(
-                value=u'V2',  # scalar/array mismatch not checked
+                value='V2',  # scalar/array mismatch not checked
             ),
         ),
         None, None, True
@@ -31490,7 +31489,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             item='value',
             new_value=['V2'],
             exp_attrs=dict(
-                value=[u'V2'],  # scalar/array mismatch not checked
+                value=['V2'],  # scalar/array mismatch not checked
             ),
         ),
         None, None, True
@@ -31509,9 +31508,9 @@ TESTCASES_CIMPARAMETER_SETATTR = [
                 array_size=None,
             ),
             item='value',
-            new_value=[u'V2', u'V3'],
+            new_value=['V2', 'V3'],
             exp_attrs=dict(
-                value=[u'V2', u'V3'],
+                value=['V2', 'V3'],
             ),
         ),
         None, None, True
@@ -31530,7 +31529,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             item='value',
             new_value=[b'V2', b'V3'],
             exp_attrs=dict(
-                value=[u'V2', u'V3'],
+                value=['V2', 'V3'],
             ),
         ),
         None, None, True
@@ -31547,9 +31546,9 @@ TESTCASES_CIMPARAMETER_SETATTR = [
                 array_size=None,
             ),
             item='value',
-            new_value=[u'Foo\U00010142'],
+            new_value=['Foo\U00010142'],
             exp_attrs=dict(
-                value=[u'Foo\U00010142'],
+                value=['Foo\U00010142'],
             ),
         ),
         None, None, True
@@ -31568,7 +31567,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             item='value',
             new_value=[b'Foo\xF0\x90\x85\x82'],
             exp_attrs=dict(
-                value=[u'Foo\U00010142'],
+                value=['Foo\U00010142'],
             ),
         ),
         None, None, True
@@ -31640,7 +31639,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             item='value',
             new_value=['V1', 'V2'],
             exp_attrs=dict(
-                value=[u'V1', u'V2'],
+                value=['V1', 'V2'],
             ),
         ),
         None, None, True
@@ -31658,7 +31657,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             item='value',
             new_value=['V1', 'V2', 'V3'],
             exp_attrs=dict(
-                value=[u'V1', u'V2', u'V3'],  # fixed size not checked
+                value=['V1', 'V2', 'V3'],  # fixed size not checked
             ),
         ),
         None, None, True
@@ -31679,7 +31678,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             item='value',
             new_value=[Char16('U'), Char16('V')],
             exp_attrs=dict(
-                value=[u'U', u'V'],
+                value=['U', 'V'],
             ),
         ),
         None, None, True
@@ -31696,9 +31695,9 @@ TESTCASES_CIMPARAMETER_SETATTR = [
                 array_size=None,
             ),
             item='value',
-            new_value=[u'U', u'V'],
+            new_value=['U', 'V'],
             exp_attrs=dict(
-                value=[u'U', u'V'],
+                value=['U', 'V'],
             ),
         ),
         None, None, True
@@ -31717,7 +31716,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             item='value',
             new_value=[b'U', b'V'],
             exp_attrs=dict(
-                value=[u'U', u'V'],
+                value=['U', 'V'],
             ),
         ),
         None, None, True
@@ -31734,9 +31733,9 @@ TESTCASES_CIMPARAMETER_SETATTR = [
                 array_size=None,
             ),
             item='value',
-            new_value=[Char16(u'\U00010142')],
+            new_value=[Char16('\U00010142')],
             exp_attrs=dict(
-                value=[u'\U00010142'],
+                value=['\U00010142'],
             ),
         ),
         None, None, True
@@ -31753,9 +31752,9 @@ TESTCASES_CIMPARAMETER_SETATTR = [
                 array_size=None,
             ),
             item='value',
-            new_value=[u'\U00010142'],
+            new_value=['\U00010142'],
             exp_attrs=dict(
-                value=[u'\U00010142'],
+                value=['\U00010142'],
             ),
         ),
         None, None, True
@@ -31774,7 +31773,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             item='value',
             new_value=[b'\xF0\x90\x85\x82'],
             exp_attrs=dict(
-                value=[u'\U00010142'],
+                value=['\U00010142'],
             ),
         ),
         None, None, True
@@ -32195,7 +32194,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             new_value=[CIMInstanceName('C2')],
             exp_attrs=dict(
                 value=[CIMInstanceName('C2')],
-                reference_class=u'C1',  # not set automatically
+                reference_class='C1',  # not set automatically
             ),
         ),
         None, None, True
@@ -32215,7 +32214,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             new_value=[],
             exp_attrs=dict(
                 value=[],
-                reference_class=u'C1',  # not set automatically
+                reference_class='C1',  # not set automatically
             ),
         ),
         None, None, True
@@ -32235,7 +32234,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             new_value=[None],
             exp_attrs=dict(
                 value=[None],
-                reference_class=u'C1',  # not set automatically
+                reference_class='C1',  # not set automatically
             ),
         ),
         None, None, True
@@ -32255,7 +32254,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             new_value=None,
             exp_attrs=dict(
                 value=None,
-                reference_class=u'C1',  # not set automatically
+                reference_class='C1',  # not set automatically
             ),
         ),
         None, None, True
@@ -32490,7 +32489,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             new_value='uint8',
             exp_attrs=dict(
                 type='uint8',
-                value=u'V1',
+                value='V1',
             ),
         ),
         None, None, True
@@ -32509,7 +32508,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             new_value='uint8',
             exp_attrs=dict(
                 type='uint8',
-                value=[u'V1'],
+                value=['V1'],
             ),
         ),
         None, None, True
@@ -32559,8 +32558,8 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             new_value='C2',
             exp_attrs=dict(
                 type='string',  # inconsistency with type not checked
-                value=u'V1',
-                reference_class=u'C2',
+                value='V1',
+                reference_class='C2',
             ),
         ),
         None, None, True
@@ -32572,7 +32571,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
                 name='P1',
                 value=CIMInstanceName('C1'),
                 type='reference',
-                reference_class=u'C1',
+                reference_class='C1',
             ),
             item='reference_class',
             new_value=None,
@@ -32598,7 +32597,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             new_value='instance',
             exp_attrs=dict(
                 type='string',
-                value=u'V1',
+                value='V1',
                 embedded_object='instance',  # incons. with value not checked
             ),
         ),
@@ -32616,7 +32615,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             new_value='object',
             exp_attrs=dict(
                 type='string',
-                value=u'V1',
+                value='V1',
                 embedded_object='object',  # incons. with value not checked
             ),
         ),
@@ -32635,7 +32634,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             new_value='xxx',
             exp_attrs=dict(
                 type='string',
-                value=u'V1',
+                value='V1',
                 embedded_object='xxx',
             ),
         ),
@@ -32676,7 +32675,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             new_value=True,
             exp_attrs=dict(
                 type='string',
-                value=u'V1',
+                value='V1',
                 is_array=True,  # inconsistency with value not checked
             ),
         ),
@@ -32697,7 +32696,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             new_value='false',
             exp_attrs=dict(
                 type='string',
-                value=u'V1',
+                value='V1',
                 is_array=True,  # inconsistency with value not checked
             ),
         ),
@@ -32717,7 +32716,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             new_value=False,
             exp_attrs=dict(
                 type='string',
-                value=[u'V1'],
+                value=['V1'],
                 is_array=False,  # inconsistency with value not checked
             ),
         ),
@@ -32739,7 +32738,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             new_value=2,
             exp_attrs=dict(
                 type='string',
-                value=u'V1',
+                value='V1',
                 is_array=False,
                 array_size=2,  # inconsistency with is_array not checked
             ),
@@ -32760,7 +32759,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             new_value=2,
             exp_attrs=dict(
                 type='string',
-                value=[u'V1'],
+                value=['V1'],
                 is_array=True,
                 array_size=2,
             ),
@@ -32782,7 +32781,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             new_value=2,
             exp_attrs=dict(
                 type='string',
-                value=[u'V1'],
+                value=['V1'],
                 is_array=True,
                 array_size=2,
             ),
@@ -32804,7 +32803,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
             new_value=2,
             exp_attrs=dict(
                 type='string',
-                value=[u'V1', u'V2', u'V3', u'V4', u'V5'],
+                value=['V1', 'V2', 'V3', 'V4', 'V5'],
                 is_array=True,
                 array_size=2,  # inconsistency with actual usage not checked
             ),
@@ -33201,7 +33200,7 @@ TESTCASES_CIMPARAMETER_HASH_EQ = [
             obj1=CIMParameter('Parm1', type='string',
                               qualifiers={'Cheepy': 'Birds'}),
             obj2=CIMParameter('Parm1', type='string',
-                              qualifiers={'Cheepy': u'Birds'}),
+                              qualifiers={'Cheepy': 'Birds'}),
             exp_equal=True,
         ),
         None, None, True
@@ -33476,7 +33475,7 @@ TESTCASES_CIMPARAMETER_TOCIMXML = [
         "Parameter as declaration, name with ASCII characters, as unicode "
         "string",
         dict(
-            obj=CIMParameter(u'Foo', type='string'),
+            obj=CIMParameter('Foo', type='string'),
             kwargs=dict(as_value=False),
             exp_xml_str=(
                 '<PARAMETER NAME="Foo" TYPE="string"/>',
@@ -33491,7 +33490,7 @@ TESTCASES_CIMPARAMETER_TOCIMXML = [
             obj=CIMParameter(b'Foo\xC3\xA9', value=None, type='string'),
             kwargs=dict(as_value=False),
             exp_xml_str=(
-                u'<PARAMETER NAME="Foo\u00E9" TYPE="string"/>',
+                '<PARAMETER NAME="Foo\u00E9" TYPE="string"/>',
             )
         ),
         None, None, True
@@ -33500,10 +33499,10 @@ TESTCASES_CIMPARAMETER_TOCIMXML = [
         "Parameter as declaration, name with non-ASCII UCS-2 characters, as "
         "unicode string",
         dict(
-            obj=CIMParameter(u'Foo\u00E9', value=None, type='string'),
+            obj=CIMParameter('Foo\u00E9', value=None, type='string'),
             kwargs=dict(as_value=False),
             exp_xml_str=(
-                u'<PARAMETER NAME="Foo\u00E9" TYPE="string"/>',
+                '<PARAMETER NAME="Foo\u00E9" TYPE="string"/>',
             )
         ),
         None, None, True
@@ -33515,7 +33514,7 @@ TESTCASES_CIMPARAMETER_TOCIMXML = [
             obj=CIMParameter(b'Foo\xF0\x90\x85\x82', value=None, type='string'),
             kwargs=dict(as_value=False),
             exp_xml_str=(
-                u'<PARAMETER NAME="Foo\U00010142" TYPE="string"/>',
+                '<PARAMETER NAME="Foo\U00010142" TYPE="string"/>',
             )
         ),
         None, None, True
@@ -33524,10 +33523,10 @@ TESTCASES_CIMPARAMETER_TOCIMXML = [
         "Parameter as declaration, name with non-UCS-2 characters, as unicode "
         "string",
         dict(
-            obj=CIMParameter(u'Foo\U00010142', value=None, type='string'),
+            obj=CIMParameter('Foo\U00010142', value=None, type='string'),
             kwargs=dict(as_value=False),
             exp_xml_str=(
-                u'<PARAMETER NAME="Foo\U00010142" TYPE="string"/>',
+                '<PARAMETER NAME="Foo\U00010142" TYPE="string"/>',
             )
         ),
         None, None, True
@@ -33546,7 +33545,7 @@ TESTCASES_CIMPARAMETER_TOCIMXML = [
     (
         "Parameter as value, name with ASCII characters, as unicode string",
         dict(
-            obj=CIMParameter(u'Foo', type='string'),
+            obj=CIMParameter('Foo', type='string'),
             kwargs=dict(as_value=True),
             exp_xml_str=(
                 '<PARAMVALUE NAME="Foo" PARAMTYPE="string"/>',
@@ -33561,7 +33560,7 @@ TESTCASES_CIMPARAMETER_TOCIMXML = [
             obj=CIMParameter(b'Foo\xC3\xA9', value=None, type='string'),
             kwargs=dict(as_value=True),
             exp_xml_str=(
-                u'<PARAMVALUE NAME="Foo\u00E9" PARAMTYPE="string"/>',
+                '<PARAMVALUE NAME="Foo\u00E9" PARAMTYPE="string"/>',
             )
         ),
         None, None, True
@@ -33570,10 +33569,10 @@ TESTCASES_CIMPARAMETER_TOCIMXML = [
         "Parameter as value, name with non-ASCII UCS-2 characters, as unicode "
         "string",
         dict(
-            obj=CIMParameter(u'Foo\u00E9', value=None, type='string'),
+            obj=CIMParameter('Foo\u00E9', value=None, type='string'),
             kwargs=dict(as_value=True),
             exp_xml_str=(
-                u'<PARAMVALUE NAME="Foo\u00E9" PARAMTYPE="string"/>',
+                '<PARAMVALUE NAME="Foo\u00E9" PARAMTYPE="string"/>',
             )
         ),
         None, None, True
@@ -33584,7 +33583,7 @@ TESTCASES_CIMPARAMETER_TOCIMXML = [
             obj=CIMParameter(b'Foo\xF0\x90\x85\x82', value=None, type='string'),
             kwargs=dict(as_value=True),
             exp_xml_str=(
-                u'<PARAMVALUE NAME="Foo\U00010142" PARAMTYPE="string"/>',
+                '<PARAMVALUE NAME="Foo\U00010142" PARAMTYPE="string"/>',
             )
         ),
         None, None, True
@@ -33592,10 +33591,10 @@ TESTCASES_CIMPARAMETER_TOCIMXML = [
     (
         "Parameter as value, name with non-UCS-2 characters, as unicode string",
         dict(
-            obj=CIMParameter(u'Foo\U00010142', value=None, type='string'),
+            obj=CIMParameter('Foo\U00010142', value=None, type='string'),
             kwargs=dict(as_value=True),
             exp_xml_str=(
-                u'<PARAMVALUE NAME="Foo\U00010142" PARAMTYPE="string"/>',
+                '<PARAMVALUE NAME="Foo\U00010142" PARAMTYPE="string"/>',
             )
         ),
         None, None, True
@@ -33780,13 +33779,13 @@ TESTCASES_CIMPARAMETER_TOCIMXML = [
         "non-ASCII UCS-2 characters",
         dict(
             obj=CIMParameter(
-                'Foo', type='string', value=u'foo\u00E9',
+                'Foo', type='string', value='foo\u00E9',
             ),
             kwargs=dict(as_value=True),
             exp_xml_str=(
-                u'<PARAMVALUE NAME="Foo" PARAMTYPE="string">',
-                u'<VALUE>foo\u00E9</VALUE>',
-                u'</PARAMVALUE>',
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="string">',
+                '<VALUE>foo\u00E9</VALUE>',
+                '</PARAMVALUE>',
             )
         ),
         None, None, True
@@ -33796,13 +33795,13 @@ TESTCASES_CIMPARAMETER_TOCIMXML = [
         "non-UCS-2 characters",
         dict(
             obj=CIMParameter(
-                'Foo', type='string', value=u'foo\U00010142',
+                'Foo', type='string', value='foo\U00010142',
             ),
             kwargs=dict(as_value=True),
             exp_xml_str=(
-                u'<PARAMVALUE NAME="Foo" PARAMTYPE="string">',
-                u'<VALUE>foo\U00010142</VALUE>',
-                u'</PARAMVALUE>',
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="string">',
+                '<VALUE>foo\U00010142</VALUE>',
+                '</PARAMVALUE>',
             )
         ),
         None, None, True
@@ -33856,13 +33855,13 @@ TESTCASES_CIMPARAMETER_TOCIMXML = [
         "a non-ASCII UCS-2 character",
         dict(
             obj=CIMParameter(
-                'Foo', type='char16', value=u'\u00E9',
+                'Foo', type='char16', value='\u00E9',
             ),
             kwargs=dict(as_value=True),
             exp_xml_str=(
-                u'<PARAMVALUE NAME="Foo" PARAMTYPE="char16">',
-                u'<VALUE>\u00E9</VALUE>',
-                u'</PARAMVALUE>',
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="char16">',
+                '<VALUE>\u00E9</VALUE>',
+                '</PARAMVALUE>',
             )
         ),
         None, None, True
@@ -33873,13 +33872,13 @@ TESTCASES_CIMPARAMETER_TOCIMXML = [
         "(invalid as per DSP0004, but tolerated by pywbem)",
         dict(
             obj=CIMParameter(
-                'Foo', type='char16', value=u'\U00010142',
+                'Foo', type='char16', value='\U00010142',
             ),
             kwargs=dict(as_value=True),
             exp_xml_str=(
-                u'<PARAMVALUE NAME="Foo" PARAMTYPE="char16">',
-                u'<VALUE>\U00010142</VALUE>',
-                u'</PARAMVALUE>',
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="char16">',
+                '<VALUE>\U00010142</VALUE>',
+                '</PARAMVALUE>',
             )
         ),
         None, None, True
@@ -34957,16 +34956,16 @@ TESTCASES_CIMPARAMETER_TOCIMXML = [
         "non-ASCII UCS-2 characters",
         dict(
             obj=CIMParameter(
-                'Foo', type='string', value=[u'foo\u00E9'],
+                'Foo', type='string', value=['foo\u00E9'],
                 is_array=True,
             ),
             kwargs=dict(as_value=True),
             exp_xml_str=(
-                u'<PARAMVALUE NAME="Foo" PARAMTYPE="string">',
-                u'<VALUE.ARRAY>',
-                u'<VALUE>foo\u00E9</VALUE>',
-                u'</VALUE.ARRAY>',
-                u'</PARAMVALUE>',
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="string">',
+                '<VALUE.ARRAY>',
+                '<VALUE>foo\u00E9</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
             )
         ),
         None, None, True
@@ -34976,16 +34975,16 @@ TESTCASES_CIMPARAMETER_TOCIMXML = [
         "non-UCS-2 characters",
         dict(
             obj=CIMParameter(
-                'Foo', type='string', value=[u'foo\U00010142'],
+                'Foo', type='string', value=['foo\U00010142'],
                 is_array=True,
             ),
             kwargs=dict(as_value=True),
             exp_xml_str=(
-                u'<PARAMVALUE NAME="Foo" PARAMTYPE="string">',
-                u'<VALUE.ARRAY>',
-                u'<VALUE>foo\U00010142</VALUE>',
-                u'</VALUE.ARRAY>',
-                u'</PARAMVALUE>',
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="string">',
+                '<VALUE.ARRAY>',
+                '<VALUE>foo\U00010142</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
             )
         ),
         None, None, True
@@ -35078,16 +35077,16 @@ TESTCASES_CIMPARAMETER_TOCIMXML = [
         "a non-ASCII UCS-2 character",
         dict(
             obj=CIMParameter(
-                'Foo', type='char16', value=[u'\u00E9'],
+                'Foo', type='char16', value=['\u00E9'],
                 is_array=True,
             ),
             kwargs=dict(as_value=True),
             exp_xml_str=(
-                u'<PARAMVALUE NAME="Foo" PARAMTYPE="char16">',
-                u'<VALUE.ARRAY>',
-                u'<VALUE>\u00E9</VALUE>',
-                u'</VALUE.ARRAY>',
-                u'</PARAMVALUE>',
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="char16">',
+                '<VALUE.ARRAY>',
+                '<VALUE>\u00E9</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
             )
         ),
         None, None, True
@@ -35098,16 +35097,16 @@ TESTCASES_CIMPARAMETER_TOCIMXML = [
         "(invalid as per DSP0004, but tolerated by pywbem)",
         dict(
             obj=CIMParameter(
-                'Foo', type='char16', value=[u'\U00010142'],
+                'Foo', type='char16', value=['\U00010142'],
                 is_array=True,
             ),
             kwargs=dict(as_value=True),
             exp_xml_str=(
-                u'<PARAMVALUE NAME="Foo" PARAMTYPE="char16">',
-                u'<VALUE.ARRAY>',
-                u'<VALUE>\U00010142</VALUE>',
-                u'</VALUE.ARRAY>',
-                u'</PARAMVALUE>',
+                '<PARAMVALUE NAME="Foo" PARAMTYPE="char16">',
+                '<VALUE.ARRAY>',
+                '<VALUE>\U00010142</VALUE>',
+                '</VALUE.ARRAY>',
+                '</PARAMVALUE>',
             )
         ),
         None, None, True
@@ -36578,7 +36577,7 @@ def test_CIMParameter_tocimxmlstr(testcase, obj, kwargs, exp_xml_str):
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
-    assert isinstance(obj_xml_str, six.text_type)
+    assert isinstance(obj_xml_str, str)
 
     exp_xml_str = ''.join(exp_xml_str)
     validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str)
@@ -36671,7 +36670,7 @@ TESTCASES_CIMPARAMETER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
                [Q1 ( "abc" ),
                 Q2 ( 42 )]
             string P1[5]""",
@@ -36688,7 +36687,7 @@ TESTCASES_CIMPARAMETER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
             string P1""",
         ),
         None, None, True
@@ -36706,7 +36705,7 @@ TESTCASES_CIMPARAMETER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
                [Q1 ( "abc" )]
             string P1""",
         ),
@@ -36726,7 +36725,7 @@ TESTCASES_CIMPARAMETER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
                [Q1 (
                    "abc def abc def abc def abc def abc def abc def abc def "
                    "abc def abc def abc def z" )]
@@ -36748,7 +36747,7 @@ TESTCASES_CIMPARAMETER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
                [Q1 ( "abc" ),
                 Q2 ( 42 )]
             string P1""",
@@ -36771,7 +36770,7 @@ TESTCASES_CIMPARAMETER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
                [Q1 (
                    "abc def abc def abc def abc def abc def abc def abc def "
                    "abc def abc def abc def z" ),
@@ -36795,7 +36794,7 @@ TESTCASES_CIMPARAMETER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
                [Q1 { "abc", "def" }]
             string P1""",
         ),
@@ -36817,7 +36816,7 @@ TESTCASES_CIMPARAMETER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
                [Q1 { "abcdef00", "abcdef01", "abcdef02", "abcdef03",
                    "abcdef04", "abcdef05", "abcdef06", "abcdef07",
                    "abcdef08", "abcdef09" }]
@@ -36842,7 +36841,7 @@ TESTCASES_CIMPARAMETER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
                [Q1 {
                    "abc def abc def abc def abc def abc def abc def abc def "
                    "abc def abc def abc def z00",
@@ -36863,7 +36862,7 @@ TESTCASES_CIMPARAMETER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
             string P1[]""",
         ),
         None, None, True
@@ -36880,7 +36879,7 @@ TESTCASES_CIMPARAMETER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
             uint32 P1[5]""",
         ),
         None, None, True
@@ -36896,7 +36895,7 @@ TESTCASES_CIMPARAMETER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
             RC REF P1""",
         ),
         None, None, True
@@ -36913,7 +36912,7 @@ TESTCASES_CIMPARAMETER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
             RC REF P1[]""",
         ),
         None, None, True
@@ -36928,7 +36927,7 @@ TESTCASES_CIMPARAMETER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
             datetime P1""",
         ),
         None, None, True
@@ -36945,7 +36944,7 @@ TESTCASES_CIMPARAMETER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
             boolean P1[5]""",
         ),
         None, None, True
@@ -36960,7 +36959,7 @@ TESTCASES_CIMPARAMETER_TOMOF = [
             kwargs=dict(
                 indent=12,
             ),
-            exp_mof=u"""\
+            exp_mof="""\
             real64 P1""",
         ),
         None, None, True
@@ -37033,7 +37032,7 @@ def test_CIMParameter_tomof(testcase, obj, kwargs, exp_mof):
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
-    assert isinstance(mof, six.text_type)
+    assert isinstance(mof, str)
     assert mof == exp_mof
 
 
@@ -37069,9 +37068,9 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
             ],
             init_kwargs={},
             exp_attrs=dict(
-                name=u'FooQual',
-                type=u'string',
-                value=[u'abc'],
+                name='FooQual',
+                type='string',
+                value=['abc'],
                 is_array=True,
                 array_size=2,
                 scopes=NocaseDict(CLASS=True),
@@ -37099,7 +37098,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(name=b'FooQual', type=b'string'),
-            exp_attrs=dict(name=u'FooQual', type=u'string')
+            exp_attrs=dict(name='FooQual', type='string')
         ),
         None, None, True
     ),
@@ -37107,8 +37106,8 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
         "Verify that unicode name and return type remain unicode",
         dict(
             init_args=[],
-            init_kwargs=dict(name=u'FooQual', type=u'string'),
-            exp_attrs=dict(name=u'FooQual', type=u'string')
+            init_kwargs=dict(name='FooQual', type='string'),
+            exp_attrs=dict(name='FooQual', type='string')
         ),
         None, None, True
     ),
@@ -37126,7 +37125,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(name='FooQual', type='real64', value=42.0),
-            exp_attrs=dict(name=u'FooQual', type=u'real64', value=Real64(42.0))
+            exp_attrs=dict(name='FooQual', type='real64', value=Real64(42.0))
         ),
         None, None, True
     ),
@@ -37135,7 +37134,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(name='FooQual', type='real32', value=42.0),
-            exp_attrs=dict(name=u'FooQual', type=u'real32', value=Real32(42.0))
+            exp_attrs=dict(name='FooQual', type='real32', value=Real32(42.0))
         ),
         None, None, True
     ),
@@ -37146,13 +37145,13 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 is_array=42
             ),
             exp_attrs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 is_array=True
             )
         ),
@@ -37163,13 +37162,13 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 is_array=0
             ),
             exp_attrs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 is_array=False
             )
         ),
@@ -37180,13 +37179,13 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 is_array=True
             ),
             exp_attrs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 is_array=True
             )
         ),
@@ -37197,13 +37196,13 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 is_array=False
             ),
             exp_attrs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 is_array=False
             )
         ),
@@ -37221,8 +37220,8 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
                 value=None
             ),
             exp_attrs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 is_array=False,
                 value=None
             )
@@ -37238,13 +37237,13 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
                 name='FooQual',
                 type='string',
                 is_array=None,
-                value=u'abc'
+                value='abc'
             ),
             exp_attrs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 is_array=False,
-                value=u'abc'
+                value='abc'
             )
         ),
         None, None, True
@@ -37258,13 +37257,13 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
                 name='FooQual',
                 type='string',
                 is_array=None,
-                value=[u'abc']
+                value=['abc']
             ),
             exp_attrs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 is_array=True,
-                value=[u'abc']
+                value=['abc']
             )
         ),
         None, None, True
@@ -37274,14 +37273,14 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 is_array=True,
                 array_size=42
             ),
             exp_attrs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 is_array=True,
                 array_size=42
             )
@@ -37294,14 +37293,14 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 is_array=False,
                 array_size=4
             ),
             exp_attrs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 is_array=False,
                 array_size=4
             )
@@ -37315,13 +37314,13 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 scopes=NocaseDict(CLASS=True)
             ),
             exp_attrs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 scopes=NocaseDict(CLASS=True)
             )
         ),
@@ -37334,13 +37333,13 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 overridable=42
             ),
             exp_attrs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 overridable=True
             )
         ),
@@ -37351,13 +37350,13 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 overridable=0
             ),
             exp_attrs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 overridable=False
             )
         ),
@@ -37368,13 +37367,13 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 overridable=True
             ),
             exp_attrs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 overridable=True
             )
         ),
@@ -37385,13 +37384,13 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 overridable=False
             ),
             exp_attrs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 overridable=False
             )
         ),
@@ -37404,13 +37403,13 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 tosubclass=42
             ),
             exp_attrs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 tosubclass=True
             )
         ),
@@ -37421,13 +37420,13 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 tosubclass=0
             ),
             exp_attrs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 tosubclass=False
             )
         ),
@@ -37438,13 +37437,13 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 tosubclass=True
             ),
             exp_attrs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 tosubclass=True
             )
         ),
@@ -37455,13 +37454,13 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 tosubclass=False
             ),
             exp_attrs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 tosubclass=False
             )
         ),
@@ -37474,13 +37473,13 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 toinstance=42
             ),
             exp_attrs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 toinstance=True
             )
         ),
@@ -37491,13 +37490,13 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 toinstance=0
             ),
             exp_attrs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 toinstance=False
             )
         ),
@@ -37508,13 +37507,13 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 toinstance=True
             ),
             exp_attrs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 toinstance=True
             )
         ),
@@ -37525,13 +37524,13 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 toinstance=False
             ),
             exp_attrs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 toinstance=False
             )
         ),
@@ -37544,13 +37543,13 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 translatable=42
             ),
             exp_attrs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 translatable=True
             )
         ),
@@ -37561,13 +37560,13 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 translatable=0
             ),
             exp_attrs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 translatable=False
             )
         ),
@@ -37578,13 +37577,13 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 translatable=True
             ),
             exp_attrs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 translatable=True
             )
         ),
@@ -37595,13 +37594,13 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
         dict(
             init_args=[],
             init_kwargs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 translatable=False
             ),
             exp_attrs=dict(
-                name=u'FooQual',
-                type=u'string',
+                name='FooQual',
+                type='string',
                 translatable=False
             )
         ),
@@ -37916,7 +37915,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
             item='name',
             new_value='Q2',
             exp_attrs=dict(
-                name=u'Q2',
+                name='Q2',
             ),
         ),
         None, None, True
@@ -37944,9 +37943,9 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
                 type='string',
             ),
             item='value',
-            new_value=u'V2',
+            new_value='V2',
             exp_attrs=dict(
-                value=u'V2',
+                value='V2',
             ),
         ),
         None, None, True
@@ -37962,7 +37961,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
             item='value',
             new_value=b'V2',
             exp_attrs=dict(
-                value=u'V2',
+                value='V2',
             ),
         ),
         None, None, True
@@ -37976,9 +37975,9 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
                 type='string',
             ),
             item='value',
-            new_value=u'Foo\U00010142',
+            new_value='Foo\U00010142',
             exp_attrs=dict(
-                value=u'Foo\U00010142',
+                value='Foo\U00010142',
             ),
         ),
         None, None, True
@@ -37994,7 +37993,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
             item='value',
             new_value=b'Foo\xF0\x90\x85\x82',
             exp_attrs=dict(
-                value=u'Foo\U00010142',
+                value='Foo\U00010142',
             ),
         ),
         None, None, True
@@ -38028,7 +38027,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
             item='value',
             new_value=Char16('U'),
             exp_attrs=dict(
-                value=u'U',
+                value='U',
             ),
         ),
         None, None, True
@@ -38042,9 +38041,9 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
                 type='char16',
             ),
             item='value',
-            new_value=u'U',
+            new_value='U',
             exp_attrs=dict(
-                value=u'U',
+                value='U',
             ),
         ),
         None, None, True
@@ -38060,7 +38059,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
             item='value',
             new_value=b'U',
             exp_attrs=dict(
-                value=u'U',
+                value='U',
             ),
         ),
         None, None, True
@@ -38074,9 +38073,9 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
                 type='char16',
             ),
             item='value',
-            new_value=Char16(u'\U00010142'),
+            new_value=Char16('\U00010142'),
             exp_attrs=dict(
-                value=u'\U00010142',
+                value='\U00010142',
             ),
         ),
         None, None, True
@@ -38090,9 +38089,9 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
                 type='char16',
             ),
             item='value',
-            new_value=u'\U00010142',
+            new_value='\U00010142',
             exp_attrs=dict(
-                value=u'\U00010142',
+                value='\U00010142',
             ),
         ),
         None, None, True
@@ -38108,7 +38107,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
             item='value',
             new_value=b'\xF0\x90\x85\x82',
             exp_attrs=dict(
-                value=u'\U00010142',
+                value='\U00010142',
             ),
         ),
         None, None, True
@@ -38514,7 +38513,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
             item='value',
             new_value='V2',
             exp_attrs=dict(
-                value=u'V2',  # scalar/array mismatch not checked
+                value='V2',  # scalar/array mismatch not checked
             ),
         ),
         None, None, True
@@ -38530,7 +38529,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
             item='value',
             new_value=['V2'],
             exp_attrs=dict(
-                value=[u'V2'],  # scalar/array mismatch not checked
+                value=['V2'],  # scalar/array mismatch not checked
             ),
         ),
         None, None, True
@@ -38549,9 +38548,9 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
                 array_size=None,
             ),
             item='value',
-            new_value=[u'V2', u'V3'],
+            new_value=['V2', 'V3'],
             exp_attrs=dict(
-                value=[u'V2', u'V3'],
+                value=['V2', 'V3'],
             ),
         ),
         None, None, True
@@ -38570,7 +38569,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
             item='value',
             new_value=[b'V2', b'V3'],
             exp_attrs=dict(
-                value=[u'V2', u'V3'],
+                value=['V2', 'V3'],
             ),
         ),
         None, None, True
@@ -38587,9 +38586,9 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
                 array_size=None,
             ),
             item='value',
-            new_value=[u'Foo\U00010142'],
+            new_value=['Foo\U00010142'],
             exp_attrs=dict(
-                value=[u'Foo\U00010142'],
+                value=['Foo\U00010142'],
             ),
         ),
         None, None, True
@@ -38608,7 +38607,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
             item='value',
             new_value=[b'Foo\xF0\x90\x85\x82'],
             exp_attrs=dict(
-                value=[u'Foo\U00010142'],
+                value=['Foo\U00010142'],
             ),
         ),
         None, None, True
@@ -38680,7 +38679,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
             item='value',
             new_value=['V1', 'V2'],
             exp_attrs=dict(
-                value=[u'V1', u'V2'],
+                value=['V1', 'V2'],
             ),
         ),
         None, None, True
@@ -38698,7 +38697,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
             item='value',
             new_value=['V1', 'V2', 'V3'],
             exp_attrs=dict(
-                value=[u'V1', u'V2', u'V3'],  # fixed size not checked
+                value=['V1', 'V2', 'V3'],  # fixed size not checked
             ),
         ),
         None, None, True
@@ -38719,7 +38718,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
             item='value',
             new_value=[Char16('U'), Char16('V')],
             exp_attrs=dict(
-                value=[u'U', u'V'],
+                value=['U', 'V'],
             ),
         ),
         None, None, True
@@ -38736,9 +38735,9 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
                 array_size=None,
             ),
             item='value',
-            new_value=[u'U', u'V'],
+            new_value=['U', 'V'],
             exp_attrs=dict(
-                value=[u'U', u'V'],
+                value=['U', 'V'],
             ),
         ),
         None, None, True
@@ -38757,7 +38756,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
             item='value',
             new_value=[b'U', b'V'],
             exp_attrs=dict(
-                value=[u'U', u'V'],
+                value=['U', 'V'],
             ),
         ),
         None, None, True
@@ -38774,9 +38773,9 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
                 array_size=None,
             ),
             item='value',
-            new_value=[Char16(u'\U00010142')],
+            new_value=[Char16('\U00010142')],
             exp_attrs=dict(
-                value=[u'\U00010142'],
+                value=['\U00010142'],
             ),
         ),
         None, None, True
@@ -38793,9 +38792,9 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
                 array_size=None,
             ),
             item='value',
-            new_value=[u'\U00010142'],
+            new_value=['\U00010142'],
             exp_attrs=dict(
-                value=[u'\U00010142'],
+                value=['\U00010142'],
             ),
         ),
         None, None, True
@@ -38814,7 +38813,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
             item='value',
             new_value=[b'\xF0\x90\x85\x82'],
             exp_attrs=dict(
-                value=[u'\U00010142'],
+                value=['\U00010142'],
             ),
         ),
         None, None, True
@@ -39445,7 +39444,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
             new_value='uint8',
             exp_attrs=dict(
                 type='uint8',
-                value=u'V1',
+                value='V1',
             ),
         ),
         None, None, True
@@ -39464,7 +39463,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
             new_value='uint8',
             exp_attrs=dict(
                 type='uint8',
-                value=[u'V1'],
+                value=['V1'],
             ),
         ),
         None, None, True
@@ -39511,7 +39510,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
             new_value='uint8',
             exp_attrs=dict(
                 type='uint8',
-                value=u'V1',
+                value='V1',
             ),
         ),
         None, None, True
@@ -39560,7 +39559,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
             new_value=True,
             exp_attrs=dict(
                 type='string',
-                value=u'V1',
+                value='V1',
                 is_array=True,  # inconsistency with value not checked
             ),
         ),
@@ -39581,7 +39580,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
             new_value='false',
             exp_attrs=dict(
                 type='string',
-                value=u'V1',
+                value='V1',
                 is_array=True,  # inconsistency with value not checked
             ),
         ),
@@ -39601,7 +39600,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
             new_value=False,
             exp_attrs=dict(
                 type='string',
-                value=[u'V1'],
+                value=['V1'],
                 is_array=False,  # inconsistency with value not checked
             ),
         ),
@@ -39623,7 +39622,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
             new_value=2,
             exp_attrs=dict(
                 type='string',
-                value=u'V1',
+                value='V1',
                 is_array=False,
                 array_size=2,  # inconsistency with is_array not checked
             ),
@@ -39644,7 +39643,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
             new_value=2,
             exp_attrs=dict(
                 type='string',
-                value=[u'V1'],
+                value=['V1'],
                 is_array=True,
                 array_size=2,
             ),
@@ -39666,7 +39665,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
             new_value=2,
             exp_attrs=dict(
                 type='string',
-                value=[u'V1'],
+                value=['V1'],
                 is_array=True,
                 array_size=2,
             ),
@@ -39688,7 +39687,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
             new_value=2,
             exp_attrs=dict(
                 type='string',
-                value=[u'V1', u'V2', u'V3', u'V4', u'V5'],
+                value=['V1', 'V2', 'V3', 'V4', 'V5'],
                 is_array=True,
                 array_size=2,  # inconsistency with actual usage not checked
             ),
@@ -40658,7 +40657,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
     (
         "Name with ASCII characters, as unicode string",
         dict(
-            obj=CIMQualifierDeclaration(u'Foo', value=None, type='string'),
+            obj=CIMQualifierDeclaration('Foo', value=None, type='string'),
             kwargs={},
             exp_xml_str=(
                 '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
@@ -40675,7 +40674,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             ),
             kwargs={},
             exp_xml_str=(
-                u'<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo\u00E9"',
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo\u00E9"',
                 ' TYPE="string"/>',
             )
         ),
@@ -40685,12 +40684,12 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
         "Name with non-ASCII UCS-2 characters, as unicode string",
         dict(
             obj=CIMQualifierDeclaration(
-                u'Foo\u00E9', value=None, type='string'
+                'Foo\u00E9', value=None, type='string'
             ),
             kwargs={},
             exp_xml_str=(
-                u'<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo\u00E9"',
-                u' TYPE="string"/>',
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo\u00E9"',
+                ' TYPE="string"/>',
             )
         ),
         None, None, True
@@ -40703,8 +40702,8 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
             ),
             kwargs={},
             exp_xml_str=(
-                u'<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo\U00010142"',
-                u' TYPE="string"/>',
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo\U00010142"',
+                ' TYPE="string"/>',
             )
         ),
         None, None, True
@@ -40713,12 +40712,12 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
         "Name with non-UCS-2 characters, as unicode string",
         dict(
             obj=CIMQualifierDeclaration(
-                u'Foo\U00010142', value=None, type='string'
+                'Foo\U00010142', value=None, type='string'
             ),
             kwargs={},
             exp_xml_str=(
-                u'<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo\U00010142"',
-                u' TYPE="string"/>',
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo\U00010142"',
+                ' TYPE="string"/>',
             )
         ),
         None, None, True
@@ -41007,14 +41006,14 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
         "with non-ASCII UCS-2 characters",
         dict(
             obj=CIMQualifierDeclaration(
-                'Foo', type='string', value=u'foo\u00E9',
+                'Foo', type='string', value='foo\u00E9',
             ),
             kwargs={},
             exp_xml_str=(
-                u'<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
-                u' TYPE="string">',
-                u'<VALUE>foo\u00E9</VALUE>',
-                u'</QUALIFIER.DECLARATION>',
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="string">',
+                '<VALUE>foo\u00E9</VALUE>',
+                '</QUALIFIER.DECLARATION>',
             )
         ),
         None, None, True
@@ -41024,14 +41023,14 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
         "with non-UCS-2 characters",
         dict(
             obj=CIMQualifierDeclaration(
-                'Foo', type='string', value=u'foo\U00010142',
+                'Foo', type='string', value='foo\U00010142',
             ),
             kwargs={},
             exp_xml_str=(
-                u'<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
-                u' TYPE="string">',
-                u'<VALUE>foo\U00010142</VALUE>',
-                u'</QUALIFIER.DECLARATION>',
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="string">',
+                '<VALUE>foo\U00010142</VALUE>',
+                '</QUALIFIER.DECLARATION>',
             )
         ),
         None, None, True
@@ -41074,14 +41073,14 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
         "with a non-ASCII UCS-2 character",
         dict(
             obj=CIMQualifierDeclaration(
-                'Foo', type='char16', value=u'\u00E9',
+                'Foo', type='char16', value='\u00E9',
             ),
             kwargs={},
             exp_xml_str=(
-                u'<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
-                u' TYPE="char16">',
-                u'<VALUE>\u00E9</VALUE>',
-                u'</QUALIFIER.DECLARATION>',
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="char16">',
+                '<VALUE>\u00E9</VALUE>',
+                '</QUALIFIER.DECLARATION>',
             )
         ),
         None, None, True
@@ -41092,14 +41091,14 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
         "(invalid as per DSP0004, but tolerated by pywbem)",
         dict(
             obj=CIMQualifierDeclaration(
-                'Foo', type='char16', value=u'\U00010142',
+                'Foo', type='char16', value='\U00010142',
             ),
             kwargs={},
             exp_xml_str=(
-                u'<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
-                u' TYPE="char16">',
-                u'<VALUE>\U00010142</VALUE>',
-                u'</QUALIFIER.DECLARATION>',
+                '<QUALIFIER.DECLARATION ISARRAY="false" NAME="Foo"',
+                ' TYPE="char16">',
+                '<VALUE>\U00010142</VALUE>',
+                '</QUALIFIER.DECLARATION>',
             )
         ),
         None, None, True
@@ -41957,17 +41956,17 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
         "with non-ASCII UCS-2 characters",
         dict(
             obj=CIMQualifierDeclaration(
-                'Foo', type='string', value=[u'foo\u00E9'],
+                'Foo', type='string', value=['foo\u00E9'],
                 is_array=True,
             ),
             kwargs={},
             exp_xml_str=(
-                u'<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="string">',
-                u'<VALUE.ARRAY>',
-                u'<VALUE>foo\u00E9</VALUE>',
-                u'</VALUE.ARRAY>',
-                u'</QUALIFIER.DECLARATION>',
+                '<VALUE.ARRAY>',
+                '<VALUE>foo\u00E9</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
             )
         ),
         None, None, True
@@ -41977,17 +41976,17 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
         "with non-UCS-2 characters",
         dict(
             obj=CIMQualifierDeclaration(
-                'Foo', type='string', value=[u'foo\U00010142'],
+                'Foo', type='string', value=['foo\U00010142'],
                 is_array=True,
             ),
             kwargs={},
             exp_xml_str=(
-                u'<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
                 ' TYPE="string">',
-                u'<VALUE.ARRAY>',
-                u'<VALUE>foo\U00010142</VALUE>',
-                u'</VALUE.ARRAY>',
-                u'</QUALIFIER.DECLARATION>',
+                '<VALUE.ARRAY>',
+                '<VALUE>foo\U00010142</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
             )
         ),
         None, None, True
@@ -42071,17 +42070,17 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
         "with a non-ASCII UCS-2 character",
         dict(
             obj=CIMQualifierDeclaration(
-                'Foo', type='char16', value=[u'\u00E9'],
+                'Foo', type='char16', value=['\u00E9'],
                 is_array=True,
             ),
             kwargs={},
             exp_xml_str=(
-                u'<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
-                u' TYPE="char16">',
-                u'<VALUE.ARRAY>',
-                u'<VALUE>\u00E9</VALUE>',
-                u'</VALUE.ARRAY>',
-                u'</QUALIFIER.DECLARATION>',
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="char16">',
+                '<VALUE.ARRAY>',
+                '<VALUE>\u00E9</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
             )
         ),
         None, None, True
@@ -42092,17 +42091,17 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
         "(invalid as per DSP0004, but tolerated by pywbem)",
         dict(
             obj=CIMQualifierDeclaration(
-                'Foo', type='char16', value=[u'\U00010142'],
+                'Foo', type='char16', value=['\U00010142'],
                 is_array=True,
             ),
             kwargs={},
             exp_xml_str=(
-                u'<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
-                u' TYPE="char16">',
-                u'<VALUE.ARRAY>',
-                u'<VALUE>\U00010142</VALUE>',
-                u'</VALUE.ARRAY>',
-                u'</QUALIFIER.DECLARATION>',
+                '<QUALIFIER.DECLARATION ISARRAY="true" NAME="Foo"',
+                ' TYPE="char16">',
+                '<VALUE.ARRAY>',
+                '<VALUE>\U00010142</VALUE>',
+                '</VALUE.ARRAY>',
+                '</QUALIFIER.DECLARATION>',
             )
         ),
         None, None, True
@@ -43342,7 +43341,7 @@ def test_CIMQualifierDeclaration_tocimxmlstr(
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
-    assert isinstance(obj_xml_str, six.text_type)
+    assert isinstance(obj_xml_str, str)
 
     exp_xml_str = ''.join(exp_xml_str)
     validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str)
@@ -43437,7 +43436,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOMOF = [
                 translatable=True,
             ),
             kwargs={},
-            exp_mof=u"""\
+            exp_mof="""\
 Qualifier Q1 : string[5] = { "abc" },
     Scope(property, method, parameter),
     Flavor(EnableOverride, ToSubclass, Translatable);
@@ -43454,7 +43453,7 @@ Qualifier Q1 : string[5] = { "abc" },
                 value=None,
             ),
             kwargs={},
-            exp_mof=u"""\
+            exp_mof="""\
 Qualifier Q1 : string,
     Scope();
 """,
@@ -43470,7 +43469,7 @@ Qualifier Q1 : string,
                 value="dq=\",sq=\',bs=\\",
             ),
             kwargs={},
-            exp_mof=u"""\
+            exp_mof="""\
 Qualifier Q1 : string = "dq=\\",sq=\\',bs=\\\\",
     Scope();
 """,
@@ -43486,7 +43485,7 @@ Qualifier Q1 : string = "dq=\\",sq=\\',bs=\\\\",
                 value="bt=\b,tb=\t,nl=\n,vt=\f,cr=\r",
             ),
             kwargs={},
-            exp_mof=u"""\
+            exp_mof="""\
 Qualifier Q1 : string = "bt=\\b,tb=\\t,nl=\\n,vt=\\f,cr=\\r",
     Scope();
 """,
@@ -43502,7 +43501,7 @@ Qualifier Q1 : string = "bt=\\b,tb=\\t,nl=\\n,vt=\\f,cr=\\r",
                 value="\n",
             ),
             kwargs={},
-            exp_mof=u"""\
+            exp_mof="""\
 Qualifier Q1 : char16 = '\\n',
     Scope();
 """,
@@ -43518,7 +43517,7 @@ Qualifier Q1 : char16 = '\\n',
                 value=False,
             ),
             kwargs={},
-            exp_mof=u"""\
+            exp_mof="""\
 Qualifier Q1 : boolean = false,
     Scope();
 """,
@@ -43534,7 +43533,7 @@ Qualifier Q1 : boolean = false,
                 value=42,
             ),
             kwargs={},
-            exp_mof=u"""\
+            exp_mof="""\
 Qualifier Q1 : uint32 = 42,
     Scope();
 """,
@@ -43550,7 +43549,7 @@ Qualifier Q1 : uint32 = 42,
                 value=Real32(42.1),
             ),
             kwargs={},
-            exp_mof=u"""\
+            exp_mof="""\
 Qualifier Q1 : real32 = 42.1,
     Scope();
 """,
@@ -43567,7 +43566,7 @@ Qualifier Q1 : real32 = 42.1,
                 value=CIMDateTime('20140924193040.654321+120'),
             ),
             kwargs={},
-            exp_mof=u"""\
+            exp_mof="""\
 Qualifier Q1 : datetime = "20140924193040.654321+120",
     Scope();
 """,
@@ -43585,7 +43584,7 @@ Qualifier Q1 : datetime = "20140924193040.654321+120",
                 value=[],
             ),
             kwargs={},
-            exp_mof=u"""\
+            exp_mof="""\
 Qualifier Q1 : string[] = {  },
     Scope();
 """,
@@ -43603,7 +43602,7 @@ Qualifier Q1 : string[] = {  },
                 value=["abc", "def"],
             ),
             kwargs={},
-            exp_mof=u"""\
+            exp_mof="""\
 Qualifier Q1 : string[] = { "abc", "def" },
     Scope();
 """,
@@ -43621,7 +43620,7 @@ Qualifier Q1 : string[] = { "abc", "def" },
                 value=["abc", "def"],
             ),
             kwargs={},
-            exp_mof=u"""\
+            exp_mof="""\
 Qualifier Q1 : string[5] = { "abc", "def" },
     Scope();
 """,
@@ -43637,7 +43636,7 @@ Qualifier Q1 : string[5] = { "abc", "def" },
                 scopes=[('CLASS', True)],
             ),
             kwargs={},
-            exp_mof=u"""\
+            exp_mof="""\
 Qualifier Q1 : string,
     Scope(class);
 """,
@@ -43657,7 +43656,7 @@ Qualifier Q1 : string,
             ),
             kwargs={},
             # pylint: disable=line-too-long
-            exp_mof=u"""\
+            exp_mof="""\
 Qualifier Q1 : string,
     Scope(class, association, indication, property, reference, method, parameter);
 """,  # noqa: E501
@@ -43674,7 +43673,7 @@ Qualifier Q1 : string,
                 scopes=[('ANY', True)],
             ),
             kwargs={},
-            exp_mof=u"""\
+            exp_mof="""\
 Qualifier Q1 : string,
     Scope(any);
 """,
@@ -43690,7 +43689,7 @@ Qualifier Q1 : string,
                 overridable=True,
             ),
             kwargs={},
-            exp_mof=u"""\
+            exp_mof="""\
 Qualifier Q1 : string,
     Scope(),
     Flavor(EnableOverride);
@@ -43708,7 +43707,7 @@ Qualifier Q1 : string,
                 tosubclass=True,
             ),
             kwargs={},
-            exp_mof=u"""\
+            exp_mof="""\
 Qualifier Q1 : string,
     Scope(),
     Flavor(EnableOverride, ToSubclass);
@@ -43725,7 +43724,7 @@ Qualifier Q1 : string,
                 overridable=False,
             ),
             kwargs={},
-            exp_mof=u"""\
+            exp_mof="""\
 Qualifier Q1 : string,
     Scope(),
     Flavor(DisableOverride);
@@ -43742,7 +43741,7 @@ Qualifier Q1 : string,
                 tosubclass=False,
             ),
             kwargs={},
-            exp_mof=u"""\
+            exp_mof="""\
 Qualifier Q1 : string,
     Scope(),
     Flavor(Restricted);
@@ -43759,7 +43758,7 @@ Qualifier Q1 : string,
                 tosubclass=True,
             ),
             kwargs={},
-            exp_mof=u"""\
+            exp_mof="""\
 Qualifier Q1 : string,
     Scope(),
     Flavor(ToSubclass);
@@ -43776,7 +43775,7 @@ Qualifier Q1 : string,
                 translatable=True,
             ),
             kwargs={},
-            exp_mof=u"""\
+            exp_mof="""\
 Qualifier Q1 : string,
     Scope(),
     Flavor(Translatable);
@@ -43793,7 +43792,7 @@ Qualifier Q1 : string,
                 toinstance=True,
             ),
             kwargs={},
-            exp_mof=u"""\
+            exp_mof="""\
 Qualifier Q1 : string,
     Scope();
 """,
@@ -43868,7 +43867,7 @@ def test_CIMQualifierDeclaration_tomof(testcase, obj, kwargs, exp_mof):
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
-    assert isinstance(mof, six.text_type)
+    assert isinstance(mof, str)
     assert mof == exp_mof
 
 
@@ -43892,9 +43891,9 @@ TESTCASES_CIMVALUE = [
     (
         "Verify order of positional arguments",
         dict(
-            args=[u'a', 'string'],
+            args=['a', 'string'],
             kwargs={},
-            exp_obj=u'a',
+            exp_obj='a',
         ),
         None, None, True,
     ),
@@ -43913,8 +43912,8 @@ TESTCASES_CIMVALUE = [
         "Type is None (inferred from value), value is unicode string",
         dict(
             args=[],
-            kwargs=dict(value=u'a', type=None),
-            exp_obj=u'a',
+            kwargs=dict(value='a', type=None),
+            exp_obj='a',
         ),
         None, None, True
     ),
@@ -43923,7 +43922,7 @@ TESTCASES_CIMVALUE = [
         dict(
             args=[],
             kwargs=dict(value=b'a', type=None),
-            exp_obj=u'a',
+            exp_obj='a',
         ),
         None, None, True
     ),
@@ -44023,8 +44022,8 @@ TESTCASES_CIMVALUE = [
         "Type is string, value is empty string",
         dict(
             args=[],
-            kwargs=dict(value=u'', type='string'),
-            exp_obj=u'',
+            kwargs=dict(value='', type='string'),
+            exp_obj='',
         ),
         None, None, True
     ),
@@ -44032,8 +44031,8 @@ TESTCASES_CIMVALUE = [
         "Type is string, value is one-char unicode string",
         dict(
             args=[],
-            kwargs=dict(value=u'a', type='string'),
-            exp_obj=u'a',
+            kwargs=dict(value='a', type='string'),
+            exp_obj='a',
         ),
         None, None, True
     ),
@@ -44041,8 +44040,8 @@ TESTCASES_CIMVALUE = [
         "Type is string, value is short unicode string",
         dict(
             args=[],
-            kwargs=dict(value=u'abc', type='string'),
-            exp_obj=u'abc',
+            kwargs=dict(value='abc', type='string'),
+            exp_obj='abc',
         ),
         None, None, True
     ),
@@ -44051,8 +44050,8 @@ TESTCASES_CIMVALUE = [
         "(lower case a umlaut)",
         dict(
             args=[],
-            kwargs=dict(value=u'\u00E4', type='string'),
-            exp_obj=u'\u00E4',
+            kwargs=dict(value='\u00E4', type='string'),
+            exp_obj='\u00E4',
         ),
         None, None, True
     ),
@@ -44061,7 +44060,7 @@ TESTCASES_CIMVALUE = [
         dict(
             args=[],
             kwargs=dict(value=b'', type='string'),
-            exp_obj=u'',
+            exp_obj='',
         ),
         None, None, True
     ),
@@ -44070,7 +44069,7 @@ TESTCASES_CIMVALUE = [
         dict(
             args=[],
             kwargs=dict(value=b'a', type='string'),
-            exp_obj=u'a',
+            exp_obj='a',
         ),
         None, None, True
     ),
@@ -44079,7 +44078,7 @@ TESTCASES_CIMVALUE = [
         dict(
             args=[],
             kwargs=dict(value=b'abc', type='string'),
-            exp_obj=u'abc',
+            exp_obj='abc',
         ),
         None, None, True
     ),
@@ -44099,7 +44098,7 @@ TESTCASES_CIMVALUE = [
         dict(
             args=[],
             kwargs=dict(value=Char16(''), type='char16'),
-            exp_obj=u'',
+            exp_obj='',
         ),
         None, None, True
     ),
@@ -44107,8 +44106,8 @@ TESTCASES_CIMVALUE = [
         "Type is char16, value is empty unicode string",
         dict(
             args=[],
-            kwargs=dict(value=u'', type='char16'),
-            exp_obj=u'',
+            kwargs=dict(value='', type='char16'),
+            exp_obj='',
         ),
         None, None, True
     ),
@@ -44117,7 +44116,7 @@ TESTCASES_CIMVALUE = [
         dict(
             args=[],
             kwargs=dict(value=Char16('a'), type='char16'),
-            exp_obj=u'a',
+            exp_obj='a',
         ),
         None, None, True
     ),
@@ -44125,8 +44124,8 @@ TESTCASES_CIMVALUE = [
         "Type is char16, value is one-char unicode string",
         dict(
             args=[],
-            kwargs=dict(value=u'a', type='char16'),
-            exp_obj=u'a',
+            kwargs=dict(value='a', type='char16'),
+            exp_obj='a',
         ),
         None, None, True
     ),
@@ -44134,8 +44133,8 @@ TESTCASES_CIMVALUE = [
         "Type is char16, value is non-ASCII Char16 string",
         dict(
             args=[],
-            kwargs=dict(value=Char16(u'\u00E4'), type='char16'),
-            exp_obj=u'\u00E4',
+            kwargs=dict(value=Char16('\u00E4'), type='char16'),
+            exp_obj='\u00E4',
         ),
         None, None, True
     ),
@@ -44143,8 +44142,8 @@ TESTCASES_CIMVALUE = [
         "Type is char16, value is non-ASCII unicode string",
         dict(
             args=[],
-            kwargs=dict(value=u'\u00E4', type='char16'),
-            exp_obj=u'\u00E4',
+            kwargs=dict(value='\u00E4', type='char16'),
+            exp_obj='\u00E4',
         ),
         None, None, True
     ),
@@ -44154,7 +44153,7 @@ TESTCASES_CIMVALUE = [
         dict(
             args=[],
             kwargs=dict(value=b'', type='char16'),
-            exp_obj=u'',
+            exp_obj='',
         ),
         None, None, True
     ),
@@ -44163,7 +44162,7 @@ TESTCASES_CIMVALUE = [
         dict(
             args=[],
             kwargs=dict(value=b'a', type='char16'),
-            exp_obj=u'a',
+            exp_obj='a',
         ),
         None, None, True
     ),
@@ -44945,16 +44944,16 @@ TESTCASES_MOFSTR = [
         "Verify order of positional arguments",
         dict(
             args=[
-                u'abcdefgh',
+                'abcdefgh',
                 4,
                 15,
                 2,
                 2,
                 False,
-                u'"',
+                '"',
             ],
             kwargs={},
-            exp_result=(u'"abcdefgh"', 12),
+            exp_result=('"abcdefgh"', 12),
         ),
         None, None, True,
     ),
@@ -44964,8 +44963,8 @@ TESTCASES_MOFSTR = [
         "Empty string",
         dict(
             args=[],
-            kwargs=dict(value=u''),
-            exp_result=(u'""', 2),
+            kwargs=dict(value=''),
+            exp_result=('""', 2),
         ),
         None, None, True
     ),
@@ -44973,8 +44972,8 @@ TESTCASES_MOFSTR = [
         "Single character",
         dict(
             args=[],
-            kwargs=dict(value=u'c'),
-            exp_result=(u'"c"', 3),
+            kwargs=dict(value='c'),
+            exp_result=('"c"', 3),
         ),
         None, None, True
     ),
@@ -44984,8 +44983,8 @@ TESTCASES_MOFSTR = [
         "String with inside blank",
         dict(
             args=[],
-            kwargs=dict(value=u'c d'),
-            exp_result=(u'"c d"', 5),
+            kwargs=dict(value='c d'),
+            exp_result=('"c d"', 5),
         ),
         None, None, True
     ),
@@ -44993,8 +44992,8 @@ TESTCASES_MOFSTR = [
         "String with leading blank",
         dict(
             args=[],
-            kwargs=dict(value=u' d'),
-            exp_result=(u'" d"', 4),
+            kwargs=dict(value=' d'),
+            exp_result=('" d"', 4),
         ),
         None, None, True
     ),
@@ -45002,8 +45001,8 @@ TESTCASES_MOFSTR = [
         "String with trailing blank",
         dict(
             args=[],
-            kwargs=dict(value=u'c '),
-            exp_result=(u'"c "', 4),
+            kwargs=dict(value='c '),
+            exp_result=('"c "', 4),
         ),
         None, None, True
     ),
@@ -45011,8 +45010,8 @@ TESTCASES_MOFSTR = [
         "String that is a blank",
         dict(
             args=[],
-            kwargs=dict(value=u' '),
-            exp_result=(u'" "', 3),
+            kwargs=dict(value=' '),
+            exp_result=('" "', 3),
         ),
         None, None, True
     ),
@@ -45020,8 +45019,8 @@ TESTCASES_MOFSTR = [
         "String with two inside blanks",
         dict(
             args=[],
-            kwargs=dict(value=u'c  d'),
-            exp_result=(u'"c  d"', 6),
+            kwargs=dict(value='c  d'),
+            exp_result=('"c  d"', 6),
         ),
         None, None, True
     ),
@@ -45031,8 +45030,8 @@ TESTCASES_MOFSTR = [
         "String that is single quote",
         dict(
             args=[],
-            kwargs=dict(value=u'\''),
-            exp_result=(u'"\\\'"', 4),
+            kwargs=dict(value='\''),
+            exp_result=('"\\\'"', 4),
         ),
         None, None, True
     ),
@@ -45040,8 +45039,8 @@ TESTCASES_MOFSTR = [
         "String with inside single quote",
         dict(
             args=[],
-            kwargs=dict(value=u'c\'d'),
-            exp_result=(u'"c\\\'d"', 6),
+            kwargs=dict(value='c\'d'),
+            exp_result=('"c\\\'d"', 6),
         ),
         None, None, True
     ),
@@ -45049,8 +45048,8 @@ TESTCASES_MOFSTR = [
         "String with two inside single quotes",
         dict(
             args=[],
-            kwargs=dict(value=u'c\'\'d'),
-            exp_result=(u'"c\\\'\\\'d"', 8),
+            kwargs=dict(value='c\'\'d'),
+            exp_result=('"c\\\'\\\'d"', 8),
         ),
         None, None, True
     ),
@@ -45060,8 +45059,8 @@ TESTCASES_MOFSTR = [
         "String that is double quote",
         dict(
             args=[],
-            kwargs=dict(value=u'"'),
-            exp_result=(u'"\\""', 4),
+            kwargs=dict(value='"'),
+            exp_result=('"\\""', 4),
         ),
         None, None, True
     ),
@@ -45069,8 +45068,8 @@ TESTCASES_MOFSTR = [
         "String with inside double quote",
         dict(
             args=[],
-            kwargs=dict(value=u'c"d'),
-            exp_result=(u'"c\\"d"', 6),
+            kwargs=dict(value='c"d'),
+            exp_result=('"c\\"d"', 6),
         ),
         None, None, True
     ),
@@ -45078,8 +45077,8 @@ TESTCASES_MOFSTR = [
         "String with two inside double quotes",
         dict(
             args=[],
-            kwargs=dict(value=u'c""d'),
-            exp_result=(u'"c\\"\\"d"', 8),
+            kwargs=dict(value='c""d'),
+            exp_result=('"c\\"\\"d"', 8),
         ),
         None, None, True
     ),
@@ -45089,8 +45088,8 @@ TESTCASES_MOFSTR = [
         "String that is backslash",
         dict(
             args=[],
-            kwargs=dict(value=u'\\'),
-            exp_result=(u'"\\\\"', 4),
+            kwargs=dict(value='\\'),
+            exp_result=('"\\\\"', 4),
         ),
         None, None, True
     ),
@@ -45098,8 +45097,8 @@ TESTCASES_MOFSTR = [
         "String with leading backslash",
         dict(
             args=[],
-            kwargs=dict(value=u'\\d'),
-            exp_result=(u'"\\\\d"', 5),
+            kwargs=dict(value='\\d'),
+            exp_result=('"\\\\d"', 5),
         ),
         None, None, True
     ),
@@ -45107,8 +45106,8 @@ TESTCASES_MOFSTR = [
         "String with trailing backslash",
         dict(
             args=[],
-            kwargs=dict(value=u'c\\'),
-            exp_result=(u'"c\\\\"', 5),
+            kwargs=dict(value='c\\'),
+            exp_result=('"c\\\\"', 5),
         ),
         None, None, True
     ),
@@ -45116,8 +45115,8 @@ TESTCASES_MOFSTR = [
         "String with inside backslash",
         dict(
             args=[],
-            kwargs=dict(value=u'c\\d'),
-            exp_result=(u'"c\\\\d"', 6),
+            kwargs=dict(value='c\\d'),
+            exp_result=('"c\\\\d"', 6),
         ),
         None, None, True
     ),
@@ -45125,8 +45124,8 @@ TESTCASES_MOFSTR = [
         "String with two inside backslashes",
         dict(
             args=[],
-            kwargs=dict(value=u'c\\\\d'),
-            exp_result=(u'"c\\\\\\\\d"', 8),
+            kwargs=dict(value='c\\\\d'),
+            exp_result=('"c\\\\\\\\d"', 8),
         ),
         None, None, True
     ),
@@ -45136,8 +45135,8 @@ TESTCASES_MOFSTR = [
         "String that is escapable character \\b",
         dict(
             args=[],
-            kwargs=dict(value=u'\b'),
-            exp_result=(u'"\\b"', 4),
+            kwargs=dict(value='\b'),
+            exp_result=('"\\b"', 4),
         ),
         None, None, True
     ),
@@ -45145,8 +45144,8 @@ TESTCASES_MOFSTR = [
         "String that is escapable character \\t",
         dict(
             args=[],
-            kwargs=dict(value=u'\t'),
-            exp_result=(u'"\\t"', 4),
+            kwargs=dict(value='\t'),
+            exp_result=('"\\t"', 4),
         ),
         None, None, True
     ),
@@ -45154,8 +45153,8 @@ TESTCASES_MOFSTR = [
         "String that is escapable character \\n",
         dict(
             args=[],
-            kwargs=dict(value=u'\n'),
-            exp_result=(u'"\\n"', 4),
+            kwargs=dict(value='\n'),
+            exp_result=('"\\n"', 4),
         ),
         None, None, True
     ),
@@ -45163,8 +45162,8 @@ TESTCASES_MOFSTR = [
         "String that is escapable character \\f",
         dict(
             args=[],
-            kwargs=dict(value=u'\f'),
-            exp_result=(u'"\\f"', 4),
+            kwargs=dict(value='\f'),
+            exp_result=('"\\f"', 4),
         ),
         None, None, True
     ),
@@ -45172,8 +45171,8 @@ TESTCASES_MOFSTR = [
         "String that is escapable character \\r",
         dict(
             args=[],
-            kwargs=dict(value=u'\r'),
-            exp_result=(u'"\\r"', 4),
+            kwargs=dict(value='\r'),
+            exp_result=('"\\r"', 4),
         ),
         None, None, True
     ),
@@ -45181,8 +45180,8 @@ TESTCASES_MOFSTR = [
         "String with inside escapable character \\b",
         dict(
             args=[],
-            kwargs=dict(value=u'c\bd'),
-            exp_result=(u'"c\\bd"', 6),
+            kwargs=dict(value='c\bd'),
+            exp_result=('"c\\bd"', 6),
         ),
         None, None, True
     ),
@@ -45190,8 +45189,8 @@ TESTCASES_MOFSTR = [
         "String with inside escapable character \\t",
         dict(
             args=[],
-            kwargs=dict(value=u'c\td'),
-            exp_result=(u'"c\\td"', 6),
+            kwargs=dict(value='c\td'),
+            exp_result=('"c\\td"', 6),
         ),
         None, None, True
     ),
@@ -45199,8 +45198,8 @@ TESTCASES_MOFSTR = [
         "String with inside escapable character \\n",
         dict(
             args=[],
-            kwargs=dict(value=u'c\nd'),
-            exp_result=(u'"c\\nd"', 6),
+            kwargs=dict(value='c\nd'),
+            exp_result=('"c\\nd"', 6),
         ),
         None, None, True
     ),
@@ -45208,8 +45207,8 @@ TESTCASES_MOFSTR = [
         "String with inside escapable character \\f",
         dict(
             args=[],
-            kwargs=dict(value=u'c\fd'),
-            exp_result=(u'"c\\fd"', 6),
+            kwargs=dict(value='c\fd'),
+            exp_result=('"c\\fd"', 6),
         ),
         None, None, True
     ),
@@ -45217,8 +45216,8 @@ TESTCASES_MOFSTR = [
         "String with inside escapable character \\r",
         dict(
             args=[],
-            kwargs=dict(value=u'c\rd'),
-            exp_result=(u'"c\\rd"', 6),
+            kwargs=dict(value='c\rd'),
+            exp_result=('"c\\rd"', 6),
         ),
         None, None, True
     ),
@@ -45232,8 +45231,8 @@ TESTCASES_MOFSTR = [
         "String that is escaped character \\b",
         dict(
             args=[],
-            kwargs=dict(value=u'\\b'),
-            exp_result=(u'"\\\\b"', 5),
+            kwargs=dict(value='\\b'),
+            exp_result=('"\\\\b"', 5),
         ),
         None, None, True
     ),
@@ -45241,8 +45240,8 @@ TESTCASES_MOFSTR = [
         "String that is escaped character \\t",
         dict(
             args=[],
-            kwargs=dict(value=u'\\t'),
-            exp_result=(u'"\\\\t"', 5),
+            kwargs=dict(value='\\t'),
+            exp_result=('"\\\\t"', 5),
         ),
         None, None, True
     ),
@@ -45250,8 +45249,8 @@ TESTCASES_MOFSTR = [
         "String that is escaped character \\n",
         dict(
             args=[],
-            kwargs=dict(value=u'\\n'),
-            exp_result=(u'"\\\\n"', 5),
+            kwargs=dict(value='\\n'),
+            exp_result=('"\\\\n"', 5),
         ),
         None, None, True
     ),
@@ -45259,8 +45258,8 @@ TESTCASES_MOFSTR = [
         "String that is escaped character \\f",
         dict(
             args=[],
-            kwargs=dict(value=u'\\f'),
-            exp_result=(u'"\\\\f"', 5),
+            kwargs=dict(value='\\f'),
+            exp_result=('"\\\\f"', 5),
         ),
         None, None, True
     ),
@@ -45268,8 +45267,8 @@ TESTCASES_MOFSTR = [
         "String that is escaped character \\r",
         dict(
             args=[],
-            kwargs=dict(value=u'\\r'),
-            exp_result=(u'"\\\\r"', 5),
+            kwargs=dict(value='\\r'),
+            exp_result=('"\\\\r"', 5),
         ),
         None, None, True
     ),
@@ -45277,8 +45276,8 @@ TESTCASES_MOFSTR = [
         "String that is escaped character \' ",
         dict(
             args=[],
-            kwargs=dict(value=u'\\\''),
-            exp_result=(u'"\\\\\\\'"', 6),
+            kwargs=dict(value='\\\''),
+            exp_result=('"\\\\\\\'"', 6),
         ),
         None, None, True
     ),
@@ -45286,8 +45285,8 @@ TESTCASES_MOFSTR = [
         "String that is escaped character \" ",
         dict(
             args=[],
-            kwargs=dict(value=u'\\"'),
-            exp_result=(u'"\\\\\\""', 6),
+            kwargs=dict(value='\\"'),
+            exp_result=('"\\\\\\""', 6),
         ),
         None, None, True
     ),
@@ -45295,8 +45294,8 @@ TESTCASES_MOFSTR = [
         "String with inside escaped character \\b",
         dict(
             args=[],
-            kwargs=dict(value=u'c\\bd'),
-            exp_result=(u'"c\\\\bd"', 7),
+            kwargs=dict(value='c\\bd'),
+            exp_result=('"c\\\\bd"', 7),
         ),
         None, None, True
     ),
@@ -45304,8 +45303,8 @@ TESTCASES_MOFSTR = [
         "String with inside escaped character \\t",
         dict(
             args=[],
-            kwargs=dict(value=u'c\\td'),
-            exp_result=(u'"c\\\\td"', 7),
+            kwargs=dict(value='c\\td'),
+            exp_result=('"c\\\\td"', 7),
         ),
         None, None, True
     ),
@@ -45313,8 +45312,8 @@ TESTCASES_MOFSTR = [
         "String with inside escaped character \\n",
         dict(
             args=[],
-            kwargs=dict(value=u'c\\nd'),
-            exp_result=(u'"c\\\\nd"', 7),
+            kwargs=dict(value='c\\nd'),
+            exp_result=('"c\\\\nd"', 7),
         ),
         None, None, True
     ),
@@ -45322,8 +45321,8 @@ TESTCASES_MOFSTR = [
         "String with inside escaped character \\f",
         dict(
             args=[],
-            kwargs=dict(value=u'c\\fd'),
-            exp_result=(u'"c\\\\fd"', 7),
+            kwargs=dict(value='c\\fd'),
+            exp_result=('"c\\\\fd"', 7),
         ),
         None, None, True
     ),
@@ -45331,8 +45330,8 @@ TESTCASES_MOFSTR = [
         "String with inside escaped character \\r",
         dict(
             args=[],
-            kwargs=dict(value=u'c\\rd'),
-            exp_result=(u'"c\\\\rd"', 7),
+            kwargs=dict(value='c\\rd'),
+            exp_result=('"c\\\\rd"', 7),
         ),
         None, None, True
     ),
@@ -45340,8 +45339,8 @@ TESTCASES_MOFSTR = [
         "String with inside escaped character \' ",
         dict(
             args=[],
-            kwargs=dict(value=u'c\\\'d'),
-            exp_result=(u'"c\\\\\\\'d"', 8),
+            kwargs=dict(value='c\\\'d'),
+            exp_result=('"c\\\\\\\'d"', 8),
         ),
         None, None, True
     ),
@@ -45349,8 +45348,8 @@ TESTCASES_MOFSTR = [
         "String with inside escaped character \" ",
         dict(
             args=[],
-            kwargs=dict(value=u'c\\"d'),
-            exp_result=(u'"c\\\\\\"d"', 8),
+            kwargs=dict(value='c\\"d'),
+            exp_result=('"c\\\\\\"d"', 8),
         ),
         None, None, True
     ),
@@ -45360,8 +45359,8 @@ TESTCASES_MOFSTR = [
         "String with backslash and escapable character \\b",
         dict(
             args=[],
-            kwargs=dict(value=u'\\\b'),
-            exp_result=(u'"\\\\\\b"', 6),
+            kwargs=dict(value='\\\b'),
+            exp_result=('"\\\\\\b"', 6),
         ),
         None, None, True
     ),
@@ -45369,8 +45368,8 @@ TESTCASES_MOFSTR = [
         "String with backslash and escapable character \\t",
         dict(
             args=[],
-            kwargs=dict(value=u'\\\t'),
-            exp_result=(u'"\\\\\\t"', 6),
+            kwargs=dict(value='\\\t'),
+            exp_result=('"\\\\\\t"', 6),
         ),
         None, None, True
     ),
@@ -45378,8 +45377,8 @@ TESTCASES_MOFSTR = [
         "String with backslash and escapable character \\n",
         dict(
             args=[],
-            kwargs=dict(value=u'\\\n'),
-            exp_result=(u'"\\\\\\n"', 6),
+            kwargs=dict(value='\\\n'),
+            exp_result=('"\\\\\\n"', 6),
         ),
         None, None, True
     ),
@@ -45387,8 +45386,8 @@ TESTCASES_MOFSTR = [
         "String with backslash and escapable character \\f",
         dict(
             args=[],
-            kwargs=dict(value=u'\\\f'),
-            exp_result=(u'"\\\\\\f"', 6),
+            kwargs=dict(value='\\\f'),
+            exp_result=('"\\\\\\f"', 6),
         ),
         None, None, True
     ),
@@ -45396,8 +45395,8 @@ TESTCASES_MOFSTR = [
         "String with backslash and escapable character \\r",
         dict(
             args=[],
-            kwargs=dict(value=u'\\\r'),
-            exp_result=(u'"\\\\\\r"', 6),
+            kwargs=dict(value='\\\r'),
+            exp_result=('"\\\\\\r"', 6),
         ),
         None, None, True
     ),
@@ -45405,8 +45404,8 @@ TESTCASES_MOFSTR = [
         "String with inside backslash and escapable character \\b",
         dict(
             args=[],
-            kwargs=dict(value=u'c\\\bd'),
-            exp_result=(u'"c\\\\\\bd"', 8),
+            kwargs=dict(value='c\\\bd'),
+            exp_result=('"c\\\\\\bd"', 8),
         ),
         None, None, True
     ),
@@ -45414,8 +45413,8 @@ TESTCASES_MOFSTR = [
         "String with inside backslash and escapable character \\t",
         dict(
             args=[],
-            kwargs=dict(value=u'c\\\td'),
-            exp_result=(u'"c\\\\\\td"', 8),
+            kwargs=dict(value='c\\\td'),
+            exp_result=('"c\\\\\\td"', 8),
         ),
         None, None, True
     ),
@@ -45423,8 +45422,8 @@ TESTCASES_MOFSTR = [
         "String with inside backslash and escapable character \\n",
         dict(
             args=[],
-            kwargs=dict(value=u'c\\\nd'),
-            exp_result=(u'"c\\\\\\nd"', 8),
+            kwargs=dict(value='c\\\nd'),
+            exp_result=('"c\\\\\\nd"', 8),
         ),
         None, None, True
     ),
@@ -45432,8 +45431,8 @@ TESTCASES_MOFSTR = [
         "String with inside backslash and escapable character \\f",
         dict(
             args=[],
-            kwargs=dict(value=u'c\\\fd'),
-            exp_result=(u'"c\\\\\\fd"', 8),
+            kwargs=dict(value='c\\\fd'),
+            exp_result=('"c\\\\\\fd"', 8),
         ),
         None, None, True
     ),
@@ -45441,8 +45440,8 @@ TESTCASES_MOFSTR = [
         "String with inside backslash and escapable character \\r",
         dict(
             args=[],
-            kwargs=dict(value=u'c\\\rd'),
-            exp_result=(u'"c\\\\\\rd"', 8),
+            kwargs=dict(value='c\\\rd'),
+            exp_result=('"c\\\\\\rd"', 8),
         ),
         None, None, True
     ),
@@ -45452,8 +45451,8 @@ TESTCASES_MOFSTR = [
         "String that is control character U+0001",
         dict(
             args=[],
-            kwargs=dict(value=u'\u0001'),
-            exp_result=(u'"\\x0001"', 8),
+            kwargs=dict(value='\u0001'),
+            exp_result=('"\\x0001"', 8),
         ),
         None, None, True
     ),
@@ -45461,8 +45460,8 @@ TESTCASES_MOFSTR = [
         "String that is control character U+0002",
         dict(
             args=[],
-            kwargs=dict(value=u'\u0002'),
-            exp_result=(u'"\\x0002"', 8),
+            kwargs=dict(value='\u0002'),
+            exp_result=('"\\x0002"', 8),
         ),
         None, None, True
     ),
@@ -45470,8 +45469,8 @@ TESTCASES_MOFSTR = [
         "String that is control character U+0003",
         dict(
             args=[],
-            kwargs=dict(value=u'\u0003'),
-            exp_result=(u'"\\x0003"', 8),
+            kwargs=dict(value='\u0003'),
+            exp_result=('"\\x0003"', 8),
         ),
         None, None, True
     ),
@@ -45479,8 +45478,8 @@ TESTCASES_MOFSTR = [
         "String that is control character U+0004",
         dict(
             args=[],
-            kwargs=dict(value=u'\u0004'),
-            exp_result=(u'"\\x0004"', 8),
+            kwargs=dict(value='\u0004'),
+            exp_result=('"\\x0004"', 8),
         ),
         None, None, True
     ),
@@ -45488,8 +45487,8 @@ TESTCASES_MOFSTR = [
         "String that is control character U+0005",
         dict(
             args=[],
-            kwargs=dict(value=u'\u0005'),
-            exp_result=(u'"\\x0005"', 8),
+            kwargs=dict(value='\u0005'),
+            exp_result=('"\\x0005"', 8),
         ),
         None, None, True
     ),
@@ -45497,8 +45496,8 @@ TESTCASES_MOFSTR = [
         "String that is control character U+0006",
         dict(
             args=[],
-            kwargs=dict(value=u'\u0006'),
-            exp_result=(u'"\\x0006"', 8),
+            kwargs=dict(value='\u0006'),
+            exp_result=('"\\x0006"', 8),
         ),
         None, None, True
     ),
@@ -45506,8 +45505,8 @@ TESTCASES_MOFSTR = [
         "String that is control character U+0007",
         dict(
             args=[],
-            kwargs=dict(value=u'\u0007'),
-            exp_result=(u'"\\x0007"', 8),
+            kwargs=dict(value='\u0007'),
+            exp_result=('"\\x0007"', 8),
         ),
         None, None, True
     ),
@@ -45515,8 +45514,8 @@ TESTCASES_MOFSTR = [
         "String that is control character U+0008",
         dict(
             args=[],
-            kwargs=dict(value=u'\u0008'),
-            exp_result=(u'"\\b"', 4),
+            kwargs=dict(value='\u0008'),
+            exp_result=('"\\b"', 4),
         ),
         None, None, True
     ),
@@ -45524,8 +45523,8 @@ TESTCASES_MOFSTR = [
         "String that is control character U+0009",
         dict(
             args=[],
-            kwargs=dict(value=u'\u0009'),
-            exp_result=(u'"\\t"', 4),
+            kwargs=dict(value='\u0009'),
+            exp_result=('"\\t"', 4),
         ),
         None, None, True
     ),
@@ -45533,8 +45532,8 @@ TESTCASES_MOFSTR = [
         "String that is control character U+000A",
         dict(
             args=[],
-            kwargs=dict(value=u'\u000A'),
-            exp_result=(u'"\\n"', 4),
+            kwargs=dict(value='\u000A'),
+            exp_result=('"\\n"', 4),
         ),
         None, None, True
     ),
@@ -45542,8 +45541,8 @@ TESTCASES_MOFSTR = [
         "String that is control character U+000B",
         dict(
             args=[],
-            kwargs=dict(value=u'\u000B'),
-            exp_result=(u'"\\x000B"', 8),
+            kwargs=dict(value='\u000B'),
+            exp_result=('"\\x000B"', 8),
         ),
         None, None, True
     ),
@@ -45551,8 +45550,8 @@ TESTCASES_MOFSTR = [
         "String that is control character U+000C",
         dict(
             args=[],
-            kwargs=dict(value=u'\u000C'),
-            exp_result=(u'"\\f"', 4),
+            kwargs=dict(value='\u000C'),
+            exp_result=('"\\f"', 4),
         ),
         None, None, True
     ),
@@ -45560,8 +45559,8 @@ TESTCASES_MOFSTR = [
         "String that is control character U+000D",
         dict(
             args=[],
-            kwargs=dict(value=u'\u000D'),
-            exp_result=(u'"\\r"', 4),
+            kwargs=dict(value='\u000D'),
+            exp_result=('"\\r"', 4),
         ),
         None, None, True
     ),
@@ -45569,8 +45568,8 @@ TESTCASES_MOFSTR = [
         "String that is control character U+000E",
         dict(
             args=[],
-            kwargs=dict(value=u'\u000E'),
-            exp_result=(u'"\\x000E"', 8),
+            kwargs=dict(value='\u000E'),
+            exp_result=('"\\x000E"', 8),
         ),
         None, None, True
     ),
@@ -45578,8 +45577,8 @@ TESTCASES_MOFSTR = [
         "String that is control character U+000F",
         dict(
             args=[],
-            kwargs=dict(value=u'\u000F'),
-            exp_result=(u'"\\x000F"', 8),
+            kwargs=dict(value='\u000F'),
+            exp_result=('"\\x000F"', 8),
         ),
         None, None, True
     ),
@@ -45587,8 +45586,8 @@ TESTCASES_MOFSTR = [
         "String that is control character U+0010",
         dict(
             args=[],
-            kwargs=dict(value=u'\u0010'),
-            exp_result=(u'"\\x0010"', 8),
+            kwargs=dict(value='\u0010'),
+            exp_result=('"\\x0010"', 8),
         ),
         None, None, True
     ),
@@ -45596,8 +45595,8 @@ TESTCASES_MOFSTR = [
         "String that is control character U+0011",
         dict(
             args=[],
-            kwargs=dict(value=u'\u0011'),
-            exp_result=(u'"\\x0011"', 8),
+            kwargs=dict(value='\u0011'),
+            exp_result=('"\\x0011"', 8),
         ),
         None, None, True
     ),
@@ -45605,8 +45604,8 @@ TESTCASES_MOFSTR = [
         "String that is control character U+0012",
         dict(
             args=[],
-            kwargs=dict(value=u'\u0012'),
-            exp_result=(u'"\\x0012"', 8),
+            kwargs=dict(value='\u0012'),
+            exp_result=('"\\x0012"', 8),
         ),
         None, None, True
     ),
@@ -45614,8 +45613,8 @@ TESTCASES_MOFSTR = [
         "String that is control character U+0013",
         dict(
             args=[],
-            kwargs=dict(value=u'\u0013'),
-            exp_result=(u'"\\x0013"', 8),
+            kwargs=dict(value='\u0013'),
+            exp_result=('"\\x0013"', 8),
         ),
         None, None, True
     ),
@@ -45623,8 +45622,8 @@ TESTCASES_MOFSTR = [
         "String that is control character U+0014",
         dict(
             args=[],
-            kwargs=dict(value=u'\u0014'),
-            exp_result=(u'"\\x0014"', 8),
+            kwargs=dict(value='\u0014'),
+            exp_result=('"\\x0014"', 8),
         ),
         None, None, True
     ),
@@ -45632,8 +45631,8 @@ TESTCASES_MOFSTR = [
         "String that is control character U+0015",
         dict(
             args=[],
-            kwargs=dict(value=u'\u0015'),
-            exp_result=(u'"\\x0015"', 8),
+            kwargs=dict(value='\u0015'),
+            exp_result=('"\\x0015"', 8),
         ),
         None, None, True
     ),
@@ -45641,8 +45640,8 @@ TESTCASES_MOFSTR = [
         "String that is control character U+0016",
         dict(
             args=[],
-            kwargs=dict(value=u'\u0016'),
-            exp_result=(u'"\\x0016"', 8),
+            kwargs=dict(value='\u0016'),
+            exp_result=('"\\x0016"', 8),
         ),
         None, None, True
     ),
@@ -45650,8 +45649,8 @@ TESTCASES_MOFSTR = [
         "String that is control character U+0017",
         dict(
             args=[],
-            kwargs=dict(value=u'\u0017'),
-            exp_result=(u'"\\x0017"', 8),
+            kwargs=dict(value='\u0017'),
+            exp_result=('"\\x0017"', 8),
         ),
         None, None, True
     ),
@@ -45659,8 +45658,8 @@ TESTCASES_MOFSTR = [
         "String that is control character U+0018",
         dict(
             args=[],
-            kwargs=dict(value=u'\u0018'),
-            exp_result=(u'"\\x0018"', 8),
+            kwargs=dict(value='\u0018'),
+            exp_result=('"\\x0018"', 8),
         ),
         None, None, True
     ),
@@ -45668,8 +45667,8 @@ TESTCASES_MOFSTR = [
         "String that is control character U+0019",
         dict(
             args=[],
-            kwargs=dict(value=u'\u0019'),
-            exp_result=(u'"\\x0019"', 8),
+            kwargs=dict(value='\u0019'),
+            exp_result=('"\\x0019"', 8),
         ),
         None, None, True
     ),
@@ -45677,8 +45676,8 @@ TESTCASES_MOFSTR = [
         "String that is control character U+001A",
         dict(
             args=[],
-            kwargs=dict(value=u'\u001A'),
-            exp_result=(u'"\\x001A"', 8),
+            kwargs=dict(value='\u001A'),
+            exp_result=('"\\x001A"', 8),
         ),
         None, None, True
     ),
@@ -45686,8 +45685,8 @@ TESTCASES_MOFSTR = [
         "String that is control character U+001B",
         dict(
             args=[],
-            kwargs=dict(value=u'\u001B'),
-            exp_result=(u'"\\x001B"', 8),
+            kwargs=dict(value='\u001B'),
+            exp_result=('"\\x001B"', 8),
         ),
         None, None, True
     ),
@@ -45695,8 +45694,8 @@ TESTCASES_MOFSTR = [
         "String that is control character U+001C",
         dict(
             args=[],
-            kwargs=dict(value=u'\u001C'),
-            exp_result=(u'"\\x001C"', 8),
+            kwargs=dict(value='\u001C'),
+            exp_result=('"\\x001C"', 8),
         ),
         None, None, True
     ),
@@ -45704,8 +45703,8 @@ TESTCASES_MOFSTR = [
         "String that is control character U+001D",
         dict(
             args=[],
-            kwargs=dict(value=u'\u001D'),
-            exp_result=(u'"\\x001D"', 8),
+            kwargs=dict(value='\u001D'),
+            exp_result=('"\\x001D"', 8),
         ),
         None, None, True
     ),
@@ -45713,8 +45712,8 @@ TESTCASES_MOFSTR = [
         "String that is control character U+001E",
         dict(
             args=[],
-            kwargs=dict(value=u'\u001E'),
-            exp_result=(u'"\\x001E"', 8),
+            kwargs=dict(value='\u001E'),
+            exp_result=('"\\x001E"', 8),
         ),
         None, None, True
     ),
@@ -45722,8 +45721,8 @@ TESTCASES_MOFSTR = [
         "String that is control character U+001F",
         dict(
             args=[],
-            kwargs=dict(value=u'\u001F'),
-            exp_result=(u'"\\x001F"', 8),
+            kwargs=dict(value='\u001F'),
+            exp_result=('"\\x001F"', 8),
         ),
         None, None, True
     ),
@@ -45731,8 +45730,8 @@ TESTCASES_MOFSTR = [
         "String that is control character U+0020",
         dict(
             args=[],
-            kwargs=dict(value=u'\u0020'),
-            exp_result=(u'" "', 3),
+            kwargs=dict(value='\u0020'),
+            exp_result=('" "', 3),
         ),
         None, None, True
     ),
@@ -45743,13 +45742,13 @@ TESTCASES_MOFSTR = [
         dict(
             args=[],
             kwargs=dict(
-                value=u'the big brown fox1 jumps over a big brown '
-                u'fox2 jumps over a big brown fox3',
+                value='the big brown fox1 jumps over a big brown '
+                'fox2 jumps over a big brown fox3',
                 maxline=56
             ),
             exp_result=(
-                u'"the big brown fox1 jumps over a big brown fox2 jumps "\n'
-                u'   "over a big brown fox3"',
+                '"the big brown fox1 jumps over a big brown fox2 jumps "\n'
+                '   "over a big brown fox3"',
                 26
             ),
         ),
@@ -45760,14 +45759,14 @@ TESTCASES_MOFSTR = [
         dict(
             args=[],
             kwargs=dict(
-                value=u'the_big_brown_fox1_jumps_over_a_big_brown_fox2_jumps_'
-                u'over_a_big_brown_fox3',
+                value='the_big_brown_fox1_jumps_over_a_big_brown_fox2_jumps_'
+                'over_a_big_brown_fox3',
                 maxline=56
             ),
             exp_result=(
-                u'\n'
-                u'   "the_big_brown_fox1_jumps_over_a_big_brown_fox2_jump"\n'
-                u'   "s_over_a_big_brown_fox3"',
+                '\n'
+                '   "the_big_brown_fox1_jumps_over_a_big_brown_fox2_jump"\n'
+                '   "s_over_a_big_brown_fox3"',
                 28
             ),
         ),
@@ -45779,8 +45778,8 @@ TESTCASES_MOFSTR = [
         "No blanks, Line position without new line",
         dict(
             args=[],
-            kwargs=dict(value=u'abc', line_pos=8),
-            exp_result=(u'"abc"', 13),
+            kwargs=dict(value='abc', line_pos=8),
+            exp_result=('"abc"', 13),
         ),
         None, None, True
     ),
@@ -45789,10 +45788,10 @@ TESTCASES_MOFSTR = [
         dict(
             args=[],
             kwargs=dict(
-                value=u'abcd_fghi_abcd_fghi_ab',
+                value='abcd_fghi_abcd_fghi_ab',
                 line_pos=5, maxline=15, indent=2
             ),
-            exp_result=(u'\n  "abcd_fghi_a"\n  "bcd_fghi_ab"', 15),
+            exp_result=('\n  "abcd_fghi_a"\n  "bcd_fghi_ab"', 15),
         ),
         None, None, True
     ),
@@ -45801,10 +45800,10 @@ TESTCASES_MOFSTR = [
         dict(
             args=[],
             kwargs=dict(
-                value=u'abcd_fghi_abcd_fghi_a',
+                value='abcd_fghi_abcd_fghi_a',
                 line_pos=5, maxline=15, indent=2
             ),
-            exp_result=(u'\n  "abcd_fghi_a"\n  "bcd_fghi_a"', 14),
+            exp_result=('\n  "abcd_fghi_a"\n  "bcd_fghi_a"', 14),
         ),
         None, None, True
     ),
@@ -45813,10 +45812,10 @@ TESTCASES_MOFSTR = [
         dict(
             args=[],
             kwargs=dict(
-                value=u'abcd_fghi_abcd_fghi_abc',
+                value='abcd_fghi_abcd_fghi_abc',
                 line_pos=5, maxline=15, indent=2
             ),
-            exp_result=(u'\n  "abcd_fghi_a"\n  "bcd_fghi_ab"\n  "c"', 5),
+            exp_result=('\n  "abcd_fghi_a"\n  "bcd_fghi_ab"\n  "c"', 5),
         ),
         None, None, True
     ),
@@ -45825,10 +45824,10 @@ TESTCASES_MOFSTR = [
         dict(
             args=[],
             kwargs=dict(
-                value=u'abcd_fghi',
+                value='abcd_fghi',
                 line_pos=15, maxline=15, indent=2
             ),
-            exp_result=(u'\n  "abcd_fghi"', 13),
+            exp_result=('\n  "abcd_fghi"', 13),
         ),
         None, None, True
     ),
@@ -45839,10 +45838,10 @@ TESTCASES_MOFSTR = [
         dict(
             args=[],
             kwargs=dict(
-                value=u'abcd fghij lmnop',
+                value='abcd fghij lmnop',
                 line_pos=5, maxline=15, indent=2
             ),
-            exp_result=(u'"abcd "\n  "fghij lmnop"', 15),
+            exp_result=('"abcd "\n  "fghij lmnop"', 15),
         ),
         None, None, True
     ),
@@ -45851,10 +45850,10 @@ TESTCASES_MOFSTR = [
         dict(
             args=[],
             kwargs=dict(
-                value=u'abcd fghij lmno',
+                value='abcd fghij lmno',
                 line_pos=5, maxline=15, indent=2
             ),
-            exp_result=(u'"abcd "\n  "fghij lmno"', 14),
+            exp_result=('"abcd "\n  "fghij lmno"', 14),
         ),
         None, None, True
     ),
@@ -45863,10 +45862,10 @@ TESTCASES_MOFSTR = [
         dict(
             args=[],
             kwargs=dict(
-                value=u'abcd fghij lmnopq',
+                value='abcd fghij lmnopq',
                 line_pos=5, maxline=15, indent=2
             ),
-            exp_result=(u'"abcd "\n  "fghij "\n  "lmnopq"', 10),
+            exp_result=('"abcd "\n  "fghij "\n  "lmnopq"', 10),
         ),
         None, None, True
     ),
@@ -45875,10 +45874,10 @@ TESTCASES_MOFSTR = [
         dict(
             args=[],
             kwargs=dict(
-                value=u'abcd fghi',
+                value='abcd fghi',
                 line_pos=15, maxline=15, indent=2
             ),
-            exp_result=(u'\n  "abcd fghi"', 13),
+            exp_result=('\n  "abcd fghi"', 13),
         ),
         None, None, True
     ),
@@ -45887,10 +45886,10 @@ TESTCASES_MOFSTR = [
         dict(
             args=[],
             kwargs=dict(
-                value=u'abcd fghi',
+                value='abcd fghi',
                 line_pos=8, maxline=15, indent=2
             ),
-            exp_result=(u'"abcd "\n  "fghi"', 8),
+            exp_result=('"abcd "\n  "fghi"', 8),
         ),
         None, None, True
     ),
@@ -45899,13 +45898,13 @@ TESTCASES_MOFSTR = [
         dict(
             args=[],
             kwargs=dict(
-                value=u'Linux version 3.13.0-86-generic (buildd@lgw01-51) '
-                u'(gcc version 4.8.2',
+                value='Linux version 3.13.0-86-generic (buildd@lgw01-51) '
+                '(gcc version 4.8.2',
                 line_pos=18, maxline=80, indent=8
             ),
             exp_result=(
-                u'"Linux version 3.13.0-86-generic (buildd@lgw01-51) (gcc "\n'
-                u'        "version 4.8.2"',
+                '"Linux version 3.13.0-86-generic (buildd@lgw01-51) (gcc "\n'
+                '        "version 4.8.2"',
                 23
             ),
         ),
@@ -45918,10 +45917,10 @@ TESTCASES_MOFSTR = [
         dict(
             args=[],
             kwargs=dict(
-                value=u'abcd fghij lmn',
+                value='abcd fghij lmn',
                 line_pos=5, maxline=15, indent=2, end_space=2
             ),
-            exp_result=(u'"abcd "\n  "fghij lmn"', 13),
+            exp_result=('"abcd "\n  "fghij lmn"', 13),
         ),
         None, None, True
     ),
@@ -45930,10 +45929,10 @@ TESTCASES_MOFSTR = [
         dict(
             args=[],
             kwargs=dict(
-                value=u'abcd fghij lm',
+                value='abcd fghij lm',
                 line_pos=5, maxline=15, indent=2, end_space=2
             ),
-            exp_result=(u'"abcd "\n  "fghij lm"', 12),
+            exp_result=('"abcd "\n  "fghij lm"', 12),
         ),
         None, None, True
     ),
@@ -45942,10 +45941,10 @@ TESTCASES_MOFSTR = [
         dict(
             args=[],
             kwargs=dict(
-                value=u'abcd fghij lmno',
+                value='abcd fghij lmno',
                 line_pos=5, maxline=15, indent=2, end_space=2
             ),
-            exp_result=(u'"abcd "\n  "fghij "\n  "lmno"', 8),
+            exp_result=('"abcd "\n  "fghij "\n  "lmno"', 8),
         ),
         None, None, True
     ),
@@ -45954,10 +45953,10 @@ TESTCASES_MOFSTR = [
         dict(
             args=[],
             kwargs=dict(
-                value=u'abcdefgh',
+                value='abcdefgh',
                 line_pos=4, maxline=15, indent=2, end_space=2
             ),
-            exp_result=(u'\n  "abcdefgh"', 12),
+            exp_result=('\n  "abcdefgh"', 12),
         ),
         None, None, True
     ),
@@ -45982,7 +45981,7 @@ def test_mofstr(testcase, args, kwargs, exp_result):
 
     exp_mof, exp_pos = exp_result
     mof, pos = result
-    assert isinstance(mof, six.text_type)
+    assert isinstance(mof, str)
     assert mof == exp_mof
     assert isinstance(pos, int)
     assert pos == exp_pos

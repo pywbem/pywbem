@@ -13,7 +13,6 @@
 Test of pywbem_mock.ProviderRegistry.
 """
 
-from __future__ import absolute_import, print_function
 
 import pickle
 import pytest
@@ -122,7 +121,7 @@ class TstMethodProvider1(MethodProvider):
     provider_classnames = None  # Will be set before use
 
     def __init__(self, cimrepository):
-        super(TstMethodProvider1, self).__init__(cimrepository)
+        super().__init__(cimrepository)
 
     def InvokeMethod(self, methodname, localobject, params):
         """Dummy provider method"""
@@ -135,7 +134,7 @@ class TstMethodProvider2(MethodProvider):
     provider_classnames = None  # Will be set before use
 
     def __init__(self, cimrepository):
-        super(TstMethodProvider2, self).__init__(cimrepository)
+        super().__init__(cimrepository)
 
     def InvokeMethod(self, methodname, localobject, params):
         """Dummy provider method"""
@@ -148,7 +147,7 @@ class TstInstWrProvider1(InstanceWriteProvider):
     provider_classnames = None  # Will be set before use
 
     def __init__(self, cimrepository):
-        super(TstInstWrProvider1, self).__init__(cimrepository)
+        super().__init__(cimrepository)
 
     def CreateInstance(self, namespace, new_instance):
         """Dummy provider method"""
@@ -161,7 +160,7 @@ class TstInstWrProvider2(InstanceWriteProvider):
     provider_classnames = None  # Will be set before use
 
     def __init__(self, cimrepository):
-        super(TstInstWrProvider2, self).__init__(cimrepository)
+        super().__init__(cimrepository)
 
     def CreateInstance(self, namespace, new_instance):
         """Dummy provider method"""

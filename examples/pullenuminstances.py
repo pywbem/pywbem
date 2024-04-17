@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 """
     Example of using Pull Operations to retrieve instances from a
@@ -15,7 +14,6 @@
     It also displays the results of the open and each pull in detail
 """
 
-from __future__ import print_function
 
 import sys
 import datetime
@@ -29,7 +27,7 @@ TEST_CLASS = 'CIM_ComputerSystem'
 TEST_NAMESPACE = 'root/cimv2'
 SERVER_URL = 'http://localhost'
 
-class ElapsedTimer(object):
+class ElapsedTimer:
     """
         Set up elapsed time timer. Calculates time between initiation
         and access.
@@ -147,7 +145,7 @@ def main():
 
         # print the resulting instances
         for instance in instances:
-            print('\npath=%s\n%s' % (instance.path, instance.tomof()))
+            print('\npath={}\n{}'.format(instance.path, instance.tomof()))
 
     # handle exceptions
     except CIMError as ce:

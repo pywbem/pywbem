@@ -74,7 +74,7 @@ def set_property(instance, name, value, conditional=True):
         instance[name] = value
 
 
-class CommonMethodsMixin(object):
+class CommonMethodsMixin:
     """
     Common Methods and functionality for the 3 providers defined to support
     indication subscriptions
@@ -301,7 +301,7 @@ class CommonMethodsMixin(object):
         # Validate provider classes installed.  Will generate exception
         # if class does not exist.
         interop_namespace = conn.find_interop_namespace()
-        if isinstance(self.provider_classnames, six.string_types):
+        if isinstance(self.provider_classnames, str):
             clns = [self.provider_classnames]
         else:
             clns = self.provider_classnames
@@ -347,7 +347,7 @@ class CIMIndicationFilterProvider(CommonMethodsMixin, InstanceWriteProvider):
           cimrepository (:class:`~pywbem_mock.BaseRepository` or subclass):
             Defines the CIM repository to be used by the provider.
         """
-        super(CIMIndicationFilterProvider, self).__init__(cimrepository)
+        super().__init__(cimrepository)
 
         if not self.find_interop_namespace():
             raise CIMError(
@@ -423,7 +423,7 @@ class CIMIndicationFilterProvider(CommonMethodsMixin, InstanceWriteProvider):
 
         # Create the CIM instance for the new namespace in the CIM repository,
         # by delegating to the default provider method.
-        return super(CIMIndicationFilterProvider, self).CreateInstance(
+        return super().CreateInstance(
             namespace, new_instance)
 
     def ModifyInstance(self, modified_instance, IncludeQualifiers=None):
@@ -441,7 +441,7 @@ class CIMIndicationFilterProvider(CommonMethodsMixin, InstanceWriteProvider):
             modifiable_properties=modifiable_properties,
             IncludeQualifiers=IncludeQualifiers)
 
-        return super(CIMIndicationFilterProvider, self).ModifyInstance(
+        return super().ModifyInstance(
             modified_instance, IncludeQualifiers=IncludeQualifiers)
 
     def DeleteInstance(self, InstanceName):  # pylint: disable=invalid-name
@@ -521,7 +521,7 @@ class CIMListenerDestinationProvider(CommonMethodsMixin, InstanceWriteProvider):
           cimrepository (:class:`~pywbem_mock.BaseRepository` or subclass):
             Defines the CIM repository to be used by the provider.
         """
-        super(CIMListenerDestinationProvider, self).__init__(cimrepository)
+        super().__init__(cimrepository)
 
         if not self.find_interop_namespace():
             raise CIMError(
@@ -609,7 +609,7 @@ class CIMListenerDestinationProvider(CommonMethodsMixin, InstanceWriteProvider):
 
         # Create the CIM instance for the new namespace in the CIM repository,
         # by delegating to the default provider method.
-        return super(CIMListenerDestinationProvider, self).CreateInstance(
+        return super().CreateInstance(
             namespace, new_instance)
 
     def ModifyInstance(self, modified_instance, IncludeQualifiers=None):
@@ -626,7 +626,7 @@ class CIMListenerDestinationProvider(CommonMethodsMixin, InstanceWriteProvider):
             modifiable_properties=modifiable_properties,
             IncludeQualifiers=IncludeQualifiers)
 
-        return super(CIMListenerDestinationProvider, self).ModifyInstance(
+        return super().ModifyInstance(
             modified_instance, IncludeQualifiers=IncludeQualifiers)
 
     def DeleteInstance(self, InstanceName):  # pylint: disable=invalid-name
@@ -662,7 +662,7 @@ class CIMListenerDestinationProvider(CommonMethodsMixin, InstanceWriteProvider):
 
         self.validate_no_subscription(InstanceName)
 
-        return super(CIMListenerDestinationProvider, self).DeleteInstance(
+        return super().DeleteInstance(
             InstanceName)
 
 
@@ -704,7 +704,7 @@ class CIMIndicationSubscriptionProvider(CommonMethodsMixin,
           cimrepository (:class:`~pywbem_mock.BaseRepository` or subclass):
             Defines the CIM repository to be used by the provider.
         """
-        super(CIMIndicationSubscriptionProvider, self).__init__(cimrepository)
+        super().__init__(cimrepository)
 
         if not self.find_interop_namespace():
             raise CIMError(
@@ -792,7 +792,7 @@ class CIMIndicationSubscriptionProvider(CommonMethodsMixin,
 
         # Create the CIM instance for the new namespace in the CIM repository,
         # by delegating to the default provider method.
-        return super(CIMIndicationSubscriptionProvider, self).CreateInstance(
+        return super().CreateInstance(
             namespace, new_instance)
 
     def ModifyInstance(self, modified_instance, IncludeQualifiers=None):
@@ -824,7 +824,7 @@ class CIMIndicationSubscriptionProvider(CommonMethodsMixin,
 
         modified_instance['TimeOfLastStateChange'] = CIMDateTime.now()
 
-        return super(CIMIndicationSubscriptionProvider, self).ModifyInstance(
+        return super().ModifyInstance(
             modified_instance, IncludeQualifiers=IncludeQualifiers)
 
     def DeleteInstance(self, InstanceName):  # pylint: disable=invalid-name
@@ -858,5 +858,5 @@ class CIMIndicationSubscriptionProvider(CommonMethodsMixin,
         assert InstanceName.classname.lower() == \
             CIMIndicationSubscriptionProvider.provider_classnames.lower()
 
-        return super(CIMIndicationSubscriptionProvider, self).DeleteInstance(
+        return super().DeleteInstance(
             InstanceName)

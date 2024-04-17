@@ -143,7 +143,6 @@ response times::
 """  # noqa: E501
 # pylint: enable=line-too-long
 
-from __future__ import absolute_import
 
 import time
 import copy
@@ -159,7 +158,7 @@ __all__ = ['Statistics', 'OperationStatistic']
 #  self._reply_len_min = min(_reply_len_min, reply_len)
 
 
-class OperationStatistic(object):
+class OperationStatistic:
     # pylint: disable=too-many-instance-attributes
     """
     *New in pywbem 0.11 as experimental and finalized in 0.12.*
@@ -570,11 +569,11 @@ class OperationStatistic(object):
                     format(self.avg_request_len, self.min_request_len,
                            self.max_request_len, self.avg_reply_len,
                            self.min_reply_len, self.max_reply_len))
-        ret += '{0}\n'.format(self.name)
+        ret += f'{self.name}\n'
         return ret
 
 
-class Statistics(object):
+class Statistics:
     """
     *New in pywbem 0.11 as experimental and finalized in 0.12.*
 
@@ -815,7 +814,7 @@ class Statistics(object):
         Returns: True if reset, False if not
         """
         # Test for any stats being currently timed.
-        for stat in six.itervalues(self._op_stats):
+        for stat in self._op_stats.values():
             if stat._start_time is not None:  # pylint: disable=protected-access
                 return False
 

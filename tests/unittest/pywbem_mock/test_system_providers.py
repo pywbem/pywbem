@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # (C) Copyright 2020 InovaDevelopment.com
 #
@@ -23,7 +22,6 @@
 Test of of the installation and operation of the CIM_Namespace provider.
 
 """
-from __future__ import absolute_import, print_function
 
 import os
 import six
@@ -193,7 +191,7 @@ def test_find_interop_namespace(testcase, deflt, nss, exp_ns):
     conn = FakedWBEMConnection(default_namespace=deflt)
 
     if nss:
-        if isinstance(nss, six.string_types):
+        if isinstance(nss, str):
             nss = [nss]
         for name in nss:
             conn.add_namespace(name)

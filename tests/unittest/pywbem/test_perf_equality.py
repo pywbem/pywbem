@@ -4,7 +4,6 @@
 Measure performance of equality tests.
 """
 
-from __future__ import absolute_import
 
 import io
 
@@ -109,7 +108,7 @@ def test_perf_eq(desc, obj1, obj2):
 
     def measure():
         "One measurement"
-        for _ in six.moves.range(num):
+        for _ in range(num):
             # The code to be measured
             _ = (obj1 == obj2)
 
@@ -121,7 +120,7 @@ def test_perf_eq(desc, obj1, obj2):
 
     stdev_pct = 100.0 * stdev_us / t_us if t_us != 0 else 0.0
 
-    with io.open(outfile, 'a', encoding='utf-8') as fp:
+    with open(outfile, 'a', encoding='utf-8') as fp:
         fp.write("{}: {:.3f} us (std.dev. {:.1f}% in {} runs with {} "
                  "outliers)\n".
                  format(desc, t_us, stdev_pct, num_runs, num_out))
@@ -149,9 +148,9 @@ def timeit(measure_func, precision):
 
     # Perform the measurement a number of times and store the results
     results = []
-    for _ in six.moves.range(num_runs):
+    for _ in range(num_runs):
         t1_s = process_time()
-        for _j in six.moves.range(rep):  # pylint: disable=unused-variable
+        for _j in range(rep):  # pylint: disable=unused-variable
             measure_func()
         t2_s = process_time()
         t_us = 1.0E6 * (t2_s - t1_s) / rep

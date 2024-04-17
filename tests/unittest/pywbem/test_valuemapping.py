@@ -3,7 +3,6 @@
     Test ValueMapping class
 """
 
-from __future__ import absolute_import
 
 import re
 import pytest
@@ -11,7 +10,7 @@ import pytest
 try:
     from unittest.mock import Mock
 except ImportError:
-    from mock import Mock
+    from unittest.mock import Mock
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
@@ -73,7 +72,7 @@ def server_arg(request):
     return request.param
 
 
-class Test_ValueMapping(object):
+class Test_ValueMapping:
     """
     All tests for ValueMapping class.
     """
@@ -493,7 +492,7 @@ class Test_ValueMapping(object):
         vm = self.setup_for_element(element_kind, server_arg, integer_type,
                                     is_array, valuemap, values)
 
-        assert vm.tobinary(u'one') == 1
+        assert vm.tobinary('one') == 1
 
     def test_singles(self, element_kind, server_arg, integer_type,
                      is_array):
@@ -709,8 +708,8 @@ class Test_ValueMapping(object):
         maxvalue = type_from_name(integer_type).maxvalue
 
         valuemap = []
-        valuemap.append('%s..%s' % (minvalue, minvalue + 2))
-        valuemap.append('%s..%s' % (maxvalue - 2, maxvalue))
+        valuemap.append('{}..{}'.format(minvalue, minvalue + 2))
+        valuemap.append('{}..{}'.format(maxvalue - 2, maxvalue))
 
         exp_valuemap = [(minvalue, minvalue + 2), (maxvalue - 2, maxvalue)]
 

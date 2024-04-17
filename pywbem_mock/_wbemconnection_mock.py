@@ -25,7 +25,6 @@ pywbem client without requiring a running WBEM server.
 For documentation, see mocksupport.rst.
 """
 
-from __future__ import absolute_import, print_function
 
 import os
 import time
@@ -209,7 +208,7 @@ class FakedWBEMConnection(WBEMConnection):
         # created. Reset again after repository created.
         self._disable_pull_operations = disable_pull_operations
 
-        super(FakedWBEMConnection, self).__init__(
+        super().__init__(
             url or 'http://FakedUrl:5988',
             default_namespace=default_namespace,
             use_pull_operations=use_pull_operations,
@@ -354,7 +353,7 @@ class FakedWBEMConnection(WBEMConnection):
             "FakedWBEMConnection("
             "response_delay={s.response_delay}, "
             "super={super})",
-            s=self, super=super(FakedWBEMConnection, self).__str__())
+            s=self, super=super().__str__())
 
     def __repr__(self):
         return _format(
@@ -362,7 +361,7 @@ class FakedWBEMConnection(WBEMConnection):
             "response_delay={s.response_delay}, "
             "disable_pull_operations={s.disable_pull_operations} "
             "super={super})",
-            s=self, super=super(FakedWBEMConnection, self).__repr__())
+            s=self, super=super().__repr__())
 
     def copy(self):
         """
@@ -693,7 +692,7 @@ class FakedWBEMConnection(WBEMConnection):
         if not verbose:
             log_func_kwargs['log_func'] = None
 
-        stats_name = "compile_mof_file(ns={!r})".format(namespace)
+        stats_name = f"compile_mof_file(ns={namespace!r})"
         with self.statistics(stats_name):
 
             namespace = namespace or self.default_namespace
@@ -769,7 +768,7 @@ class FakedWBEMConnection(WBEMConnection):
         if not verbose:
             log_func_kwargs['log_func'] = None
 
-        stats_name = "compile_mof_string(ns={!r})".format(namespace)
+        stats_name = f"compile_mof_string(ns={namespace!r})"
         with self.statistics(stats_name):
 
             namespace = namespace or self.default_namespace
@@ -849,10 +848,10 @@ class FakedWBEMConnection(WBEMConnection):
         """  # noqa: E501
         # pylint: enable:line-too-long
 
-        stats_name = "compile_schema_classes(ns={!r})".format(namespace)
+        stats_name = f"compile_schema_classes(ns={namespace!r})"
         with self.statistics(stats_name):
 
-            if isinstance(schema_pragma_files, six.string_types):
+            if isinstance(schema_pragma_files, str):
                 schema_pragma_files = [schema_pragma_files]
 
             # Build the pragma file and compile for each pragma file in
@@ -922,7 +921,7 @@ class FakedWBEMConnection(WBEMConnection):
         """  # noqa: E501
         # pylint: enable=line-too-long
 
-        stats_name = "add_cimobjects(ns={!r})".format(namespace)
+        stats_name = f"add_cimobjects(ns={namespace!r})"
         with self.statistics(stats_name):
 
             namespace = namespace or self.default_namespace
@@ -1033,8 +1032,8 @@ class FakedWBEMConnection(WBEMConnection):
                         "{1!A} are valid.", output_format, OUTPUT_FORMATS))
 
         _uprint(dest,
-                _format(u"{0}========Mock Repo Display fmt={1} "
-                        u"namespaces={2} ========={3}\n",
+                _format("{0}========Mock Repo Display fmt={1} "
+                        "namespaces={2} ========={3}\n",
                         cmt_begin, output_format,
                         ('all' if namespaces is None
                          else _format("{0!A}", namespaces)),
@@ -1045,7 +1044,7 @@ class FakedWBEMConnection(WBEMConnection):
 
         for ns in repo_ns:
             _uprint(dest,
-                    _format(u"\n{0}NAMESPACE {1!A}{2}\n",
+                    _format("\n{0}NAMESPACE {1!A}{2}\n",
                             cmt_begin, ns, cmt_end))
             self._display_objects('Qualifier Declarations',
                                   self.cimrepository.get_qualifier_store(ns),
@@ -1061,7 +1060,7 @@ class FakedWBEMConnection(WBEMConnection):
                                   summary=summary, output_format=output_format)
 
         _uprint(dest,
-                _format(u'{0}============End Repository================={1}',
+                _format('{0}============End Repository================={1}',
                         cmt_begin, cmt_end))
 
     @staticmethod
@@ -1078,7 +1077,7 @@ class FakedWBEMConnection(WBEMConnection):
         # compile/add. Make this part of refactor to separate repository and
         # datastore because it may be data store dependent
         _uprint(dest,
-                _format(u"{0}Namespace {1!A}: contains {2} {3} {4}\n",
+                _format("{0}Namespace {1!A}: contains {2} {3} {4}\n",
                         cmt_begin, namespace,
                         object_repo.len(),
                         obj_type, cmt_end))
@@ -1091,17 +1090,17 @@ class FakedWBEMConnection(WBEMConnection):
             for inst in object_repo.iter_values():
                 if output_format == 'xml':
                     _uprint(dest,
-                            _format(u"{0} Path={1} {2}\n{3}",
+                            _format("{0} Path={1} {2}\n{3}",
                                     cmt_begin, inst.path.to_wbem_uri(),
                                     cmt_end,
                                     _pretty_xml(inst.tocimxmlstr())))
                 elif output_format == 'repr':
                     _uprint(dest,
-                            _format(u"Path:\n{0!A}\nInst:\n{1!A}\n",
+                            _format("Path:\n{0!A}\nInst:\n{1!A}\n",
                                     inst.path, inst))
                 else:
                     _uprint(dest,
-                            _format(u"{0} Path={1} {2}\n{3}",
+                            _format("{0} Path={1} {2}\n{3}",
                                     cmt_begin, inst.path.to_wbem_uri(),
                                     cmt_end, inst.tomof()))
 
@@ -1115,7 +1114,7 @@ class FakedWBEMConnection(WBEMConnection):
                     if output_format == 'xml':
                         _uprint(dest, _pretty_xml(obj.tocimxmlstr()))
                     elif output_format == 'repr':
-                        _uprint(dest, _format(u"{0!A}", obj))
+                        _uprint(dest, _format("{0!A}", obj))
                     else:
                         _uprint(dest, obj.tomof())
 
@@ -1273,7 +1272,7 @@ class FakedWBEMConnection(WBEMConnection):
             if localobject.namespace is None:
                 localobject.namespace = self.default_namespace
             localobject.host = None
-        elif isinstance(objectname, six.string_types):
+        elif isinstance(objectname, str):
             # a string is always interpreted as a class name
             localobject = CIMClassName(objectname,
                                        namespace=self.default_namespace)
@@ -1321,8 +1320,8 @@ class FakedWBEMConnection(WBEMConnection):
         """
         Create the correct imethod response for the open and pull methods
         """
-        eos_tuple = (u'EndOfSequence', None, eos)
-        enum_ctxt_tuple = (u'EnumerationContext', None, context_id)
+        eos_tuple = ('EndOfSequence', None, eos)
+        enum_ctxt_tuple = ('EnumerationContext', None, context_id)
 
         return [("IRETURNVALUE", {}, objs), enum_ctxt_tuple, eos_tuple]
 
@@ -1331,9 +1330,9 @@ class FakedWBEMConnection(WBEMConnection):
         """
         Create the correct imethod response for the OpenQueryInstances method
         """
-        eos_tuple = (u'EndOfSequence', None, eos)
-        enum_ctxt_tuple = (u'EnumerationContext', None, context_id)
-        result_class_tuple = (u'QueryResultClass', None, result_class)
+        eos_tuple = ('EndOfSequence', None, eos)
+        enum_ctxt_tuple = ('EnumerationContext', None, context_id)
+        result_class_tuple = ('QueryResultClass', None, result_class)
 
         return [("IRETURNVALUE", {}, objs), enum_ctxt_tuple, eos_tuple,
                 result_class_tuple]
@@ -1358,7 +1357,7 @@ class FakedWBEMConnection(WBEMConnection):
         than a tuple with empty object path
         """
         if objects:
-            result = [(u'OBJECTPATH', {}, obj) for obj in objects]
+            result = [('OBJECTPATH', {}, obj) for obj in objects]
             return self._make_tuple(result)
 
         return None

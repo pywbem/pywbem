@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Configuration file for Sphinx builds, created by
 # sphinx-quickstart on Wed Mar  2 11:33:06 2016.
@@ -37,7 +36,7 @@ def get_version(version_file):
     requirements list of this package (otherwise it cannot be executed in
     a fresh Python environment).
     """
-    with io.open(version_file, 'r', encoding='utf-8') as fp:
+    with open(version_file, encoding='utf-8') as fp:
         version_source = fp.read()
     globals = {}
     exec(version_source, globals)
@@ -99,12 +98,12 @@ source_encoding = 'utf-8'
 master_doc = 'index'
 
 # General information about the project.
-project = u'pywbem'
+project = 'pywbem'
 #copyright = u''
-author = u'pywbem team'
+author = 'pywbem team'
 
 # The short description of the package.
-_short_description = u'Pywbem - a WBEM client written in pure Python'
+_short_description = 'Pywbem - a WBEM client written in pure Python'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

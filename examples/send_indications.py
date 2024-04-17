@@ -6,7 +6,6 @@
     false for this version so that certificates or keys are not required.
 """
 
-from __future__ import print_function, absolute_import
 import sys
 from time import time
 import datetime
@@ -21,7 +20,7 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
-class ElapsedTimer(object):
+class ElapsedTimer:
     """
         Set up elapsed time timer. Calculates time between initiation
         and access.
@@ -135,7 +134,7 @@ def send_indication(url, headers, payload, verbose, verify=None, keyfile=None,
 
     # validate response status code and xml
     if verbose or response.status_code != 200:
-        print('\nResponse code=%s headers=%s data=%s' % (response.status_code,
+        print('\nResponse code={} headers={} data={}'.format(response.status_code,
                                                          response.headers,
                                                          response.text))
     root = ET.fromstring(response.text)
@@ -165,10 +164,10 @@ def get_args():
     desc = 'Send indications to a listener. Verify set to False'
     epilog = """
 Examples:
-  %s https://127.0.0.1 -p 5001
-  %s http://localhost:5000
-  %s http://[2001:db8::1234-eth0] -(http port 5988 ipv6, zone id eth0)
-""" % (prog, prog, prog)
+  {} https://127.0.0.1 -p 5001
+  {} http://localhost:5000
+  {} http://[2001:db8::1234-eth0] -(http port 5988 ipv6, zone id eth0)
+""".format(prog, prog, prog)
 
     argparser = _argparse.ArgumentParser(
         prog=prog, usage=usage, description=desc, epilog=epilog,
@@ -250,9 +249,9 @@ def main():
                             'invalid')
     else:
         if opts.listenerPort is None:
-            url = '%s:%s' % (opts.url, 5000)
+            url = '{}:{}'.format(opts.url, 5000)
         else:
-            url = '%s:%s' % (opts.url, opts.listenerPort)
+            url = '{}:{}'.format(opts.url, opts.listenerPort)
 
     if opts.verbose:
         print('url=%s' % url)
@@ -284,7 +283,7 @@ def main():
                                          cim_protocol_version)
 
         if opts.verbose:
-            print('headers=%s\n\npayload=%s' % (headers, payload))
+            print('headers={}\n\npayload={}'.format(headers, payload))
 
         success = send_indication(url, headers, payload, opts.verbose,
                                   verify=verification)
@@ -300,7 +299,7 @@ def main():
             print('Error return from send. Terminating.')
             return
     endtime = timer.elapsed_sec()
-    print('Sent %s in %s sec or %.2f ind/sec' % (opts.deliver, endtime,
+    print('Sent {} in {} sec or {:.2f} ind/sec'.format(opts.deliver, endtime,
                                                  (opts.deliver / endtime)))
 
 

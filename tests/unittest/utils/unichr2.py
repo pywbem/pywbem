@@ -2,7 +2,6 @@
 unichr2() utility function for pywbem testing.
 """
 
-from __future__ import absolute_import, print_function
 
 import sys
 import six
@@ -26,11 +25,11 @@ def unichr2(cp):
 
     if sys.maxunicode == MAX_UNICODE_CP:
         # wide build
-        return six.unichr(cp)
+        return chr(cp)
 
     if cp <= MAX_UCS2_CP:
         # narrow build, low range
-        return six.unichr(cp)
+        return chr(cp)
 
     # narrow build, high range.
     # Python 2 narrow builds store unicode characters internally as
@@ -47,6 +46,6 @@ def unichr2(cp):
     offset = cp - MAX_UCS2_CP - 1
     surr1 = (offset >> 10) + 0xD800
     surr2 = (offset & 0b1111111111) + 0xDC00
-    lit = u'u"\\u%04X\\u%04X"' % (surr1, surr2)
+    lit = 'u"\\u{:04X}\\u{:04X}"'.format(surr1, surr2)
     uchr = eval(lit)  # pylint: disable=eval-used
     return uchr

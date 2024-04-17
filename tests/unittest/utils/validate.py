@@ -60,7 +60,6 @@ Note: Changes in DSP0203 2.4.0, compared to 2.3.1:
         IMETHODRESPONSE, because they were not needed.
 """
 
-from __future__ import print_function, absolute_import
 
 import os
 import re
@@ -121,11 +120,11 @@ def validate_cim_xml(cim_xml_str, root_elem_name=None):
 
     # Make sure the validator checks the specified root element, if any
     if root_elem_name is not None:
-        cim_xml_str = u'<!DOCTYPE {0} SYSTEM "{1}">\n{2}'. \
+        cim_xml_str = '<!DOCTYPE {0} SYSTEM "{1}">\n{2}'. \
             format(root_elem_name, dtd_file_fw, cim_xml_str)
         xmllint_cmd = 'xmllint --valid --noout -'
     else:
-        xmllint_cmd = 'xmllint --dtdvalid {0} --noout -'.format(dtd_file_fw)
+        xmllint_cmd = f'xmllint --dtdvalid {dtd_file_fw} --noout -'
 
     # pylint: disable=consider-using-with
     p = Popen(xmllint_cmd, stdout=PIPE, stderr=STDOUT, stdin=PIPE, shell=True)
@@ -181,13 +180,13 @@ def validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str):
 
     assert _xml_semantic_compare(obj_xml_str, exp_xml_str), \
         "Unexpected XML string (comparing at XML level):\n" \
-        "Actual:   {0!r}\n" \
-        "Expected: {1!r}\n".format(obj_xml_str, exp_xml_str)
+        "Actual:   {!r}\n" \
+        "Expected: {!r}\n".format(obj_xml_str, exp_xml_str)
 
     m = re.match(r'^<([^ >]+)', exp_xml_str)
     assert m is not None, \
         "Testcase issue: Cannot determine root element from expected " \
-        "CIM-XML string:\n{0}".format(exp_xml_str)
+        "CIM-XML string:\n{}".format(exp_xml_str)
     root_elem_name = m.group(1)
 
     try:
@@ -225,5 +224,5 @@ def assert_xml_equal(act_xml_str, exp_xml_str):
 
     assert _xml_semantic_compare(act_xml_str, exp_xml_str), \
         "Unexpected XML element (XML attribute order does not matter):\n" \
-        "Actual:   {0!r}\n" \
-        "Expected: {1!r}\n".format(act_xml_str, exp_xml_str)
+        "Actual:   {!r}\n" \
+        "Expected: {!r}\n".format(act_xml_str, exp_xml_str)

@@ -16,7 +16,6 @@ Notes on "standalone" vs "anchored" Element objects in Python minidom:
   in its cim_xml.py module.
 """
 
-from __future__ import absolute_import, print_function
 
 from xml.dom.minidom import Document, Element
 import pytest

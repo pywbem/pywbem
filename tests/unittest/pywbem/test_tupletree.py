@@ -3,7 +3,6 @@
 Test cases for _tupletree module and Unicode/XML check functions.
 """
 
-from __future__ import absolute_import, print_function
 
 import xml
 import re
@@ -44,7 +43,7 @@ def dom_to_tupletree(node):
         if child.nodeType == child.ELEMENT_NODE:
             contents.append(dom_to_tupletree(child))
         elif child.nodeType == child.TEXT_NODE:
-            assert isinstance(child.nodeValue, six.string_types), \
+            assert isinstance(child.nodeValue, str), \
                 "text node %s is not a string %r" % child
             contents.append(child.nodeValue)
         elif child.nodeType == child.CDATA_SECTION_NODE:
@@ -72,7 +71,7 @@ def xml_to_tupletree(xml_string):
     return dom_to_tupletree(dom_xml)
 
 
-class Test_xml_to_tupletree_sax(object):
+class Test_xml_to_tupletree_sax:
     # pylint: disable=too-few-public-methods
     """
     Exhaustive tests for _tupletree.xml_to_tupletree_sax(), with inline input
@@ -97,9 +96,9 @@ class Test_xml_to_tupletree_sax(object):
         # General good cases
         (
             "One-line XML string with one empty element",
-            u'<?xml version="1.0" encoding="utf-8" ?>'
-            u'<TEXT></TEXT>',
-            (u'TEXT',
+            '<?xml version="1.0" encoding="utf-8" ?>'
+            '<TEXT></TEXT>',
+            ('TEXT',
              {},
              []),
             None, None,
@@ -107,9 +106,9 @@ class Test_xml_to_tupletree_sax(object):
         ),
         (
             "One-line XML string with one empty element, short form",
-            u'<?xml version="1.0" encoding="utf-8" ?>'
-            u'<TEXT/>',
-            (u'TEXT',
+            '<?xml version="1.0" encoding="utf-8" ?>'
+            '<TEXT/>',
+            ('TEXT',
              {},
              []),
             None, None,
@@ -117,63 +116,63 @@ class Test_xml_to_tupletree_sax(object):
         ),
         (
             "One-line XML string with one element with ASCII text",
-            u'<?xml version="1.0" encoding="utf-8" ?>'
-            u'<TEXT>foo</TEXT>',
-            (u'TEXT',
+            '<?xml version="1.0" encoding="utf-8" ?>'
+            '<TEXT>foo</TEXT>',
+            ('TEXT',
              {},
-             [u'foo']),
+             ['foo']),
             None, None,
             True
         ),
         (
             "One-line XML string with one element with non-ASCII UCS-2 text",
-            u'<?xml version="1.0" encoding="utf-8" ?>'
-            u'<TEXT>\u00e8</TEXT>',
-            (u'TEXT',
+            '<?xml version="1.0" encoding="utf-8" ?>'
+            '<TEXT>\u00e8</TEXT>',
+            ('TEXT',
              {},
-             [u'\u00e8']),
+             ['\u00e8']),
             None, None,
             True
         ),
         (
             "One-line XML string with one element with non-UCS-2 text",
-            u'<?xml version="1.0" encoding="utf-8" ?>'
-            u'<TEXT>\U00010142</TEXT>',  # GREEK ACROPHONIC ATTIC ONE DRACHMA
-            (u'TEXT',
+            '<?xml version="1.0" encoding="utf-8" ?>'
+            '<TEXT>\U00010142</TEXT>',  # GREEK ACROPHONIC ATTIC ONE DRACHMA
+            ('TEXT',
              {},
-             [u'\U00010142']),
+             ['\U00010142']),
             None, None,
             True
         ),
         (
             "One-line XML string with one element with one attribute",
-            u'<?xml version="1.0" encoding="utf-8" ?>'
-            u'<TEXT ATTR="foo">bar</TEXT>',
-            (u'TEXT',
-             {u'ATTR': u'foo'},
-             [u'bar']),
+            '<?xml version="1.0" encoding="utf-8" ?>'
+            '<TEXT ATTR="foo">bar</TEXT>',
+            ('TEXT',
+             {'ATTR': 'foo'},
+             ['bar']),
             None, None,
             True
         ),
         (
             "One-line XML string with one element with two attributes",
-            u'<?xml version="1.0" encoding="utf-8" ?>'
-            u'<TEXT ATTR1="foo1" ATTR2="foo2">bar</TEXT>',
-            (u'TEXT',
-             {u'ATTR1': u'foo1', u'ATTR2': u'foo2'},
-             [u'bar']),
+            '<?xml version="1.0" encoding="utf-8" ?>'
+            '<TEXT ATTR1="foo1" ATTR2="foo2">bar</TEXT>',
+            ('TEXT',
+             {'ATTR1': 'foo1', 'ATTR2': 'foo2'},
+             ['bar']),
             None, None,
             True
         ),
         (
             "One-line XML string with two elements and two attributes",
-            u'<?xml version="1.0" encoding="utf-8" ?>'
-            u'<TEXT1 ATTR1="foo1"><TEXT2 ATTR2="foo2">bar</TEXT2></TEXT1>',
-            (u'TEXT1',
-             {u'ATTR1': u'foo1'},
-             [(u'TEXT2',
-               {u'ATTR2': u'foo2'},
-               [u'bar'])]),
+            '<?xml version="1.0" encoding="utf-8" ?>'
+            '<TEXT1 ATTR1="foo1"><TEXT2 ATTR2="foo2">bar</TEXT2></TEXT1>',
+            ('TEXT1',
+             {'ATTR1': 'foo1'},
+             [('TEXT2',
+               {'ATTR2': 'foo2'},
+               ['bar'])]),
             None, None,
             True
         ),
@@ -181,35 +180,35 @@ class Test_xml_to_tupletree_sax(object):
         # Multi-line good cases
         (
             "Multi-line XML string, text without newline",
-            u'<?xml version="1.0" encoding="utf-8" ?>\n'
-            u'<TEXT1 ATTR1="foo1">\n'
-            u'<TEXT2 ATTR2="foo2">bar</TEXT2>\n'
-            u'</TEXT1>',
-            (u'TEXT1',
-             {u'ATTR1': u'foo1'},
-             [u'\n',
-              (u'TEXT2',
-               {u'ATTR2': u'foo2'},
-               [u'bar']),
-              u'\n']),
+            '<?xml version="1.0" encoding="utf-8" ?>\n'
+            '<TEXT1 ATTR1="foo1">\n'
+            '<TEXT2 ATTR2="foo2">bar</TEXT2>\n'
+            '</TEXT1>',
+            ('TEXT1',
+             {'ATTR1': 'foo1'},
+             ['\n',
+              ('TEXT2',
+               {'ATTR2': 'foo2'},
+               ['bar']),
+              '\n']),
             None, None,
             True
         ),
         (
             "Multi-line XML string, text with newlines",
-            u'<?xml version="1.0" encoding="utf-8" ?>\n'
-            u'<TEXT1 ATTR1="foo1">\n'
-            u'<TEXT2 ATTR2="foo2">\n'
-            u'bar\n'
-            u'</TEXT2>\n'
-            u'</TEXT1>',
-            (u'TEXT1',
-             {u'ATTR1': u'foo1'},
-             [u'\n',
-              (u'TEXT2',
-               {u'ATTR2': u'foo2'},
-               [u'\nbar\n']),
-              u'\n']),
+            '<?xml version="1.0" encoding="utf-8" ?>\n'
+            '<TEXT1 ATTR1="foo1">\n'
+            '<TEXT2 ATTR2="foo2">\n'
+            'bar\n'
+            '</TEXT2>\n'
+            '</TEXT1>',
+            ('TEXT1',
+             {'ATTR1': 'foo1'},
+             ['\n',
+              ('TEXT2',
+               {'ATTR2': 'foo2'},
+               ['\nbar\n']),
+              '\n']),
             None, None,
             True
         ),
@@ -217,54 +216,54 @@ class Test_xml_to_tupletree_sax(object):
         # General failure cases
         (
             "Empty XML string",
-            u'',
+            '',
             None,
             ParseError, "XML parsing error.*no element found",
             True
         ),
         (
             "Just the XML prolog",
-            u'<?xml version="1.0" encoding="utf-8" ?>',
+            '<?xml version="1.0" encoding="utf-8" ?>',
             None,
             ParseError, "XML parsing error.*no element found",
             True
         ),
         (
             "Start element without end element",
-            u'<?xml version="1.0" encoding="utf-8" ?>'
-            u'<ELEM>',
+            '<?xml version="1.0" encoding="utf-8" ?>'
+            '<ELEM>',
             None,
             ParseError, "XML parsing error.*no element found",
             True
         ),
         (
             "End element misses trailing angle bracket",
-            u'<?xml version="1.0" encoding="utf-8" ?>'
-            u'<ELEM>abc</ELEM',
+            '<?xml version="1.0" encoding="utf-8" ?>'
+            '<ELEM>abc</ELEM',
             None,
             ParseError, "XML parsing error.*unclosed token",
             True
         ),
         (
             "End element misses leading angle bracket",
-            u'<?xml version="1.0" encoding="utf-8" ?>'
-            u'<ELEM>abc/ELEM>',
+            '<?xml version="1.0" encoding="utf-8" ?>'
+            '<ELEM>abc/ELEM>',
             None,
             ParseError, "XML parsing error.*no element found",
             True
         ),
         (
             "Start element misses trailing angle bracket",
-            u'<?xml version="1.0" encoding="utf-8" ?>'
-            u'<ELEM</ELEM>',
+            '<?xml version="1.0" encoding="utf-8" ?>'
+            '<ELEM</ELEM>',
             None,
             ParseError, "XML parsing error.*not well-formed",
             True
         ),
         (
             "Start element misses leading angle bracket",
-            u'<?xml version="1.0" encoding="utf-8" ?>'
-            u'ELEM></ELEM>',
+            '<?xml version="1.0" encoding="utf-8" ?>'
+            'ELEM></ELEM>',
             None,
             ParseError, "XML parsing error.*syntax error",
             True
@@ -273,10 +272,10 @@ class Test_xml_to_tupletree_sax(object):
         # Failure cases with line number checking
         (
             "Failing multi-line XML string with failure in line 3",
-            u'<?xml version="1.0" encoding="utf-8" ?>\n'
-            u'<ELEM1>\n'
-            u'<ELEM2</ELEM2>\n'
-            u'<ELEM1>\n',
+            '<?xml version="1.0" encoding="utf-8" ?>\n'
+            '<ELEM1>\n'
+            '<ELEM2</ELEM2>\n'
+            '<ELEM1>\n',
             None,
             ParseError,
             "XML parsing error.*not well-formed.*"
@@ -288,8 +287,8 @@ class Test_xml_to_tupletree_sax(object):
         # Failure cases with non-ASCII chars
         (
             "Failing XML string with non-ASCII attribute value",
-            u'<?xml version="1.0" encoding="utf-8" ?>'
-            u'<ELEM1 ATTR1="\u00e8"></ELEM2>',
+            '<?xml version="1.0" encoding="utf-8" ?>'
+            '<ELEM1 ATTR1="\u00e8"></ELEM2>',
             None,
             ParseError,
             "XML parsing error.*mismatched tag.*"
@@ -302,16 +301,16 @@ class Test_xml_to_tupletree_sax(object):
         (
             "CIM-XML response with MESSAGE end element missing "
             "(former Associators_error.xml file)",
-            u'<?xml version="1.0" encoding="utf-8" ?>\n'
-            u'<CIM CIMVERSION="2.0" DTDVERSION="2.0">\n'
-            u'  <MESSAGE ID="1001" PROTOCOLVERSION="1.0">\n'
-            u'    <SIMPLERSP>\n'
-            u'      <IMETHODRESPONSE NAME="Associators">\n'
-            u'        <IRETURNVALUE>\n'
-            u'        </IRETURNVALUE>\n'
-            u'      </IMETHODRESPONSE>\n'
-            u'    </SIMPLERSP>\n'
-            u'</CIM>\n',
+            '<?xml version="1.0" encoding="utf-8" ?>\n'
+            '<CIM CIMVERSION="2.0" DTDVERSION="2.0">\n'
+            '  <MESSAGE ID="1001" PROTOCOLVERSION="1.0">\n'
+            '    <SIMPLERSP>\n'
+            '      <IMETHODRESPONSE NAME="Associators">\n'
+            '        <IRETURNVALUE>\n'
+            '        </IRETURNVALUE>\n'
+            '      </IMETHODRESPONSE>\n'
+            '    </SIMPLERSP>\n'
+            '</CIM>\n',
             None,
             ParseError, "XML parsing error.*mismatched tag",
             True
@@ -319,160 +318,160 @@ class Test_xml_to_tupletree_sax(object):
         (
             "CIM-XML response from Associators operation "
             "(former Associators_Empty.xml)",
-            u'<?xml version="1.0" encoding="utf-8" ?>\n'
-            u'<CIM CIMVERSION="2.0" DTDVERSION="2.0">\n'
-            u'  <MESSAGE ID="1001" PROTOCOLVERSION="1.0">\n'
-            u'    <SIMPLERSP>\n'
-            u'      <IMETHODRESPONSE NAME="Associators">\n'
-            u'        <IRETURNVALUE>\n'
-            u'        </IRETURNVALUE>\n'
-            u'      </IMETHODRESPONSE>\n'
-            u'    </SIMPLERSP>\n'
-            u'  </MESSAGE>\n'
-            u'</CIM>\n',
-            (u'CIM',
-             {u'CIMVERSION': u'2.0', u'DTDVERSION': u'2.0'},
-             [u'\n  ',
-              (u'MESSAGE',
-               {u'ID': u'1001', u'PROTOCOLVERSION': u'1.0'},
-               [u'\n    ',
-                (u'SIMPLERSP',
+            '<?xml version="1.0" encoding="utf-8" ?>\n'
+            '<CIM CIMVERSION="2.0" DTDVERSION="2.0">\n'
+            '  <MESSAGE ID="1001" PROTOCOLVERSION="1.0">\n'
+            '    <SIMPLERSP>\n'
+            '      <IMETHODRESPONSE NAME="Associators">\n'
+            '        <IRETURNVALUE>\n'
+            '        </IRETURNVALUE>\n'
+            '      </IMETHODRESPONSE>\n'
+            '    </SIMPLERSP>\n'
+            '  </MESSAGE>\n'
+            '</CIM>\n',
+            ('CIM',
+             {'CIMVERSION': '2.0', 'DTDVERSION': '2.0'},
+             ['\n  ',
+              ('MESSAGE',
+               {'ID': '1001', 'PROTOCOLVERSION': '1.0'},
+               ['\n    ',
+                ('SIMPLERSP',
                  {},
-                 [u'\n      ',
-                  (u'IMETHODRESPONSE',
-                   {u'NAME': u'Associators'},
-                   [u'\n        ',
-                    (u'IRETURNVALUE',
+                 ['\n      ',
+                  ('IMETHODRESPONSE',
+                   {'NAME': 'Associators'},
+                   ['\n        ',
+                    ('IRETURNVALUE',
                      {},
-                     [u'\n        ']),
-                    u'\n      ']),
-                  u'\n    ']),
-                u'\n  ']),
-              u'\n']),
+                     ['\n        ']),
+                    '\n      ']),
+                  '\n    ']),
+                '\n  ']),
+              '\n']),
             None, None,
             True
         ),
         (
             "CIM-XML response from Associators operation "
             "(former Associators_StorageVolume_small.xml)",
-            u'<?xml version="1.0" encoding="utf-8" ?>\n'
-            u'<CIM CIMVERSION="2.0" DTDVERSION="2.0"><MESSAGE ID="1001" '
-            u'PROTOCOLVERSION="1.0">\n'
-            u'<SIMPLERSP><IMETHODRESPONSE NAME="Associators"><IRETURNVALUE>\n'
-            u'    \n'
-            u'<VALUE.OBJECTWITHPATH>\n'
-            u'<INSTANCEPATH>\n'
-            u'<NAMESPACEPATH>\n'
-            u'<HOST>10.10.10.10</HOST>\n'
-            u'<LOCALNAMESPACEPATH>\n'
-            u'<NAMESPACE NAME="root"/>\n'
-            u'<NAMESPACE NAME="emc"/>\n'
-            u'</LOCALNAMESPACEPATH>\n'
-            u'</NAMESPACEPATH>\n'
-            u'<INSTANCENAME CLASSNAME="Symm_StorageVolume">\n'
-            u'<KEYBINDING NAME="CreationClassName"><KEYVALUE '
-            u'VALUETYPE="string" TYPE="string">Symm_StorageVolume</KEYVALUE>'
-            u'</KEYBINDING>\n'
-            u'<KEYBINDING NAME="DeviceID"><KEYVALUE VALUETYPE="string" '
-            u'TYPE="string">00000</KEYVALUE></KEYBINDING>\n'
-            u'<KEYBINDING NAME="SystemCreationClassName"><KEYVALUE '
-            u'VALUETYPE="string" TYPE="string">Symm_StorageSystem</KEYVALUE>'
-            u'</KEYBINDING>\n'
-            u'<KEYBINDING NAME="SystemName"><KEYVALUE VALUETYPE="string" '
-            u'TYPE="string">SYMMETRIX-+-000194900000</KEYVALUE></KEYBINDING>\n'
-            u'</INSTANCENAME>\n'
-            u'</INSTANCEPATH>\n'
-            u'<INSTANCE CLASSNAME="Symm_StorageVolume">\n'
-            u'<PROPERTY NAME="Usage" TYPE="uint16"><VALUE>3</VALUE>\n'
-            u'</PROPERTY>\n'
-            u'</INSTANCE>\n'
-            u'</VALUE.OBJECTWITHPATH>\n'
-            u'\n'
-            u'</IRETURNVALUE></IMETHODRESPONSE></SIMPLERSP></MESSAGE></CIM>\n',
-            (u'CIM',
-             {u'CIMVERSION': u'2.0', u'DTDVERSION': u'2.0'},
-             [(u'MESSAGE',
-               {u'ID': u'1001', u'PROTOCOLVERSION': u'1.0'},
-               [u'\n',
-                (u'SIMPLERSP',
+            '<?xml version="1.0" encoding="utf-8" ?>\n'
+            '<CIM CIMVERSION="2.0" DTDVERSION="2.0"><MESSAGE ID="1001" '
+            'PROTOCOLVERSION="1.0">\n'
+            '<SIMPLERSP><IMETHODRESPONSE NAME="Associators"><IRETURNVALUE>\n'
+            '    \n'
+            '<VALUE.OBJECTWITHPATH>\n'
+            '<INSTANCEPATH>\n'
+            '<NAMESPACEPATH>\n'
+            '<HOST>10.10.10.10</HOST>\n'
+            '<LOCALNAMESPACEPATH>\n'
+            '<NAMESPACE NAME="root"/>\n'
+            '<NAMESPACE NAME="emc"/>\n'
+            '</LOCALNAMESPACEPATH>\n'
+            '</NAMESPACEPATH>\n'
+            '<INSTANCENAME CLASSNAME="Symm_StorageVolume">\n'
+            '<KEYBINDING NAME="CreationClassName"><KEYVALUE '
+            'VALUETYPE="string" TYPE="string">Symm_StorageVolume</KEYVALUE>'
+            '</KEYBINDING>\n'
+            '<KEYBINDING NAME="DeviceID"><KEYVALUE VALUETYPE="string" '
+            'TYPE="string">00000</KEYVALUE></KEYBINDING>\n'
+            '<KEYBINDING NAME="SystemCreationClassName"><KEYVALUE '
+            'VALUETYPE="string" TYPE="string">Symm_StorageSystem</KEYVALUE>'
+            '</KEYBINDING>\n'
+            '<KEYBINDING NAME="SystemName"><KEYVALUE VALUETYPE="string" '
+            'TYPE="string">SYMMETRIX-+-000194900000</KEYVALUE></KEYBINDING>\n'
+            '</INSTANCENAME>\n'
+            '</INSTANCEPATH>\n'
+            '<INSTANCE CLASSNAME="Symm_StorageVolume">\n'
+            '<PROPERTY NAME="Usage" TYPE="uint16"><VALUE>3</VALUE>\n'
+            '</PROPERTY>\n'
+            '</INSTANCE>\n'
+            '</VALUE.OBJECTWITHPATH>\n'
+            '\n'
+            '</IRETURNVALUE></IMETHODRESPONSE></SIMPLERSP></MESSAGE></CIM>\n',
+            ('CIM',
+             {'CIMVERSION': '2.0', 'DTDVERSION': '2.0'},
+             [('MESSAGE',
+               {'ID': '1001', 'PROTOCOLVERSION': '1.0'},
+               ['\n',
+                ('SIMPLERSP',
                  {},
-                 [(u'IMETHODRESPONSE',
-                   {u'NAME': u'Associators'},
-                   [(u'IRETURNVALUE',
+                 [('IMETHODRESPONSE',
+                   {'NAME': 'Associators'},
+                   [('IRETURNVALUE',
                      {},
-                     [u'\n    \n',
-                      (u'VALUE.OBJECTWITHPATH',
+                     ['\n    \n',
+                      ('VALUE.OBJECTWITHPATH',
                        {},
-                       [u'\n',
-                        (u'INSTANCEPATH',
+                       ['\n',
+                        ('INSTANCEPATH',
                          {},
-                         [u'\n',
-                          (u'NAMESPACEPATH',
+                         ['\n',
+                          ('NAMESPACEPATH',
                            {},
-                           [u'\n',
-                            (u'HOST',
+                           ['\n',
+                            ('HOST',
                              {},
-                             [u'10.10.10.10']),
-                            u'\n',
-                            (u'LOCALNAMESPACEPATH',
+                             ['10.10.10.10']),
+                            '\n',
+                            ('LOCALNAMESPACEPATH',
                              {},
-                             [u'\n',
-                              (u'NAMESPACE',
-                               {u'NAME': u'root'},
+                             ['\n',
+                              ('NAMESPACE',
+                               {'NAME': 'root'},
                                []),
-                              u'\n',
-                              (u'NAMESPACE',
-                               {u'NAME': u'emc'},
+                              '\n',
+                              ('NAMESPACE',
+                               {'NAME': 'emc'},
                                []),
-                              u'\n']),
-                            u'\n']),
-                          u'\n',
-                          (u'INSTANCENAME',
-                           {u'CLASSNAME': u'Symm_StorageVolume'},
-                           [u'\n',
-                            (u'KEYBINDING',
-                             {u'NAME': u'CreationClassName'},
-                             [(u'KEYVALUE',
-                               {u'TYPE': u'string',
-                                u'VALUETYPE': u'string'},
-                               [u'Symm_StorageVolume'])]),
-                            u'\n',
-                            (u'KEYBINDING',
-                             {u'NAME': u'DeviceID'},
-                             [(u'KEYVALUE',
-                               {u'TYPE': u'string',
-                                u'VALUETYPE': u'string'},
-                               [u'00000'])]),
-                            u'\n',
-                            (u'KEYBINDING',
-                             {u'NAME': u'SystemCreationClassName'},
-                             [(u'KEYVALUE',
-                               {u'TYPE': u'string',
-                                u'VALUETYPE': u'string'},
-                               [u'Symm_StorageSystem'])]),
-                            u'\n',
-                            (u'KEYBINDING',
-                             {u'NAME': u'SystemName'},
-                             [(u'KEYVALUE',
-                               {u'TYPE': u'string',
-                                u'VALUETYPE': u'string'},
-                               [u'SYMMETRIX-+-000194900000'])]),
-                            u'\n']),
-                          u'\n']),
-                        u'\n',
-                        (u'INSTANCE',
-                         {u'CLASSNAME': u'Symm_StorageVolume'},
-                         [u'\n',
-                          (u'PROPERTY',
-                           {u'NAME': u'Usage',
-                            u'TYPE': u'uint16'},
-                           [(u'VALUE',
+                              '\n']),
+                            '\n']),
+                          '\n',
+                          ('INSTANCENAME',
+                           {'CLASSNAME': 'Symm_StorageVolume'},
+                           ['\n',
+                            ('KEYBINDING',
+                             {'NAME': 'CreationClassName'},
+                             [('KEYVALUE',
+                               {'TYPE': 'string',
+                                'VALUETYPE': 'string'},
+                               ['Symm_StorageVolume'])]),
+                            '\n',
+                            ('KEYBINDING',
+                             {'NAME': 'DeviceID'},
+                             [('KEYVALUE',
+                               {'TYPE': 'string',
+                                'VALUETYPE': 'string'},
+                               ['00000'])]),
+                            '\n',
+                            ('KEYBINDING',
+                             {'NAME': 'SystemCreationClassName'},
+                             [('KEYVALUE',
+                               {'TYPE': 'string',
+                                'VALUETYPE': 'string'},
+                               ['Symm_StorageSystem'])]),
+                            '\n',
+                            ('KEYBINDING',
+                             {'NAME': 'SystemName'},
+                             [('KEYVALUE',
+                               {'TYPE': 'string',
+                                'VALUETYPE': 'string'},
+                               ['SYMMETRIX-+-000194900000'])]),
+                            '\n']),
+                          '\n']),
+                        '\n',
+                        ('INSTANCE',
+                         {'CLASSNAME': 'Symm_StorageVolume'},
+                         ['\n',
+                          ('PROPERTY',
+                           {'NAME': 'Usage',
+                            'TYPE': 'uint16'},
+                           [('VALUE',
                              {},
-                             [u'3']),
-                            u'\n']),
-                          u'\n']),
-                        u'\n']),
-                      u'\n\n'])])])])]),
+                             ['3']),
+                            '\n']),
+                          '\n']),
+                        '\n']),
+                      '\n\n'])])])])]),
             None, None,
             True
         ),
@@ -499,7 +498,7 @@ class Test_xml_to_tupletree_sax(object):
         if not condition:
             pytest.skip("Condition for test case not met")
 
-        assert isinstance(xml_string, six.text_type)
+        assert isinstance(xml_string, str)
         if encoding == 'bytes':
             xml_string = xml_string.encode("utf-8")
         else:
@@ -531,7 +530,7 @@ class Test_xml_to_tupletree_sax(object):
                     "Unexpected exception message:\n" + exc_msg
 
 
-class Test_get_failing_line(object):
+class Test_get_failing_line:
     # pylint: disable=too-few-public-methods
     """Tests for _tupletree.get_failing_line()"""
 
@@ -700,7 +699,7 @@ class Test_get_failing_line(object):
                 _tupletree.get_failing_line(xml_string, exc_msg)
 
 
-class Test_check_invalid_utf8_sequences(object):
+class Test_check_invalid_utf8_sequences:
     # pylint: disable=too-few-public-methods
     """
     Tests for _tupletree.check_invalid_utf8_sequences()
@@ -716,7 +715,7 @@ class Test_check_invalid_utf8_sequences(object):
         # General cases
         (
             "Incorrect type of input string",
-            u'<V>ab</V>',
+            '<V>ab</V>',
             TypeError, True
         ),
 
@@ -818,7 +817,7 @@ class Test_check_invalid_utf8_sequences(object):
             unicode_string = _tupletree.check_invalid_utf8_sequences(
                 utf8_string, desc)
 
-            assert isinstance(unicode_string, six.text_type), desc
+            assert isinstance(unicode_string, str), desc
             utf8_string_u = utf8_string.decode('utf-8')
             assert unicode_string == utf8_string_u, desc
 
@@ -828,7 +827,7 @@ class Test_check_invalid_utf8_sequences(object):
                 _tupletree.check_invalid_utf8_sequences(utf8_string, desc)
 
 
-class Test_check_invalid_xml_chars(object):
+class Test_check_invalid_xml_chars:
     # pylint: disable=too-few-public-methods
     """
     Tests for _tupletree.check_invalid_xml_chars()
@@ -851,64 +850,64 @@ class Test_check_invalid_xml_chars(object):
         # Good cases
         (
             "Good case without special chars",
-            u'<V>a</V>',
+            '<V>a</V>',
             None, True
         ),
         (
             "Good case with U+0009 (TAB), U+000A (NL), U+000D (CR) chars",
-            u'<V>a\u0009b\u000Ac\u000Dd</V>',
+            '<V>a\u0009b\u000Ac\u000Dd</V>',
             None, True
         ),
         (
             "Good case with U+0350 char",
-            u'<V>a\u0350b</V>',
+            '<V>a\u0350b</V>',
             None, True
         ),
         (
             "Good case with U+2013 char",
-            u'<V>a\u2013b</V>',
+            '<V>a\u2013b</V>',
             None, True
         ),
         (
             "Good case with U+10122 char",
-            u'<V>a\u010122b</V>',
+            '<V>a\u010122b</V>',
             None, True
         ),
 
         # Invalid XML characters
         (
             "Invalid XML char U+0008 (BEL)",
-            u'<V>a\u0008b</V>',
+            '<V>a\u0008b</V>',
             ParseError, True
         ),
         (
             "Invalid XML char U+0000",
-            u'<V>a\u0000b</V>',
+            '<V>a\u0000b</V>',
             ParseError, True
         ),
         (
             "Invalid XML chars U+0001 ... U+0008",
-            u'<V>a\u0001b\u0002c\u0003d\u0004e\u0005f\u0006g\u0007h\u0008i</V>',
+            '<V>a\u0001b\u0002c\u0003d\u0004e\u0005f\u0006g\u0007h\u0008i</V>',
             ParseError, True
         ),
         (
             "Invalid XML chars U+000B ... U+000C",
-            u'<V>a\u000Bb\u000Cc</V>',
+            '<V>a\u000Bb\u000Cc</V>',
             ParseError, True
         ),
         (
             "Invalid XML chars U+000E ... U+0015",
-            u'<V>a\u000Eb\u000Fc\u0010d\u0011e\u0012f\u0013g\u0014h\u0015i</V>',
+            '<V>a\u000Eb\u000Fc\u0010d\u0011e\u0012f\u0013g\u0014h\u0015i</V>',
             ParseError, True
         ),
         (
             "Invalid XML chars U+0016 ... U+001D",
-            u'<V>a\u0016b\u0017c\u0018d\u0019e\u001Af\u001Bg\u001Ch\u001Di</V>',
+            '<V>a\u0016b\u0017c\u0018d\u0019e\u001Af\u001Bg\u001Ch\u001Di</V>',
             ParseError, True
         ),
         (
             "Invalid XML chars U+001E ... U+001F",
-            u'<V>a\u001Eb\u001Fc</V>',
+            '<V>a\u001Eb\u001Fc</V>',
             ParseError, True
         ),
     ]

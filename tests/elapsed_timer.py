@@ -2,12 +2,11 @@
 Elapsed time timer.
 """
 
-from __future__ import absolute_import
 
 import datetime
 
 
-class ElapsedTimer(object):
+class ElapsedTimer:
     """
     Elapsed time timer.
 

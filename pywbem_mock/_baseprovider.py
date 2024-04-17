@@ -34,7 +34,6 @@ following functionality:
   defined in _wbemconnection_mock
 """
 
-from __future__ import absolute_import, print_function
 
 from pywbem._vendor.nocaselist import NocaseList
 from pywbem import CIMError, \
@@ -51,7 +50,7 @@ from pywbem._utils import _format
 __all__ = ['BaseProvider']
 
 
-class BaseProvider(object):
+class BaseProvider:
     """
     BaseProvider is the top level class in the provider hierarchy and includes
     methods required by both builtin providers and user-defined providers.

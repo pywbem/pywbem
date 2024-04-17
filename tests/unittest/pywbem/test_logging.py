@@ -18,7 +18,6 @@
 Unit test logging functionality in _logging.py
 """
 
-from __future__ import absolute_import, print_function
 
 import os
 import io
@@ -61,7 +60,7 @@ VERBOSE = False
 TEST_DIR = os.path.dirname(__file__)
 
 LOG_FILE_NAME = 'test_logging.log'
-TEST_OUTPUT_LOG = '%s/%s' % (TEST_DIR, LOG_FILE_NAME)
+TEST_OUTPUT_LOG = '{}/{}'.format(TEST_DIR, LOG_FILE_NAME)
 
 
 @pytest.fixture(autouse=True)
@@ -78,7 +77,7 @@ def log_capture():
         yield lc
 
 
-class TestLoggingConfigure(object):
+class TestLoggingConfigure:
     """Base class for logging unit tests"""
 
     @classmethod
@@ -425,7 +424,7 @@ def test_loggers_from_string(testcase, param, expected_result, log_file,
             os.remove(log_file)
 
 
-class BaseLoggingExecutionTests(object):
+class BaseLoggingExecutionTests:
     """Base class for logging execution tests"""
 
     def setup_method(self):
@@ -486,14 +485,14 @@ class TestLoggerOutput(BaseLoggingExecutionTests):
             format(LOGGER_API_CALLS_NAME),
         ]
 
-        with io.open(TEST_OUTPUT_LOG, "r", encoding='utf-8') as log_fp:
+        with open(TEST_OUTPUT_LOG, encoding='utf-8') as log_fp:
             log_lines = log_fp.readlines()
         assert len(log_lines) == len(exp_line_patterns)
         for i, pattern in enumerate(exp_line_patterns):
             assert re.match(pattern, log_lines[i])
 
 
-class TestLoggerPropagate(object):
+class TestLoggerPropagate:
     # pylint: disable=too-few-public-methods
     """Test logging with propagate parameter variations"""
 
@@ -547,11 +546,11 @@ class TestLoggerPropagate(object):
 
         pkg_logger.removeHandler(pkg_handler)
 
-        with io.open(logger_filename, encoding='utf-8') as logger_fp:
+        with open(logger_filename, encoding='utf-8') as logger_fp:
             logger_line = logger_fp.read()
         assert re.match(r'.*-%s\..*-Connection:' % logger_name, logger_line)
 
-        with io.open(pkg_filename, encoding='utf-8') as pkg_fp:
+        with open(pkg_filename, encoding='utf-8') as pkg_fp:
             pkg_line = pkg_fp.read()
         if propagate:
             assert re.match(r'.*-pywbem.*-Connection:', pkg_line)

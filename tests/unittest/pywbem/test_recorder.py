@@ -2,7 +2,6 @@
 Unit tests for the recorder functions (_recorder.py module).
 """
 
-from __future__ import absolute_import, print_function
 
 # Allows use of lots of single character variable names.
 # pylint: disable=invalid-name,missing-docstring,too-many-statements
@@ -18,7 +17,7 @@ try:
     from collections.abc import Mapping
 except ImportError:
     # pylint: disable=deprecated-class
-    from collections import Mapping
+    from collections.abc import Mapping
 
 import pytest
 import six
@@ -86,8 +85,8 @@ DEBUG_TEST_YAML_FILE = False  # Show the generated test client YAML file
 CIMPROPERTY_B1_OBJ = CIMProperty('B1', value=True)
 CIMPROPERTY_B1_TCYAML = dict(
     pywbem_object='CIMProperty',
-    name=u'B1',
-    type=u'boolean',
+    name='B1',
+    type='boolean',
     value=True,
     reference_class=None,
     embedded_object=None,
@@ -97,12 +96,12 @@ CIMPROPERTY_B1_TCYAML = dict(
     propagated=None,
     qualifiers=yaml_ordereddict(),
 )
-CIMPROPERTY_C1_OBJ = CIMProperty('C1', type='char16', value=u'A')
+CIMPROPERTY_C1_OBJ = CIMProperty('C1', type='char16', value='A')
 CIMPROPERTY_C1_TCYAML = dict(
     pywbem_object='CIMProperty',
-    name=u'C1',
-    type=u'char16',
-    value=u'A',
+    name='C1',
+    type='char16',
+    value='A',
     reference_class=None,
     embedded_object=None,
     is_array=False,
@@ -111,12 +110,12 @@ CIMPROPERTY_C1_TCYAML = dict(
     propagated=None,
     qualifiers=yaml_ordereddict(),
 )
-CIMPROPERTY_C2_OBJ = CIMProperty('C2', type='char16', value=u'\u00E4')
+CIMPROPERTY_C2_OBJ = CIMProperty('C2', type='char16', value='\u00E4')
 CIMPROPERTY_C2_TCYAML = dict(
     pywbem_object='CIMProperty',
-    name=u'C2',
-    type=u'char16',
-    value=u'\u00E4',
+    name='C2',
+    type='char16',
+    value='\u00E4',
     reference_class=None,
     embedded_object=None,
     is_array=False,
@@ -126,12 +125,12 @@ CIMPROPERTY_C2_TCYAML = dict(
     qualifiers=yaml_ordereddict(),
 )
 # Note that the value space of the char16 datatype is UCS-2
-CIMPROPERTY_S1_OBJ = CIMProperty('S1', type='string', value=u'Ham')
+CIMPROPERTY_S1_OBJ = CIMProperty('S1', type='string', value='Ham')
 CIMPROPERTY_S1_TCYAML = dict(
     pywbem_object='CIMProperty',
-    name=u'S1',
-    type=u'string',
-    value=u'Ham',
+    name='S1',
+    type='string',
+    value='Ham',
     reference_class=None,
     embedded_object=None,
     is_array=False,
@@ -140,12 +139,12 @@ CIMPROPERTY_S1_TCYAML = dict(
     propagated=None,
     qualifiers=yaml_ordereddict(),
 )
-CIMPROPERTY_S2_OBJ = CIMProperty('S2', type='string', value=u'H\u00E4m')
+CIMPROPERTY_S2_OBJ = CIMProperty('S2', type='string', value='H\u00E4m')
 CIMPROPERTY_S2_TCYAML = dict(
     pywbem_object='CIMProperty',
-    name=u'S2',
-    type=u'string',
-    value=u'H\u00E4m',
+    name='S2',
+    type='string',
+    value='H\u00E4m',
     reference_class=None,
     embedded_object=None,
     is_array=False,
@@ -154,12 +153,12 @@ CIMPROPERTY_S2_TCYAML = dict(
     propagated=None,
     qualifiers=yaml_ordereddict(),
 )
-CIMPROPERTY_S3_OBJ = CIMProperty('S3', type='string', value=u'A\U00010142B')
+CIMPROPERTY_S3_OBJ = CIMProperty('S3', type='string', value='A\U00010142B')
 CIMPROPERTY_S3_TCYAML = dict(
     pywbem_object='CIMProperty',
-    name=u'S3',
-    type=u'string',
-    value=u'A\U00010142B',
+    name='S3',
+    type='string',
+    value='A\U00010142B',
     reference_class=None,
     embedded_object=None,
     is_array=False,
@@ -173,8 +172,8 @@ CIMPROPERTY_E1_OBJ = CIMProperty('E1', type='string',
                                  value=CIMInstance('C_Emb'))
 CIMPROPERTY_E1_TCYAML = dict(
     pywbem_object='CIMProperty',
-    name=u'E1',
-    type=u'string',
+    name='E1',
+    type='string',
     value=dict(
         pywbem_object='CIMInstance',
         classname='C_Emb',
@@ -183,7 +182,7 @@ CIMPROPERTY_E1_TCYAML = dict(
         path=None,
     ),
     reference_class=None,
-    embedded_object=u'instance',
+    embedded_object='instance',
     is_array=False,
     array_size=None,
     class_origin=None,
@@ -195,8 +194,8 @@ CIMPROPERTY_E2_OBJ = CIMProperty('E2', type='string',
                                  value=CIMInstance('C_Emb'))
 CIMPROPERTY_E2_TCYAML = dict(
     pywbem_object='CIMProperty',
-    name=u'E2',
-    type=u'string',
+    name='E2',
+    type='string',
     value=dict(
         pywbem_object='CIMInstance',
         classname='C_Emb',
@@ -205,7 +204,7 @@ CIMPROPERTY_E2_TCYAML = dict(
         path=None,
     ),
     reference_class=None,
-    embedded_object=u'object',
+    embedded_object='object',
     is_array=False,
     array_size=None,
     class_origin=None,
@@ -217,8 +216,8 @@ CIMPROPERTY_E3_OBJ = CIMProperty('E3', type='string',
                                  value=CIMClass('C_Emb'))
 CIMPROPERTY_E3_TCYAML = dict(
     pywbem_object='CIMProperty',
-    name=u'E3',
-    type=u'string',
+    name='E3',
+    type='string',
     value=dict(
         pywbem_object='CIMClass',
         classname='C_Emb',
@@ -229,7 +228,7 @@ CIMPROPERTY_E3_TCYAML = dict(
         path=None,
     ),
     reference_class=None,
-    embedded_object=u'object',
+    embedded_object='object',
     is_array=False,
     array_size=None,
     class_origin=None,
@@ -239,8 +238,8 @@ CIMPROPERTY_E3_TCYAML = dict(
 CIMPROPERTY_U11_OBJ = CIMProperty('U11', value=Uint8(42))
 CIMPROPERTY_U11_TCYAML = dict(
     pywbem_object='CIMProperty',
-    name=u'U11',
-    type=u'uint8',
+    name='U11',
+    type='uint8',
     value=42,
     reference_class=None,
     embedded_object=None,
@@ -253,8 +252,8 @@ CIMPROPERTY_U11_TCYAML = dict(
 CIMPROPERTY_U21_OBJ = CIMProperty('U21', value=Uint16(4216))
 CIMPROPERTY_U21_TCYAML = dict(
     pywbem_object='CIMProperty',
-    name=u'U21',
-    type=u'uint16',
+    name='U21',
+    type='uint16',
     value=4216,
     reference_class=None,
     embedded_object=None,
@@ -267,8 +266,8 @@ CIMPROPERTY_U21_TCYAML = dict(
 CIMPROPERTY_U41_OBJ = CIMProperty('U41', value=Uint32(4232))
 CIMPROPERTY_U41_TCYAML = dict(
     pywbem_object='CIMProperty',
-    name=u'U41',
-    type=u'uint32',
+    name='U41',
+    type='uint32',
     value=4232,
     reference_class=None,
     embedded_object=None,
@@ -281,8 +280,8 @@ CIMPROPERTY_U41_TCYAML = dict(
 CIMPROPERTY_U81_OBJ = CIMProperty('U81', value=Uint64(4264))
 CIMPROPERTY_U81_TCYAML = dict(
     pywbem_object='CIMProperty',
-    name=u'U81',
-    type=u'uint64',
+    name='U81',
+    type='uint64',
     value=4264,
     reference_class=None,
     embedded_object=None,
@@ -295,8 +294,8 @@ CIMPROPERTY_U81_TCYAML = dict(
 CIMPROPERTY_S11_OBJ = CIMProperty('S11', value=Sint8(-42))
 CIMPROPERTY_S11_TCYAML = dict(
     pywbem_object='CIMProperty',
-    name=u'S11',
-    type=u'sint8',
+    name='S11',
+    type='sint8',
     value=-42,
     reference_class=None,
     embedded_object=None,
@@ -309,8 +308,8 @@ CIMPROPERTY_S11_TCYAML = dict(
 CIMPROPERTY_S21_OBJ = CIMProperty('S21', value=Sint16(-4216))
 CIMPROPERTY_S21_TCYAML = dict(
     pywbem_object='CIMProperty',
-    name=u'S21',
-    type=u'sint16',
+    name='S21',
+    type='sint16',
     value=-4216,
     reference_class=None,
     embedded_object=None,
@@ -323,8 +322,8 @@ CIMPROPERTY_S21_TCYAML = dict(
 CIMPROPERTY_S41_OBJ = CIMProperty('S41', value=Sint32(-4232))
 CIMPROPERTY_S41_TCYAML = dict(
     pywbem_object='CIMProperty',
-    name=u'S41',
-    type=u'sint32',
+    name='S41',
+    type='sint32',
     value=-4232,
     reference_class=None,
     embedded_object=None,
@@ -337,8 +336,8 @@ CIMPROPERTY_S41_TCYAML = dict(
 CIMPROPERTY_S81_OBJ = CIMProperty('S81', value=Sint64(-4264))
 CIMPROPERTY_S81_TCYAML = dict(
     pywbem_object='CIMProperty',
-    name=u'S81',
-    type=u'sint64',
+    name='S81',
+    type='sint64',
     value=-4264,
     reference_class=None,
     embedded_object=None,
@@ -351,8 +350,8 @@ CIMPROPERTY_S81_TCYAML = dict(
 CIMPROPERTY_R41_OBJ = CIMProperty('R41', value=Real32(42.0))
 CIMPROPERTY_R41_TCYAML = dict(
     pywbem_object='CIMProperty',
-    name=u'R41',
-    type=u'real32',
+    name='R41',
+    type='real32',
     value=42.0,
     reference_class=None,
     embedded_object=None,
@@ -365,8 +364,8 @@ CIMPROPERTY_R41_TCYAML = dict(
 CIMPROPERTY_R81_OBJ = CIMProperty('R81', value=Real64(42.64))
 CIMPROPERTY_R81_TCYAML = dict(
     pywbem_object='CIMProperty',
-    name=u'R81',
-    type=u'real64',
+    name='R81',
+    type='real64',
     value=42.64,
     reference_class=None,
     embedded_object=None,
@@ -379,8 +378,8 @@ CIMPROPERTY_R81_TCYAML = dict(
 CIMPROPERTY_R1_OBJ = CIMProperty('R1', value=CIMInstanceName('C1'))
 CIMPROPERTY_R1_TCYAML = dict(
     pywbem_object='CIMProperty',
-    name=u'R1',
-    type=u'reference',
+    name='R1',
+    type='reference',
     value=dict(
         pywbem_object='CIMInstanceName',
         classname='C1',
@@ -401,9 +400,9 @@ CIMPROPERTY_D1_OBJ = CIMProperty(
     value=CIMDateTime('20140924193040.654321+120'))
 CIMPROPERTY_D1_TCYAML = dict(
     pywbem_object='CIMProperty',
-    name=u'D1',
-    type=u'datetime',
-    value=u'20140924193040.654321+120',
+    name='D1',
+    type='datetime',
+    value='20140924193040.654321+120',
     reference_class=None,
     embedded_object=None,
     is_array=False,
@@ -795,7 +794,7 @@ def load_recorder_yaml_file():
     Load the test YAML file created by the test recorder and return its content
     as a dict.
     """
-    with io.open(TEST_YAML_FILE, encoding="utf-8") as fp:
+    with open(TEST_YAML_FILE, encoding="utf-8") as fp:
         yaml_content = yaml.load(
             fp, Loader=yamlloader.ordereddict.CSafeLoader)
     return yaml_content
@@ -828,7 +827,7 @@ def test_BaseOperationRecorder_init():
     assert is_inherited_from(
         'enabled', _TestClientRecorder, BaseOperationRecorder)
 
-    with io.open(os.devnull, 'w', encoding='utf-8') as fp:
+    with open(os.devnull, 'w', encoding='utf-8') as fp:
 
         # The code to be tested
         recorder = _TestClientRecorder(fp)
@@ -852,7 +851,7 @@ def test_BaseOperationRecorder_enable_disable():
     assert is_inherited_from(
         'enabled', _TestClientRecorder, BaseOperationRecorder)
 
-    with io.open(os.devnull, 'w', encoding='utf-8') as fp:
+    with open(os.devnull, 'w', encoding='utf-8') as fp:
 
         recorder = _TestClientRecorder(fp)
 
@@ -889,7 +888,7 @@ TESTCASES_BASEOPERATIONRECORDER_OPEN_FILE = [
     (
         "Single 7-bit ASCII character",
         dict(
-            text=u'A',
+            text='A',
             exp_bytes=b'A',
         ),
         None, None, True
@@ -897,7 +896,7 @@ TESTCASES_BASEOPERATIONRECORDER_OPEN_FILE = [
     (
         "Single UCS-2 character resulting in 2-char UTF-8 sequence",
         dict(
-            text=u'\u00E8',
+            text='\u00E8',
             exp_bytes=b'\xC3\xA8',
         ),
         None, None, True
@@ -905,7 +904,7 @@ TESTCASES_BASEOPERATIONRECORDER_OPEN_FILE = [
     (
         "Single UCS-2 character resulting in 3-char UTF-8 sequence",
         dict(
-            text=u'\u2014',
+            text='\u2014',
             exp_bytes=b'\xE2\x80\x94',
         ),
         None, None, True
@@ -914,7 +913,7 @@ TESTCASES_BASEOPERATIONRECORDER_OPEN_FILE = [
         "Single UTF-16 surrogate sequence for U+10142 resulting in 4-char "
         "UTF-8 sequence",
         dict(
-            text=u'\uD800\uDD42',
+            text='\uD800\uDD42',
             exp_bytes=b'\xF0\x90\x85\x82',
         ),
         None, None, six.PY2  # Not supported in Python 3
@@ -922,7 +921,7 @@ TESTCASES_BASEOPERATIONRECORDER_OPEN_FILE = [
     (
         "Single UCS-4 character resulting in 4-char UTF-8 sequence",
         dict(
-            text=u'\U00010142',
+            text='\U00010142',
             exp_bytes=b'\xF0\x90\x85\x82',
         ),
         None, None, True
@@ -955,7 +954,7 @@ def test_BaseOperationRecorder_open_file(testcase, text, exp_bytes):
     fp.write(text)
     fp.close()
 
-    with io.open(tmp_filename, 'rb') as fp:
+    with open(tmp_filename, 'rb') as fp:
         act_bytes = fp.read()
     assert act_bytes == exp_bytes
 
@@ -1079,12 +1078,12 @@ TESTCASES_TESTCLIENTRECORDER_TOYAML = [
             ),
             exp_yaml=dict(
                 pywbem_object='CIMInstanceName',
-                classname=u'CIM_Foo',
-                namespace=u'cimv2',
-                host=u'woot.com',
+                classname='CIM_Foo',
+                namespace='cimv2',
+                host='woot.com',
                 keybindings=yaml_ordereddict([
-                    (u'Chicken', u'Ham'),
-                    (u'Beans', 42),
+                    ('Chicken', 'Ham'),
+                    ('Beans', 42),
                 ]),
             ),
         ),
@@ -1101,13 +1100,13 @@ TESTCASES_TESTCLIENTRECORDER_TOYAML = [
             ),
             exp_yaml=dict(
                 pywbem_object='CIMInstance',
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 properties=yaml_ordereddict([
-                    (u'Chicken', dict(
+                    ('Chicken', dict(
                         pywbem_object='CIMProperty',
-                        name=u'Chicken',
-                        type=u'string',
-                        value=u'Ham',
+                        name='Chicken',
+                        type='string',
+                        value='Ham',
                         reference_class=None,
                         embedded_object=None,
                         is_array=False,
@@ -1133,8 +1132,8 @@ TESTCASES_TESTCLIENTRECORDER_TOYAML = [
             ),
             exp_yaml=dict(
                 pywbem_object='CIMClassName',
-                classname=u'CIM_Foo',
-                namespace=u'cimv2',
+                classname='CIM_Foo',
+                namespace='cimv2',
                 host='woot.com',
             ),
         ),
@@ -1151,14 +1150,14 @@ TESTCASES_TESTCLIENTRECORDER_TOYAML = [
             ),
             exp_yaml=dict(
                 pywbem_object='CIMClass',
-                classname=u'CIM_Foo',
+                classname='CIM_Foo',
                 superclass=None,
                 properties=yaml_ordereddict([
-                    (u'Chicken', dict(
+                    ('Chicken', dict(
                         pywbem_object='CIMProperty',
-                        name=u'Chicken',
-                        type=u'string',
-                        value=u'Ham',
+                        name='Chicken',
+                        type='string',
+                        value='Ham',
                         reference_class=None,
                         embedded_object=None,
                         is_array=False,
@@ -1181,9 +1180,9 @@ TESTCASES_TESTCLIENTRECORDER_TOYAML = [
             obj=CIMProperty('Chicken', type='string', value='Ham'),
             exp_yaml=dict(
                 pywbem_object='CIMProperty',
-                name=u'Chicken',
-                type=u'string',
-                value=u'Ham',
+                name='Chicken',
+                type='string',
+                value='Ham',
                 reference_class=None,
                 embedded_object=None,
                 is_array=False,
@@ -1204,8 +1203,8 @@ TESTCASES_TESTCLIENTRECORDER_TOYAML = [
             obj=CIMMethod('Chicken', return_type='string'),
             exp_yaml=dict(
                 pywbem_object='CIMMethod',
-                name=u'Chicken',
-                return_type=u'string',
+                name='Chicken',
+                return_type='string',
                 class_origin=None,
                 propagated=None,
                 parameters=yaml_ordereddict(),
@@ -1220,8 +1219,8 @@ TESTCASES_TESTCLIENTRECORDER_TOYAML = [
             obj=CIMParameter('Chicken', type='string'),
             exp_yaml=dict(
                 pywbem_object='CIMParameter',
-                name=u'Chicken',
-                type=u'string',
+                name='Chicken',
+                type='string',
                 reference_class=None,
                 embedded_object=None,
                 is_array=False,
@@ -1240,9 +1239,9 @@ TESTCASES_TESTCLIENTRECORDER_TOYAML = [
             obj=CIMQualifier('Chicken', type='string', value='Ham'),
             exp_yaml=dict(
                 pywbem_object='CIMQualifier',
-                name=u'Chicken',
-                type=u'string',
-                value=u'Ham',
+                name='Chicken',
+                type='string',
+                value='Ham',
                 propagated=None,
                 tosubclass=None,
                 toinstance=None,
@@ -1258,9 +1257,9 @@ TESTCASES_TESTCLIENTRECORDER_TOYAML = [
             obj=CIMQualifierDeclaration('Chicken', type='string', value='Ham'),
             exp_yaml=dict(
                 pywbem_object='CIMQualifierDeclaration',
-                name=u'Chicken',
-                type=u'string',
-                value=u'Ham',
+                name='Chicken',
+                type='string',
+                value='Ham',
                 is_array=False,
                 array_size=None,
                 scopes=yaml_ordereddict(),
@@ -1318,7 +1317,7 @@ def test_TestClientRecorder_toyaml(testcase, obj, exp_yaml):
     Test function for TestClientRecorder.toyaml()
     """
 
-    with io.open(os.devnull, 'w', encoding='utf-8') as fp:
+    with open(os.devnull, 'w', encoding='utf-8') as fp:
 
         recorder = _TestClientRecorder(fp)
         recorder.reset()
@@ -1573,9 +1572,9 @@ def test_TestClientRecorder_record(
         print("\nDebug: Test client YAML file for testcase: {}".
               format(desc))
         if sys.platform == 'win32':
-            os.system('type {}'.format(TEST_YAML_FILE))
+            os.system(f'type {TEST_YAML_FILE}')
         else:
-            os.system('cat {}'.format(TEST_YAML_FILE))
+            os.system(f'cat {TEST_YAML_FILE}')
 
     # Verify the generated test client YAML file
     test_yaml = load_recorder_yaml_file()
@@ -1611,17 +1610,17 @@ def assert_yaml_equal(act_value, exp_value, location):
     if isinstance(exp_value, OrderedDict):
         # Ordered comparison.
         assert act_value == exp_value, \
-            "Unexpected YAML object at {}".format(location)
+            f"Unexpected YAML object at {location}"
     elif isinstance(exp_value, dict):
         # Ensure unordered comparison by converting to dict.
         # Note that starting with Python 3.7, dict maintains order but equality
         # comparison does not take order into account.
         act_value2 = to_dict(act_value, dict)
         assert act_value2 == exp_value, \
-            "Unexpected YAML object at {}".format(location)
+            f"Unexpected YAML object at {location}"
     else:
         assert act_value == exp_value, \
-            "Unexpected YAML object at {}".format(location)
+            f"Unexpected YAML object at {location}"
 
 
 ################################################################
@@ -1630,7 +1629,7 @@ def assert_yaml_equal(act_value, exp_value, location):
 #
 ################################################################
 
-class BaseLogOperationRecorderTests(object):
+class BaseLogOperationRecorderTests:
     """
     Test the LogOperationRecorder functions. Creates log entries and
     uses testfixture to validate results
@@ -1664,7 +1663,7 @@ class BaseLogOperationRecorderTests(object):
         # Define an attribute that is a single LogOperationRecorder to be used
         # in some of the tests.  Note that if detail_level is dict it is used
         # directly.
-        if isinstance(detail_level, (six.string_types, six.integer_types)):
+        if isinstance(detail_level, ((str,), (int,))):
             detail_level = {'api': detail_level, 'http': detail_level}
 
         # pylint: disable=attribute-defined-outside-init
@@ -1706,7 +1705,7 @@ class Test_LOR_Connections(BaseLogOperationRecorderTests):
                          propagate=True)
 
         conn_id = conn.conn_id
-        api_exp_log_id = 'pywbem.api.{0}'.format(conn_id)
+        api_exp_log_id = f'pywbem.api.{conn_id}'
 
         result_con = _format(
             "Connection:{0} WBEMConnection("
@@ -1747,7 +1746,7 @@ class Test_LOR_Connections(BaseLogOperationRecorderTests):
                          propagate=True)
 
         conn_id = conn.conn_id
-        api_exp_log_id = 'pywbem.api.{0}'.format(conn_id)
+        api_exp_log_id = f'pywbem.api.{conn_id}'
 
         result_con = _format(
             "Connection:{0} WBEMConnection("
@@ -1788,7 +1787,7 @@ class Test_LOR_Connections(BaseLogOperationRecorderTests):
                          propagate=True)
 
         conn_id = conn.conn_id
-        api_exp_log_id = 'pywbem.api.{0}'.format(conn_id)
+        api_exp_log_id = f'pywbem.api.{conn_id}'
 
         result_con = _format(
             "Connection:{0} WBEMConnection("
@@ -1902,9 +1901,9 @@ class Test_LOR_PywbemResults(BaseLogOperationRecorderTests):
             pass
         else:
             # shorten it to the desired detail
-            exp_str = "{}...".format(exp_str[:detail_level])
+            exp_str = f"{exp_str[:detail_level]}..."
 
-        result_ret = "Return:test_id None({})".format(exp_str)
+        result_ret = f"Return:test_id None({exp_str})"
 
         capture.check(
             ('pywbem.api.test_id', 'DEBUG', result_ret),
@@ -1922,8 +1921,8 @@ class Test_LOR_PywbemResults(BaseLogOperationRecorderTests):
 
         self.test_recorder.stage_pywbem_result(instance_wp, exc)
 
-        path_str = "'{}'".format(instance_wp.path.to_wbem_uri())
-        result_ret = "Return:test_id None({})".format(path_str)
+        path_str = f"'{instance_wp.path.to_wbem_uri()}'"
+        result_ret = f"Return:test_id None({path_str})"
 
         capture.check(
             ('pywbem.api.test_id', 'DEBUG', result_ret),
@@ -1942,7 +1941,7 @@ class Test_LOR_PywbemResults(BaseLogOperationRecorderTests):
 
         self.test_recorder.stage_pywbem_result(instances_wp, exc)
 
-        path_strs = ["'{}'".format(inst.path.to_wbem_uri())
+        path_strs = [f"'{inst.path.to_wbem_uri()}'"
                      for inst in instances_wp]
         result_ret = "Return:test_id None({})".format(', '.join(path_strs))
 
@@ -1967,7 +1966,7 @@ class Test_LOR_PywbemResults(BaseLogOperationRecorderTests):
 
         self.test_recorder.stage_pywbem_result(result_tuple, exc)
 
-        path_strs = ["'{}'".format(inst.path.to_wbem_uri())
+        path_strs = [f"'{inst.path.to_wbem_uri()}'"
                      for inst in instances_wp]
         result_ret = (
             "Return:test_id None(pull_inst_result_tuple("
@@ -1999,25 +1998,25 @@ class Test_LOR_HTTPRequests(BaseLogOperationRecorderTests):
         target = '/cimom'
 
         payload = (
-            u'<?xml version="1.0" encoding="utf-8" ?>\n'
-            u'<CIM CIMVERSION="2.0" DTDVERSION="2.0">\n'
-            u'<MESSAGE ID="1001" PROTOCOLVERSION="1.0">\n'
-            u'<SIMPLEREQ>\n'
-            u'<IMETHODCALL NAME="GetInstance">\n'
-            u'<LOCALNAMESPACEPATH>\n'
-            u'<NAMESPACE NAME="root"/>\n'
-            u'<NAMESPACE NAME="cimv2"/>\n'
-            u'</LOCALNAMESPACEPATH>\n'
-            u'<IPARAMVALUE NAME="InstanceName">\n'
-            u'{ip}\n'
-            u'</IPARAMVALUE>\n'
-            u'<IPARAMVALUE NAME="LocalOnly">\n'
-            u'<VALUE>FALSE</VALUE>\n'
-            u'</IPARAMVALUE>\n'
-            u'</IMETHODCALL>\n'
-            u'</SIMPLEREQ>\n'
-            u'</MESSAGE>\n'
-            u'</CIM>)'.
+            '<?xml version="1.0" encoding="utf-8" ?>\n'
+            '<CIM CIMVERSION="2.0" DTDVERSION="2.0">\n'
+            '<MESSAGE ID="1001" PROTOCOLVERSION="1.0">\n'
+            '<SIMPLEREQ>\n'
+            '<IMETHODCALL NAME="GetInstance">\n'
+            '<LOCALNAMESPACEPATH>\n'
+            '<NAMESPACE NAME="root"/>\n'
+            '<NAMESPACE NAME="cimv2"/>\n'
+            '</LOCALNAMESPACEPATH>\n'
+            '<IPARAMVALUE NAME="InstanceName">\n'
+            '{ip}\n'
+            '</IPARAMVALUE>\n'
+            '<IPARAMVALUE NAME="LocalOnly">\n'
+            '<VALUE>FALSE</VALUE>\n'
+            '</IPARAMVALUE>\n'
+            '</IMETHODCALL>\n'
+            '</SIMPLEREQ>\n'
+            '</MESSAGE>\n'
+            '</CIM>)'.
             format(ip=instancename.tocimxmlstr(indent=0))
         )
 
@@ -2111,18 +2110,18 @@ class Test_LOR_HTTPResponses(BaseLogOperationRecorderTests):
         Also, perform part 1 of the response staging.
         """
         body = (
-            u'<?xml version="1.0" encoding="utf-8" ?>\n'
-            u'<CIM CIMVERSION="2.0" DTDVERSION="2.0">\n'
-            u'<MESSAGE ID="1001" PROTOCOLVERSION="1.0">\n'
-            u'<SIMPLERSP>\n'
-            u'<IMETHODRESPONSE NAME="GetInstance">\n'
-            u'<IRETURNVALUE>\n'
-            u'{i}\n'
-            u'</IRETURNVALUE>\n'
-            u'</IMETHODRESPONSE>\n'
-            u'</SIMPLERSP>\n'
-            u'</MESSAGE>\n'
-            u'</CIM>)\n'.
+            '<?xml version="1.0" encoding="utf-8" ?>\n'
+            '<CIM CIMVERSION="2.0" DTDVERSION="2.0">\n'
+            '<MESSAGE ID="1001" PROTOCOLVERSION="1.0">\n'
+            '<SIMPLERSP>\n'
+            '<IMETHODRESPONSE NAME="GetInstance">\n'
+            '<IRETURNVALUE>\n'
+            '{i}\n'
+            '</IRETURNVALUE>\n'
+            '</IMETHODRESPONSE>\n'
+            '</SIMPLERSP>\n'
+            '</MESSAGE>\n'
+            '</CIM>)\n'.
             format(i=instance.tocimxmlstr(indent=0))
         )
         headers = OrderedDict([
@@ -2754,8 +2753,8 @@ class TestExternLoggerDef(BaseLogOperationRecorderTests):
 
         conn_id = conn.conn_id
 
-        api_exp_log_id = 'pywbem.api.{0}'.format(conn_id)
-        http_exp_log_id = 'pywbem.http.{0}'.format(conn_id)
+        api_exp_log_id = f'pywbem.api.{conn_id}'
+        http_exp_log_id = f'pywbem.http.{conn_id}'
 
         result_exc = _format(
             "Exception:{0} GetClass('ConnectionError(Socket error: "
@@ -2872,7 +2871,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
 
         conn_id = conn.conn_id
 
-        api_exp_log_id = 'pywbem.api.{0}'.format(conn_id)
+        api_exp_log_id = f'pywbem.api.{conn_id}'
 
         result_con = _format(
             "Connection:{0} FakedWBEMConnection("
@@ -2922,7 +2921,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
 
         conn_id = conn.conn_id
 
-        api_exp_log_id = 'pywbem.api.{0}'.format(conn_id)
+        api_exp_log_id = f'pywbem.api.{conn_id}'
 
         result_con = _format("Connection:{0} FakedWBEMC...", conn_id)
 
@@ -2960,7 +2959,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
 
         conn_id = conn.conn_id
 
-        api_exp_log_id = 'pywbem.api.{0}'.format(conn_id)
+        api_exp_log_id = f'pywbem.api.{conn_id}'
 
         result_con = _format("Connection:{0} FakedWBEMC...", conn_id)
 
@@ -2996,7 +2995,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
 
         conn_id = conn.conn_id
 
-        api_exp_log_id = 'pywbem.api.{0}'.format(conn_id)
+        api_exp_log_id = f'pywbem.api.{conn_id}'
 
         result_con = _format("Connection:{0} FakedWBEMC...", conn_id)
 
@@ -3033,7 +3032,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
 
         conn_id = conn.conn_id
 
-        api_exp_log_id = 'pywbem.api.{0}'.format(conn_id)
+        api_exp_log_id = f'pywbem.api.{conn_id}'
 
         result_con = _format("Connection:{0} FakedWBEMC...", conn_id)
 
@@ -3070,7 +3069,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
 
         conn_id = conn.conn_id
 
-        http_exp_log_id = 'pywbem.http.{0}'.format(conn_id)
+        http_exp_log_id = f'pywbem.http.{conn_id}'
 
         result_con = _format(
             "Connection:{0} FakedWBEMConnection("
@@ -3116,7 +3115,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
 
         conn_id = conn.conn_id
 
-        http_exp_log_id = 'pywbem.http.{0}'.format(conn_id)
+        http_exp_log_id = f'pywbem.http.{conn_id}'
 
         result_con = _format(
             "Connection:{0} FakedWBEMConnection("
@@ -3168,7 +3167,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
 
         conn_id = conn.conn_id
 
-        http_exp_log_id = 'pywbem.http.{0}'.format(conn_id)
+        http_exp_log_id = f'pywbem.http.{conn_id}'
 
         result_con = _format(
             "Connection:{0} FakedWBEMConnection("
@@ -3214,7 +3213,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
 
         conn_id = conn.conn_id
 
-        http_exp_log_id = 'pywbem.http.{0}'.format(conn_id)
+        http_exp_log_id = f'pywbem.http.{conn_id}'
 
         result_con = _format(
             "Connection:{0} FakedWBEMConnection("
@@ -3259,7 +3258,7 @@ class TestLoggingEndToEnd(BaseLogOperationRecorderTests):
 
         conn_id = conn.conn_id
 
-        http_exp_log_id = 'pywbem.http.{0}'.format(conn_id)
+        http_exp_log_id = f'pywbem.http.{conn_id}'
 
         result_con = _format(
             "Connection:{0} FakedWBEMConnection("
@@ -3488,7 +3487,7 @@ def test_copy_testclientrecorder(
         testcase, init_kwargs, enable_recorder, record_operation):
     """Test TestClientRecorder.copy()"""
 
-    with io.open(DEV_NULL, 'a', encoding='utf-8') as dev_null:
+    with open(DEV_NULL, 'a', encoding='utf-8') as dev_null:
 
         rec = _TestClientRecorder(dev_null, **init_kwargs)
 

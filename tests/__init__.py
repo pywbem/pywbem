@@ -19,7 +19,6 @@ In addition, the following subdirectories exist that do not contain tests:
   some testcases in end2end tests.
 """
 
-from __future__ import absolute_import, print_function
 import os
 from .utils import import_installed
 pywbem = import_installed('pywbem')  # pylint: disable=invalid-name

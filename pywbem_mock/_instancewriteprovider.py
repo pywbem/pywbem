@@ -84,7 +84,6 @@ The provider in this example does not need to implement an ``__init__()``
 method, because no additional init parameters are needed.
 """
 
-from __future__ import absolute_import, print_function
 
 from pywbem._nocasedict import NocaseDict
 
@@ -132,7 +131,7 @@ class InstanceWriteProvider(BaseProvider):
           cimrepository (:class:`~pywbem_mock.BaseRepository` or subclass):
             The CIM repository to be used by the provider.
         """
-        super(InstanceWriteProvider, self).__init__(cimrepository)
+        super().__init__(cimrepository)
 
     def CreateInstance(self, namespace, new_instance):
         """

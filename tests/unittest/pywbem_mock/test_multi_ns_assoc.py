@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # (C) Copyright 2022 InovaDevelopment.com
 #
@@ -25,7 +24,6 @@ tests are separate because the multi-namespace capability was added in pywbem
 1.1 so it was simpler to add a new test file. The tests
 provide a test of the logic of processing these associations.
 """
-from __future__ import absolute_import, print_function
 
 import pytest
 

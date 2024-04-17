@@ -7,7 +7,7 @@ import tracemalloc
 from .timers import Timer
 
 
-class ResourceMeasurement(object):
+class ResourceMeasurement:
     """
     Context manager that measures resource consumption of its body.
 

@@ -4,14 +4,13 @@ at least those functions that can reasonably be tested in a standalone
 manner.
 """
 
-from __future__ import print_function, absolute_import
 
 from lxml import etree
 
 from ...functiontest.conftest import xml_embed, xml_unembed
 
 
-class Test_EmbedUnembed(object):
+class Test_EmbedUnembed:
     """Test case for xml_embed() / xml_unembed() functions."""
 
     @staticmethod

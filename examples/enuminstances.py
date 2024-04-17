@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 """Example of the EnumerateInstances operation. The execution
    arguments may be either internal defaults if less than the full set of
@@ -21,7 +20,6 @@
    operation request, displaying results and handling exceptions.
 """
 
-from __future__ import print_function
 import sys
 from pywbem import WBEMConnection, Error, CIMError
 
@@ -54,7 +52,7 @@ def execute_request(server_url, creds, namespace, classname):
         INSTANCES = CONN.EnumerateInstances(classname)
 
         #Display of characteristics of the result object
-        print('instances type=%s len=%s' % (type(INSTANCES),
+        print('instances type={} len={}'.format(type(INSTANCES),
                                             len(INSTANCES)))
         #display the mof output
         for inst in INSTANCES:

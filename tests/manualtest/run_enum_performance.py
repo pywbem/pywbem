@@ -6,7 +6,6 @@ from the provider TST_ResponseStressTestCxx. This is limited to OpenPegasus
 because only OpenPegasus implements the defined class.
 """
 
-from __future__ import absolute_import
 import sys as _sys
 import os as _os
 # pylint: disable=missing-docstring,superfluous-parens,no-self-use
@@ -154,7 +153,7 @@ def run_single_test(conn, response_count, response_size, max_obj_cnt_array):
         diff = conn.last_operation_time
 
     client_pulltime_str = format_timedelta(enum_time)
-    percentage = "{:0.2f}".format((diff / conn.last_operation_time) * 100)
+    percentage = f"{(diff / conn.last_operation_time) * 100:0.2f}"
 
     row = ['Enum', enum_count, response_size, None, None,
            client_pulltime_str,
@@ -244,7 +243,7 @@ def run_tests(conn, response_sizes, response_counts, pull_sizes, verbose):
             diff = conn.last_operation_time - conn.last_server_response_time
             percentage = (diff / conn.last_operation_time) * 100
             print(
-                '{0:6d} {1:5d} {2:7.3f} {3:7.3f} {4:14.3f} {5:7.1f}%'
+                '{:6d} {:5d} {:7.3f} {:7.3f} {:14.3f} {:7.1f}%'
                 .format(st[0], st[1], st[2], st[3], diff, percentage))
 
 
@@ -432,7 +431,7 @@ Examples:
                         ' Use "http" or "https"')
 
     else:
-        url = '%s://%s' % ('https', args.server)
+        url = '{}://{}'.format('https', args.server)
 
     if args.key_file is not None and args.cert_file is None:
         argparser.error('keyfile option requires certfile option')

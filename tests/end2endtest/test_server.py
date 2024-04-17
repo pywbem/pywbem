@@ -2,7 +2,6 @@
 End2end tests for WBEMServer class.
 """
 
-from __future__ import absolute_import, print_function
 
 import re
 
@@ -35,7 +34,7 @@ def test_namespace_consistency(
 
     wbem_connection.default_namespace = default_namespace
     server = WBEMServer(wbem_connection)
-    msg = "for server at URL {0!r}".format(wbem_connection.url)
+    msg = f"for server at URL {wbem_connection.url!r}"
 
     interop_ns_lower = server_prop_asserted(server, 'interop_ns').lower()
     # pylint: disable=not-an-iterable
@@ -66,7 +65,7 @@ def test_namespace_getinstance(
 
     wbem_connection.default_namespace = default_namespace
     server = WBEMServer(wbem_connection)
-    msg = "for server at URL {0!r}".format(wbem_connection.url)
+    msg = f"for server at URL {wbem_connection.url!r}"
 
     namespace_paths = server_prop_asserted(server, 'namespace_paths')
 
@@ -92,7 +91,7 @@ def test_brand_version(
 
     wbem_connection.default_namespace = default_namespace
     server = WBEMServer(wbem_connection)
-    msg = "for server at URL {0!r}".format(wbem_connection.url)
+    msg = f"for server at URL {wbem_connection.url!r}"
 
     brand = server_prop_asserted(server, 'brand')
     assert brand is not None, msg
@@ -102,7 +101,7 @@ def test_brand_version(
     version = server_prop_asserted(server, 'version')
     if version is not None:
         assert re.match(r'^[0-9][^ ]*$', version), \
-            "version={0!r}; {1}".format(version, msg)
+            f"version={version!r}; {msg}"
 
 
 def test_cimom_inst(
@@ -116,7 +115,7 @@ def test_cimom_inst(
 
     wbem_connection.default_namespace = default_namespace
     server = WBEMServer(wbem_connection)
-    msg = "for server at URL {0!r}".format(wbem_connection.url)
+    msg = f"for server at URL {wbem_connection.url!r}"
 
     cimom_inst = server_prop_asserted(server, 'cimom_inst')
 
@@ -143,7 +142,7 @@ def test_profiles(
 
     wbem_connection.default_namespace = default_namespace
     server = WBEMServer(wbem_connection)
-    msg = "for server at URL {0!r}".format(wbem_connection.url)
+    msg = f"for server at URL {wbem_connection.url!r}"
 
     profile_insts = server_prop_asserted(server, 'profiles')
 
@@ -175,7 +174,7 @@ def test_get_selected_profiles_no_filter(
 
     wbem_connection.default_namespace = default_namespace
     server = WBEMServer(wbem_connection)
-    msg = "for server at URL {0!r}".format(wbem_connection.url)
+    msg = f"for server at URL {wbem_connection.url!r}"
 
     profile_insts = server_prop_asserted(server, 'profiles')
     all_profile_insts = server_func_asserted(server, 'get_selected_profiles')

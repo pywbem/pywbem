@@ -31,7 +31,6 @@ caller to provide CIM-XML formatted input data and interpret the result data
 as CIM-XML.
 '''
 
-from __future__ import print_function, absolute_import
 
 import re
 import os
@@ -183,22 +182,22 @@ def parse_url(url, allow_defaults=True):
         _host = m.group(1)
         _zone_index = m.group(2)
         if _zone_index is not None:
-            host = '[{0}-{1}]'.format(_host, _zone_index)
+            host = f'[{_host}-{_zone_index}]'
         else:
-            host = '[{0}]'.format(_host)
+            host = f'[{_host}]'
     else:
         m = URL_IPV6_TEXT_PATTERN.match(host)
         if m:
             # It is an IPv6 address in RFC4007 text syntax
-            _host = '{0}:{1}'.format(m.group(1), m.group(2))
+            _host = f'{m.group(1)}:{m.group(2)}'
             _zone_index = m.group(3)
             if _zone_index is not None:
-                host = '[{0}-{1}]'.format(_host, _zone_index)
+                host = f'[{_host}-{_zone_index}]'
             else:
-                host = '[{0}]'.format(_host)
+                host = f'[{_host}]'
 
-    hostport = u'{0}:{1}'.format(host, port)
-    url = u'{0}://{1}'.format(scheme, hostport)
+    hostport = f'{host}:{port}'
+    url = f'{scheme}://{hostport}'
 
     return scheme, hostport, url
 
@@ -217,7 +216,7 @@ def pywbem_requests_exception(exc, conn):
     if isinstance(message, urllib3.exceptions.HTTPError):
         return pywbem_urllib3_exception(message, conn)
 
-    if not isinstance(message, six.string_types):
+    if not isinstance(message, str):
         warnings.warn(
             "requests exception {} has a {} object as args[0] - "
             "converting to string".format(type(exc), type(message)),
@@ -307,7 +306,7 @@ def pywbem_urllib3_exception(exc, conn):
     assert isinstance(exc, urllib3.exceptions.HTTPError)
 
     message = exc.args[0]
-    if not isinstance(message, six.string_types):
+    if not isinstance(message, str):
         warnings.warn(
             "urllib3 exception {} has a {} object as args[0] - "
             "converting to string".format(type(exc), type(message)),
@@ -404,20 +403,20 @@ def exc_message_amended(message, conn):
     """
     if conn.scheme == 'https':
         message = message + \
-            "; OpenSSL version used: {}".format(ssl.OPENSSL_VERSION)
+            f"; OpenSSL version used: {ssl.OPENSSL_VERSION}"
     return message
 
 
 def debug_exc(exc):
     """Debug: Return a debug message for the exception"""
     arg_strings = [
-        "exception: {}".format(type(exc)),
+        f"exception: {type(exc)}",
         # "dir(exc)={}".format(dir(exc)),
         # "dir(exc.request)={}".format(dir(exc.request)),
         # "dir(exc.response)={}".format(dir(exc.response)),
     ]
     for i, arg in enumerate(exc.args):
-        arg_strings.append("arg[{}] ({}) = {}".format(i, type(arg), arg))
+        arg_strings.append(f"arg[{i}] ({type(arg)}) = {arg}")
     message = "; ".join(arg_strings)
     return message
 
@@ -473,7 +472,7 @@ def wbem_request(conn, req_data, cimxml_headers, target_type='server'):
         target = '/cimom'
     else:
         target = ''
-    target_url = '{}{}'.format(conn.url, target)
+    target_url = f'{conn.url}{target}'
 
     # Make sure the data parameter is converted to a UTF-8 encoded byte string.
     # This is important because according to RFC2616, the Content-Length HTTP
@@ -484,15 +483,15 @@ def wbem_request(conn, req_data, cimxml_headers, target_type='server'):
 
     req_headers = {
         'Content-type': 'application/xml; charset="utf-8"',
-        'Content-length': '{}'.format(len(req_body)),
+        'Content-length': f'{len(req_body)}',
     }
     req_headers.update(dict(cimxml_headers))
 
     if target_type == 'server' and conn.creds is not None:
-        auth = '{0}:{1}'.format(conn.creds[0], conn.creds[1])
+        auth = f'{conn.creds[0]}:{conn.creds[1]}'
         auth64 = _ensure_unicode(base64.b64encode(
             _ensure_bytes(auth))).replace('\n', '')
-        req_headers['Authorization'] = 'Basic {0}'.format(auth64)
+        req_headers['Authorization'] = f'Basic {auth64}'
 
     if conn.operation_recorders:
         for recorder in conn.operation_recorders:
@@ -657,7 +656,7 @@ def get_cimobject_header(obj):
     """
 
     # Local namespace path
-    if isinstance(obj, six.string_types):
+    if isinstance(obj, str):
         return obj
 
     # Local class path

@@ -2,7 +2,6 @@
 Extensions for pytest module.
 """
 
-from __future__ import absolute_import
 
 import functools
 import warnings
@@ -151,7 +150,7 @@ def simplified_test_function(test_func):
 
                     ret = None  # Debugging hint
                     assert len(rec_warnings) >= 1, \
-                        "Expected warning(s) missing: {}".format(exp_warn_types)
+                        f"Expected warning(s) missing: {exp_warn_types}"
         else:
             with warnings.catch_warnings(record=True) as rec_warnings:
                 if exp_exc_types:
@@ -210,7 +209,7 @@ class ignore_warnings(warnings.catch_warnings):
                 Must be a single class, a list/tuple of classes, or None.
                 The classes must be subclasses of Warning.
         """
-        super(ignore_warnings, self).__init__()
+        super().__init__()
         if categories is None:
             categories = []
         elif not isinstance(categories, (list, tuple)):
@@ -220,7 +219,7 @@ class ignore_warnings(warnings.catch_warnings):
         self.categories = categories
 
     def __enter__(self):
-        ret = super(ignore_warnings, self).__enter__()  # saves current filters
+        ret = super().__enter__()  # saves current filters
         for category in self.categories:
             warnings.simplefilter('ignore', category=category)
         return ret

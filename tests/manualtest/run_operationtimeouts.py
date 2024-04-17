@@ -14,7 +14,6 @@ The default for this test takes several minutes to run because of size of
 the maximum timeout (20 seconds)
 """
 
-from __future__ import absolute_import
 
 # pylint: disable=missing-docstring,superfluous-parens,no-self-use
 import sys
@@ -40,7 +39,7 @@ TESTCLASS = 'Test_CLITestProviderClass'
 TESTMETHOD = 'delayedMethodResponse'
 
 
-class ElapsedTimer(object):
+class ElapsedTimer:
     """
         Set up elapsed time timer. Calculates time between initiation
         and access.
@@ -92,13 +91,12 @@ class ClientTest(unittest.TestCase):
 
         # set this because python 3 http libs generate many ResourceWarnings
         # and unittest enables these warnings.
-        if not six.PY2:
-            # pylint: disable=undefined-variable
-            warnings.simplefilter("ignore", ResourceWarning)  # noqa: F821
+        # pylint: disable=undefined-variable
+        warnings.simplefilter("ignore", ResourceWarning)  # noqa: F821
 
     def connect(self, url, timeout=None):
 
-        self.log('setup connection {0} timeout {1}'.format(url, timeout))
+        self.log(f'setup connection {url} timeout {timeout}')
         conn = WBEMConnection(
             url,
             (args['username'], args['password']),
@@ -109,13 +107,13 @@ class ClientTest(unittest.TestCase):
 
         # enable saving xml for display
         conn.debug = args['debug']
-        self.log('Connected {0}'.format(url))
+        self.log(f'Connected {url}')
         return conn
 
     def log(self, data_):
         """Display log entry if verbose"""
         if self.debug:
-            print('{0}'.format(data_))
+            print(f'{data_}')
 
 
 class ServerTimeoutTest(ClientTest):
@@ -135,7 +133,7 @@ class ServerTimeoutTest(ClientTest):
         execution_time = None
 
         if self.debug:
-            print('execute url_type=%s timeout=%s delay=%s' % (url,
+            print('execute url_type={} timeout={} delay={}'.format(url,
                                                                timeout, delay))
 
         err_flag = ""
@@ -163,7 +161,7 @@ class ServerTimeoutTest(ClientTest):
             err_flag = "ConnectionError"
             execution_time = opttimer.elapsed_sec()
 
-            self.fail('%s exception %s' % ('Failed ConnectionError)', ce))
+            self.fail('{} exception {}'.format('Failed ConnectionError)', ce))
 
         # this exception tests against expected result. It terminates the
         # test only if the timeout is not expected
@@ -188,7 +186,7 @@ class ServerTimeoutTest(ClientTest):
             execution_time = opttimer.elapsed_sec()
             request_result = 2
             if self.stop_on_err:
-                self.fail('%s exception %s' % ('Failed(Exception)', ec))
+                self.fail('{} exception {}'.format('Failed(Exception)', ec))
 
         # generate table entry if verbose. This defines result for this
         # test

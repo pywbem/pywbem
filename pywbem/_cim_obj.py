@@ -237,7 +237,6 @@ The following examples all preserve the order of properties in the class:
 
 # This module is meant to be safe for 'import *'.
 
-from __future__ import print_function, absolute_import
 
 import warnings
 import copy as copy_
@@ -250,7 +249,7 @@ try:
     from collections.abc import ValuesView, ItemsView
 except ImportError:
     # pylint: disable=deprecated-class
-    from collections import ValuesView, ItemsView
+    from collections.abc import ValuesView, ItemsView
 try:
     from builtins import type as builtin_type
 except ImportError:  # py2
@@ -303,7 +302,7 @@ WBEM_URI_INSTANCEPATH_REGEXP = re.compile(
 _KB_NOT_QUOTED = r'[^,"\'\\]+'
 _KB_SINGLE_QUOTED = r"'(?:[^'\\]|\\.)*'"
 _KB_DOUBLE_QUOTED = r'"(?:[^"\\]|\\.)*"'
-_KB_VAL = r'(?:{0}|{1}|{2})'.format(
+_KB_VAL = r'(?:{}|{}|{})'.format(
     _KB_NOT_QUOTED, _KB_SINGLE_QUOTED, _KB_DOUBLE_QUOTED)
 
 # To get all repetitions, capture a repeated group instead of repeating a
@@ -313,7 +312,7 @@ WBEM_URI_KEYBINDINGS_REGEXP = re.compile(
     flags=(re.UNICODE | re.IGNORECASE))
 
 WBEM_URI_KB_FINDALL_REGEXP = re.compile(
-    r',\w+={0}'.format(_KB_VAL),
+    fr',\w+={_KB_VAL}',
     flags=(re.UNICODE | re.IGNORECASE))
 
 # Valid namespace types (URI schemes) for WBEM URI parsing
@@ -323,7 +322,7 @@ WBEM_URI_NAMESPACE_TYPES = [
 ]
 
 # CIM data type names, used for checking
-ALL_CIMTYPES = set([
+ALL_CIMTYPES = {
     'boolean',
     'string',
     'char16',
@@ -339,10 +338,10 @@ ALL_CIMTYPES = set([
     'real32',
     'real64',
     'reference',
-])
+}
 
 # CIM data type names, used for checking
-QUALIFIER_CIMTYPES = set([
+QUALIFIER_CIMTYPES = {
     'boolean',
     'string',
     'char16',
@@ -357,10 +356,10 @@ QUALIFIER_CIMTYPES = set([
     'sint64',
     'real32',
     'real64',
-])
+}
 
 
-class _DictView(object):
+class _DictView:
     # pylint: disable=too-few-public-methods
     """
     Base class for directory views, with commmon methods.
@@ -438,12 +437,12 @@ def _qualifiers_tomof(qualifiers, indent, maxline=MAX_MOF_LINE):
     """
 
     if not qualifiers:
-        return u''
+        return ''
 
     mof = []
 
     mof.append(_indent_str(indent))
-    mof.append(u'[')
+    mof.append('[')
     line_pos = indent + 1
 
     mof_quals = []
@@ -452,9 +451,9 @@ def _qualifiers_tomof(qualifiers, indent, maxline=MAX_MOF_LINE):
     delim = ',\n' + _indent_str(indent + 1)
     mof.append(delim.join(mof_quals))
 
-    mof.append(u']\n')
+    mof.append(']\n')
 
-    return u''.join(mof)
+    return ''.join(mof)
 
 
 def _indent_str(indent):
@@ -462,7 +461,7 @@ def _indent_str(indent):
     Return a MOF indent pad unicode string from the indent integer variable
     that defines number of spaces to indent. Used to format MOF output.
     """
-    return u''.ljust(indent, u' ')
+    return ''.ljust(indent, ' ')
 
 
 def _mof_escaped(strvalue):
@@ -545,32 +544,32 @@ def _mof_escaped(strvalue):
     #         esc = '\\x{0:04X}'.format(cp)
     #         escaped_str = escaped_str.replace(c, esc)
     escaped_str = escaped_str.\
-        replace(u'\u0001', '\\x0001').\
-        replace(u'\u0002', '\\x0002').\
-        replace(u'\u0003', '\\x0003').\
-        replace(u'\u0004', '\\x0004').\
-        replace(u'\u0005', '\\x0005').\
-        replace(u'\u0006', '\\x0006').\
-        replace(u'\u0007', '\\x0007').\
-        replace(u'\u000B', '\\x000B').\
-        replace(u'\u000E', '\\x000E').\
-        replace(u'\u000F', '\\x000F').\
-        replace(u'\u0010', '\\x0010').\
-        replace(u'\u0011', '\\x0011').\
-        replace(u'\u0012', '\\x0012').\
-        replace(u'\u0013', '\\x0013').\
-        replace(u'\u0014', '\\x0014').\
-        replace(u'\u0015', '\\x0015').\
-        replace(u'\u0016', '\\x0016').\
-        replace(u'\u0017', '\\x0017').\
-        replace(u'\u0018', '\\x0018').\
-        replace(u'\u0019', '\\x0019').\
-        replace(u'\u001A', '\\x001A').\
-        replace(u'\u001B', '\\x001B').\
-        replace(u'\u001C', '\\x001C').\
-        replace(u'\u001D', '\\x001D').\
-        replace(u'\u001E', '\\x001E').\
-        replace(u'\u001F', '\\x001F')
+        replace('\u0001', '\\x0001').\
+        replace('\u0002', '\\x0002').\
+        replace('\u0003', '\\x0003').\
+        replace('\u0004', '\\x0004').\
+        replace('\u0005', '\\x0005').\
+        replace('\u0006', '\\x0006').\
+        replace('\u0007', '\\x0007').\
+        replace('\u000B', '\\x000B').\
+        replace('\u000E', '\\x000E').\
+        replace('\u000F', '\\x000F').\
+        replace('\u0010', '\\x0010').\
+        replace('\u0011', '\\x0011').\
+        replace('\u0012', '\\x0012').\
+        replace('\u0013', '\\x0013').\
+        replace('\u0014', '\\x0014').\
+        replace('\u0015', '\\x0015').\
+        replace('\u0016', '\\x0016').\
+        replace('\u0017', '\\x0017').\
+        replace('\u0018', '\\x0018').\
+        replace('\u0019', '\\x0019').\
+        replace('\u001A', '\\x001A').\
+        replace('\u001B', '\\x001B').\
+        replace('\u001C', '\\x001C').\
+        replace('\u001D', '\\x001D').\
+        replace('\u001E', '\\x001E').\
+        replace('\u001F', '\\x001F')
 
     # Escape single and double quote
     escaped_str = escaped_str.replace('"', '\\"')
@@ -580,7 +579,7 @@ def _mof_escaped(strvalue):
 
 
 def mofstr(value, indent=MOF_INDENT, maxline=MAX_MOF_LINE, line_pos=0,
-           end_space=0, avoid_splits=False, quote_char=u'"'):
+           end_space=0, avoid_splits=False, quote_char='"'):
     """
     Low level function that returns the MOF representation of a string value
     (i.e. a value that can be split into multiple parts, for example a string,
@@ -638,12 +637,12 @@ def mofstr(value, indent=MOF_INDENT, maxline=MAX_MOF_LINE, line_pos=0,
         * new line_pos
     """
 
-    assert isinstance(value, six.text_type)
+    assert isinstance(value, str)
 
     value = _mof_escaped(value)
 
     quote_len = 2  # length of the quotes surrounding a string part
-    new_line = u'\n' + _indent_str(indent)
+    new_line = '\n' + _indent_str(indent)
 
     mof = []
 
@@ -663,7 +662,7 @@ def mofstr(value, indent=MOF_INDENT, maxline=MAX_MOF_LINE, line_pos=0,
                 avl_len = maxline - indent - quote_len
             else:
                 # Find last fitting blank
-                blank_pos = value.rfind(u' ', 0, avl_len)
+                blank_pos = value.rfind(' ', 0, avl_len)
                 if blank_pos < 0:
                     # We cannot split at a blank -> start a new line
                     mof.append(new_line)
@@ -679,7 +678,7 @@ def mofstr(value, indent=MOF_INDENT, maxline=MAX_MOF_LINE, line_pos=0,
             break
 
         # Split the string and output the next part
-        split_pos = value.rfind(u' ', 0, avl_len)
+        split_pos = value.rfind(' ', 0, avl_len)
         if split_pos < 0:
             # We have to split within a word
             split_pos = avl_len - 1
@@ -690,7 +689,7 @@ def mofstr(value, indent=MOF_INDENT, maxline=MAX_MOF_LINE, line_pos=0,
         mof.append(quote_char)
         line_pos += quote_len + len(part_value)
 
-        if value == u'':
+        if value == '':
             break
 
         # A safety check for endless loops
@@ -698,9 +697,9 @@ def mofstr(value, indent=MOF_INDENT, maxline=MAX_MOF_LINE, line_pos=0,
             _format("Endless loop in mofstr() with state: "
                     "mof_str={0!A}, value={1!A}, avl_len={2}, end_space={3}, "
                     "split_pos={4}",
-                    u''.join(mof), value, avl_len, end_space, split_pos)
+                    ''.join(mof), value, avl_len, end_space, split_pos)
 
-    mof_str = u''.join(mof)
+    mof_str = ''.join(mof)
     return mof_str, line_pos
 
 
@@ -742,7 +741,7 @@ def mofval(value, indent=MOF_INDENT, maxline=MAX_MOF_LINE, line_pos=0,
       ValueError: The value does not fit onto an entire new line.
     """
 
-    assert isinstance(value, six.text_type)
+    assert isinstance(value, str)
 
     # Check for output on current line
     avl_len = maxline - line_pos - end_space
@@ -753,7 +752,7 @@ def mofval(value, indent=MOF_INDENT, maxline=MAX_MOF_LINE, line_pos=0,
     # Check for output on new line
     avl_len = maxline - indent - end_space
     if len(value) <= avl_len:
-        mof_str = u'\n' + _indent_str(indent) + value
+        mof_str = '\n' + _indent_str(indent) + value
         line_pos = indent + len(value)
         return mof_str, line_pos
 
@@ -811,10 +810,10 @@ def _scalar_value_tomof(
     """  # noqa: E501
 
     if value is None:
-        return mofval(u'NULL', indent, maxline, line_pos, end_space)
+        return mofval('NULL', indent, maxline, line_pos, end_space)
 
     if type == 'string':
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             return mofstr(value, indent, maxline, line_pos, end_space,
                           avoid_splits)
 
@@ -829,14 +828,14 @@ def _scalar_value_tomof(
 
     if type == 'char16':
         return mofstr(value, indent, maxline, line_pos, end_space, avoid_splits,
-                      quote_char=u"'")
+                      quote_char="'")
 
     if type == 'boolean':
-        val = u'true' if value else u'false'
+        val = 'true' if value else 'false'
         return mofval(val, indent, maxline, line_pos, end_space)
 
     if type == 'datetime':
-        val = six.text_type(value)
+        val = str(value)
         return mofstr(val, indent, maxline, line_pos, end_space, avoid_splits)
 
     if type == 'reference':
@@ -847,7 +846,7 @@ def _scalar_value_tomof(
         _format("Scalar value of CIM type {0} has invalid Python type {1} "
                 "for conversion to a MOF string",
                 type, builtin_type(value))
-    val = six.text_type(value)
+    val = str(value)
     return mofval(val, indent, maxline, line_pos, end_space)
 
 
@@ -901,16 +900,16 @@ def _value_tomof(
 
             if i > 0:
                 # Add the actual separator
-                mof.append(u',')
+                mof.append(',')
                 if val_str[0] != '\n':
-                    mof.append(u' ')
+                    mof.append(' ')
                 else:
                     # Adjust by the space we did not need
                     line_pos -= 1
 
             mof.append(val_str)
 
-        mof_str = u''.join(mof)
+        mof_str = ''.join(mof)
 
     else:
         mof_str, line_pos = _scalar_value_tomof(
@@ -943,10 +942,10 @@ def _cim_keybinding(key, value):
     if value is None:
         return None
 
-    if isinstance(value, six.text_type):
+    if isinstance(value, str):
         return value
 
-    if isinstance(value, six.binary_type):
+    if isinstance(value, bytes):
         return _to_unicode(value)
 
     if isinstance(value, (bool, CIMInstanceName, CIMType)):
@@ -1482,7 +1481,7 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
 
     def __iter__(self):
         ""  # Avoids docstring to be inherited
-        return six.iterkeys(self.keybindings)
+        return self.keybindings.keys()
 
     def copy(self):
         """
@@ -1632,13 +1631,12 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
         in a future version of pywbem, consistent with the built-in dict class
         on Python 3. Use the :meth:`keys` method instead.
         """
-        if six.PY3:
-            warnings.warn(
-                "The iterkeys() method of pywbem.CIMInstanceName has been "
-                "deprecated on Python 3 and will be removed in a future "
-                "version of pywbem",
-                DeprecationWarning, 2)
-        return six.iterkeys(self.keybindings)
+        warnings.warn(
+            "The iterkeys() method of pywbem.CIMInstanceName has been "
+            "deprecated on Python 3 and will be removed in a future "
+            "version of pywbem",
+            DeprecationWarning, 2)
+        return self.keybindings.keys()
 
     def itervalues(self):
         """
@@ -1651,13 +1649,12 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
         in a future version of pywbem, consistent with the built-in dict class
         on Python 3. Use the :meth:`values` method instead.
         """
-        if six.PY3:
-            warnings.warn(
-                "The itervalues() method of pywbem.CIMInstanceName has been "
-                "deprecated on Python 3 and will be removed in a future "
-                "version of pywbem",
-                DeprecationWarning, 2)
-        return six.itervalues(self.keybindings)
+        warnings.warn(
+            "The itervalues() method of pywbem.CIMInstanceName has been "
+            "deprecated on Python 3 and will be removed in a future "
+            "version of pywbem",
+            DeprecationWarning, 2)
+        return self.keybindings.values()
 
     def iteritems(self):
         """
@@ -1671,13 +1668,12 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
         in a future version of pywbem, consistent with the built-in dict class
         on Python 3. Use the :meth:`items` method instead.
         """
-        if six.PY3:
-            warnings.warn(
-                "The iteritems() method of pywbem.CIMInstanceName has been "
-                "deprecated on Python 3 and will be removed in a future "
-                "version of pywbem",
-                DeprecationWarning, 2)
-        return six.iteritems(self.keybindings)
+        warnings.warn(
+            "The iteritems() method of pywbem.CIMInstanceName has been "
+            "deprecated on Python 3 and will be removed in a future "
+            "version of pywbem",
+            DeprecationWarning, 2)
+        return self.keybindings.items()
 
     # pylint: disable=too-many-branches
     def tocimxml(self, ignore_host=False, ignore_namespace=False):
@@ -1735,10 +1731,10 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
             if isinstance(value, Char16):
                 value_type = 'string'
                 cim_type = 'char16'
-            elif isinstance(value, six.text_type):
+            elif isinstance(value, str):
                 value_type = 'string'
                 cim_type = 'string'
-            elif isinstance(value, six.binary_type):
+            elif isinstance(value, bytes):
                 value_type = 'string'
                 cim_type = 'string'
                 value = _to_unicode(value)
@@ -2244,10 +2240,10 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
             ret.append(key)
             ret.append('=')
 
-            if isinstance(value, six.binary_type):
+            if isinstance(value, bytes):
                 value = _to_unicode(value)
 
-            if isinstance(value, six.text_type):
+            if isinstance(value, str):
                 # string, char16
                 ret.append('"')
                 ret.append(value.
@@ -2733,7 +2729,7 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
         return len(self.properties)
 
     def __iter__(self):
-        return six.iterkeys(self.properties)
+        return self.properties.keys()
 
     def copy(self):
         """
@@ -2963,13 +2959,12 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
         in a future version of pywbem, consistent with the built-in dict class
         on Python 3. Use the :meth:`keys` method instead.
         """
-        if six.PY3:
-            warnings.warn(
-                "The iterkeys() method of pywbem.CIMInstance has been "
-                "deprecated on Python 3 and will be removed in a future "
-                "version of pywbem",
-                DeprecationWarning, 2)
-        return six.iterkeys(self.properties)
+        warnings.warn(
+            "The iterkeys() method of pywbem.CIMInstance has been "
+            "deprecated on Python 3 and will be removed in a future "
+            "version of pywbem",
+            DeprecationWarning, 2)
+        return self.properties.keys()
 
     def itervalues(self):
         """
@@ -2984,13 +2979,12 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
         in a future version of pywbem, consistent with the built-in dict class
         on Python 3. Use the :meth:`values` method instead.
         """
-        if six.PY3:
-            warnings.warn(
-                "The itervalues() method of pywbem.CIMInstance has been "
-                "deprecated on Python 3 and will be removed in a future "
-                "version of pywbem",
-                DeprecationWarning, 2)
-        for val in six.itervalues(self.properties):
+        warnings.warn(
+            "The itervalues() method of pywbem.CIMInstance has been "
+            "deprecated on Python 3 and will be removed in a future "
+            "version of pywbem",
+            DeprecationWarning, 2)
+        for val in self.properties.values():
             yield val.value
 
     def iteritems(self):
@@ -3008,13 +3002,12 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
         in a future version of pywbem, consistent with the built-in dict class
         on Python 3. Use the :meth:`items` method instead.
         """
-        if six.PY3:
-            warnings.warn(
-                "The iteritems() method of pywbem.CIMInstance has been "
-                "deprecated on Python 3 and will be removed in a future "
-                "version of pywbem",
-                DeprecationWarning, 2)
-        for key, val in six.iteritems(self.properties):
+        warnings.warn(
+            "The iteritems() method of pywbem.CIMInstance has been "
+            "deprecated on Python 3 and will be removed in a future "
+            "version of pywbem",
+            DeprecationWarning, 2)
+        for key, val in self.properties.items():
             yield (key, val.value)
 
     def tocimxml(self, ignore_path=False):
@@ -3156,17 +3149,17 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
 
         mof = []
 
-        mof.append(u'instance of ')
+        mof.append('instance of ')
         mof.append(self.classname)
 
-        mof.append(u' {\n')
+        mof.append(' {\n')
 
         for p in self.properties.values():
             mof.append(p.tomof(True, MOF_INDENT, maxline))
 
-        mof.append(u'};\n')
+        mof.append('};\n')
 
-        return u''.join(mof)
+        return ''.join(mof)
 
     @staticmethod
     def from_class(klass, namespace=None,
@@ -4401,28 +4394,28 @@ class CIMClass(_CIMComparisonMixin, SlottedPickleMixin):
 
         mof.append(_qualifiers_tomof(self.qualifiers, MOF_INDENT, maxline))
 
-        mof.append(u'class ')
+        mof.append('class ')
         mof.append(self.classname)
-        mof.append(u' ')
+        mof.append(' ')
 
         if self.superclass is not None:
-            mof.append(u': ')
+            mof.append(': ')
             mof.append(self.superclass)
-            mof.append(u' ')
+            mof.append(' ')
 
-        mof.append(u'{\n')
+        mof.append('{\n')
 
         for p in self.properties.values():
-            mof.append(u'\n')
+            mof.append('\n')
             mof.append(p.tomof(False, MOF_INDENT, maxline))
 
         for m in self.methods.values():
-            mof.append(u'\n')
+            mof.append('\n')
             mof.append(m.tomof(MOF_INDENT, maxline))
 
-        mof.append(u'\n};\n')
+        mof.append('\n};\n')
 
-        return u''.join(mof)
+        return ''.join(mof)
 
 
 # pylint: disable=too-many-statements,too-many-instance-attributes
@@ -5187,24 +5180,24 @@ class CIMProperty(_CIMComparisonMixin, SlottedPickleMixin):
 
             mof.append(_indent_str(indent))
             mof.append(moftype(self.type, self.reference_class))
-            mof.append(u' ')
+            mof.append(' ')
             mof.append(self.name)
 
             if self.is_array:
-                mof.append(u'[')
+                mof.append('[')
                 if self.array_size is not None:
-                    mof.append(six.text_type(self.array_size))
-                mof.append(u']')
+                    mof.append(str(self.array_size))
+                mof.append(']')
 
         # Generate the property value (nearly common for property values and
         # property declarations).
 
         if self.value is not None or is_instance:
-            mof.append(u' =')
+            mof.append(' =')
 
             if isinstance(self.value, list):
-                mof.append(u' {')
-                mof_str = u''.join(mof)
+                mof.append(' {')
+                mof_str = ''.join(mof)
                 line_pos = len(mof_str) - mof_str.rfind('\n') - 1
                 # Assume in line_pos that the extra space would be needed
                 val_str, line_pos = _value_tomof(
@@ -5213,15 +5206,15 @@ class CIMProperty(_CIMComparisonMixin, SlottedPickleMixin):
                 # Empty arrays are represented as val_str=''
                 if val_str and val_str[0] != '\n':
                     # The extra space was actually needed
-                    mof.append(u' ')
+                    mof.append(' ')
                 else:
                     # Adjust by the extra space that was not needed
                     line_pos -= 1
                 mof.append(val_str)
-                mof.append(u' }')
+                mof.append(' }')
 
             else:
-                mof_str = u''.join(mof)
+                mof_str = ''.join(mof)
                 line_pos = len(mof_str) - mof_str.rfind('\n') - 1
                 # Assume in line_pos that the extra space would be needed
                 val_str, line_pos = _value_tomof(
@@ -5230,7 +5223,7 @@ class CIMProperty(_CIMComparisonMixin, SlottedPickleMixin):
                 # Scalars cannot be represented as val_str=''
                 if val_str[0] != '\n':
                     # The extra space was actually needed
-                    mof.append(u' ')
+                    mof.append(' ')
                 else:
                     # Adjust by the extra space that was not needed
                     line_pos -= 1
@@ -5238,7 +5231,7 @@ class CIMProperty(_CIMComparisonMixin, SlottedPickleMixin):
 
         mof.append(';\n')
 
-        return u''.join(mof)
+        return ''.join(mof)
 
     def __eq__(self, other):
         """
@@ -5803,22 +5796,22 @@ class CIMMethod(_CIMComparisonMixin, SlottedPickleMixin):
         mof.append(_indent_str(indent))
         # return_type is ensured not to be None or reference
         mof.append(moftype(self.return_type, None))
-        mof.append(u' ')
+        mof.append(' ')
         mof.append(self.name)
 
         if self.parameters.values():
-            mof.append(u'(\n')
+            mof.append('(\n')
 
             mof_parms = []
             for p in self.parameters.values():
                 mof_parms.append(p.tomof(indent + MOF_INDENT, maxline))
-            mof.append(u',\n'.join(mof_parms))
+            mof.append(',\n'.join(mof_parms))
 
-            mof.append(u');\n')
+            mof.append(');\n')
         else:
-            mof.append(u'();\n')
+            mof.append('();\n')
 
-        return u''.join(mof)
+        return ''.join(mof)
 
 
 class CIMParameter(_CIMComparisonMixin, SlottedPickleMixin):
@@ -6511,16 +6504,16 @@ class CIMParameter(_CIMComparisonMixin, SlottedPickleMixin):
 
         mof.append(_indent_str(indent))
         mof.append(moftype(self.type, self.reference_class))
-        mof.append(u' ')
+        mof.append(' ')
         mof.append(self.name)
 
         if self.is_array:
-            mof.append(u'[')
+            mof.append('[')
             if self.array_size is not None:
-                mof.append(six.text_type(self.array_size))
-            mof.append(u']')
+                mof.append(str(self.array_size))
+            mof.append(']')
 
-        return u''.join(mof)
+        return ''.join(mof)
 
 
 # pylint: disable=too-many-instance-attributes
@@ -7102,32 +7095,32 @@ class CIMQualifier(_CIMComparisonMixin, SlottedPickleMixin):
         mof = []
 
         mof.append(self.name)
-        mof.append(u' ')
+        mof.append(' ')
 
         if isinstance(self.value, list):
-            mof.append(u'{')
+            mof.append('{')
         else:
-            mof.append(u'(')
+            mof.append('(')
 
-        line_pos += len(u''.join(mof))
+        line_pos += len(''.join(mof))
         # Assume in line_pos that the extra space would be needed
         val_str, line_pos = _value_tomof(
             self.value, self.type, indent, maxline, line_pos + 1, 3, True)
         # Empty arrays are represented as val_str=''
         if val_str and val_str[0] != '\n':
             # The extra space was actually needed
-            mof.append(u' ')
+            mof.append(' ')
         else:
             # Adjust by the extra space that was not needed
             line_pos -= 1
         mof.append(val_str)
 
         if isinstance(self.value, list):
-            mof.append(u' }')
+            mof.append(' }')
         else:
-            mof.append(u' )')
+            mof.append(' )')
 
-        mof_str = u''.join(mof)
+        mof_str = ''.join(mof)
         return mof_str
 
 
@@ -7785,42 +7778,42 @@ class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
 
         mof = []
 
-        mof.append(u'Qualifier ')
+        mof.append('Qualifier ')
         mof.append(self.name)
-        mof.append(u' : ')
+        mof.append(' : ')
         mof.append(self.type)
 
         if self.is_array:
-            mof.append(u'[')
+            mof.append('[')
             if self.array_size is not None:
-                mof.append(six.text_type(self.array_size))
-            mof.append(u']')
+                mof.append(str(self.array_size))
+            mof.append(']')
 
         if self.value is not None:
 
-            mof.append(u' = ')
+            mof.append(' = ')
 
             if isinstance(self.value, list):
-                mof.append(u'{ ')
+                mof.append('{ ')
 
-            mof_str = u''.join(mof)
+            mof_str = ''.join(mof)
             line_pos = len(mof_str) - mof_str.rfind('\n') - 1
             val_str, line_pos = _value_tomof(
                 self.value, self.type, MOF_INDENT, maxline, line_pos, 3, False)
             mof.append(val_str)
 
             if isinstance(self.value, list):
-                mof.append(u' }')
+                mof.append(' }')
 
-        mof.append(u',\n')
+        mof.append(',\n')
         mof.append(_indent_str(MOF_INDENT + 1))
-        mof.append(u'Scope(')
+        mof.append('Scope(')
         mof_scopes = []
         for scope in self._ordered_scopes:
             if self.scopes.get(scope, False):
                 mof_scopes.append(scope.lower())
-        mof.append(u', '.join(mof_scopes))
-        mof.append(u')')
+        mof.append(', '.join(mof_scopes))
+        mof.append(')')
 
         # toinstance flavor not included here because not part of DSP0004
         mof_flavors = []
@@ -7839,15 +7832,15 @@ class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
             mof_flavors.append('Translatable')
 
         if mof_flavors:
-            mof.append(u',\n')
+            mof.append(',\n')
             mof.append(_indent_str(MOF_INDENT + 1))
-            mof.append(u'Flavor(')
-            mof.append(u', '.join(mof_flavors))
-            mof.append(u')')
+            mof.append('Flavor(')
+            mof.append(', '.join(mof_flavors))
+            mof.append(')')
 
-        mof.append(u';\n')
+        mof.append(';\n')
 
-        return u''.join(mof)
+        return ''.join(mof)
 
 
 def tocimxml(value):
@@ -7931,9 +7924,9 @@ def tocimxmlstr(value, indent=None):
     if indent is None:
         xml_str = xml_elem.toxml()
     else:
-        if isinstance(indent, six.string_types):
+        if isinstance(indent, str):
             pass  # use indent, as specified
-        elif isinstance(indent, six.integer_types):
+        elif isinstance(indent, int):
             indent = ' ' * indent
         else:
             raise TypeError(
@@ -8057,7 +8050,7 @@ def cimvalue(value, type):
     if type == 'reference':
         if isinstance(value, (CIMInstanceName, CIMClassName)):
             return value
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             return CIMInstanceName.from_wbem_uri(value)
         raise TypeError(
             _format("Input value has invalid type for a CIM reference: {0!A}",

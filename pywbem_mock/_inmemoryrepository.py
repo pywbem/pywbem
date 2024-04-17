@@ -36,7 +36,6 @@ The CIM repository of a mock WBEM server is accessible through its
 :attr:`pywbem_mock.FakedWBEMConnection.cimrepository` property.
 """
 
-from __future__ import absolute_import, print_function
 
 from copy import deepcopy
 import six
@@ -67,7 +66,7 @@ class InMemoryObjectStore(BaseObjectStore):
     # pylint: disable=line-too-long
     def __init__(self, cim_object_type):
 
-        super(InMemoryObjectStore, self).__init__(cim_object_type)
+        super().__init__(cim_object_type)
 
         self._copy_names = False
 
@@ -136,7 +135,7 @@ class InMemoryObjectStore(BaseObjectStore):
         Only copies the names for those objects that use CIMNamespaceName
         as the name. The others are immutable ex. classname.
         """
-        for name in six.iterkeys(self._data):
+        for name in self._data.keys():
             if self._copy_names:
                 # Using .copy is sufficient for CIMNamespace name.
                 yield name.copy()
@@ -144,7 +143,7 @@ class InMemoryObjectStore(BaseObjectStore):
                 yield name
 
     def iter_values(self, copy=True):
-        for value in six.itervalues(self._data):
+        for value in self._data.values():
             if copy:
                 yield deepcopy(value)
             else:
@@ -227,17 +226,17 @@ class InMemoryRepository(BaseRepository):
                     assert objstore_name == 'instance'
                     store = self.get_instance_store(ns)
 
-                rtn_str = u'Namespace: {} Repo: {} len:{}\n'.format(
+                rtn_str = 'Namespace: {} Repo: {} len:{}\n'.format(
                     ns, objstore_name, store.len())
                 for val in store.iter_values():
-                    rtn_str += (u'{}\n'.format(val))
+                    rtn_str += (f'{val}\n')
                 return rtn_str
 
         namespaces = ",".join(self._repository.keys())
-        _uprint(dest, _format(u'NAMESPACES: {0}', namespaces))
-        _uprint(dest, _format(u'QUALIFIERS: {0}', objstore_info('qualifier')))
-        _uprint(dest, _format(u'CLASSES: {0}', objstore_info('class')))
-        _uprint(dest, _format(u'INSTANCES: {0}', objstore_info('instance')))
+        _uprint(dest, _format('NAMESPACES: {0}', namespaces))
+        _uprint(dest, _format('QUALIFIERS: {0}', objstore_info('qualifier')))
+        _uprint(dest, _format('CLASSES: {0}', objstore_info('class')))
+        _uprint(dest, _format('INSTANCES: {0}', objstore_info('instance')))
 
     def validate_namespace(self, namespace):
         if namespace is None:

@@ -2,7 +2,6 @@
     a version of the DMTF released Schema.
 """
 
-from __future__ import print_function, absolute_import
 
 import os
 import io
@@ -81,7 +80,7 @@ class MOFTest(unittest.TestCase):
 
         moflog_file = os.path.join(TEST_DIR, 'moflog.txt')
         # pylint: disable=consider-using-with
-        self.logfile = io.open(moflog_file, 'w', encoding='utf-8')
+        self.logfile = open(moflog_file, 'w', encoding='utf-8')
         self.mofcomp = MOFCompiler(
             MOFWBEMConnection(),
             search_paths=[TEST_DMTF_CIMSCHEMA_MOF_DIR],
@@ -99,7 +98,7 @@ class MOFTest(unittest.TestCase):
 
         moflog_file2 = os.path.join(TEST_DIR, 'moflog2.txt')
         # pylint: disable=consider-using-with
-        self.logfile2 = io.open(moflog_file2, 'w', encoding='utf-8')
+        self.logfile2 = open(moflog_file2, 'w', encoding='utf-8')
         self.mofcomp2 = MOFCompiler(
             MOFWBEMConnection(),
             search_paths=None, verbose=False,
@@ -170,12 +169,12 @@ class TestInstancesUnicode(MOFTest):
         self.mofcomp.compile_string(class_mof, NAME_SPACE)
 
         inst_mof = \
-            u'instance of PyWBEM_TestUnicode {\n' \
-            u'    uprop = "\u212b \u0420 \u043e \u0441 \u0441"\n' \
-            u'            "\u0438 \u044f \u00e0";\n' \
-            u'};'
-        exp_uprop = u"\u212b \u0420 \u043e \u0441 \u0441" \
-                    u"\u0438 \u044f \u00e0"
+            'instance of PyWBEM_TestUnicode {\n' \
+            '    uprop = "\u212b \u0420 \u043e \u0441 \u0441"\n' \
+            '            "\u0438 \u044f \u00e0";\n' \
+            '};'
+        exp_uprop = "\u212b \u0420 \u043e \u0441 \u0441" \
+                    "\u0438 \u044f \u00e0"
 
         self.mofcomp.compile_string(inst_mof, NAME_SPACE)
 
@@ -206,12 +205,12 @@ class TestInstancesUnicode(MOFTest):
         self.mofcomp.compile_string(class_mof, NAME_SPACE)
 
         inst_mof = \
-            u'instance of PyWBEM_TestUnicode {\n' \
-            u'    uprop = "\\X212B \\X0420 \\x043E \\x0441 \\x0441 ' \
-            u'\\x0438 \\x044f \\x00e0";\n' \
-            u'};'
-        exp_uprop = u"\u212b \u0420 \u043e \u0441 \u0441 " \
-                    u"\u0438 \u044f \u00e0"
+            'instance of PyWBEM_TestUnicode {\n' \
+            '    uprop = "\\X212B \\X0420 \\x043E \\x0441 \\x0441 ' \
+            '\\x0438 \\x044f \\x00e0";\n' \
+            '};'
+        exp_uprop = "\u212b \u0420 \u043e \u0441 \u0441 " \
+                    "\u0438 \u044f \u00e0"
 
         self.mofcomp.compile_string(inst_mof, NAME_SPACE)
 
@@ -242,9 +241,9 @@ class TestInstancesUnicode(MOFTest):
         self.mofcomp.compile_string(class_mof, NAME_SPACE)
 
         inst_mof = \
-            u'instance of PyWBEM_TestUnicode {\n' \
-            u'    uprop = "\\xzzzz";\n' \
-            u'};'
+            'instance of PyWBEM_TestUnicode {\n' \
+            '    uprop = "\\xzzzz";\n' \
+            '};'
 
         with self.assertRaises(MOFParseError):
             self.mofcomp.compile_string(inst_mof, NAME_SPACE)
@@ -1105,7 +1104,7 @@ class TestInstCompile(CIMObjectMixin, MOFTest):
                 self.assertEqual(i['pr32'], 1.175494351E-38)
                 self.assertEqual(i['pr64'], 4.9E-324)
                 self.assertEqual(i['ps'], 'abcdefg')
-                self.assertEqual(i['pc'], u"'a'")
+                self.assertEqual(i['pc'], "'a'")
                 self.assertEqual(i['pb'], False)
                 self.assertEqual(i['pdt'],
                                  CIMDateTime("01234567061213.123456:000"))
@@ -1124,7 +1123,7 @@ class TestInstCompile(CIMObjectMixin, MOFTest):
                 self.assertEqual(i['pr32'], 3.402823466E38)
                 self.assertEqual(i['pr64'], 1.7976931348623157E308)
                 self.assertEqual(i['ps'], 'abcdefg')
-                self.assertEqual(i['pc'], u"'a'")
+                self.assertEqual(i['pc'], "'a'")
                 self.assertEqual(i['pb'], True)
                 self.assertEqual(i['pdt'],
                                  CIMDateTime("20160409061213.123456+120"))
@@ -1513,7 +1512,7 @@ class BaseTestLexer(unittest.TestCase):
             act_token = self.lexer.token()
 
             try:
-                exp_token = six.next(token_iter)
+                exp_token = next(token_iter)
             except StopIteration:
                 exp_token = None  # indicate tokens exhausted
 
@@ -2253,7 +2252,7 @@ class TestFullSchema(MOFTest):
         mofout_filename = os.path.join(TEST_DIR, TMP_FILE)
 
         # pylint: disable=consider-using-with
-        mof_out_hndl = io.open(mofout_filename, 'w', encoding='utf-8')
+        mof_out_hndl = open(mofout_filename, 'w', encoding='utf-8')
 
         # Output and verify the qualifier declarations
         orig_qual_decls = repo.qualifiers[NAME_SPACE]
@@ -2314,7 +2313,7 @@ class TestPartialSchema(MOFTest):
         Build  a schema include file that has a subset of the files in
         a complete DMTF schema.
         """
-        schema_mof = u"""
+        schema_mof = """
             #pragma locale ("en_US")
             #pragma include ("Interop/CIM_RegisteredProfile.mof")
             #pragma include ("Interop/CIM_ObjectManager.mof")
@@ -2355,7 +2354,7 @@ class TestPartialSchema(MOFTest):
         self.partial_schema_file = 'test_partial_schema.mof'
         test_schemafile = os.path.join(TEST_DMTF_CIMSCHEMA_MOF_DIR,
                                        self.partial_schema_file)
-        with io.open(test_schemafile, "w", encoding='utf-8') as sf:
+        with open(test_schemafile, "w", encoding='utf-8') as sf:
             sf.write(schema_mof)
 
         self.mofcomp.compile_file(test_schemafile, NAME_SPACE)
@@ -2605,7 +2604,7 @@ class TestFileErrors(MOFTest):
         self.create_mofcompiler()
         try:
             self.mofcomp.compile_file('NoSuchFile.mof', NAME_SPACE)
-        except IOError:
+        except OSError:
             pass
 
     def test_filedir_not_found(self):
@@ -2615,7 +2614,7 @@ class TestFileErrors(MOFTest):
         self.create_mofcompiler()
         try:
             self.mofcomp.compile_file('abc/NoSuchFile.mof', NAME_SPACE)
-        except IOError:
+        except OSError:
             pass
 
     def test_error_search(self):
@@ -2630,7 +2629,7 @@ class TestFileErrors(MOFTest):
                 os.path.join(TEST_DMTF_CIMSCHEMA_MOF_DIR, 'System',
                              'CIM_ComputerSystemx.mof'),
                 NAME_SPACE)
-        except IOError:
+        except OSError:
             pass
 
 
@@ -2661,7 +2660,7 @@ class MOFWBEMConnectionInstDups(MOFWBEMConnection):
             operations performed through this object will fail.
         """
 
-        super(MOFWBEMConnectionInstDups, self).__init__(conn=conn)
+        super().__init__(conn=conn)
 
     def ModifyInstance(self, *args, **kwargs):
         """This method is used by the MOF compiler only in the course of
@@ -2743,7 +2742,7 @@ class Test_CreateInstanceWithDups(unittest.TestCase):
 
         moflog_file = os.path.join(TEST_DIR, 'moflog.txt')
         # pylint: disable=consider-using-with
-        self.logfile = io.open(moflog_file, 'w', encoding='utf-8')
+        self.logfile = open(moflog_file, 'w', encoding='utf-8')
         self.mofcomp = MOFCompiler(
             MOFWBEMConnectionInstDups(),
             search_paths=[TEST_DMTF_CIMSCHEMA_MOF_DIR],
@@ -3201,12 +3200,12 @@ def test_embedded_object_property_compile(testcase, iid, pname, pstr, exp_dict):
     if exp_dict['Array']:
         array_strings = []
         for strx in pstr:
-            array_strings.append('"{0}"'.format(strx))
+            array_strings.append(f'"{strx}"')
 
         embedd_inst_value = "{{ {0} }}".format(", ".join(array_strings))
         inst_mof = embed_inst_template.format(iid, pname, embedd_inst_value)
     else:
-        pstr = '"{0}"'.format(pstr)
+        pstr = f'"{pstr}"'
         inst_mof = embed_inst_template.format(iid, pname, pstr)
 
     conn = FakedWBEMConnection()

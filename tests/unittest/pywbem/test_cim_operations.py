@@ -5,7 +5,6 @@
 Unittest functions in _cim_operations.
 """
 
-from __future__ import print_function, absolute_import
 
 import sys
 import os
@@ -278,7 +277,7 @@ TESTCASES_INIT_WBEMCONNECTION = [
 ]
 
 
-class TestCreateConnection(object):
+class TestCreateConnection:
     """
     Test construction of WBEMConnection and those functions that do not
     depend on actually creating a connection
@@ -297,7 +296,7 @@ class TestCreateConnection(object):
         try:
             for fname in files:
                 # create empty file
-                with io.open(fname, 'a', encoding='utf-8'):
+                with open(fname, 'a', encoding='utf-8'):
                     pass
 
             if exp_exc is not None:
@@ -517,7 +516,7 @@ def test_conn_set_timeout():
     assert conn.timeout == 25
 
 
-class TestGetRsltParams(object):
+class TestGetRsltParams:
     """Test WBEMConnection._get_rslt_params method."""
 
     @pytest.mark.parametrize(
@@ -526,13 +525,13 @@ class TestGetRsltParams(object):
         # enumctxt input, eos input, expected eos, expected exception type
         'ec, eos, eos_exp, exctype_exp', [
             # following are successul returns
-            [u'contextblah', u'False', False, None],  # normal enumctxt rtn
-            ["", u'True', True, None],                # eos true, enmctxt empty
-            [None, u'True', True, None],              # eos true, enmctxt None
-            [u'contextblah', u'True', True, None],    # eos tru, cts with value
+            ['contextblah', 'False', False, None],  # normal enumctxt rtn
+            ["", 'True', True, None],                # eos true, enmctxt empty
+            [None, 'True', True, None],              # eos true, enmctxt None
+            ['contextblah', 'True', True, None],    # eos tru, cts with value
             # following are exceptions
             [None, None, None, ParseError],      # no values in eos or enumctxt
-            [None, u'False', None, ParseError],  # no value in ec and eos False
+            [None, 'False', None, ParseError],  # no value in ec and eos False
         ]
     )
     def test_with_params(self, irval, ec, eos, eos_exp, exctype_exp):
@@ -543,9 +542,9 @@ class TestGetRsltParams(object):
         """
         conn = WBEMConnection('http://localhost')
         result = [
-            (u'IRETURNVALUE', {}, irval),
-            (u'EnumerationContext', None, ec),
-            (u'EndOfSequence', None, eos)
+            ('IRETURNVALUE', {}, irval),
+            ('EnumerationContext', None, ec),
+            ('EndOfSequence', None, eos)
         ]
 
         if exctype_exp:
@@ -571,7 +570,7 @@ class TestGetRsltParams(object):
         """
         conn = WBEMConnection('http://localhost')
         result = [
-            (u'IRETURNVALUE', {}, {})
+            ('IRETURNVALUE', {}, {})
         ]
 
         with pytest.raises(ParseError):
@@ -1039,7 +1038,7 @@ def test_request_invalid_params(testcase, init_kwargs, method, args, kwargs):
 
     else:
         assert False, "Test failed. Incomplete. "  \
-            "method {0} not found".format(method)
+            "method {} not found".format(method)
 
     # Ensure that exceptions raised in the remainder of this function
     # are not mistaken as expected exceptions
@@ -1227,11 +1226,11 @@ def test_copy_conn(
     try:
         for fname in files:
             # create empty file
-            with io.open(fname, 'a', encoding='utf-8'):
+            with open(fname, 'a', encoding='utf-8'):
                 pass
 
         # pylint: disable=consider-using-with
-        dev_null = io.open(DEV_NULL, 'a', encoding='utf-8')
+        dev_null = open(DEV_NULL, 'a', encoding='utf-8')
 
         conn = WBEMConnection(**init_kwargs)
 
@@ -1391,7 +1390,7 @@ TESTCASES_WBEMCONNECTION_ERROR = [
 ]
 
 
-class TestConnectionError(object):  # pylint: disable=too-few-public-methods
+class TestConnectionError:  # pylint: disable=too-few-public-methods
     """
     Test construction of WBEMConnection and error exception when connection
     is executed with a function that communicates with the server.

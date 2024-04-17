@@ -115,7 +115,7 @@ from ._utils import _ensure_unicode, _format
 __all__ = ['WBEMServer']
 
 
-class WBEMServer(object):
+class WBEMServer:
     """
     *New in pywbem 0.9 as experimental and finalized in 0.10.*
 

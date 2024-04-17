@@ -20,7 +20,6 @@ Utility functions for pywbem, with no use of other pywbem submodules.
 
 # This module is meant to be safe for 'import *'.
 
-from __future__ import print_function, absolute_import
 
 import re
 import inspect
@@ -34,7 +33,7 @@ try:
     from collections.abc import Mapping, Set, MutableSequence, Sequence
 except ImportError:  # py2
     # pylint: disable=deprecated-class
-    from collections import Mapping, Set, MutableSequence, Sequence
+    from collections.abc import Mapping, Set, MutableSequence, Sequence
 
 __all__ = []
 
@@ -49,7 +48,7 @@ def _ensure_unicode(obj):
     * If the input string is a :term:`byte string`, it is decoded using UTF-8.
     * Otherwise, the input object was not a string and is returned unchanged.
     """
-    if isinstance(obj, six.binary_type):
+    if isinstance(obj, bytes):
         return obj.decode("utf-8")
     return obj
 
@@ -65,7 +64,7 @@ def _ensure_bytes(obj):
       UTF-8.
     * Otherwise, the input object was not a string and is returned unchanged.
     """
-    if isinstance(obj, six.text_type):
+    if isinstance(obj, str):
         return obj.encode("utf-8")
     return obj
 
@@ -223,28 +222,28 @@ def _ascii2(value):
         # NocaseDict in current impl. is not a Mapping; it uses
         # its own repr() implementation (via ascii(), called further down)
         items = [_ascii2(k) + ": " + _ascii2(v)
-                 for k, v in six.iteritems(value)]
+                 for k, v in value.items()]
         item_str = "{" + ", ".join(items) + "}"
         if value.__class__.__name__ == 'dict':
             return item_str
-        return "{0}({1})".format(value.__class__.__name__, item_str)
+        return f"{value.__class__.__name__}({item_str})"
 
     if isinstance(value, Set):
         items = [_ascii2(v) for v in value]
         item_str = "{" + ", ".join(items) + "}"
         if value.__class__.__name__ == 'set':
             return item_str
-        return "{0}({1})".format(value.__class__.__name__, item_str)
+        return f"{value.__class__.__name__}({item_str})"
 
     if isinstance(value, MutableSequence):
         items = [_ascii2(v) for v in value]
         item_str = "[" + ", ".join(items) + "]"
         if value.__class__.__name__ == 'list':
             return item_str
-        return "{0}({1})".format(value.__class__.__name__, item_str)
+        return f"{value.__class__.__name__}({item_str})"
 
     if isinstance(value, Sequence) and \
-            not isinstance(value, (six.text_type, six.binary_type)):
+            not isinstance(value, (str, bytes)):
         items = [_ascii2(v) for v in value]
         if len(items) == 1:
             item_str = "(" + ", ".join(items) + ",)"
@@ -252,9 +251,9 @@ def _ascii2(value):
             item_str = "(" + ", ".join(items) + ")"
         if value.__class__.__name__ == 'tuple':
             return item_str
-        return "{0}({1})".format(value.__class__.__name__, item_str)
+        return f"{value.__class__.__name__}({item_str})"
 
-    if isinstance(value, six.text_type):
+    if isinstance(value, str):
 
         ret = _ascii(value)  # returns type str in py2 and py3
         if ret.startswith('u'):
@@ -269,12 +268,12 @@ def _ascii2(value):
         ret = re.sub(r'(?<![^\\]\\)(?<![^\\]\\\\\\)\\x([0-9a-fA-F]{2})',
                      r'\\u00\1', ret)
 
-    elif isinstance(value, six.binary_type):
+    elif isinstance(value, bytes):
         ret = _ascii(value)  # returns type str in py2 and py3
         if ret.startswith('b'):
             ret = ret[1:]
 
-    elif isinstance(value, (six.integer_types, float)):
+    elif isinstance(value, ((int,), float)):
         # str() on Python containers calls repr() on the items. PEP 3140
         # that attempted to fix that, has been rejected. See
         # https://www.python.org/dev/peps/pep-3140/.
@@ -315,7 +314,7 @@ class _Ascii2Formatter(Formatter):
         elif conversion == 'A':
             return _ascii2(value)
         raise ValueError(
-            "Unknown conversion specifier {0!s}".format(conversion))
+            f"Unknown conversion specifier {conversion!s}")
 
 
 _ASCII2_FORMATTER = _Ascii2Formatter()

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 #
 # Author: Andreas Maier
 #
@@ -70,7 +69,7 @@ def compare_package_dirs(old_pkgdir, new_pkgdir):
     old_pkgname = abs_modulename(old_pkgdir, old_pkgdir)
     new_pkgname = abs_modulename(new_pkgdir, new_pkgdir)
     if old_pkgname != new_pkgname:
-        print("Error: Package names are not the same: %s / %s" % (old_pkgname, new_pkgname))
+        print("Error: Package names are not the same: {} / {}".format(old_pkgname, new_pkgname))
         return 1
     pkgname = old_pkgname
 
@@ -206,20 +205,20 @@ def compare_modules(old_modinfo, new_modinfo, pkgname):
 
     for sym in sorted(added_symbols):
         si = new_syminfos[sym]
-        print("    Added   symbol: {0:30} ({1}, {2})".format(sym, si['typename'], where(si['modname'], mod_name)))
+        print("    Added   symbol: {:30} ({}, {})".format(sym, si['typename'], where(si['modname'], mod_name)))
 
     for sym in sorted(removed_symbols):
         si = old_syminfos[sym]
-        print("    Removed symbol: {0:30} ({1}, {2})".format(sym, si['typename'], where(si['modname'], mod_name)))
+        print("    Removed symbol: {:30} ({}, {})".format(sym, si['typename'], where(si['modname'], mod_name)))
 
     if ARGS.exported:
         for sym in sorted(added_exp_symbols):
             si = new_syminfos[sym]
-            print("    Added   exported symbol: {0:30} ({1}, {2})".format(sym, si['typename'], where(si['modname'], mod_name)))
+            print("    Added   exported symbol: {:30} ({}, {})".format(sym, si['typename'], where(si['modname'], mod_name)))
 
         for sym in sorted(removed_exp_symbols):
             si = old_syminfos[sym]
-            print("    Removed exported symbol: {0:30} ({1}, {2})".format(sym, si['typename'], where(si['modname'], mod_name)))
+            print("    Removed exported symbol: {:30} ({}, {})".format(sym, si['typename'], where(si['modname'], mod_name)))
 
 EXCLUDE_REASON = "non-public symbol"
 def exclude(syminfo):
@@ -298,7 +297,7 @@ def get_modinfos(pkgdir):
                     mod_obj = importlib.import_module(abs_modname)
                 else:
                     if ARGS.debug:
-                        print("Debug: Importing relative module %s within package %s" % (rel_modname, pkgname))
+                        print("Debug: Importing relative module {} within package {}".format(rel_modname, pkgname))
                     mod_obj = importlib.import_module(rel_modname, pkgname)
             except ImportError as exc:
                 if ARGS.debug:

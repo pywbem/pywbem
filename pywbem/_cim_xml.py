@@ -47,7 +47,6 @@ displaying to humans who can ignore it, and never for computers.  XML
 always passes through all non-markup whitespace.
 """
 
-from __future__ import absolute_import
 
 from xml.dom.minidom import Element, Text, CDATASection
 
@@ -126,7 +125,7 @@ def _pcdata_nodes(pcdata):
 
     nodelist = []
 
-    if _CDATA_ESCAPING and isinstance(pcdata, six.string_types) and \
+    if _CDATA_ESCAPING and isinstance(pcdata, str) and \
        (pcdata.find("<") >= 0 or
         pcdata.find(">") >= 0 or
         pcdata.find("&") >= 0):  # noqa: E129

@@ -2,7 +2,6 @@
 Test memory leaks for dictionary classes used by pywbem.
 """
 
-from __future__ import absolute_import, print_function
 
 import sys
 from collections import OrderedDict

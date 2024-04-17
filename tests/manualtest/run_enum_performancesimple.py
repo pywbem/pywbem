@@ -6,7 +6,6 @@ from the provider TST_ResponseStressTestCxx. This is limited to OpenPegasus
 because only OpenPegasus implements the defined class.
 """
 
-from __future__ import absolute_import
 import sys as _sys
 import os as _os
 # pylint: disable=missing-docstring,superfluous-parens,no-self-use
@@ -60,7 +59,7 @@ def format_timedelta(td):
     # return '{:02d}:{:02d}.{:05f}'.format(hours, minutes, seconds)
 
 
-class ElapsedTimer(object):
+class ElapsedTimer:
     """
         Set up elapsed time timer. Calculates time between initiation
         and access.
@@ -112,7 +111,7 @@ class ElapsedTimer(object):
 
         sec = td.seconds
         ms = int(td.microseconds / 1000)
-        return '{:02}:{:02}.{:03}'.format(sec % 3600 // 60, sec % 60, ms)
+        return f'{sec % 3600 // 60:02}:{sec % 60:02}.{ms:03}'
 
     def format_elapsed_time(self):
         """
@@ -121,7 +120,7 @@ class ElapsedTimer(object):
         td = self.elapsed_time()
         hours, remainder = divmod(td.total_seconds(), 3600)
         minutes, seconds = divmod(remainder, 60)
-        return '{:02}:{:02}.{:03}'.format(hours, minutes, seconds)
+        return f'{hours:02}:{minutes:02}.{seconds:03}'
 
 
 class _PywbemCustomFormatter(_SmartFormatter,
@@ -480,7 +479,7 @@ Examples:
                         ' Use "http" or "https"')
 
     else:
-        url = '%s://%s' % ('https', args.server)
+        url = '{}://{}'.format('https', args.server)
 
     if args.key_file is not None and args.cert_file is None:
         argparser.error('keyfile option requires certfile option')
@@ -521,7 +520,7 @@ def main(prog):
           (args.response_size, args.response_count, args.pull_size))
 
     if args.runid:
-        runid = "%s:%s" % (__version__, args.runid)
+        runid = "{}:{}".format(__version__, args.runid)
     else:
         runid = __version__
 

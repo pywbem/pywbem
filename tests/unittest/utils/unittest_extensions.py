@@ -5,7 +5,6 @@ The ideas for these extensions are based on functions from the comfychair
 module by Martin Pool <mbp@samba.org>.
 """
 
-from __future__ import absolute_import
 
 import re
 import os
@@ -19,7 +18,7 @@ from pywbem._nocasedict import NocaseDict  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
-class RegexpMixin(object):
+class RegexpMixin:
     """Mixin class for classes derived from unittest.TestCase, providing
     assertion functions for regular expression tests."""
 
@@ -62,7 +61,7 @@ class RegexpMixin(object):
             "%s" % (text, pattern, msg)
 
 
-class FileMixin(object):
+class FileMixin:
     """Mixin class for classes derived from unittest.TestCase, providing
     assertion functions for file related tests."""
 
@@ -79,7 +78,7 @@ class FileMixin(object):
             "File exists but should not: %s" % filename
 
 
-class CIMObjectMixin(object):
+class CIMObjectMixin:
     """
     Mixin class for testing CIM objects.
     """
@@ -140,7 +139,7 @@ class CIMObjectMixin(object):
         for propname in act_properties:
             self.assert_CIMProperty_obj(
                 act_properties[propname], exp_properties[propname],
-                "%s, property %s" % (context, propname))
+                "{}, property {}".format(context, propname))
 
     def assert_CIMMethod_dict(self, act_methods, exp_methods, context):
         """
@@ -152,7 +151,7 @@ class CIMObjectMixin(object):
         for methname in act_methods:
             self.assert_CIMMethod_obj(
                 act_methods[methname], exp_methods[methname],
-                "%s, method %s" % (context, methname))
+                "{}, method {}".format(context, methname))
 
     def assert_CIMParameter_dict(self, act_parameters, exp_parameters, context):
         """
@@ -164,7 +163,7 @@ class CIMObjectMixin(object):
         for parmname in act_parameters:
             self.assert_CIMParameter_obj(
                 act_parameters[parmname], exp_parameters[parmname],
-                "%s, parameter %s" % (context, parmname))
+                "{}, parameter {}".format(context, parmname))
 
     def assert_CIMQualifier_dict(self, act_qualifiers, exp_qualifiers, context):
         """
@@ -176,7 +175,7 @@ class CIMObjectMixin(object):
         for qualname in act_qualifiers:
             self.assert_CIMQualifier_obj(
                 act_qualifiers[qualname], exp_qualifiers[qualname],
-                "%s, qualifier %s" % (context, qualname))
+                "{}, qualifier {}".format(context, qualname))
 
     def assert_CIMProperty_obj(self, act_property, exp_property, context):
         """
@@ -326,7 +325,7 @@ def assert_copy(cpy, org):
         # Mutable
         assert cpy == org
         assert id(cpy) != id(org)
-    elif isinstance(org, (tuple, six.string_types, bool, int, type(None))):
+    elif isinstance(org, (tuple, (str,), bool, int, type(None))):
         # Immutable
         assert cpy == org
     else:
