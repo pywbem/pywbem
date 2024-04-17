@@ -2,8 +2,8 @@
 Unit test cases for _cim_http.py
 """
 
-
 import re
+
 import requests
 import urllib3
 import pytest

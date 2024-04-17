@@ -6,7 +6,6 @@ from collections import namedtuple
 import string
 import random
 from datetime import datetime
-import six
 
 from pywbem import CIMQualifier, CIMProperty, CIMClass, CIMInstance, \
     CIMInstanceName, CIMDateTime

@@ -25,6 +25,7 @@ WBEMServer requires access to a WBEM server.
 """
 
 import os
+
 import pytest
 
 from ..utils.wbemserver_mock import WbemServerMock

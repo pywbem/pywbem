@@ -32,18 +32,12 @@ provider class defined in the provider registry.
 
 from copy import deepcopy
 import warnings
-import six
-try:
-    from collections.abc import Mapping, Sequence
-except ImportError:  # py2
-    # pylint: disable=deprecated-class
-    from collections.abc import Mapping, Sequence
+from collections.abc import Mapping, Sequence
 
 from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     CIMParameter, CIMError, CIM_ERR_NOT_FOUND, CIM_ERR_INVALID_PARAMETER, \
     CIM_ERR_INVALID_CLASS, CIM_ERR_METHOD_NOT_FOUND, cimtype, \
     ToleratedSchemaIssueWarning
-
 from pywbem._utils import _format
 from pywbem._nocasedict import NocaseDict
 
@@ -274,8 +268,7 @@ class ProviderDispatcher(BaseProvider):
         # raised during checks in the WBEMConnection operation).
         assert isinstance(ModifiedInstance, CIMInstance)
         assert isinstance(IncludeQualifiers, (bool, type(None)))
-        assert isinstance(PropertyList,
-                          ((str,), list, tuple, type(None)))
+        assert isinstance(PropertyList, (str, list, tuple, type(None)))
         assert isinstance(ModifiedInstance.path, CIMInstanceName)
 
         # Verify equality of the class names in the modified instance.

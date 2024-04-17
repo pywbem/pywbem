@@ -35,7 +35,6 @@ User defined providers can be registere for the following requests:
 * InvokeMethod
 """
 
-import six
 from pywbem._nocasedict import NocaseDict
 from pywbem._utils import _format
 
@@ -99,8 +98,8 @@ class ProviderRegistry:
             widths = [max(map(len, col)) for col in zip(*rows)]
             for row in rows:
                 _uprint(dest, "  {}".format(
-                    "  ".join(val.ljust(width) for
-                                (val, width) in zip(row, widths))))
+                        "  ".join(val.ljust(width) for
+                                  (val, width) in zip(row, widths))))
 
         _uprint(dest, "Registered Providers:")
         for ns in self.provider_namespaces():

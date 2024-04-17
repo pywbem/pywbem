@@ -4,12 +4,12 @@
 Test _listener.py module.
 """
 
-
 import sys
 import re
 import logging
 from time import time, sleep
 from random import randint
+
 import requests
 import pytest
 

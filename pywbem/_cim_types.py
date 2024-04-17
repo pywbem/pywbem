@@ -72,17 +72,14 @@ objects, :term:`string`, in addition to
 
 # This module is meant to be safe for 'import *'.
 
-
 import copy
 import re
+from datetime import tzinfo, datetime, timedelta, timezone
 
-from datetime import tzinfo, datetime, timedelta
-import six
 from .config import ENFORCE_INTEGER_RANGE
 from ._utils import _ensure_unicode, _hash_item, _format, _to_unicode, \
     _eq_item
 
-from datetime import timezone
 
 # pylint: disable=invalid-name
 _Longint = int
@@ -171,6 +168,8 @@ class _CIMComparisonMixin:  # pylint: disable=too-few-public-methods
 
 class SlottedPickleMixin:
     """
+    TODO-OLDPYTHON: Rework
+
     On Python 2, the built-in 'pickle' module uses pickle protocol 0 by default.
     Using protocol 0 causes pickle to raise TypeError for objects with slots
     that do not define methods __getstate__() and __setstate__().
@@ -892,6 +891,7 @@ class CIMInt(CIMType, _Longint):
     def __new__(cls, *args, **kwargs):
         ""  # Avoids docstring to be inherited
 
+        # TODO-OLDPYTHON: Rework
         # Python 3.7 removed support for passing the value for int() as a
         # keyword argument named 'x'. It now needs to be passed as a positional
         # argument. The testclient test case definitions rely on a keyword
@@ -1129,9 +1129,10 @@ class Real64(CIMFloat):
 
 
 # Python number types listed in :term:`number`.
-number_types = (int,) + (float,)  # pylint: disable=invalid-name
+number_types = (int, float)  # pylint: disable=invalid-name
 
 
+# TODO-OLDPYTHON: Rework
 # Python 3.8 removed __str__() on int and float and thereby caused an infinite
 # recursion for the CIMInt and CIMFloat classes whose __repr__() calls
 # __str__() on itself.
@@ -1330,7 +1331,7 @@ def atomic_to_cim_xml(obj):
         return _to_unicode(obj)
     elif isinstance(obj, bool):
         return 'TRUE' if obj else 'FALSE'
-    elif isinstance(obj, (CIMInt, (int,), CIMDateTime)):
+    elif isinstance(obj, (CIMInt, int, CIMDateTime)):
         return str(obj)
     elif isinstance(obj, datetime):
         return str(CIMDateTime(obj))

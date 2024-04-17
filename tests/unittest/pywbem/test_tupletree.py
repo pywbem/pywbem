@@ -3,10 +3,9 @@
 Test cases for _tupletree module and Unicode/XML check functions.
 """
 
-
 import xml
 import re
-import six
+
 import pytest
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name

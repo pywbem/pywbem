@@ -22,8 +22,6 @@ import warnings
 import datetime
 from getpass import getpass
 
-import six
-
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from tests.utils import import_installed
 pywbem = import_installed('pywbem')
@@ -133,8 +131,8 @@ class ServerTimeoutTest(ClientTest):
         execution_time = None
 
         if self.debug:
-            print('execute url_type={} timeout={} delay={}'.format(url,
-                                                               timeout, delay))
+            print('execute url_type={} timeout={} delay={}'.
+                  format(url, timeout, delay))
 
         err_flag = ""
         opttimer = ElapsedTimer()

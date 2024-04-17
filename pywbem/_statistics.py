@@ -146,7 +146,6 @@ response times::
 
 import time
 import copy
-import six
 
 from ._utils import _format
 

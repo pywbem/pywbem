@@ -18,9 +18,7 @@
 Unit test logging functionality in _logging.py
 """
 
-
 import os
-import io
 import re
 import logging
 

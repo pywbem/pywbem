@@ -109,7 +109,7 @@ Pywbem is supported in these environments:
 * Operating Systems: Linux, OS-X, native Windows, UNIX-like environments
   under Windows (such as `CygWin`_, MSYS2, Babun, or Gow).
 
-* Python: 2.7 (deprecated), 3.5, and higher
+* Python: 3.8 and higher
 
 * WBEM servers: Any WBEM server that conforms to the DMTF specifications listed
   in :ref:`Standards conformance`. WBEM servers supporting older versions of
@@ -533,8 +533,8 @@ communicated to the users in multiple ways:
 * It is raised at runtime by issuing Python warnings of type
   ``DeprecationWarning`` (see the Python :mod:`py:warnings` module).
 
-Starting with Python 2.7, ``DeprecationWarning`` messages are suppressed by
-default. They can be shown for example in any of these ways:
+``DeprecationWarning`` messages are suppressed by default in Python. They can be
+shown for example in any of these ways:
 
 * By specifying the Python command line option: ``-W default``
 * By invoking Python with the environment variable: ``PYTHONWARNINGS=default``

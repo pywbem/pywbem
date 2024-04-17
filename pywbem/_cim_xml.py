@@ -50,8 +50,6 @@ always passes through all non-markup whitespace.
 
 from xml.dom.minidom import Element, Text, CDATASection
 
-import six
-
 __all__ = []
 
 

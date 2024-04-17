@@ -25,16 +25,10 @@ pywbem client without requiring a running WBEM server.
 For documentation, see mocksupport.rst.
 """
 
-
 import os
 import time
 import re
 from xml.dom import minidom
-# try:
-#    from unittest.mock import Mock
-# except ImportError:
-#    from mock import Mock
-import six
 
 from pywbem import WBEMConnection, CIMClass, CIMClassName, \
     CIMInstance, CIMInstanceName, CIMParameter, CIMQualifierDeclaration, \
@@ -42,22 +36,16 @@ from pywbem import WBEMConnection, CIMClass, CIMClassName, \
     DEFAULT_TIMEOUT, WBEMServer, ModelError
 from pywbem._nocasedict import NocaseDict
 from pywbem._utils import _format
+
 from ._mainprovider import MainProvider
-
 from ._inmemoryrepository import InMemoryRepository
-
 from ._mockmofwbemconnection import _MockMOFWBEMConnection
-
 from ._providerregistry import ProviderRegistry
 from ._providerdependentregistry import ProviderDependentRegistry
-
 from ._providerdispatcher import ProviderDispatcher
-
 from ._dmtf_cim_schema import build_schema_mof
 from ._utils import _uprint
-
 from ._namespaceprovider import CIMNamespaceProvider
-
 from ._subscriptionproviders import CIMIndicationSubscriptionProvider, \
     CIMListenerDestinationProvider, CIMIndicationFilterProvider
 

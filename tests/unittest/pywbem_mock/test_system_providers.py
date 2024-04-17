@@ -20,11 +20,10 @@
 
 """
 Test of of the installation and operation of the CIM_Namespace provider.
-
 """
 
 import os
-import six
+
 import pytest
 
 from ..utils.pytest_extensions import simplified_test_function

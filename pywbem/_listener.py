@@ -144,23 +144,16 @@ import ssl
 import threading
 import atexit
 import getpass
-# Python 2.7 uses name Queue
-try:
-    import queue
-except ImportError:
-    import Queue as queue
+import queue
 try:
     import termios
 except ImportError:
+    # termios is only supported on ssome operating systems
     termios = None
-import six
-from six.moves import BaseHTTPServer
 import socketserver
-from six.moves import http_client
-try:
-    from http.server import HTTPStatus
-except ImportError:
-    HTTPStatus = None
+import http.client
+from http.server import HTTPStatus, HTTPServer, BaseHTTPRequestHandler
+
 from . import _cim_xml
 from ._version import __version__
 from ._cim_obj import CIMInstance
@@ -295,13 +288,12 @@ def keyfile_password_prompt(keyfile):
     return pw
 
 
-class ThreadedHTTPServer(socketserver.ThreadingMixIn,
-                         BaseHTTPServer.HTTPServer):
+class ThreadedHTTPServer(socketserver.ThreadingMixIn, HTTPServer):
     """Defines an HTTPServer class for indication reception"""
     pass
 
 
-class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+class ListenerRequestHandler(BaseHTTPRequestHandler):
     """
     A request handler for the standard Python HTTP server, with a handler
     method for the HTTP POST method, that acts as a WBEM listener.
@@ -533,7 +525,7 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             "CIMError: %r, CIMErrorDetails: %r",
             http_code, cim_error, cim_error_details)
 
-        self.send_response(http_code, http_client.responses.get(http_code, ''))
+        self.send_response(http_code, http.client.responses.get(http_code, ''))
         self.send_header("CIMExport", "MethodResponse")
         if cim_error is not None:
             self.send_header("CIMError", cim_error)
@@ -577,7 +569,7 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             resp_body = resp_body.encode("utf-8")
 
         http_code = 200
-        self.send_response(http_code, http_client.responses.get(http_code, ''))
+        self.send_response(http_code, http.client.responses.get(http_code, ''))
         self.send_header("Content-Type", "text/xml")
         self.send_header("Content-Length", str(len(resp_body)))
         self.send_header("CIMExport", "MethodResponse")
@@ -610,7 +602,7 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             resp_body = resp_body.encode("utf-8")
 
         http_code = 200
-        self.send_response(http_code, http_client.responses.get(http_code, ''))
+        self.send_response(http_code, http.client.responses.get(http_code, ''))
         self.send_header("Content-Type", "text/xml")
         self.send_header("Content-Length", str(len(resp_body)))
         self.send_header("CIMExport", "MethodResponse")
@@ -673,7 +665,7 @@ class ListenerRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         We override it to get a little more information logged in a somewhat
         better format at the INFO level.
         """
-        if HTTPStatus and isinstance(code, HTTPStatus):
+        if isinstance(code, HTTPStatus):
             # On Python 3, it can be an HTTPStatus object
             code = code.value
         self.log_message("Sending %s response with HTTP status %s",

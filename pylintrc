@@ -171,25 +171,18 @@ confidence=
 #       interface uses wildcard imports and we cannot change that without
 #       breaking compatibility. We could move the message control statements
 #       into the source code, though.
-# Note: "useless-object-inheritance" is python 3 only. In Python 2,
-#       "new-style" objects must inherit from object, or else
-#       they will be "old-style". In Python 3, this distinction does not
-#       exist; all objects inherit from object, and so explicitly inheriting
-#       from it is useless.  Ignore as long as we are using Python 2.7
 # Note: "unnecessary-pass" appears to be a completely harmless issue. We will
 #       ignore this warning at least for now.
 # Note: "useless-return" this only appears in Python 3 and since the return
 #       serves as a clear signal of the end of the method and does not cause
 #       any code issues we will ignore this warning.
-# Note: "consider-using-set-comprehension" not allowed in python 2.6 so we
-#       ignore it as long as we are using 2.7
 disable=I0011, bad-option-value,
         too-many-locals, too-many-branches, too-many-statements,
         too-many-lines, too-many-public-methods,
         too-many-nested-blocks, too-many-return-statements, too-many-arguments,
         wildcard-import, unused-wildcard-import,
-        locally-enabled, superfluous-parens, useless-object-inheritance,
-        consider-using-set-comprehension, unnecessary-pass, useless-return,
+        locally-enabled, superfluous-parens,
+        unnecessary-pass, useless-return,
         signature-differs, raise-missing-from, super-with-arguments,
         redundant-u-string-prefix, consider-using-f-string,
         cyclic-import, use-yield-from,

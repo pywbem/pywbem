@@ -6,15 +6,14 @@ Extensions for pytest module.
 import functools
 import warnings
 from collections import namedtuple
-try:
-    from inspect import Signature, Parameter
-except ImportError:  # py2
-    from funcsigs import Signature, Parameter
+from inspect import Signature, Parameter
+
 import pytest
 
 __all__ = ['simplified_test_function', 'ignore_warnings', 'expect_warnings']
 
 
+# TODO-OLDPYTHON: Rework this.
 # Pytest determines the signature of the test function by unpacking any
 # wrapped functions (this is the default of the signature() function it
 # uses. We correct this behavior by setting the __signature__ attribute of

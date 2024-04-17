@@ -2,8 +2,6 @@
 Test memory leaks for dictionary classes used by pywbem.
 """
 
-
-import sys
 from collections import OrderedDict
 try:
     from django.utils.datastructures import SortedDict as Django_SortedDict
@@ -19,21 +17,10 @@ from pywbem._cim_obj import NocaseDict  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
 
-# collections.OrderedDict has fixed its ref.cycles starting with Python 3.2
-ORDEREDDICT_LEAKFREE_VERSION = (3, 2)
-
-
-@pytest.mark.xfail(
-    sys.version_info < ORDEREDDICT_LEAKFREE_VERSION,
-    reason="OrderedDict has reference cycles on py<3.2")
 @yagot.garbage_checked()
 def test_leaks_OrderedDict_empty():
     """
     Test function with empty OrderedDict object.
-
-    Note: collections.OrderedDict has memory leaks on Python 2.7; see
-    https://bugs.python.org/issue9825. That issue was fixed in Python 3.2, but
-    the change in Python 2.7 apparently was not sufficient to remove the leak.
     """
     _ = OrderedDict()
 
@@ -53,9 +40,6 @@ def test_leaks_Django_SortedDict_empty():
     _ = Django_SortedDict()
 
 
-@pytest.mark.xfail(
-    sys.version_info < ORDEREDDICT_LEAKFREE_VERSION,
-    reason="NocaseDict uses OrderedDict")
 @yagot.garbage_checked()
 def test_leaks_NocaseDict_empty():
     """
@@ -64,9 +48,6 @@ def test_leaks_NocaseDict_empty():
     _ = NocaseDict()
 
 
-@pytest.mark.xfail(
-    sys.version_info < ORDEREDDICT_LEAKFREE_VERSION,
-    reason="NocaseDict uses OrderedDict")
 @yagot.garbage_checked()
 def test_leaks_NocaseDict_one():
     """

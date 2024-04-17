@@ -2,7 +2,6 @@
 Test CIM-XML parsing routines in _tupleparse.py.
 """
 
-
 import pytest
 from packaging.version import parse as parse_version
 

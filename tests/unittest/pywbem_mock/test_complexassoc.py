@@ -26,7 +26,6 @@ of processing complex associations including ternary associations (more than
 """
 
 import os
-import io
 
 import pytest
 
@@ -225,7 +224,7 @@ def save_data(conn, mof, request, response, exp_response):
 
         if not os.path.exists(COMPLEX_MODEL_MOF):
             with open('complex_association_model.mof', 'w',
-                         encoding='utf-8') as f:
+                      encoding='utf-8') as f:
                 print(mof, file=f)
 
         with open(PYWBEMCLI_CMDS, 'a', encoding='utf-8') as f:
@@ -358,7 +357,7 @@ def test_complexref_classnames(conn, ns, target, ro, rc, mof, exp_rslt,
 
     if VERBOSE:
         print('\nACT {}\nEXP {}'.format([c.classname for c in rtn_clns],
-                                    [c.classname for c in exp_clns]))
+                                        [c.classname for c in exp_clns]))
 
     assert {cln.classname.lower() for cln in exp_clns} == \
         {cln.classname.lower() for cln in rtn_clns}
@@ -525,7 +524,7 @@ def test_complexref_instnames(conn, ns, target, ro, rc, mof, exp_rslt,
     exp_instnames_str = [str(n) for n in exp_instnames]
     if VERBOSE:
         print('\nACT:\n{}\nEXP:\n{}'.format("\n".join(rtn_instnames_str),
-                                        "\n".join(exp_instnames_str)))
+                                            "\n".join(exp_instnames_str)))
 
     request = "pywbemcli class references {0} --role {1} --result_class {2}". \
         format(target_inst, ro, rc)
@@ -640,7 +639,7 @@ def test_complexassoc_classnames(conn, ns, target, ro, rr, ac,
                 for n in exp_rslt]
     if VERBOSE:
         print('\nACT {}\nEXP {}'.format([c.classname for c in rtn_clns],
-                                    [c.classname for c in exp_clns]))
+                                        [c.classname for c in exp_clns]))
 
     request = "pywbemcli class associators {0} --role {1} --assoc-class {2} " \
         "--result-role {3} --result-class {4}". \
@@ -1191,7 +1190,7 @@ def test_complexassoc_instnames(conn, ns, target, ro, rr, ac,
     exp_instnames_str = [str(n) for n in exp_instnames]
     if VERBOSE:
         print('\nACT:\n{}\nEXP:\n{}'.format("\n".join(rtn_instnames_str),
-                                        "\n".join(exp_instnames_str)))
+                                            "\n".join(exp_instnames_str)))
 
     request = "pywbemcli class associators {0} --role {1} --assoc-class {2} " \
         "--result-role {3} --result-class {4}". \

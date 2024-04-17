@@ -2,7 +2,6 @@
 Test functions in _units module
 """
 
-
 import pytest
 
 from ..utils.pytest_extensions import simplified_test_function

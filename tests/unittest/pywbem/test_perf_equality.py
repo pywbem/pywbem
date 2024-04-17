@@ -4,21 +4,10 @@
 Measure performance of equality tests.
 """
 
-
-import io
+import statistics
+from time import process_time, get_clock_info
 
 import pytest
-import six
-try:
-    import statistics
-except ImportError:
-    # Only on Python 2.7
-    from backports import statistics
-try:
-    from time import process_time, get_clock_info
-except ImportError:
-    # Only on Python 2.7
-    process_time = None
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from tests.utils import import_installed

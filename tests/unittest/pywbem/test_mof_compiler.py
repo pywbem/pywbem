@@ -2,18 +2,13 @@
     a version of the DMTF released Schema.
 """
 
-
 import os
-import io
 import unittest
 import re
+from collections import OrderedDict
+
 import pytest
-import six
 from ply import lex
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
 
 from ...utils import skip_if_moftab_regenerated
 from ..utils.unittest_extensions import CIMObjectMixin

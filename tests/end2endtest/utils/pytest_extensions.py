@@ -2,19 +2,11 @@
 Pytest fixtures for pywbem end2end tests.
 """
 
-
 import os
-import io
 import warnings
 from contextlib import contextmanager
 import json
 import subprocess
-try:
-    from subprocess import DEVNULL
-except ImportError:
-    # Python 2.7
-    from subprocess import PIPE as DEVNULL
-import six
 import pytest
 import yaml
 
@@ -87,7 +79,7 @@ def server_from_docker(image_name, image_port, host_port, container_name,
         try:
             inspect_out = subprocess.check_output(
                 ['docker', 'container', 'inspect', container_name],
-                stderr=DEVNULL)
+                stderr=subprocess.DEVNULL)
         except OSError as exc:
             raise RuntimeError(
                 f"Docker does not seem to be installed: {exc}")
@@ -116,7 +108,7 @@ def server_from_docker(image_name, image_port, host_port, container_name,
                  '--name', container_name,
                  '--publish', f'{host_port}:{image_port}',
                  image_name],
-                stdout=DEVNULL)
+                stdout=subprocess.DEVNULL)
         else:
             if verbose:
                 print("Using existing Docker container {}".
@@ -127,7 +119,7 @@ def server_from_docker(image_name, image_port, host_port, container_name,
                 print(f"Starting Docker container {container_name}")
             subprocess.check_call(
                 ['docker', 'start', container_name],
-                stdout=DEVNULL)
+                stdout=subprocess.DEVNULL)
         else:
             if verbose:
                 print("Docker container {} was already running".
@@ -181,14 +173,14 @@ def docker_pull_with_cache(image_name, verbose=False):
             print(f"Pulling image from Docker Hub: {image_name}")
         subprocess.check_call(
             ['docker', 'pull', image_name],
-            stdout=DEVNULL)
+            stdout=subprocess.DEVNULL)
 
         if verbose:
             print("Saving image {} in local Docker image cache: {}".
                   format(image_name, image_tar_path))
         subprocess.check_call(
             ['docker', 'save', '-o', image_tar_path, image_name],
-            stdout=DEVNULL)
+            stdout=subprocess.DEVNULL)
 
     else:
 
@@ -197,7 +189,7 @@ def docker_pull_with_cache(image_name, verbose=False):
                   format(image_name, image_tar_path))
         subprocess.check_call(
             ['docker', 'load', '-i', image_tar_path],
-            stdout=DEVNULL)
+            stdout=subprocess.DEVNULL)
 
 
 def skip_if_unsupported_capability(conn, cap_name):

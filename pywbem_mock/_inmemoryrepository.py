@@ -38,7 +38,6 @@ The CIM repository of a mock WBEM server is accessible through its
 
 
 from copy import deepcopy
-import six
 
 from pywbem._vendor.nocaselist import NocaseList
 from pywbem import CIMClass, CIMQualifierDeclaration, CIMInstance

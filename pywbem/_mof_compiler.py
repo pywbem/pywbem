@@ -72,21 +72,15 @@ sections of this chapter:
   that can be raised by the MOF compiler API.
 """
 
-
 import sys
 import os
 import io
 import re
 import tempfile
 import warnings
-
 from abc import ABCMeta, abstractmethod
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
+from collections import OrderedDict
 
-import six
 from ply import yacc, lex
 
 from ._vendor.nocaselist import NocaseList
@@ -3154,7 +3148,7 @@ def _yacc(verbose=False, out_dir=None):
     # message "ERROR: No token list is defined" and
     # an exception YaccError("Unable to build parser").
 
-    log_stream = io.BytesIO() if six.PY2 else io.StringIO()
+    log_stream = io.StringIO()
     try:
         parser = yacc.yacc(
             optimize=_optimize, tabmodule=_tabmodule, module=_module,
@@ -3197,7 +3191,7 @@ def _lex(verbose=False, out_dir=None):
     # To debug lex you may set debug=True and enable the debuglog statement.
     # or other logger definition.
 
-    log_stream = io.BytesIO() if six.PY2 else io.StringIO()
+    log_stream = io.StringIO()
     try:
         lexer = lex.lex(
             optimize=_optimize, lextab=_lextab, module=_module,

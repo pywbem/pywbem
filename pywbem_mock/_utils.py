@@ -22,12 +22,8 @@
 Utility functionsto support pywbem_mock.
 """
 
-
 import sys
-import io
 import locale
-
-import six
 
 __all__ = []
 
@@ -60,14 +56,8 @@ def _uprint(dest, text):
             "text must be a unicode or byte string, but is {0}".
             format(type(text)))
     if dest is None:
-        if six.PY2:
-            # On py2, stdout.write() requires byte strings
-            if isinstance(text, str):
-                text = text.encode(STDOUT_ENCODING, 'replace')
-        else:
-            # On py3, stdout.write() requires unicode strings
-            if isinstance(text, bytes):
-                text = text.decode('utf-8')
+        if isinstance(text, bytes):
+            text = text.decode('utf-8')
         sys.stdout.write(text)
     elif isinstance(dest, (str, bytes)):
         if isinstance(text, str):

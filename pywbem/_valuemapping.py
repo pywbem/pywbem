@@ -25,11 +25,7 @@ This class supports value ranges (e.g. ``"4..6"``) and the unclaimed marker
 """
 
 import re
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
-import six
+from collections import OrderedDict
 
 from ._cim_types import CIMInt, type_from_name
 from ._cim_obj import CIMProperty, CIMMethod, CIMParameter
@@ -862,7 +858,7 @@ class ValueMapping:
           TypeError: Element value is not an integer type.
         """
 
-        if not isinstance(element_value, ((int,), CIMInt)):
+        if not isinstance(element_value, (int, CIMInt)):
             raise TypeError(
                 _format("The value for value-mapped {0} is not "
                         "integer-typed, but has Python type: {1}",

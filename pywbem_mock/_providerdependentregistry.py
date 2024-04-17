@@ -18,7 +18,7 @@ This module defines the ProviderDependentRegistry class.
 """
 
 import os
-import six
+
 from pywbem._utils import _format
 
 __all__ = ['ProviderDependentRegistry']

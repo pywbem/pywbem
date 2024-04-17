@@ -38,7 +38,6 @@ described in detail in this documentation.
 
 # This module is meant to be safe for 'import *'.
 
-
 from ._vendor.nocasedict import NocaseDict as _NocaseDict
 from ._vendor.nocasedict import HashableMixin, KeyableByMixin
 

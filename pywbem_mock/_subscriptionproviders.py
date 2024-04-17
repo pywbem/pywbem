@@ -42,7 +42,6 @@ not know.
 They do not exist for DeleteInstances. Ex. You cannot delete a filter that
 is included in a subscription.
 """
-import six
 
 from pywbem import CIMError, CIM_ERR_NOT_SUPPORTED, \
     CIM_ERR_INVALID_PARAMETER, CIM_ERR_FAILED, Uint16, CIMDateTime, \

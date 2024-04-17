@@ -2,34 +2,25 @@
 Unit tests for the recorder functions (_recorder.py module).
 """
 
-
 # Allows use of lots of single character variable names.
 # pylint: disable=invalid-name,missing-docstring,too-many-statements
 # pylint: disable=too-many-lines,no-self-use
+
 import sys
 import os
-import io
 import logging
 import logging.handlers
 import warnings
 from datetime import datetime, timedelta
-try:
-    from collections.abc import Mapping
-except ImportError:
-    # pylint: disable=deprecated-class
-    from collections.abc import Mapping
+from collections.abc import Mapping
+from collections import OrderedDict
 
 import pytest
-import six
 from testfixtures import LogCapture
 # Enabled only to display a tree of loggers
 # from logging_tree import printout as logging_tree_printout
 import yaml
 import yamlloader
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
 
 from ...utils import skip_if_moftab_regenerated, is_inherited_from
 from ..utils.dmtf_mof_schema_def import install_test_dmtf_schema
@@ -910,15 +901,6 @@ TESTCASES_BASEOPERATIONRECORDER_OPEN_FILE = [
         None, None, True
     ),
     (
-        "Single UTF-16 surrogate sequence for U+10142 resulting in 4-char "
-        "UTF-8 sequence",
-        dict(
-            text='\uD800\uDD42',
-            exp_bytes=b'\xF0\x90\x85\x82',
-        ),
-        None, None, six.PY2  # Not supported in Python 3
-    ),
-    (
         "Single UCS-4 character resulting in 4-char UTF-8 sequence",
         dict(
             text='\U00010142',
@@ -1663,7 +1645,7 @@ class BaseLogOperationRecorderTests:
         # Define an attribute that is a single LogOperationRecorder to be used
         # in some of the tests.  Note that if detail_level is dict it is used
         # directly.
-        if isinstance(detail_level, ((str,), (int,))):
+        if isinstance(detail_level, (str, int)):
             detail_level = {'api': detail_level, 'http': detail_level}
 
         # pylint: disable=attribute-defined-outside-init

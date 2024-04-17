@@ -1,15 +1,13 @@
 #!/usr/bin/env python
-#
 
 """
 Unittest functions in _cim_operations.
 """
 
-
 import sys
 import os
-import io
 import re
+
 import pytest
 
 from ...utils import skip_if_moftab_regenerated

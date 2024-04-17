@@ -132,14 +132,11 @@ import sys
 import doctest
 import socket
 import re
+import io
 import traceback
 import warnings
 import threading
-from collections import namedtuple
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
+from collections import namedtuple, OrderedDict
 import codecs
 import yaml
 import yamlloader
@@ -147,7 +144,6 @@ import pytest
 import requests_mock
 import requests
 from lxml import etree, doctestcompare
-import six
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ..utils import import_installed
@@ -174,7 +170,7 @@ class ExcThread(threading.Thread):
     def join(self, timeout=None):
         threading.Thread.join(self, timeout)
         if self.exc:
-            six.reraise(*self.exc)
+            raise self.exc
 
 
 def patched_makefile(self, mode='r', bufsize=-1):
@@ -804,8 +800,7 @@ def runtestcase(testcase):
     if tc_ignore_test:
         pytest.skip("Test case has 'ignore_test' set")
         return
-    if six.PY2 and tc_ignore_python_version == 2 or \
-            six.PY3 and tc_ignore_python_version == 3:
+    if tc_ignore_python_version == 3:
         pytest.skip("Test case has 'ignore_python_version' set")
         return
 
@@ -890,7 +885,7 @@ def runtestcase(testcase):
         result = op_call(**op_args)
     except Exception as exc:      # pylint: disable=broad-except
         raised_exception = exc
-        stringio = six.StringIO()
+        stringio = io.StringIO()
         traceback.print_exc(file=stringio)
         raised_traceback_str = stringio.getvalue()
         stringio.close()

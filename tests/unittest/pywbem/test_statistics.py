@@ -4,9 +4,9 @@
 Tests for statistics (`_statistics` in pywbem module).
 """
 
-
 import re
 import time
+
 import pytest
 
 from ..utils.pytest_extensions import simplified_test_function

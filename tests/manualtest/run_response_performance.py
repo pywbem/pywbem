@@ -6,7 +6,6 @@ Test cases for _tupletree module and Unicode/XML check functions.
 
 import sys as _sys
 import os as _os
-import io
 import time
 import argparse as _argparse
 import datetime
@@ -15,26 +14,25 @@ import cProfile
 import locale
 from tabulate import tabulate
 from pyinstrument import Profiler
-import six
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from tests.utils import import_installed
 pywbem = import_installed('pywbem')
 from pywbem import _tupletree, __version__  # noqa: E402
 from pywbem._cliutils import SmartFormatter as _SmartFormatter  # noqa: E402
+from pywbem._tupleparse import TupleParser  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 # pylint: disable=use-dict-literal
 
-# In pywbem 0.13, parse_cim() changed from a function to a method:
-try:
-    from pywbem._tupleparse import parse_cim
-except ImportError:
-    from pywbem._tupleparse import TupleParser
 
-    def parse_cim(tt):
-        """Compatible parse_cim() function"""
-        tp = TupleParser()
-        return tp.parse_cim(tt)
+def parse_cim(tt):
+    """
+    Compatible parse_cim() function, since in pywbem 0.13, parse_cim() changed
+    from a function to a method.
+    """
+    tp = TupleParser()
+    return tp.parse_cim(tt)
+
 
 # default input arguments.  These are small so a user who
 # just calls the code does not fall into long run.
@@ -77,14 +75,8 @@ def _uprint(dest, text):  # pylint: disable=too-many-branches
             "text must be a unicode or byte string, but is {0}".
             format(type(text)))
     if dest is None:
-        if six.PY2:
-            # On py2, stdout.write() requires byte strings
-            if isinstance(text, str):
-                text = text.encode(STDOUT_ENCODING, 'replace')
-        else:
-            # On py3, stdout.write() requires unicode strings
-            if isinstance(text, bytes):
-                text = text.decode('utf-8')
+        if isinstance(text, bytes):
+            text = text.decode('utf-8')
         _sys.stdout.write(text)
 
     elif isinstance(dest, (str, bytes)):
@@ -404,10 +396,10 @@ class ExecuteTests:
                   "Instances\nper sec"]
         title = 'Results: profile={}, response_counts={},\n   ' \
                 'response-sizes={}, runid={} {}'.format(self.profiler,
-                                                           self.response_count,
-                                                           self.response_size,
-                                                           self.runid,
-                                                           self.file_datetime)
+                                                        self.response_count,
+                                                        self.response_size,
+                                                        self.runid,
+                                                        self.file_datetime)
         table = tabulate(table_rows, header, tablefmt=self.tbl_output_format)
 
         # print statistics to terminal
@@ -491,18 +483,18 @@ NOTE: Running with a profiler heavily affects the runtime.
 """
     epilog = """
 Examples:
-  {}
+  {prog}
 
      Execute a minimal test with default input arguments and display time to
      execute. It does not use either of the profilers.
 
-  {}  -p cprofile --response-count 10000 20000 \\
+  {prog}  -p cprofile --response-count 10000 20000 \\
     --response-size 100 1000
 
      Execute the test for all combinations of response counts of 10,000 and
      20,000 and for response sizes of 500 and 1000 bytes using cprofile
      profiler to generate and output a profile of the operation.
-""".format(prog, prog)  # noqa: E501
+""".format(prog=prog)  # noqa: E501
 # pylint: enable=line-too-long
 
     argparser = _argparse.ArgumentParser(
@@ -608,8 +600,8 @@ def main():
 
     print('Starting profiler={}, response-count={} response-size={} '
           'runid={} log={}'.format(args.profiler, args.response_count,
-                                     args.response_size, args.runid,
-                                     args.log))
+                                   args.response_size, args.runid,
+                                   args.log))
 
     if args.individual:
         execute_individual_tests(args)

@@ -13,10 +13,10 @@
 Test of pywbem_mock.ProviderDependentRegistry.
 """
 
-
 import os
 import re
 import pickle
+
 import pytest
 
 from ..utils.pytest_extensions import simplified_test_function

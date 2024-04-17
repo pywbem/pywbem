@@ -2,9 +2,7 @@
 unichr2() utility function for pywbem testing.
 """
 
-
 import sys
-import six
 
 SURROGATE_MIN_CP = 0xD800  # Lowest surrogate code point
 SURROGATE_MAX_CP = 0xDFFF  # Highest surrogate code point

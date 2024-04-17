@@ -4,12 +4,11 @@
 Test CIM types.
 """
 
-
 import re
 from datetime import timedelta, datetime
+
 import pytz
 import pytest
-import six
 
 from ..utils.pytest_extensions import simplified_test_function
 
