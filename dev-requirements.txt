@@ -23,7 +23,8 @@ vendorize>=0.2.2; python_version == '2.7'
 vendorize>=0.3.0; python_version >= '3.6'
 
 # Coverage reporting (no imports, invoked via coveralls script):
-coverage>=5.0
+# coverage is pinned to <7.0 to speed up pip; coveralls 3.3 also pins coverage<7.0
+coverage>=5.0,<7.0
 pytest-cov>=2.7.0
 # coveralls 2.0 has removed support for Python 2.7
 git+https://github.com/andy-maier/coveralls-python.git@andy/add-py27#egg=coveralls; python_version == '2.7'
