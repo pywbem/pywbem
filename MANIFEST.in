@@ -11,6 +11,7 @@ include mof_compiler
 include mof_compiler.bat
 include pywbem/*.py
 include pywbem_mock/*.py
+include pywbem/_vendor/__init__.py
 include pywbem/_vendor/nocasedict/*.py
 include pywbem/_vendor/nocaselist/*.py
 include pywbem/_vendor/nocasedict/LICENSE
