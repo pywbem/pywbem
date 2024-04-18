@@ -320,6 +320,7 @@ dist_manifest_in_files := \
     mof_compiler.bat \
     $(package_name)/*.py \
     $(mock_package_name)/*.py \
+    $(vendor_dir)/__init__.py \
     $(vendor_dir)/nocasedict/*.py \
     $(vendor_dir)/nocaselist/*.py \
     $(vendor_dir)/nocasedict/LICENSE \
@@ -340,6 +341,7 @@ dist_dependent_files := \
     mof_compiler.bat \
     $(wildcard $(package_name)/*.py) \
     $(wildcard $(mock_package_name)/*.py) \
+    $(wildcard $(vendor_dir)/__init__.py) \
     $(wildcard $(vendor_dir)/nocasedict/*.py) \
     $(wildcard $(vendor_dir)/nocaselist/*.py) \
     $(vendor_dir)/nocasedict/LICENSE \

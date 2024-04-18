@@ -25,6 +25,9 @@ Released: not yet
 
 **Bug fixes:**
 
+* Fixed pywbem install error with ImportError for "._vendor.nocasedict" on
+  Python 2.7. Fixed the install tests to catch this error. (issue #3163)
+
 **Enhancements:**
 
 **Cleanup:**
