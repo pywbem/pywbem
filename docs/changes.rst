@@ -14,14 +14,10 @@ Change log
       :revisions: 1
 
 
-pywbem 1.7.1.dev1
------------------
+pywbem 1.7.1
+------------
 
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
+Released: 2024-04-18
 
 **Bug fixes:**
 
@@ -33,14 +29,6 @@ Released: not yet
 * Dev: Pinned coverage to <7.0 to speed up installation of development
   environment. coveralls 3.3 also pins coverage to <7.0, so tht is not
   a unique restriction of pywbem.
-
-**Cleanup:**
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 1.7.0
