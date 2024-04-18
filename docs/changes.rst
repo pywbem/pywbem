@@ -30,6 +30,9 @@ Released: not yet
 * Fix issue where pywbemlistener that fails startup can cause thread
   exception. See issue #3157
 
+* Fixed pywbem install error with ImportError for "._vendor.nocasedict" on
+  Python 2.7. Fixed the install tests to catch this error. (issue #3163)
+
 **Enhancements:**
 
 **Cleanup:**
