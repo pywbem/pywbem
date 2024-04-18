@@ -14,29 +14,15 @@ Change log
       :revisions: 1
 
 
-pywbem 1.7.2.dev1
------------------
+pywbem 1.7.2
+------------
 
-Released: not yet
-
-**Incompatible changes:**
-
-**Deprecations:**
+Released: 2024-04-18
 
 **Bug fixes:**
 
 * Fixed pywbem install error with ImportError for "._vendor.nocasedict" on
   Python 2.7. Fixed the install tests to catch this error. (issue #3163)
-
-**Enhancements:**
-
-**Cleanup:**
-
-**Known issues:**
-
-* See `list of open issues`_.
-
-.. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
 
 pywbem 1.7.1
