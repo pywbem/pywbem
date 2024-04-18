@@ -30,6 +30,10 @@ Released: not yet
 
 **Enhancements:**
 
+* Dev: Pinned coverage to <7.0 to speed up installation of development
+  environment. coveralls 3.3 also pins coverage to <7.0, so tht is not
+  a unique restriction of pywbem.
+
 **Cleanup:**
 
 **Known issues:**
