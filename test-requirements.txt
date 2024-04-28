@@ -88,7 +88,11 @@ FormEncode>=2.0.0; python_version >= '3.6'
 # lxml 4.9.2 addresses changes in Python 3.11
 # lxml 4.9.3 python 3.12
 lxml>=4.6.2; python_version == '2.7'
-lxml>=4.6.2; python_version >= '3.6' and python_version <= '3.9'
+lxml>=4.6.2; python_version >= '3.6' and python_version <= '3.7'
+# lxml>=5.0 fails installing on macOS 14 with Python 3.8, see https://bugs.launchpad.net/lxml/+bug/2063945
+lxml>=4.6.2,<5.0; python_version == '3.8' and sys_platform == 'darwin'
+lxml>=4.6.2; python_version == '3.8' and sys_platform != 'darwin'
+lxml>=4.6.2; python_version == '3.9'
 lxml>=4.6.4; python_version == '3.10'
 lxml>=4.9.2; python_version == '3.11'
 lxml>=4.9.3; python_version == '3.12'
