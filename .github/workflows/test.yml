@@ -69,6 +69,16 @@ jobs:
                 \"os\": \"macos-latest\", \
                 \"python-version\": \"3.7\", \
                 \"package_level\": \"latest\" \
+              }, \
+              { \
+                \"os\": \"macos-latest\", \
+                \"python-version\": \"3.8\", \
+                \"package_level\": \"minimum\" \
+              }, \
+              { \
+                \"os\": \"macos-latest\", \
+                \"python-version\": \"3.8\", \
+                \"package_level\": \"latest\" \
               } \
             ], \
             \"include\": [ \
@@ -112,6 +122,16 @@ jobs:
               { \
                 \"os\": \"macos-12\", \
                 \"python-version\": \"3.7\", \
+                \"package_level\": \"latest\" \
+              }, \
+              { \
+                \"os\": \"macos-12\", \
+                \"python-version\": \"3.8\", \
+                \"package_level\": \"minimum\" \
+              }, \
+              { \
+                \"os\": \"macos-12\", \
+                \"python-version\": \"3.8\", \
                 \"package_level\": \"latest\" \
               } \
             ] \
@@ -175,8 +195,13 @@ jobs:
                 \"package_level\": \"latest\" \
               }, \
               { \
-                \"os\": \"macos-latest\", \
+                \"os\": \"macos-12\", \
                 \"python-version\": \"3.8\", \
+                \"package_level\": \"latest\" \
+              }, \
+              { \
+                \"os\": \"macos-latest\", \
+                \"python-version\": \"3.9\", \
                 \"package_level\": \"latest\" \
               }, \
               { \
