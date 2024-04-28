@@ -33,6 +33,10 @@ Released: not yet
 * Fixed pywbem install error with ImportError for "._vendor.nocasedict" on
   Python 2.7. Fixed the install tests to catch this error. (issue #3163)
 
+* For Python 3.6 and 3.7, changed macos-latest back to macos-12 because
+  macos-latest got upgraded from 12 to 14 and no longer supports Python 3.6
+  and 3.7.
+
 **Enhancements:**
 
 **Cleanup:**
