@@ -5,7 +5,7 @@ include README_PYPI.md
 include INSTALL.md
 include requirements.txt
 include test-requirements.txt
-include setup.py
+include pyproject.toml
 include build_moftab.py
 include mof_compiler
 include mof_compiler.bat

@@ -1,12 +1,8 @@
 # Pip requirements file for development dependencies.
 
 
-# Include test dependencies (which includes install dependencies)
--r test-requirements.txt
-
-
 # Direct dependencies for development and indirect dependencies for development
-# that are needed for some reason (must be consistent with minimum-constraints.txt)
+# that are needed for some reason (must be consistent with minimum-constraints-develop.txt)
 
 # Build distribution archive
 # Version 1.1.0 pulled after release
@@ -202,7 +198,7 @@ pywinpty>=2.0.3; os_name == "nt"
 terminado>=0.8.3,<0.10.0
 
 
-# Dependencies to reduce backtracking time (must be consistent with minimum-constraints.txt)
+# Dependencies to reduce backtracking time (must be consistent with minimum-constraints-develop.txt)
 
 # jupyter-server 1.24.0 depends on anyio>=3.1.0,<4
 anyio>=3.1.0

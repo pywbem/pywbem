@@ -6,12 +6,8 @@
 # in the repo.
 
 
-# Include install dependencies
--r requirements.txt
-
-
 # Direct dependencies for test and indirect dependencies for test that are
-# needed for some reason (must be consistent with minimum-constraints.txt)
+# needed for some reason (must be consistent with minimum-constraints-develop.txt)
 
 # Unit test (imports into testcases):
 packaging>=21.3

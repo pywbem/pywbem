@@ -35,7 +35,10 @@ requirements:
 #  - rtd-requirements.txt:
 #      pin: False
 #      update: insecure
-  - minimum-constraints.txt:
+  - minimum-constraints-install.txt:
+      pin: True
+      update: insecure
+  - minimum-constraints-develop.txt:
       pin: True
       update: insecure
 
