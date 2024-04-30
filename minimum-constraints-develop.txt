@@ -6,12 +6,6 @@
 # packages.
 
 
-# Note: The included file is processed by Pip but ignored by the Safety tool.
-# Thus, safety with the 'all' profile actually only checks development packages,
-# but that's ok since the 'install' profile checks the install packages.
--c minimum-constraints-install.txt
-
-
 # Direct dependencies for test and indirect dependencies for test that are
 # needed for some reason (must be consistent with test-requirements.txt)
 

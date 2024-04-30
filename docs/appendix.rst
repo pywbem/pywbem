@@ -773,7 +773,7 @@ There are basically two options on how this issue can be addressed:
     urllib3>=1.26.5,<2.0; python_version >= '3.7'
 
   The minimum version of urllib3 should be at least what the
-  minimum-constraints.txt file of the 'pywbem' project specifies as a minimum,
+  minimum-constraints-install.txt file of the 'pywbem' project specifies as a minimum,
   for the 'pywbem' version.
 
   Note that pinning a dependent package prevents installing security

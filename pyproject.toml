@@ -1,0 +1,76 @@
+# pyproject.toml file for pywbem
+# Documentation:
+# pyproject.toml: https://packaging.python.org/en/latest/guides/writing-pyproject-toml/
+# setuptools items: https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html
+
+[build-system]
+requires = [
+    "setuptools>=66.1.0",
+    "setuptools-scm>=8.0",
+    "wheel>=0.38.1",
+]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+platforms = ["any"]
+script-files = [
+    "mof_compiler", "mof_compiler.bat"
+]
+zip-safe = true
+
+[tool.setuptools.packages.find]
+# setuptools needs all sub-packages to be specified as well to avoid the
+# ambiguity warning. That can be done by specifyng 'packages' with a full list
+# of packages including sub-packages, or by specifying 'packages.find' with
+# wildcards. The strings in 'packages.find' are matched using glob pattern
+# matching against the package path.
+include = ["pywbem", "pywbem.*", "pywbem_mock", "pywbem_mock.*"]
+
+[project]
+name = "pywbem"
+description = "pywbem - A WBEM client"
+authors = [
+    {name = "Tim Potter", email = "tpot@hp.com"}
+]
+maintainers = [
+    {name = "Andreas Maier", email = "maiera@de.ibm.com"},
+    {name = "Karl Schopmeyer", email = "k.schopmeyer@swbell.net"}
+]
+readme = "README_PYPI.md"
+license = {text = "LGPL version 2.1, or (at your option) any later version"}
+keywords = ["cim", "wbem", "client"]
+classifiers = [
+    "License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)",
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Systems Administration",
+    "Environment :: Console",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+requires-python = ">=3.8"
+dynamic = ["version", "dependencies", "optional-dependencies"]
+
+[project.urls]
+Homepage = "https://pywbem.github.io/pywbem/"
+"Bug Tracker" = "https://github.com/pywbem/pywbem/issues"
+Documentation = "https://pywbem.readthedocs.io/en/latest/"
+"Source Code" = "https://github.com/pywbem/pywbem"
+Changelog = "https://pywbem.readthedocs.io/en/latest/changes.html"
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+[tool.setuptools.dynamic.optional-dependencies]
+test = {file = ['test-requirements.txt']}
+
+[tool.setuptools_scm]
+# Get the version from the Git tag, and write a version file:
+version_file = "pywbem/_version.py"

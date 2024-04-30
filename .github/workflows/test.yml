@@ -143,11 +143,6 @@ jobs:
           }
           console.log(result)
           return result
-    - name: Select whether to run steps for cythonized archive
-      id: run_cythonized
-      if: "! startsWith(matrix.os, 'windows-') && (github.event_name == 'schedule' || startsWith(github.head_ref, 'release_'))"
-      run: |
-        echo "Running steps for cythonized archive"
     - name: Create local cache directory for Docker images
       # GitHub Actions has Docker only on Ubuntu
       if: startsWith(matrix.os, 'ubuntu-')
@@ -300,29 +295,6 @@ jobs:
         RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
       run: |
         make perftest
-    - name: Build cythonized archive
-      if: steps.run_cythonized.outcome == 'success'
-      env:
-        PACKAGE_LEVEL: ${{ matrix.package_level }}
-        RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
-      run: |
-        make buildc
-    - name: Install cythonized archive
-      if: steps.run_cythonized.outcome == 'success'
-      env:
-        PACKAGE_LEVEL: ${{ matrix.package_level }}
-        RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
-      run: |
-        make installc
-    - name: Test cythonized archive
-      if: steps.run_cythonized.outcome == 'success'
-      env:
-        PACKAGE_LEVEL: ${{ matrix.package_level }}
-        RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
-        # TODO: Remove -x option once tests succeed
-        TESTOPTS: "-x"
-      run: |
-        make testc
     - name: Run safety
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}

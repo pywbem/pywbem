@@ -10,11 +10,6 @@
 #    vulnerability will remain ignored until such time as the versions of
 #    python that cannot support the required version of the package are no
 #    longer supported by pywbem.
-#
-# The way to see python version limitations for package versions
-#    as defined for pywbem is to filter the file minimum-constraints.txt
-#    for the package name. Multiple entries for same package name imply
-#    different minimum versions for different python releases.
 
 # Configuration for the 'safety check' command
 security:

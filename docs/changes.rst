@@ -26,6 +26,14 @@ Released: not yet
 * Removed support for Python 2.7, 3.6, and 3.7. pywbem now requires
   Python >= 3.8. (issue #3145)
 
+* Removed setup.py and therefore the possibility to run setup.py as a command,
+  for example to install or test pywbem. Running setup.py as a command has been
+  deprecated by Python.
+
+* Removed the support for building, installing and testing a cythonized
+  distribution of pywbem, because of the transition from setup.py to
+  pyproject.toml.
+
 **Deprecations:**
 
 **Bug fixes:**
@@ -41,6 +49,26 @@ Released: not yet
   and 3.7.
 
 **Enhancements:**
+
+* Development: Migrated from setup.py to pyproject.toml since that is the
+  recommended direction for Python packages. The make targets have not changed
+  (with the exception of the make targets 'buuildc', 'installc', and 'testc'
+  for a cythonized distribution archive).
+  The content of the wheel and source distribution archives has not changed.
+
+  Some files have been renamed:
+  - minimum-constraints.txt to minimum-constraints-develop.txt
+  - .safety-policy-all.yml to .safety-policy-develop.yml
+
+  Removed pywbem/_version.py from git tracking, because it is now dynamically
+  created when building the distribution.
+
+* Development: The pywbem version during development now uses an automatically
+  calculated dev number and the git commit hash, e.g. ``1.8.0a1.dev9+gad875911``.
+  Note that the pywbem version numbers for packages released to Pypi is
+  unchanged: M.N.U.
+  Updated the release description in DEVELOP.md to no longer edit the version
+  file, but to set tags.
 
 **Cleanup:**
 

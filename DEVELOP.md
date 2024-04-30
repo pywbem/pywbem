@@ -77,15 +77,7 @@ local clone of the ``pywbem/pywbem`` Git repo.
         git pull
         git checkout -b release_${MNU}
 
-3.  Edit the version file:
-
-        vi pywbem/_version.py
-
-    and set the ``__version__`` variable to the version that is being released:
-
-        __version__ = 'M.N.U'
-
-4.  Edit the change log:
+3.  Edit the change log:
 
         vi docs/changes.rst
 
@@ -101,7 +93,7 @@ local clone of the ``pywbem/pywbem`` Git repo.
       add text for any known issues you want users to know about.
     * Remove all empty list items.
 
-5.  Edit the README file for PyPI:
+4.  Edit the README file for PyPI:
 
         vi README_PYPI.md
 
@@ -112,7 +104,7 @@ local clone of the ``pywbem/pywbem`` Git repo.
         .. _Documentation on RTD: https://pywbem.readthedocs.io/en/stable_M.N/
         .. _Change log on RTD: https://pywbem.readthedocs.io/en/stable_M.N/changes.html
 
-6.  Run the Safety tool:
+5.  Run the Safety tool:
 
     .. code-block:: sh
 
@@ -124,6 +116,13 @@ local clone of the ``pywbem/pywbem`` Git repo.
 
     If the safety run fails, you need to fix the safety issues that are
     reported.
+
+6.  Add a new tag for the version that is being released and push it to the
+    remote repo. This needs to be done before pushing the changes because the
+    version is calculated based on the most recent tag in the commit history.
+
+        git tag ${MNU}
+        git push --tags
 
 7.  Commit your changes and push the topic branch to the remote repo:
 
@@ -143,13 +142,10 @@ local clone of the ``pywbem/pywbem`` Git repo.
     have succeeded, merge the Pull Request (no review is needed). This
     automatically deletes the branch on GitHub.
 
-11. Add a new tag for the version that is being released and push it to
-    the remote repo. Clean up the local repo:
+11. Clean up the release branch on the local repo:
 
         git checkout ${BRANCH}
         git pull
-        git tag -f ${MNU}
-        git push -f --tags
         git branch -d release_${MNU}
 
 12. When releasing based on the master branch, create and push a new stable
@@ -275,23 +271,14 @@ local clone of the ``pywbem/pywbem`` Git repo.
         git pull
         git checkout -b start_${MNU}
 
-3.  Edit the version file:
-
-        vi pywbem/_version.py
-
-    and update the version to a draft version of the version that is being
-    started:
-
-        __version__ = 'M.N.U.dev1'
-
-4.  Edit the change log:
+3.  Edit the change log:
 
         vi docs/changes.rst
 
     and insert the following section before the top-most section:
 
-        pywbem M.N.U.dev1
-        -----------------
+        pywbem M.N.U.dev
+        ----------------
 
         This version contains all fixes up to version M.N-1.x.
 
@@ -312,6 +299,22 @@ local clone of the ``pywbem/pywbem`` Git repo.
         * See `list of open issues`_.
 
         .. _`list of open issues`: https://github.com/pywbem/pywbem/issues
+
+4.  Add an initial Git tag for the new release stream and push it to the
+    remote repo.
+
+    Note: An initial tag is necessary because the automatic version calculation
+    done by setuptools-scm uses the most recent tag in the commit history and
+    increases the least significant part of the version by one, without
+    providing any controls to change that behavior. So without this initial tag
+    when developing 1.8.0, the most recent tag would be 1.7.0 and the calculated
+    version would be e.g. 1.7.1.dev11+g7c3eb911. The "a0" at the end of the tag
+    is necessary because it adds a new least significant part, so the rest of
+    the version is not increased. So when developing 1.8.0, the calculated
+    version is e.g. 1.8.0a1.dev11+g7c3eb911.
+
+        git tag ${MNU}a0
+        git push --tags
 
 5.  Commit your changes and push them to the remote repo:
 

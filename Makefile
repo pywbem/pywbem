@@ -44,7 +44,7 @@ ifndef PACKAGE_LEVEL
   PACKAGE_LEVEL := latest
 endif
 ifeq ($(PACKAGE_LEVEL),minimum)
-  pip_level_opts := -c minimum-constraints.txt
+  pip_level_opts := -c minimum-constraints-develop.txt -c minimum-constraints-install.txt
 else
   ifeq ($(PACKAGE_LEVEL),latest)
     pip_level_opts := --upgrade --upgrade-strategy eager
@@ -161,23 +161,25 @@ test_dir := tests
 # Directory for coverage html output. Must be in sync with the one in .coveragerc.
 coverage_html_dir := coverage_html
 
-# Package version (full version, including any pre-release suffixes, e.g. "0.1.0.dev1").
-# Note: The package version is defined in pywbem/_version.py.
-# Note: Errors in getting the version (e.g. if wheel package is not installed) are
-# detected in _check_version. We avoid confusion by suppressing such errors here.
-package_version := $(shell $(PYTHON_CMD) setup.py --version 2>$(DEV_NULL))
+# Package version (e.g. "1.8.0a1.dev10+gd013028e" during development, or "1.8.0"
+# when releasing).
+# Note: The package version is automatically calculated by setuptools_scm based
+# on the most recent tag in the commit history, increasing the least significant
+# version indicator by 1.
+# Note: Errors in getting the version (e.g. if setuptools-scm is not installed)
+# are detected in _check_version. We avoid confusion by suppressing such errors
+# here.
+package_version := $(shell $(PYTHON_CMD) -m setuptools_scm 2>$(DEV_NULL))
+
+# The version file is recreated by setuptools-scm on every build, so it is
+# excluuded from git, and also from some dependency lists.
+version_file := $(package_name)/_version.py
 
 # Python versions
 python_version := $(shell $(PYTHON_CMD) tools/python_version.py 3)
 python_mn_version := $(shell $(PYTHON_CMD) tools/python_version.py 2)
 python_m_version := $(shell $(PYTHON_CMD) tools/python_version.py 1)
 pymn := py$(python_mn_version)
-
-# Tags for file name of cythonized wheel archive
-cython_pytag := $(shell $(PYTHON_CMD) -c "import sys; print('cp{}{}'.format(*sys.version_info[0:2]))")
-cython_abitag := $(shell $(PYTHON_CMD) -c "import sys; print('cp{}{}{}'.format(sys.version_info[0],sys.version_info[1],getattr(sys, 'abiflags','mu')))")
-# The setup.py based approach for building the cythonized archive uses this formula, see wheel package code
-cython_platform := $(shell $(PYTHON_CMD) -c "from wheel.bdist_wheel import get_platform; print(get_platform('.').lower().replace('-', '_').replace('.', '_'))")
 
 # OpenSSL version used by Python's ssl
 openssl_version := $(shell $(PYTHON_CMD) -c "import ssl; print(ssl.OPENSSL_VERSION)")
@@ -190,8 +192,7 @@ dist_dir := dist
 
 # Distribution archives
 # These variables are set with "=" for the same reason as package_version.
-bdist_file = $(dist_dir)/$(package_name)-$(package_version)-py2.py3-none-any.whl
-bdistc_file = $(dist_dir)/$(package_name)-$(package_version)-$(cython_pytag)-$(cython_abitag)-$(cython_platform).whl
+bdist_file = $(dist_dir)/$(package_name)-$(package_version)-py3-none-any.whl
 sdist_file = $(dist_dir)/$(package_name)-$(package_version).tar.gz
 
 # Only the normal wheel and source distribution archives
@@ -249,15 +250,14 @@ pylint_no_todo_opts := --enable=fixme
 
 # Safety policy files
 safety_install_policy_file := .safety-policy-install.yml
-safety_all_policy_file := .safety-policy-all.yml
+safety_develop_policy_file := .safety-policy-develop.yml
 
 # Flake8 config file
 flake8_rc_file := .flake8
 
 # Python source files to be checked by PyLint and Flake8
 py_src_files := \
-    setup.py \
-    $(filter-out $(moftab_files), $(wildcard $(package_name)/*.py)) \
+    $(filter-out $(moftab_files) $(version_file), $(wildcard $(package_name)/*.py)) \
     $(wildcard $(mock_package_name)/*.py) \
 		mof_compiler \
 
@@ -309,7 +309,7 @@ dist_manifest_in_files := \
     INSTALL.md \
     requirements.txt \
     test-requirements.txt \
-    setup.py \
+    pyproject.toml \
     build_moftab.py \
     mof_compiler \
     mof_compiler.bat \
@@ -323,14 +323,14 @@ dist_manifest_in_files := \
 
 # Files that are dependents of the distribution archive.
 # Keep in sync with dist_manifest_in_files.
-dist_dependent_files := \
+dist_dependent_files_all := \
     LICENSE.txt \
     README.md \
     README_PYPI.md \
     INSTALL.md \
     requirements.txt \
     test-requirements.txt \
-    setup.py \
+    pyproject.toml \
     build_moftab.py \
     mof_compiler \
     mof_compiler.bat \
@@ -341,6 +341,9 @@ dist_dependent_files := \
     $(wildcard $(vendor_dir)/nocaselist/*.py) \
     $(vendor_dir)/nocasedict/LICENSE \
     $(vendor_dir)/nocaselist/LICENSE \
+
+# The actually used dependency list, which removes the version file.
+dist_dependent_files := $(filter-out $(version_file), $(dist_dependent_files_all))
 
 # Packages whose dependencies are checked using pip-missing-reqs
 check_reqs_packages := pytest coverage coveralls flake8 pylint safety sphinx twine jupyter notebook
@@ -372,9 +375,9 @@ help:
 	@echo "  resourcetest - Run resource consumption tests (in tests/resourcetest)"
 	@echo "  perftest   - Run performance tests (in tests/perftest)"
 	@echo "  all        - Do all of the above"
-	@echo "  buildc     - Build the cythonized wheel distribution archive in: $(dist_dir)"
-	@echo "  installc   - Install the cythonized wheel distribution archive"
-	@echo "  testc      - Run unit and function tests against cythonized wheel distribution archive"
+	@echo "  buildc     - No longer supported: Build the cythonized wheel distribution archive in: $(dist_dir)"
+	@echo "  installc   - No longer supported: Install the cythonized wheel distribution archive"
+	@echo "  testc      - No longer supported: Run unit and function tests against cythonized wheel distribution archive"
 	@echo "  todo       - Check for TODOs in Python and docs sources"
 	@echo "  end2endtest - Run end2end tests (in $(test_dir)/end2endtest)"
 	@echo "  develop_os - Install OS-level development prereqs"
@@ -405,7 +408,7 @@ help:
 	@echo "  PACKAGE_LEVEL - Package level to be used for installing dependent Python"
 	@echo "      packages in 'install' and 'develop' targets:"
 	@echo "        latest - Latest package versions available on Pypi"
-	@echo "        minimum - A minimum version as defined in minimum-constraints.txt"
+	@echo "        minimum - A minimum version as defined in minimum-constraints-develop.txt"
 	@echo "      Optional, defaults to 'latest'."
 	@echo "  PYTHON_CMD - Python command to be used. Useful for Python 3 in some envs."
 	@echo "      Optional, defaults to 'python'."
@@ -454,13 +457,13 @@ ifeq (,$(package_version))
 	$(error Package version could not be determined)
 endif
 
-$(done_dir)/base_$(pymn)_$(PACKAGE_LEVEL).done: Makefile base-requirements.txt minimum-constraints.txt minimum-constraints-install.txt
+$(done_dir)/base_$(pymn)_$(PACKAGE_LEVEL).done: Makefile base-requirements.txt minimum-constraints-develop.txt minimum-constraints-install.txt
 	-$(call RM_FUNC,$@)
 	@echo "Installing/upgrading pip, setuptools and wheel with PACKAGE_LEVEL=$(PACKAGE_LEVEL)"
 	$(PYTHON_CMD) -m pip install $(pip_level_opts) -r base-requirements.txt
 	echo "done" >$@
 
-$(done_dir)/install_pywbem_$(pymn)_$(PACKAGE_LEVEL).done: Makefile $(done_dir)/base_$(pymn)_$(PACKAGE_LEVEL).done requirements.txt setup.py
+$(done_dir)/install_pywbem_$(pymn)_$(PACKAGE_LEVEL).done: Makefile $(done_dir)/base_$(pymn)_$(PACKAGE_LEVEL).done requirements.txt minimum-constraints-develop.txt minimum-constraints-install.txt pyproject.toml
 	-$(call RM_FUNC,$@)
 ifdef TEST_INSTALLED
 	@echo "Makefile: Skipping installation of pywbem and its Python runtime prerequisites because TEST_INSTALLED is set"
@@ -475,20 +478,6 @@ else
 endif
 	echo "done" >$@
 
-$(done_dir)/installc_pywbem_$(pymn)_$(PACKAGE_LEVEL).done: Makefile $(done_dir)/base_$(pymn)_$(PACKAGE_LEVEL).done $(bdistc_file)
-	-$(call RM_FUNC,$@)
-ifdef TEST_INSTALLED
-	@echo "Makefile: Skipping installation of pywbem and its Python runtime prerequisites because TEST_INSTALLED is set"
-	@echo "Makefile: Checking whether pywbem is actually installed:"
-	$(PIP_CMD) show $(package_name)
-else
-	@echo "Makefile: Installing cythonized wheel archive"
-	$(PIP_CMD) uninstall -y $(package_name)
-	$(PIP_INSTALL_CMD) $(bdistc_file)
-	@echo "Makefile: Done installing cythonized wheel archive"
-endif
-	echo "done" >$@
-
 .PHONY: install
 install: $(done_dir)/install_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Target $@ done."
@@ -500,8 +489,8 @@ $(done_dir)/install_$(pymn)_$(PACKAGE_LEVEL).done: Makefile $(done_dir)/base_$(p
 	echo "done" >$@
 
 .PHONY: installc
-installc: $(done_dir)/installc_$(pymn)_$(PACKAGE_LEVEL).done
-	@echo "Makefile: Target $@ done."
+installc:
+	$(error Cythonizing pywbem is no longer supported by this Makefile)
 
 $(done_dir)/installc_$(pymn)_$(PACKAGE_LEVEL).done: Makefile $(done_dir)/base_$(pymn)_$(PACKAGE_LEVEL).done $(done_dir)/installc_pywbem_$(pymn)_$(PACKAGE_LEVEL).done
 	-$(call RM_FUNC,$@)
@@ -531,10 +520,10 @@ endif
 develop: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Target $@ done."
 
-$(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/base_$(pymn)_$(PACKAGE_LEVEL).done $(done_dir)/install_$(pymn)_$(PACKAGE_LEVEL).done $(done_dir)/develop_os_$(pymn)_$(PACKAGE_LEVEL).done dev-requirements.txt test-requirements.txt
+$(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/base_$(pymn)_$(PACKAGE_LEVEL).done $(done_dir)/install_$(pymn)_$(PACKAGE_LEVEL).done $(done_dir)/develop_os_$(pymn)_$(PACKAGE_LEVEL).done dev-requirements.txt minimum-constraints-develop.txt minimum-constraints-install.txt
 	@echo "Makefile: Installing Python development requirements (with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
 	-$(call RM_FUNC,$@)
-	$(PIP_INSTALL_CMD) $(pip_level_opts) -r dev-requirements.txt
+	$(PIP_INSTALL_CMD) $(pip_level_opts) -r test-requirements.txt -r dev-requirements.txt
 	echo "done" >$@
 	@echo "Makefile: Done installing Python development requirements"
 
@@ -566,8 +555,8 @@ build: _check_version $(bdist_file) $(sdist_file)
 	@echo "Makefile: Target $@ done."
 
 .PHONY: buildc
-buildc: _check_version $(bdistc_file)
-	@echo "makefile: Target $@ done."
+buildc:
+	$(error Cythonizing pywbem is no longer supported by this Makefile)
 
 .PHONY: builddoc
 builddoc: html
@@ -711,10 +700,13 @@ endif
 	@echo "Makefile: Target $@ done."
 
 # Note: distutils depends on the right files specified in MANIFEST.in, even when
-# they are already specified e.g. in 'package_data' in setup.py.
+# they are already specified e.g. in 'package_data' in pyproject.toml.
 # We generate the MANIFEST.in file automatically, to have a single point of
 # control (this Makefile) for what gets into the distribution archive.
-MANIFEST.in: Makefile $(dist_manifest_in_files)
+# Note: Because pywbem/_version.py is now created by setuptools-scm during each
+# build, MANIFEST.in is recreated after each build, causing the build target
+# to rebuild on subsequent invocations.
+MANIFEST.in: Makefile $(dist_dependent_files)
 	@echo "Makefile: Creating the manifest input file"
 	echo "# file GENERATED by Makefile, do NOT edit" >$@
 ifeq ($(PLATFORM),Windows_native)
@@ -729,25 +721,26 @@ endif
 	@echo "Makefile: Done creating the manifest input file: $@"
 
 # Distribution archives.
-# Note: Deleting MANIFEST causes distutils (setup.py) to read MANIFEST.in and to
+# Note: Deleting MANIFEST causes setuptools to read MANIFEST.in and to
 # regenerate MANIFEST. Otherwise, changes in MANIFEST.in will not be used.
-# Note: Deleting build is a safeguard against picking up partial build products
-# which can lead to incorrect hashbangs in the pywbem scripts in wheel archives.
-$(sdist_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files) $(done_dir)/vendor_$(pymn)_$(PACKAGE_LEVEL).done
+# Note: Deleting the 'build' directory is a safeguard against picking up partial
+# build products which can lead to incorrect hashbangs in the pywbem scripts in
+# wheel archives.
+$(sdist_file): pyproject.toml MANIFEST.in $(dist_dependent_files) $(moftab_files) $(done_dir)/vendor_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Creating the source distribution archive: $(sdist_file)"
 	-$(call RM_FUNC,MANIFEST)
 	-$(call RMDIR_FUNC,build $(package_name).egg-info-INFO .eggs)
 	$(PYTHON_CMD) -m build --sdist --outdir $(dist_dir) .
 	@echo "Makefile: Done creating the source distribution archive: $(sdist_file)"
 
-$(bdist_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files) $(done_dir)/vendor_$(pymn)_$(PACKAGE_LEVEL).done
+$(bdist_file): pyproject.toml MANIFEST.in $(dist_dependent_files) $(moftab_files) $(done_dir)/vendor_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Creating the normal wheel distribution archive: $(bdist_file)"
 	-$(call RM_FUNC,MANIFEST)
 	-$(call RMDIR_FUNC,build $(package_name).egg-info-INFO .eggs)
 	$(PYTHON_CMD) -m build --wheel --outdir $(dist_dir) -C--universal .
 	@echo "Makefile: Done creating the normal wheel distribution archive: $(bdist_file)"
 
-$(bdistc_file): setup.py MANIFEST.in $(dist_dependent_files) $(moftab_files) $(done_dir)/vendor_$(pymn)_$(PACKAGE_LEVEL).done
+$(bdistc_file): setup.py pyproject.toml MANIFEST.in $(dist_dependent_files) $(moftab_files) $(done_dir)/vendor_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Creating the cythonized wheel distribution archive: $(bdistc_file)"
 	-$(call RM_FUNC,MANIFEST)
 	-$(call RMDIR_FUNC,build $(package_name).egg-info-INFO .eggs)
@@ -805,10 +798,10 @@ $(done_dir)/ruff_$(pymn)_$(PACKAGE_LEVEL).done: Makefile $(py_src_files) $(py_te
 	echo "done" >$@
 	@echo "Makefile: Done running Ruff"
 
-$(done_dir)/safety_all_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile $(safety_all_policy_file) minimum-constraints.txt minimum-constraints-install.txt
+$(done_dir)/safety_all_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile $(safety_develop_policy_file) minimum-constraints-develop.txt minimum-constraints-install.txt
 	@echo "Makefile: Running Safety for all packages"
 	-$(call RM_FUNC,$@)
-	bash -c "safety check --policy-file $(safety_all_policy_file) -r minimum-constraints.txt --full-report || test '$(RUN_TYPE)' != 'release' || exit 1"
+	bash -c "safety check --policy-file $(safety_develop_policy_file) -r minimum-constraints-develop.txt --full-report || test '$(RUN_TYPE)' != 'release' || exit 1"
 	echo "done" >$@
 	@echo "Makefile: Done running Safety for all packages"
 
@@ -844,7 +837,9 @@ ifeq ($(PLATFORM),Windows_native)
 	@echo "Makefile: Warning: Skipping the checking of missing dependencies of site-packages directory on native Windows" >&2
 else
 	@echo "Makefile: Checking missing dependencies of some development packages"
-	@rc=0; for pkg in $(check_reqs_packages); do dir=$$($(PYTHON_CMD) -c "import $${pkg} as m,os; dm=os.path.dirname(m.__file__); d=dm if not dm.endswith('site-packages') else m.__file__; print(d)"); cmd="pip-missing-reqs $${dir} --requirements-file=minimum-constraints.txt"; echo $${cmd}; $${cmd}; rc=$$(expr $${rc} + $${?}); done; exit $${rc}
+	cat minimum-constraints-develop.txt minimum-constraints-install.txt >minimum-constraints-all.txt.tmp
+	@rc=0; for pkg in $(check_reqs_packages); do dir=$$($(PYTHON_CMD) -c "import $${pkg} as m,os; dm=os.path.dirname(m.__file__); d=dm if not dm.endswith('site-packages') else m.__file__; print(d)"); cmd="pip-missing-reqs $${dir} --requirements-file=minimum-constraints-all.txt.tmp"; echo $${cmd}; $${cmd}; rc=$$(expr $${rc} + $${?}); done; exit $${rc}
+	rm -f minimum-constraints-all.txt.tmp
 	@echo "Makefile: Done checking missing dependencies of some development packages"
 endif
 	@echo "Makefile: $@ done."
@@ -856,14 +851,8 @@ test: $(test_deps)
 	@echo "Makefile: Done running unit and function tests"
 
 .PHONY: testc
-testc: $(test_deps) $(done_dir)/installc_$(pymn)_$(PACKAGE_LEVEL).done
-	@echo "Makefile: Running unit and function tests on cythonized archive"
-ifeq ($(PLATFORM),Windows_native)
-	cmd /c "set TEST_INSTALLED=1 & py.test --color=yes $(pytest_cov_opts) $(pytest_warning_opts) $(pytest_opts) $(test_dir)/unittest $(test_dir)/functiontest -s"
-else
-	TEST_INSTALLED=1 py.test --color=yes $(pytest_cov_opts) $(pytest_warning_opts) $(pytest_opts) $(test_dir)/unittest $(test_dir)/functiontest -s
-endif
-	@echo "Makefile: Done running unit and function tests on cythonized archive"
+testc:
+	$(error Cythonizing pywbem is no longer supported by this Makefile)
 
 .PHONY: installtest
 installtest: $(bdist_file) $(sdist_file) $(test_dir)/installtest/test_install.sh
