@@ -5,11 +5,7 @@
 # that are needed for some reason (must be consistent with minimum-constraints-develop.txt)
 
 # Build distribution archive
-# Version 1.1.0 pulled after release
-# FUTURE: Remove  wheel < 1.0 For details, see
-#       https://github.com/pypa/build/issues/750. Circumvention for now is
-#       to pin build to <1.0. See issue #3112
-build>=0.5.1, <1.0
+build>=1.1.1
 
 # Cythonize
 Cython>=3.0.0
