@@ -68,7 +68,7 @@ virtualenv==20.23.0; python_version >= '3.12'
 # consistent with dev-requirements.txt)
 
 # Build distribution archive
-build==0.5.1
+build==1.1.1
 
 # Cythonize
 Cython==3.0.0
