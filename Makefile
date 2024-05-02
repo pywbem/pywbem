@@ -647,6 +647,8 @@ clean:
 	-$(call RM_R_FUNC,*~)
 	-$(call RM_R_FUNC,.*~)
 	-$(call RMDIR_R_FUNC,__pycache__)
+	-$(call RMDIR_R_FUNC,.pytest_cache)
+	-$(call RMDIR_R_FUNC,.ruff_cache)
 	-$(call RM_FUNC,MANIFEST parser.out .coverage $(package_name)/parser.out)
 	-$(call RM_FUNC,$(package_name)/mofparsetab.py* $(package_name)/moflextab.py*)
 	-$(call RMDIR_FUNC,build .cache $(package_name).egg-info .eggs)

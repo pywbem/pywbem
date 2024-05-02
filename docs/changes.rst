@@ -44,6 +44,9 @@ Released: not yet
 * Eliminated a warning about about ambiguity of the package list when building
   the wheel distribution archive.
 
+* Added '.pytest_cache' and '.ruff_cache' directories to be removed in
+  'make clean'.
+
 **Known issues:**
 
 * See `list of open issues`_.
