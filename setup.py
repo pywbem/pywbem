@@ -263,6 +263,9 @@ setup_options = dict(
     version=package_version,
     packages=[
         'pywbem',
+        'pywbem._vendor',
+        'pywbem._vendor.nocasedict',
+        'pywbem._vendor.nocaselist',
         'pywbem_mock'
     ],
     include_package_data=True,  # Includes MANIFEST.in files into sdist (only)

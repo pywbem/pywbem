@@ -41,6 +41,9 @@ Released: not yet
 
 **Cleanup:**
 
+* Eliminated a warning about about ambiguity of the package list when building
+  the wheel distribution archive.
+
 **Known issues:**
 
 * See `list of open issues`_.
