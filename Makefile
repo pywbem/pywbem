@@ -721,10 +721,12 @@ ifeq ($(PLATFORM),Windows_native)
 	for %%f in ($(dist_manifest_in_files)) do (echo include %%f >>$@)
 	echo recursive-include $(test_dir) * >>$@
 	echo recursive-exclude $(test_dir) *.pyc >>$@
+	echo recursive-exclude $(test_dir)/schema * >>$@
 else
 	echo "$(dist_manifest_in_files)" |xargs -n 1 echo include >>$@
 	echo "recursive-include $(test_dir) *" >>$@
 	echo "recursive-exclude $(test_dir) *.pyc" >>$@
+	echo "recursive-exclude $(test_dir)/schema *" >>$@
 endif
 	@echo "Makefile: Done creating the manifest input file: $@"
 

@@ -50,6 +50,12 @@ Released: not yet
 * Added '.pytest_cache' and '.ruff_cache' directories to be removed in
   'make clean'.
 
+* Excluded 'tests/schema' from the source distribution archive. This is where
+  users can download MOF schema files for testing, and they should not become
+  part of the source distribution archive. Note that the source distribution
+  archives on Pypi never had that directory, but a locally produced
+  source distribution archives had that directory. (issue #3177)
+
 **Known issues:**
 
 * See `list of open issues`_.
