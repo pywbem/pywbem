@@ -44,11 +44,11 @@ def get_version(version_file):
 
 
 # RST variable substitutions
-rst_prolog = """
+rst_prolog = f"""
 
-.. |DEFAULT_NAMESPACE| replace:: ``"%s"``
+.. |DEFAULT_NAMESPACE| replace:: ``"{DEFAULT_NAMESPACE}"``
 
-""" % DEFAULT_NAMESPACE
+"""
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the

@@ -704,8 +704,8 @@ class Test_ValueMapping:
         maxvalue = type_from_name(integer_type).maxvalue
 
         valuemap = []
-        valuemap.append('{}..{}'.format(minvalue, minvalue + 2))
-        valuemap.append('{}..{}'.format(maxvalue - 2, maxvalue))
+        valuemap.append(f'{minvalue}..{minvalue + 2}')
+        valuemap.append(f'{maxvalue - 2}..{maxvalue}')
 
         exp_valuemap = [(minvalue, minvalue + 2), (maxvalue - 2, maxvalue)]
 

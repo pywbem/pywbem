@@ -608,7 +608,7 @@ def test_tupleparse_roundtrip(testcase, obj):
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
-    assert parsed_obj == obj, "CIM-XML of input obj:\n%s" % xml_str
+    assert parsed_obj == obj, f"CIM-XML of input obj:\n{xml_str}"
 
 
 # Note: These XML testcases cover the full set of possibilities for each
@@ -15308,4 +15308,4 @@ def test_tupleparse_xml(testcase, xml_str, exp_result):
     # are not mistaken as expected exceptions
     assert testcase.exp_exc_types is None
 
-    assert result == exp_result, "Input CIM-XML:\n%s" % xml_str
+    assert result == exp_result, f"Input CIM-XML:\n{xml_str}"

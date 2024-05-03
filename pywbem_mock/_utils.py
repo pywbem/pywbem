@@ -53,8 +53,7 @@ def _uprint(dest, text):
         text = text + b'\n'
     else:
         raise TypeError(
-            "text must be a unicode or byte string, but is {0}".
-            format(type(text)))
+            f"text must be a unicode or byte string, but is {type(text)}")
     if dest is None:
         if isinstance(text, bytes):
             text = text.decode('utf-8')
@@ -68,5 +67,4 @@ def _uprint(dest, text):
             f.write(text)
     else:
         raise TypeError(
-            "dest must be None or a string, but is {0}".
-            format(type(text)))
+            f"dest must be None or a string, but is {type(text)}")

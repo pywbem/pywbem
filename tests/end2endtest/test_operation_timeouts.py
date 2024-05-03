@@ -88,10 +88,11 @@ def run_timeout_test(conn, timeout, response_delay, timeout_exp):
 
         execution_time = opttimer.elapsed_sec()
 
-        assert not timeout_exp, 'Timeout expected but not rcvd., Fail: ' \
-            'url={}, conn.timeout={}, timeout={}, response delay exp={}, '  \
-            'execution time={}'.format(conn.url, conn.timeout, timeout,
-                                       response_delay, execution_time)
+        assert not timeout_exp, (
+            'Timeout expected but not rcvd., Fail: '
+            f'url={conn.url}, conn.timeout={conn.timeout}, timeout={timeout}, '
+            f'response delay exp={response_delay}, '
+            f'execution time={execution_time}')
 
     # ConnectionError exception: If this does not include in the response
     # message the text string, "Read timed out" the test fails.
@@ -105,23 +106,24 @@ def run_timeout_test(conn, timeout, response_delay, timeout_exp):
         if re.search(r'^HTTPS?ConnectionPool(.*)Read timed out. (.*)$',
                      ce.args[0]):
             time_diff = abs(execution_time - timeout)
-            assert timeout_exp, 'Timeout not expected: url={}, ' \
-                'conn.timeout={}, ' \
-                'timeout={}, response_delay_exp={}, execution time={}'. \
-                format(conn.url, conn.timeout, timeout, response_delay,
-                       execution_time)
-            assert time_diff <= 1, 'Timeout Time - response delay diff to ' \
-                'great, Failed: url={}, timeout={}, response delay exp={}, ' \
-                'execution time={} exp - act diff={}, exception={}'. \
-                format(conn.url, timeout, response_delay, execution_time,
-                       time_diff, ce)
+            assert timeout_exp, (
+                f'Timeout not expected: url={conn.url}, '
+                f'conn.timeout={conn.timeout}, timeout={timeout}, '
+                f'response_delay_exp={response_delay}, '
+                f'execution time={execution_time}')
+            assert time_diff <= 1, (
+                f'Timeout Time - response delay diff too great, '
+                f'Failed: url={conn.url}, timeout={timeout}, '
+                f'response delay exp={response_delay}, '
+                f'execution time={execution_time} exp - act diff={time_diff}, '
+                f'exception={ce}')
 
         else:
-            assert False, 'ConnectionError Fail: url={}, conn.timeout={}, '  \
-                'timeout={}, response_delay={}, execution time={}, '  \
-                'exception={}'. \
-                format(conn.url, conn.timeout, timeout, response_delay,
-                       execution_time, ce)
+            assert False, (
+                f'ConnectionError Fail: url={conn.url}, '
+                f'conn.timeout={conn.timeout}, timeout={timeout}, '
+                'response_delay={response_delay}, '
+                f'execution time={execution_time}, exception={ce}')
 
     # This exception tests against expected result. It terminates the
     # test if the timeout is not expected or time difference between
@@ -129,26 +131,27 @@ def run_timeout_test(conn, timeout, response_delay, timeout_exp):
     except TimeoutError as te:
         execution_time = opttimer.elapsed_sec()
         time_diff = abs(execution_time - timeout)
-        assert timeout_exp, 'Timeout not expected: url={}, ' \
-            'conn.timeout={}, ' \
-            'timeout={}, response_delay_exp={}, execution time={}'. \
-            format(conn.url, conn.timeout, timeout, response_delay,
-                   execution_time)
-        assert time_diff <= 1, 'Timeout Time - response delay diff to great, ' \
-            'Failed: url={}, timeout={}, response delay exp={}, ' \
-            'execution time={} exp - act diff={}, exception={}'. \
-            format(conn.url, timeout, response_delay, execution_time,
-                   time_diff, te)
+        assert timeout_exp, (
+            f'Timeout not expected: url={conn.url}, '
+            f'conn.timeout={conn.timeout}, timeout={timeout}, '
+            f'response_delay_exp={response_delay}, '
+            f'execution time={execution_time}')
+        assert time_diff <= 1, (
+            'Timeout Time - response delay diff too great, '
+            f'Failed: url={conn.url}, timeout={timeout}, '
+            f'response delay exp={response_delay}, '
+            f'execution time={execution_time} exp - act diff={time_diff}, '
+            f'exception={te}')
 
     # Any CIMError
     except CIMError as ce:
         execution_time = opttimer.elapsed_sec()
         time_diff = abs(execution_time - timeout)
-        assert not timeout_exp, 'CIMError exception: url={}, ' \
-            'conn.timeout={}, timeout={}, response_delay_exp={}, ' \
-            'execution time={} exception={}'. \
-            format(conn.url, conn.timeout, timeout, response_delay,
-                   execution_time, ce)
+        assert not timeout_exp, (
+            f'CIMError exception: url={conn.url}, '
+            f'conn.timeout={conn.timeout}, timeout={timeout}, '
+            f'response_delay_exp={response_delay}, '
+            f'execution time={execution_time} exception={ce}')
 
 
 def test_timeouts(wbem_connection):  # noqa: F811

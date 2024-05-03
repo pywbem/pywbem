@@ -263,7 +263,6 @@ if ENABLE_TESTS:
         assert testcase.exp_exc_types is None
 
         if testcase.condition == 'debug':
-            print("Debug: Object size: actual={}, expected={}".
-                  format(size, exp_size))
+            print(f"Debug: Object size: actual={size}, expected={exp_size}")
 
         assert size == exp_size

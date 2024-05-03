@@ -36,7 +36,7 @@ def main(ifilepath):
     levels, titles = zip(*titles)
     urls = [title_.replace(' ', '-') for title_ in titles]
 
-    toc = ['- [{}](#{})\n'.format(title, url) for title, url in zip(titles, urls)]
+    toc = [f'- [{title}](#{url})\n' for title, url in zip(titles, urls)]
     toc = ['\t%s' % tt if lvl > 1 else tt for tt, lvl in zip(toc, levels)]
     toc = [tt for tt, lvl in zip(toc, levels) if lvl <= 5]
 

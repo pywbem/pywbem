@@ -950,10 +950,10 @@ def assert_profile_tree(conn, profile_inst, profile_ancestry,
 
     # from pprint import pprint
     # print("Debug: assert_profile_tree called")
-    # print("       profile:  {0}".format(profile_uri))
+    # print(f"       profile:  {profile_uri}")
     # print("       ancestry: ")
     # for k in profile_ancestry.keys():
-    #     print("                 {0}".format(k))
+    #     print(f"                 {k}")
 
     if reference_direction == 'dmtf':
         result_role_down = 'Antecedent'
@@ -980,14 +980,12 @@ def assert_profile_tree(conn, profile_inst, profile_ancestry,
 
             if sub_profile_uri in profile_ancestry:
                 raise AssertionError(
-                    "Server {0} at {1}: Profile tree under top level "
-                    "specification {2} {3!r} has a circular reference: "
-                    "Profile at {4} references profile at {5} which is "
-                    "already in its own reference ancestry {6}".
-                    format(conn.es_server.nickname, conn.url,
-                           tls_org, tls_name,
-                           profile_uri, sub_profile_uri,
-                           profile_ancestry.keys()))
+                    f"Server {conn.es_server.nickname} at {conn.url}: "
+                    "Profile tree under top level specification "
+                    f"{tls_org} {tls_name!r} has a circular reference: "
+                    f"Profile at {profile_uri} references profile at "
+                    f"{sub_profile_uri} which is already in its own reference "
+                    f"ancestry {profile_ancestry.keys()}")
 
             profile_ancestry[sub_profile_uri] = profile_uri
 

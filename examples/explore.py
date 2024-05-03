@@ -11,26 +11,26 @@ def print_profile_info(org_vm, inst):
     org = org_vm.tovalues(inst['RegisteredOrganization'])
     name = inst['RegisteredName']
     vers = inst['RegisteredVersion']
-    print("  {} {} Profile {}".format(org, name, vers))
+    print(f"  {org} {name} Profile {vers}")
 
 def explore_server(server_url, username, password):
     """ Demo of exploring a cim server for characteristics defined by
         the server class
     """
 
-    print("WBEM server URL:\n  %s" % server_url)
+    print(f"WBEM server URL:\n  {server_url}")
 
     conn = WBEMConnection(server_url, (username, password),
                           no_verification=True)
     server = WBEMServer(conn)
 
-    print("Brand:\n  %s" % server.brand)
-    print("Version:\n  %s" % server.version)
-    print("Interop namespace:\n  %s" % server.interop_ns)
+    print(f"Brand:\n  {server.brand}")
+    print(f"Version:\n  {server.version}")
+    print(f"Interop namespace:\n  {server.interop_ns}")
 
     print("All namespaces:")
     for ns in server.namespaces:
-        print("  %s" % ns)
+        print(f"  {ns}")
 
     print("Advertised management profiles:")
     org_vm = ValueMapping.for_property(server, server.interop_ns,
@@ -56,37 +56,36 @@ def explore_server(server_url, username, password):
         org = org_vm.tovalues(inst['RegisteredOrganization'])
         name = inst['RegisteredName']
         vers = inst['RegisteredVersion']
-        print("Central instances for profile %s:%s:%s (component):" % \
-              (org, name, vers))
+        print(f"Central instances for profile {org}:{name}:{vers} "
+              "(component):")
         try:
             ci_paths = server.get_central_instances(
                 inst.path,
                 "CIM_IndicationService", "CIM_System", ["CIM_HostedService"])
         except Exception as exc:
-            print("Error: %s" % str(exc))
+            print(f"Error: {exc}")
             ci_paths = []
         for ip in ci_paths:
-            print("  %s" % str(ip))
+            print(f"  {ip}")
 
     for inst in server_profiles:
         org = org_vm.tovalues(inst['RegisteredOrganization'])
         name = inst['RegisteredName']
         vers = inst['RegisteredVersion']
-        print("Central instances for profile %s:%s:%s(autonomous):" %
-              (org, name, vers))
+        print(f"Central instances for profile {org}:{name}:{vers}(autonomous):")
 
         try:
             ci_paths = server.get_central_instances(inst.path)
         except Exception as exc:
-            print("Error: %s" % str(exc))
+            print(f"Error: {exc}")
             ci_paths = []
         for ip in ci_paths:
-            print("  %s" % str(ip))
+            print("  {ip}")
 
 def main():
 
     if len(sys.argv) < 4:
-        print("Usage: %s server_url username password" % sys.argv[0])
+        print(f"Usage: {sys.argv[0]} server_url username password")
         sys.exit(2)
 
     server_url = sys.argv[1]

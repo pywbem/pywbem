@@ -424,8 +424,7 @@ class FakedWBEMConnection(WBEMConnection):
                 server = WBEMServer(self)
                 server.create_namespace(namespace)
                 if verbose:
-                    print("Created namespace {} (in mock support)".
-                          format(namespace))
+                    print(f"Created namespace {namespace} (in mock support)")
                 return
             except (ModelError, CIMError):
                 pass

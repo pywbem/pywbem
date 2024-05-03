@@ -110,9 +110,8 @@ def test_perf_eq(desc, obj1, obj2):
     stdev_pct = 100.0 * stdev_us / t_us if t_us != 0 else 0.0
 
     with open(outfile, 'a', encoding='utf-8') as fp:
-        fp.write("{}: {:.3f} us (std.dev. {:.1f}% in {} runs with {} "
-                 "outliers)\n".
-                 format(desc, t_us, stdev_pct, num_runs, num_out))
+        fp.write(f"{desc}: {t_us:.3f} us (std.dev. {stdev_pct:.1f}% in "
+                 f"{num_runs} runs with {num_out} outliers)\n")
 
 
 def timeit(measure_func, precision):

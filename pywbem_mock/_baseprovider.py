@@ -200,8 +200,7 @@ class BaseProvider:
                             "CIM repository. {1!A} cannot be added. ",
                             self.find_interop_namespace(), namespace))
         if verbose:
-            print("Creating namespace {} (in mock support)".
-                  format(namespace))
+            print(f"Creating namespace {namespace} (in mock support)")
         try:
             self.cimrepository.add_namespace(namespace)
         except ValueError:
@@ -259,8 +258,7 @@ class BaseProvider:
                         "the CIM repository.", namespace))
 
         if verbose:
-            print("Deleting namespace {} (in mock support)".
-                  format(namespace))
+            print(f"Deleting namespace {namespace} (in mock support)")
         try:
             self.cimrepository.remove_namespace(namespace)
         # KeyError cannot happen because existence was already verified

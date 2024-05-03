@@ -164,8 +164,8 @@ class RunIndicationTest:  # pylint: disable=too-many-instance-attributes
         self.verbose = verbose
         self.logfile = 'pegasusindicationtest.log'
         if self.verbose:
-            print("Listener indication_destination_host IP address {}".
-                  format(self.indication_destination_host))
+            print("Listener indication_destination_host IP address "
+                  f"{self.indication_destination_host}")
 
         # Define WBEM server CIMClassName for test indication class
         self.indication_test_class_name = \
@@ -226,8 +226,7 @@ class RunIndicationTest:  # pylint: disable=too-many-instance-attributes
                 print("Removed existing subscriptions")
 
         except Error as er:  # pylint: disable=invalid-name
-            print('Error {} communicating with WBEMServer {}'.format(er,
-                                                                     self.conn))
+            print(f'Error {er} communicating with WBEMServer {self.conn}')
             assert False
 
         self.create_listener()
@@ -277,9 +276,9 @@ class RunIndicationTest:  # pylint: disable=too-many-instance-attributes
         """
 
         # Create the destination instance
-        indication_dest_url = \
-            "http://{}:{}".format(self.indication_destination_host,
-                                  self.http_listener_port)
+        indication_dest_url = (
+            f"http://{self.indication_destination_host}:"
+            f"{self.http_listener_port}")
 
         destination = sub_mgr.add_destination(
             server_id, indication_dest_url,
@@ -296,9 +295,10 @@ class RunIndicationTest:  # pylint: disable=too-many-instance-attributes
             server_id, filter_.path, destination_paths=destination.path)
 
         if self.verbose:
-            print("Subscription instances\n {0}\n{1}\n{2}".
-                  format(filter_.tomof(), destination.tomof(),
-                         subscriptions[0].tomof()))
+            print("Subscription instances:\n"
+                  f"{filter_.tomof()}\n"
+                  f"{destination.tomof()}\n"
+                  f"{subscriptions[0].tomof()}")
 
     def repeat_test_loop(self, repeat_loop):
         """
@@ -352,11 +352,11 @@ class RunIndicationTest:  # pylint: disable=too-many-instance-attributes
             self.received_indication_count = 1
         else:
             exp_seq_num = self.last_seq_num + 1
-            assert seq_num == exp_seq_num, \
-                'Missed {0} indications at seq_num={1}. rcvd seq num={2}, ' \
-                'expected={3}'. \
-                format((seq_num - 1) - self.last_seq_num,
-                       self.last_seq_num, seq_num, exp_seq_num)
+            missed_num = (seq_num - 1) - self.last_seq_num
+            assert seq_num == exp_seq_num, (
+                f'Missed {missed_num} indications at seq_num='
+                f'{self.last_seq_num}. rcvd seq num={seq_num}, '
+                f'expected={exp_seq_num}')
             self.received_indication_count += 1
 
         self.last_seq_num = seq_num
@@ -385,16 +385,17 @@ class RunIndicationTest:  # pylint: disable=too-many-instance-attributes
             insts = self.conn.EnumerateInstances(
                 'PG_ListenerDestinationQueue', namespace='root/PG_Internal')
             for inst in insts:
-                print('ListenerDestinationName={}:\n   QueueFullDropped={} , '
-                      'RetryAttemptsExceeded={}, InQueue={}'
-                      .format(inst['ListenerDestinationName'],
-                              inst['QueueFullDroppedIndications'],
-                              inst['RetryAttemptsExceededIndications'],
-                              inst['CurrentIndications']))
+                print("ListenerDestinationName="
+                      f"{inst['ListenerDestinationName']}:\n"
+                      "   QueueFullDropped="
+                      f"{inst['QueueFullDroppedIndications']}, "
+                      "RetryAttemptsExceeded="
+                      f"{inst['RetryAttemptsExceededIndications']}, "
+                      f"InQueue={inst['CurrentIndications']}")
 
                 if self.verbose:
-                    print("Full instnace of OpenPegasus dest queue:\n{}".
-                          format(inst.tomof()))
+                    print("Full instnace of OpenPegasus dest queue:\n"
+                          f"{inst.tomof()}")
         return success
 
     def get_elapsed_time(self):
@@ -450,10 +451,8 @@ class RunIndicationTest:  # pylint: disable=too-many-instance-attributes
                 if self.received_indication_count >= self.requested_indications:
                     elapsed_time, ind_per_sec = self.get_elapsed_time()
 
-                    print('Rcvd {} indications, time={} sec, {:.2f} per sec'
-                          .format(self.received_indication_count,
-                                  elapsed_time,
-                                  ind_per_sec))
+                    print(f"Rcvd {self.received_indication_count} indications, "
+                          f"time={elapsed_time} sec, {ind_per_sec:.2f} per sec")
                     return_flag = True
                     break
 
@@ -477,17 +476,15 @@ class RunIndicationTest:  # pylint: disable=too-many-instance-attributes
                 if stall_ctr > 5:
                     elapsed_time, ind_per_sec = self.get_elapsed_time()
 
-                    print('Nothing received for {} sec: received={} '
-                          'time={} sec: {:.2f} per sec. stall ctr={}'.
-                          format(stalled_time.total_seconds(),
-                                 self.received_indication_count,
-                                 elapsed_time,
-                                 ind_per_sec,
-                                 stall_ctr))
+                    print("Nothing received for "
+                          f"{stalled_time.total_seconds()} sec: "
+                          f"received={self.received_indication_count} "
+                          f"time={elapsed_time} sec: {ind_per_sec:.2f} "
+                          f"per sec. stall ctr={stall_ctr}")
                     break
 
-                print("waiting {:.2f} sec. with no indications ct {}".
-                      format(stalled_time.total_seconds(), stall_ctr))
+                print(f"waiting {stalled_time.total_seconds():.2f} sec. with "
+                      f"no indications ct {stall_ctr}")
 
         # Because this can be a long loop, catch CTRL-C
         except KeyboardInterrupt:
@@ -498,9 +495,9 @@ class RunIndicationTest:  # pylint: disable=too-many-instance-attributes
         if return_flag:
             time.sleep(1)
             if self.received_indication_count != self.requested_indications:
-                print('ERROR. Extra indications received {}, requested {}'.
-                      format(self.received_indication_count,
-                             self.requested_indications))
+                print("ERROR. Extra indications received "
+                      f"{self.received_indication_count}, "
+                      f"requested {self.requested_indications}")
             if return_flag:
                 assert self.received_indication_count == \
                     self.requested_indications
@@ -524,9 +521,9 @@ class RunIndicationTest:  # pylint: disable=too-many-instance-attributes
 
             if self.verbose:
                 print("Send InvokeMethod to WBEM Server:")
-                print("  class_name {0} method {1} for {2} indications".
-                      format(class_name, send_indication_method,
-                             indication_count))
+                print(f"  class_name {class_name} method "
+                      f"{send_indication_method} for {indication_count} "
+                      "indications")
 
             result = self.conn.InvokeMethod(
                 send_indication_method, class_name,
@@ -534,8 +531,7 @@ class RunIndicationTest:  # pylint: disable=too-many-instance-attributes
 
             if result[0] != 0:
                 print('Error: SendTestIndicationCount Method error. '
-                      'Nonzero return from InvokeMethod={}'
-                      .format(result[0]))
+                      f'Nonzero return from InvokeMethod={result[0]}')
                 return False
             return True
 

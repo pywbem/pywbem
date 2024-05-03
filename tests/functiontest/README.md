@@ -18,7 +18,6 @@ The following YAML is an example for one testcase in such a file:
         name: demo1
         description: Demo #1, using GetInstance
         ignore_test: false  # default
-        ignore_python_version: null  # default
         ignore_debug_comparison: false  # default
         pywbem_request:
             url: http://acme.com:80
@@ -118,12 +117,6 @@ The top-level elements in the test case YAML are:
 
 * `description`:
   A short description of the testcase.
-
-* `ignore_python_version`
-  A single digit python version (2 or 3) that tells the client code to
-  ignore this test for that python version.  Should only be used in rare
-  cases where a test is really version dependent. To date the only case
-  is in HTTPS timeout processing where python 2 has an issue with mock.
 
 * `ignore_test`
   If this element exists, the test is bypassed.  This is a way to temporarily

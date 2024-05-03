@@ -78,8 +78,9 @@ class InMemoryObjectStore(BaseObjectStore):
             self._data = {}
             self._copy_names = True
         else:
-            assert False, "InMemoryObjectStore: Invalid input parameter {}." \
-                .format(cim_object_type)
+            assert False, (
+                "InMemoryObjectStore: Invalid input parameter "
+                f"{cim_object_type}.")
 
     def __repr__(self):
         return _format('InMemoryObjectStore(type={0},  dict={1}, size={2}',
@@ -100,15 +101,16 @@ class InMemoryObjectStore(BaseObjectStore):
                 return deepcopy(self._data[name])
             return self._data[name]
         else:
-            raise KeyError('Name {} not in {} object store'
-                           .format(name, self._cim_object_type))
+            raise KeyError(
+                f"Name {name} not in {self._cim_object_type} object store")
 
     def create(self, name, cim_object):
         assert isinstance(cim_object, self._cim_object_type)
 
         if name in self._data:
-            raise ValueError('Name "{}" already in {} object store'
-                             .format(name, self._cim_object_type))
+            raise ValueError(
+                f'Name "{name}" already in {self._cim_object_type} '
+                'object store')
         # Add with deepcopy to completely isolate the copy in the repository
         self._data[name] = deepcopy(cim_object)
 
@@ -116,8 +118,8 @@ class InMemoryObjectStore(BaseObjectStore):
         assert isinstance(cim_object, self._cim_object_type)
 
         if name not in self._data:
-            raise KeyError('Name "{}" not in {} object store'
-                           .format(name, self._cim_object_type))
+            raise KeyError(
+                f'Name "{name}" not in {self._cim_object_type} object store')
 
         # Replace the existing object with a copy of the input object
         self._data[name] = (cim_object)
@@ -126,8 +128,8 @@ class InMemoryObjectStore(BaseObjectStore):
         if name in self._data:
             del self._data[name]
         else:
-            raise KeyError('Name "{}" not in {} object store'
-                           .format(name, self._cim_object_type))
+            raise KeyError(
+                f'Name "{name}" not in {self._cim_object_type} object store')
 
     def iter_names(self):
         """
@@ -225,8 +227,8 @@ class InMemoryRepository(BaseRepository):
                     assert objstore_name == 'instance'
                     store = self.get_instance_store(ns)
 
-                rtn_str = 'Namespace: {} Repo: {} len:{}\n'.format(
-                    ns, objstore_name, store.len())
+                rtn_str = (f'Namespace: {ns} Repo: {objstore_name} '
+                           f'len:{store.len()}\n')
                 for val in store.iter_values():
                     rtn_str += (f'{val}\n')
                 return rtn_str
@@ -245,8 +247,8 @@ class InMemoryRepository(BaseRepository):
         try:
             self._repository[namespace]
         except KeyError:
-            raise KeyError('Namespace "{}" does not exist in repository'.
-                           format(namespace))
+            raise KeyError(
+                f'Namespace "{namespace}" does not exist in repository')
 
     def add_namespace(self, namespace):
         if namespace is None:
@@ -255,8 +257,8 @@ class InMemoryRepository(BaseRepository):
         namespace = namespace.strip('/')
 
         if namespace in self._repository:
-            raise ValueError('Namespace "{}" already in repository'.
-                             format(namespace))
+            raise ValueError(
+                f'Namespace "{namespace}" already in repository')
 
         self._repository[namespace] = {}
 
@@ -276,8 +278,8 @@ class InMemoryRepository(BaseRepository):
         if self.get_class_store(namespace).len() != 0 or \
                 self.get_qualifier_store(namespace).len() != 0 or \
                 self.get_instance_store(namespace).len() != 0:
-            raise ValueError('Namespace {} removal invalid. Namespace not '
-                             'empty'.format(namespace))
+            raise ValueError(
+                f'Namespace {namespace} removal invalid. Namespace not empty')
 
         del self._repository[namespace]
 

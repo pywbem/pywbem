@@ -576,8 +576,7 @@ class TestSchemaError(MOFTest):
                                           'CIM_ComputerSystem.mof'))
             self.assertEqual(pe.lineno, 2,
                              msg="Unexpected line number: "
-                             "got {0}, expected {1}, exception: {2!r}".
-                             format(pe.lineno, 2, pe))
+                             f"got {pe.lineno}, expected 2, exception: {pe!r}")
 
         self.mofcomp.compile_file(os.path.join(TEST_DMTF_CIMSCHEMA_MOF_DIR,
                                                'qualifiers.mof'),
@@ -600,8 +599,8 @@ class TestSchemaError(MOFTest):
             # TODO The following is cim version dependent.
             self.assertEqual(pe.lineno, 179,
                              msg="Unexpected line number: "
-                             "got {0}, expected {1}, exception: {2!r}".
-                             format(pe.lineno, 179, pe))
+                             f"got {pe.lineno}, expected 179, "
+                             f"exception: {pe!r}")
 
 
 class TestSchemaSearch(MOFTest):
@@ -1485,13 +1484,13 @@ class BaseTestLexer(unittest.TestCase):
 
     def debug_data(self, input_data):
         """For debugging testcases: Print input data and its tokens."""
-        print("debug_data: input_data=<%s>" % input_data)
+        print(f"debug_data: input_data=<{input_data}>")
         self.lexer.input(input_data)
         while True:
             tok = self.lexer.token()
             if not tok:
                 break  # No more input
-            print("debug_data: token=<%s>" % tok)
+            print(f"debug_data: token=<{tok}>")
 
     def run_assert_lexer(self, input_data, exp_tokens):
         """Run lexer and assert results."""
@@ -1515,52 +1514,47 @@ class BaseTestLexer(unittest.TestCase):
                 break  # successfully came to the end
 
             if act_token is None and exp_token is not None:
-                self.fail("Not enough tokens found, expected: %r" % exp_token)
+                self.fail(f"Not enough tokens found, expected: {exp_token!r}")
 
             if act_token is not None and exp_token is None:
-                self.fail("Too many tokens found: %r" % act_token)
+                self.fail(f"Too many tokens found: {act_token!r}")
 
             # We have both an expected and an actual token
             if isinstance(exp_token, LexErrorToken):
                 # We expect an error
                 if self.last_error_t is None:
                     self.fail("t_error() was not called as expected, "
-                              "actual token: %r" % act_token)
+                              f"actual token: {act_token!r}")
 
                 self.assertTrue(
                     self.last_error_t.type == exp_token.type and
                     self.last_error_t.value == exp_token.value,
                     "t_error() was called with an unexpected "
-                    "token: %r (expected: %r)" %
-                    (self.last_error_t, exp_token))
+                    f"token: {self.last_error_t!r} (expected: {exp_token!r})")
 
             else:
                 # We do not expect an error
                 if self.last_error_t is not None:
                     self.fail(
                         "t_error() was unexpectedly called with "
-                        "token: %r" % self.last_error_t)
+                        f"token: {self.last_error_t!r}")
 
                 self.assertTrue(
                     act_token.type == exp_token.type,
-                    "Unexpected token type: %r (expected: %r) "
-                    "in token: %r" %
-                    (act_token.type, exp_token.type, act_token))
+                    f"Unexpected token type: {act_token.type!r} (expected: "
+                    f"{exp_token.type!r}) in token: {act_token!r}")
                 self.assertTrue(
                     act_token.value == exp_token.value,
-                    "Unexpected token value: %r (expected: %r) "
-                    "in token: %r" %
-                    (act_token.value, exp_token.value, act_token))
+                    f"Unexpected token value: {act_token.value!r} (expected: "
+                    f"{exp_token.value!r}) in token: {act_token!r}")
                 self.assertTrue(
                     act_token.lineno == exp_token.lineno,
-                    "Unexpected token lineno: %r (expected: %r) "
-                    "in token: %r" %
-                    (act_token.lineno, exp_token.lineno, act_token))
+                    f"Unexpected token lineno: {act_token.lineno!r} (expected: "
+                    f"{exp_token.lineno!r}) in token: {act_token!r}")
                 self.assertTrue(
                     act_token.lexpos == exp_token.lexpos,
-                    "Unexpected token lexpos: %r (expected: %r) "
-                    "in token: %r" %
-                    (act_token.lexpos, exp_token.lexpos, act_token))
+                    f"Unexpected token lexpos: {act_token.lexpos!r} (expected: "
+                    f"{exp_token.lexpos!r}) in token: {act_token!r}")
 
 
 class TestLexerSimple(BaseTestLexer):
@@ -2239,7 +2233,7 @@ class TestFullSchema(MOFTest):
         # start_time = time()
         self.mofcomp.compile_file(TEST_DMTF_CIMSCHEMA.schema_pragma_file,
                                   NAME_SPACE)
-        # print('elapsed compile: %f  ' % (time() - start_time))
+        # print(f'elapsed compile: {time() - start_time}')
 
         repo = self.mofcomp.handle
 
@@ -2272,10 +2266,10 @@ class TestFullSchema(MOFTest):
         # Recompile the created mof output file.
         repo2 = self.mofcomp2.handle
 
-        # print('Start recompile file= %s' % mofout_filename)
+        # print(f'Start recompile file={mofout_filename}')
         # start_time = time()
         self.mofcomp2.compile_file(mofout_filename, NAME_SPACE)
-        # print('elapsed recompile: %f  ' % (time() - start_time))
+        # print(f'elapsed recompile: {time() - start_time}'
 
         # Verify the recompiled qualifier declaractions are like the originals
         recompiled_qual_decls = repo2.qualifiers[NAME_SPACE]

@@ -44,7 +44,7 @@ def format_timedelta(td):
     """
     hours, remainder = divmod(td.total_seconds(), 3600)
     minutes, seconds = divmod(remainder, 60)
-    return '%02d:%02d:%05.2f' % (hours, minutes, seconds)
+    return f'{hours:02d}:{minutes:02d}:{seconds:05.2f}'
 
     # return '{:02d}:{:02d}.{:05f}'.format(hours, minutes, seconds)
 
@@ -139,13 +139,13 @@ def set_provider_parameters(conn, count, size):
                                     ('Size', Uint64(size))])
 
         if result[0] != 0:
-            print('SendTestIndicationCount Method error. Nonzero return=%s'
-                  % result[0])
+            print('SendTestIndicationCount Method error. '
+                  f'Nonzero return={result[0]}')
             return False
         return True
 
     except Error as er:
-        print('Error: Invoke Method exception %s' % er)
+        print(f'Error: Invoke Method exception {er}')
         raise
 
 
@@ -166,7 +166,7 @@ def run_pull_enum_instances(conn, max_object_count):
     """Execute an open request followed by pull requests"""
     op_count = 0
     et = ElapsedTimer()
-    print('max_object_count %s' % max_object_count)
+    print(f'max_object_count {max_object_count}')
     result = conn.OpenEnumerateInstances(
         TEST_CLASSNAME,
         MaxObjectCount=max_object_count)
@@ -264,8 +264,9 @@ def run_tests(conn, response_sizes, response_counts, pull_sizes,
             rows.extend(run_single_test(conn, runid, response_count,
                                         response_size, pull_sizes))
 
-    print(' Response results for pywbem version %s runid %s execution time %s'
-          % (__version__, runid, format_timedelta(test_timer.elapsed_time())))
+    td = format_timedelta(test_timer.elapsed_time())
+    print(f' Response results for pywbem version {__version__} runid {runid} '
+          f'execution time {td}')
     table = tabulate(rows, headers=header, tablefmt="simple")
     print(table)
 
@@ -307,16 +308,16 @@ The test output includes a column defining the pywbem version and optionally
 a string runid for each test to make it easier to test multiple versions of
 pywbem for performance.
 """
-    epilog = """
+    epilog = f"""
 Examples:
-  %s http://blah  --response-count 10000 --pull-size 100 1000 \\
+  {prog} http://blah  --response-count 10000 --pull-size 100 1000 \\
     --response-size 100 1000
 
   Test against server blah with the number of responses instances to a
   single request set to 10,000, the size of the maxObjectCnt request variable
   for each open and pull request set to 100 and then 1,000 and the size
   of the response objects set to first 100 and then 1000.
-""" % (prog)  # noqa: E501
+"""  # noqa: E501
 # pylint: enable=line-too-long
 
     argparser = _argparse.ArgumentParser(
@@ -408,7 +409,7 @@ Examples:
              'in the form for each test. May be multiple integers. The test\n'
              'will be executed for each integer defined. The format is:\n'
              '  --response-count 1000 10000 100000\n'
-             'Default: %s' % DEFAULT_RESPONSE_COUNT)
+             f'Default: {DEFAULT_RESPONSE_COUNT}')
 
     tests_arggroup.add_argument(
         '--pull-size', dest='pull_size', nargs='+',
@@ -419,7 +420,7 @@ Examples:
              'pull request for each test. May be multiple integers. The test\n'
              'will be executed for each integer defined. The format is:\n'
              '  --pull-size 100 200 300\n'
-             'Default: %s' % DEFAULT_PULL_SIZE)
+             f'Default: {DEFAULT_PULL_SIZE}')
 
     tests_arggroup.add_argument(
         '--response-size', dest='response_size', nargs='+',
@@ -430,7 +431,7 @@ Examples:
              'May be multiple integers. The test will be executed for each\n'
              'integer defined. The format is:\n'
              '  --response-size 100 200 300\n'
-             'Default: %s' % DEFAULT_RESPONSE_SIZE)
+             f'Default: {DEFAULT_RESPONSE_SIZE}')
 
     tests_arggroup.add_argument(
         '-r', '--runid', dest='runid',
@@ -439,7 +440,7 @@ Examples:
         help='R|A Optional string that is included in the output report to \n'
              'identify this test run. It is concatenated with the pywbem\n'
              'version.\n'
-             'Default: %s' % None)
+             'Default: None')
 
     general_arggroup = argparser.add_argument_group(
         'General options')
@@ -469,7 +470,7 @@ Examples:
                         ' Use "http" or "https"')
 
     else:
-        url = '{}://{}'.format('https', args.server)
+        url = f'https://{args.server}'
 
     if args.key_file is not None and args.cert_file is None:
         argparser.error('keyfile option requires certfile option')
@@ -487,8 +488,7 @@ def main(prog):
     creds = None
 
     if args.user is not None and args.password is None:
-        args.password = _getpass.getpass('Enter password for %s: '
-                                         % args.user)
+        args.password = _getpass.getpass(f'Enter password for {args.user}: ')
 
     if args.user is not None or args.password is not None:
         creds = (args.user, args.password)
@@ -506,11 +506,12 @@ def main(prog):
                           x509=x509_dict, ca_certs=args.ca_certs,
                           timeout=args.timeout)
 
-    print('Test with response sizes=%s response_counts=%s, pull_sizes=%s\n' %
-          (args.response_size, args.response_count, args.pull_size))
+    print(f'Test with response sizes={args.response_size} '
+          f'response_counts={args.response_count}, '
+          f'pull_sizes={args.pull_size}\n')
 
     if args.runid:
-        runid = "{}:{}".format(__version__, args.runid)
+        runid = f"{__version__}:{args.runid}"
     else:
         runid = __version__
 

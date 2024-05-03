@@ -43,7 +43,7 @@ STATS_LIST = []
 def format_timedelta(td):
     hours, remainder = divmod(td.total_seconds(), 3600)
     minutes, seconds = divmod(remainder, 60)
-    return '%02d:%02d:%05.2f' % (hours, minutes, seconds)
+    return f'{hours:02d}:{minutes:02d}:{seconds:05.2f}'
 
 
 class _PywbemCustomFormatter(_SmartFormatter,
@@ -72,13 +72,13 @@ def set_provider_parameters(conn, count, size):
                                     ('Size', Uint64(size))])
 
         if result[0] != 0:
-            print('SendTestIndicationCount Method error. Nonzero return=%s'
-                  % result[0])
+            print('SendTestIndicationCount Method error. '
+                  f'Nonzero return={result[0]}')
             return False
         return True
 
     except Error as er:
-        print('Error: Invoke Method exception %s' % er)
+        print(f'Error: Invoke Method exception {er}')
         raise
 
 
@@ -231,20 +231,18 @@ def run_tests(conn, response_sizes, response_counts, pull_sizes, verbose):
     if verbose:
         print('\n\n')
         print(conn.statistics.formatted())
-        print("\n\nIndividual Returns for response-counts=%s" % response_counts)
+        print(f"\n\nIndividual Returns for response-counts={response_counts}")
         headers = ('ObjsCnt', 'Pull#', 'SvrTime', 'RspTime',
                    'OpTime-SvrTime', '%Not Svr')
 
-        print("{0:6s} {1:5s} {2:7s} {3:7s} {4:14s} {5:10s}".
-              format(*headers))
+        print("{0:6s} {1:5s} {2:7s} {3:7s} {4:14s} {5:10s}".format(*headers))
 
         print('\n\nDetailed statistics for each pull  operations')
         for st in STATS_LIST:
             diff = conn.last_operation_time - conn.last_server_response_time
             percentage = (diff / conn.last_operation_time) * 100
-            print(
-                '{:6d} {:5d} {:7.3f} {:7.3f} {:14.3f} {:7.1f}%'
-                .format(st[0], st[1], st[2], st[3], diff, percentage))
+            print(f"{st[0]:6d} {st[1]:5d} {st[2]:7.3f} {st[3]:7.3f} "
+                  f"{diff:14.3f} {percentage:7.1f}%")
 
 
 def parse_args(prog):
@@ -271,16 +269,16 @@ included in the OpenPegasus server and is enabled by setting a property
 Executing a test generates several tables of response times for the various
 test parameters
 """
-    epilog = """
+    epilog = f"""
 Examples:
-  %s http://blah --response-count 10000 --pull-size 100 1000 \\
+  {prog} http://blah --response-count 10000 --pull-size 100 1000 \\
     --response-size 100 1000
 
   Test against server blah with the number of responses instances to a
   single request set to 10,000, the size of the maxObjectCnt request variable
   for each open and pull request set to 100 and then 1,000 and the size
   of the response objects set to first 100 and then 1000.
-""" % (prog)  # noqa: E501
+"""  # noqa: E501
 # pylint: enable=line-too-long
 
     argparser = _argparse.ArgumentParser(
@@ -372,7 +370,7 @@ Examples:
              'in the form for each test. May be multiple integers. The test\n'
              'will be executed for each integer defined. The format is:\n'
              '  --response-count 1000 10000 100000\n'
-             'Default: %s' % DEFAULT_RESPONSE_COUNT)
+             f'Default: {DEFAULT_RESPONSE_COUNT}')
 
     tests_arggroup.add_argument(
         '--pull-size', dest='pull_size', nargs='+',
@@ -383,7 +381,7 @@ Examples:
              'pull request for each test. May be multiple integers. The test\n'
              'will be executed for each integer defined. The format is:\n'
              '  --pull-size 100 200 300\n'
-             'Default: %s' % DEFAULT_PULL_SIZE)
+             f'Default: {DEFAULT_PULL_SIZE}')
 
     tests_arggroup.add_argument(
         '--response-size', dest='response_size', nargs='+',
@@ -394,7 +392,7 @@ Examples:
              'May be multiple integers. The test will be executed for each\n'
              'integer defined. The format is:\n'
              '  --response-size 100 200 300\n'
-             'Default: %s' % DEFAULT_RESPONSE_SIZE)
+             f'Default: {DEFAULT_RESPONSE_SIZE}')
 
     general_arggroup = argparser.add_argument_group(
         'General options')
@@ -431,7 +429,7 @@ Examples:
                         ' Use "http" or "https"')
 
     else:
-        url = '{}://{}'.format('https', args.server)
+        url = f'https://{args.server}'
 
     if args.key_file is not None and args.cert_file is None:
         argparser.error('keyfile option requires certfile option')
@@ -449,8 +447,7 @@ def main(prog):
     creds = None
 
     if args.user is not None and args.password is None:
-        args.password = _getpass.getpass('Enter password for %s: '
-                                         % args.user)
+        args.password = _getpass.getpass(f'Enter password for {args.user}: ')
 
     if args.user is not None or args.password is not None:
         creds = (args.user, args.password)
@@ -473,8 +470,9 @@ def main(prog):
         yamlfp = TestClientRecorder.open_file(args.record, 'a')
         conn.add_operation_recorder(TestClientRecorder(yamlfp))
 
-    print('Test with response sizes=%s response_counts=%s, pull_sizes=%s\n' %
-          (args.response_size, args.response_count, args.pull_size))
+    print(f'Test with response sizes={args.response_size} '
+          f'response_counts={args.response_count}, '
+          f'pull_sizes={args.pull_size}\n')
 
     run_tests(conn, args.response_size, args.response_count, args.pull_size,
               args.verbose)

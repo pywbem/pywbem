@@ -132,8 +132,8 @@ class _CIMComparisonMixin:  # pylint: disable=too-few-public-methods
         is not supported.
         """
         raise TypeError(
-            "'{}' not supported between instances of '{}' and '{}'".
-            format(op, type(self), type(other)))
+            f"'{op}' not supported between instances of '{type(self)}' and "
+            f"'{type(other)}'")
 
     def __lt__(self, other):
         ""  # Avoids docstring to be inherited
@@ -572,7 +572,7 @@ class CIMDateTime(_CIMComparisonMixin, CIMType):
         """
         Convert value (int) to a field string, considering precision.
         """
-        value_str = '{0:0{1}d}'.format(value, field_len)
+        value_str = f'{value:0{field_len}d}'
         if self.precision is not None and \
                 self.precision < field_begin + field_len:
             # field is partly or completely affected by precision
@@ -738,9 +738,8 @@ class CIMDateTime(_CIMComparisonMixin, CIMType):
             seconds_str = self._to_str(seconds, 12, 2)
             microsecs_str = self._to_str(microsecs, 15, 6)
 
-            ret_str = '{}{}{}{}.{}:000'.format(
-                days_str, hours_str, minutes_str, seconds_str,
-                microsecs_str)
+            ret_str = (f'{days_str}{hours_str}{minutes_str}{seconds_str}.'
+                       f'{microsecs_str}:000')
             return ret_str
 
         else:  # timestamp
@@ -766,9 +765,8 @@ class CIMDateTime(_CIMComparisonMixin, CIMType):
             second_str = self._to_str(second, 12, 2)
             microsec_str = self._to_str(microsec, 15, 6)
 
-            ret_str = '{}{}{}{}{}{}.{}{}{:03d}'.format(
-                year_str, month_str, day_str, hour_str, minute_str,
-                second_str, microsec_str, sign, offset)
+            ret_str = (f'{year_str}{month_str}{day_str}{hour_str}{minute_str}'
+                       f'{second_str}.{microsec_str}{sign}{offset:03d}')
             return ret_str
 
     def __repr__(self):

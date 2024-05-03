@@ -789,26 +789,24 @@ class WBEMConnection:  # pylint: disable=too-many-instance-attributes
         if x509 is not None:
             if not isinstance(x509, dict):
                 raise TypeError(
-                    "The x509 parameter must be a dictionary but has type: {0}".
-                    format(type(x509)))
+                    "The x509 parameter must be a dictionary but has type: "
+                    f"{type(x509)}")
             try:
                 cert_file = x509['cert_file']
             except KeyError:
                 raise ValueError(
                     "The x509 parameter does not have the required key "
-                    "'cert_file': {!r}".format(x509))
+                    f"'cert_file': {x509!r}")
             if not isinstance(cert_file, str):
                 raise TypeError(
                     "The 'cert_file' item in the x509 parameter must be a "
-                    "string but has type: {0}".
-                    format(type(cert_file)))
+                    f"string but has type: {type(cert_file)}")
             key_file = x509.get('key_file', None)
             if key_file is not None and \
                     not isinstance(key_file, str):
                 raise TypeError(
                     "The 'key_file' item in the x509 parameter must be a "
-                    "string but has type: {0}".
-                    format(type(key_file)))
+                    f"string but has type: {type(key_file)}")
         # x509 dict is mutable, so we copy it
         self._x509 = None if x509 is None else dict(x509)
         self._ca_certs = ca_certs
@@ -819,8 +817,7 @@ class WBEMConnection:  # pylint: disable=too-many-instance-attributes
             if not isinstance(proxies, dict):
                 raise TypeError(
                     "The proxies parameter must be a dictionary but has "
-                    "type: {0}".
-                    format(type(proxies)))
+                    f"type: {type(proxies)}")
             self._proxies = proxies.copy()
         else:
             self._proxies = None
@@ -839,13 +836,11 @@ class WBEMConnection:  # pylint: disable=too-many-instance-attributes
             if not os.path.exists(cert_file):
                 raise OSError(
                     "Client certificate file for TLS/SSL 2-way "
-                    "authentication not found: {}".
-                    format(cert_file))
+                    f"authentication not found: {cert_file}")
             if key_file is not None and not os.path.exists(key_file):
                 raise OSError(
                     "Client key file for TLS/SSL 2-way "
-                    "authentication not found: {}".
-                    format(key_file))
+                    f"authentication not found: {key_file}")
             cert = (cert_file, key_file)
         else:
             cert = None
@@ -864,8 +859,8 @@ class WBEMConnection:  # pylint: disable=too-many-instance-attributes
             # Use the specified path name (to file or directory).
             if not os.path.exists(self.ca_certs):
                 raise OSError(
-                    "CA certificate file or directory not found: {}".
-                    format(self.ca_certs))
+                    "CA certificate file or directory not found: "
+                    f"{self.ca_certs}")
             verify = self.ca_certs
         else:
             raise TypeError(
@@ -902,9 +897,8 @@ class WBEMConnection:  # pylint: disable=too-many-instance-attributes
         # Create the connection identifier for this WBEMConnection
         # Includes class level counter and process pid
         self.__class__._conn_counter += 1
-        self._conn_id = '{}-{}'.format(
-            self.__class__._conn_counter,  # pylint: disable=protected-access
-            os.getpid())
+        # pylint: disable=protected-access
+        self._conn_id = f'{self.__class__._conn_counter}-{os.getpid()}'
 
         # Intent to use pull operations
         self._use_pull_operations = use_pull_operations
@@ -4967,7 +4961,7 @@ class WBEMConnection:  # pylint: disable=too-many-instance-attributes
                     insts_generator.close()
                     break
                 else:
-                    print('instance {0}'.format(inst.tomof()))
+                    print(f'instance {inst.tomof()}')
         """  # noqa: E501
 
         # The other parameters are validated in the operations called
@@ -5255,7 +5249,7 @@ class WBEMConnection:  # pylint: disable=too-many-instance-attributes
 
             paths_generator = conn.IterEnumerateInstancePaths('CIM_Blah')
             for path in paths_generator:
-                print('path {0}'.format(path))
+                print(f'path {path}')
         """
 
         # The other parameters are validated in the operations called
@@ -5595,7 +5589,7 @@ class WBEMConnection:  # pylint: disable=too-many-instance-attributes
                     insts_generator.close()
                     break
                 else:
-                    print('instance {0}'.format(inst.tomof()))
+                    print(f'instance {inst.tomof()}')
         """  # noqa: E501
 
         # The other parameters are validated in the operations called
@@ -5883,7 +5877,7 @@ class WBEMConnection:  # pylint: disable=too-many-instance-attributes
 
             paths_generator = conn.IterAssociatorInstancePaths('CIM_Blah')
             for path in paths_generator:
-                print('path {0}'.format(path))
+                print(f'path {path}')
         """
 
         # The other parameters are validated in the operations called
@@ -6191,7 +6185,7 @@ class WBEMConnection:  # pylint: disable=too-many-instance-attributes
                     insts_generator.close()
                     break
                 else:
-                    print('instance {0}'.format(inst.tomof()))
+                    print(f'instance {inst.tomof()}')
         """  # noqa: E501
 
         # The other parameters are validated in the operations called
@@ -6456,7 +6450,7 @@ class WBEMConnection:  # pylint: disable=too-many-instance-attributes
 
             paths_generator = conn.IterReferenceInstancePaths('CIM_Blah')
             for path in paths_generator:
-                print('path {0}'.format(path))
+                print(f'path {path}')
         """
 
         # The other parameters are validated in the operations called
@@ -6713,7 +6707,7 @@ class WBEMConnection:  # pylint: disable=too-many-instance-attributes
                 'DMTF:CQL',
                 'SELECT FROM * where pl > 2')
             for inst in result.generator:
-                print('instance {0}'.format(inst.tomof()))
+                print(f'instance {inst.tomof()}')
         """  # noqa: E501
         # pylint: enable=line-too-long
 
@@ -7017,7 +7011,7 @@ class WBEMConnection:  # pylint: disable=too-many-instance-attributes
                                                         max_object_count)
                 insts.extend(rslt_tupl.paths)
             for inst in insts:
-                print('instance {0}'.format(inst.tomof()))
+                print(f'instance {inst.tomof()}')
         """  # noqa: E501
 
         exc = None
@@ -7259,7 +7253,7 @@ class WBEMConnection:  # pylint: disable=too-many-instance-attributes
                                                     max_object_count)
                 paths.extend(rslt_tupl.paths)
             for path in paths:
-                print('path {0}'.format(path))
+                print(f'path {path}')
         """
 
         exc = None

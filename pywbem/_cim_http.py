@@ -217,8 +217,8 @@ def pywbem_requests_exception(exc, conn):
 
     if not isinstance(message, str):
         warnings.warn(
-            "requests exception {} has a {} object as args[0] - "
-            "converting to string".format(type(exc), type(message)),
+            f"requests exception {type(exc)} has a {type(message)} object "
+            "as args[0] - converting to string",
             RequestExceptionWarning, 1)
         message = str(message)
 
@@ -307,8 +307,8 @@ def pywbem_urllib3_exception(exc, conn):
     message = exc.args[0]
     if not isinstance(message, str):
         warnings.warn(
-            "urllib3 exception {} has a {} object as args[0] - "
-            "converting to string".format(type(exc), type(message)),
+            f"urllib3 exception {type(exc)} has a {type(message)} object "
+            "as args[0] - converting to string",
             RequestExceptionWarning, 1)
         message = str(message)
 
@@ -346,8 +346,8 @@ def pywbem_urllib3_exception(exc, conn):
         else:
             warnings.warn(
                 "urllib3 exception MaxRetryError does not match the "
-                "'Caused by' pattern: {!r} - re-raising it directly".
-                format(message), RequestExceptionWarning, 1)
+                f"'Caused by' pattern: {message!r} - re-raising it directly",
+                RequestExceptionWarning, 1)
             exc_name = exc.__class__.__name__
             exc_message = message
 
@@ -357,8 +357,8 @@ def pywbem_urllib3_exception(exc, conn):
                 read_timeout = float(m.group(1))
                 if read_timeout == HTTP_CONNECT_TIMEOUT:
                     exc_message = (
-                        "Could not send request to {} within {:.0f} sec".
-                        format(conn.url, read_timeout))
+                        f"Could not send request to {conn.url} within "
+                        f"{read_timeout:.0f} sec")
                     new_exc = ConnectionError(exc_message, conn_id=conn.conn_id)
                     new_exc.__cause__ = None
                     return new_exc
@@ -369,8 +369,8 @@ def pywbem_urllib3_exception(exc, conn):
             m = re.search(r'^Read timed out', exc_message)
             if m:
                 exc_message = (
-                    "No response received from {} within {} sec".
-                    format(conn.url, conn.timeout))
+                    f"No response received from {conn.url} within "
+                    f"{conn.timeout} sec")
 
             new_exc = TimeoutError(exc_message, conn_id=conn.conn_id)
             new_exc.__cause__ = None
@@ -411,9 +411,9 @@ def debug_exc(exc):
     """Debug: Return a debug message for the exception"""
     arg_strings = [
         f"exception: {type(exc)}",
-        # "dir(exc)={}".format(dir(exc)),
-        # "dir(exc.request)={}".format(dir(exc.request)),
-        # "dir(exc.response)={}".format(dir(exc.response)),
+        # f"dir(exc)={dir(exc)}",
+        # f"dir(exc.request)={dir(exc.request)}",
+        # f"dir(exc.response)={dir(exc.response)}",
     ]
     for i, arg in enumerate(exc.args):
         arg_strings.append(f"arg[{i}] ({type(arg)}) = {arg}")
@@ -507,25 +507,25 @@ def wbem_request(conn, req_data, cimxml_headers, target_type='server'):
     try:
         try:
             if DEBUG_EXCEPTIONS:
-                print("Debug: pywbem wbem_request: Calling session.post() with "
-                      "timeout=(connect={}, read={}) for {} on {} with {}".
-                      format(HTTP_CONNECT_TIMEOUT, conn.timeout,
-                             cimxml_headers[1][1], cimxml_headers[2][1],
-                             conn.session.adapters['https://'].max_retries))
+                print("Debug: pywbem wbem_request: Calling session.post() "
+                      f"with timeout=(connect={HTTP_CONNECT_TIMEOUT}, "
+                      f"read={conn.timeout}) for {cimxml_headers[1][1]} on "
+                      f"{cimxml_headers[2][1]} with "
+                      f"{conn.session.adapters['https://'].max_retries}")
             resp = conn.session.post(
                 target_url, data=req_body, headers=req_headers,
                 timeout=(HTTP_CONNECT_TIMEOUT, conn.timeout))
         except Exception as _exc:
             if DEBUG_EXCEPTIONS:
-                print("Debug: pywbem wbem_request: session.post() raised: {}".
-                      format(debug_exc(_exc)))
+                print("Debug: pywbem wbem_request: session.post() raised: "
+                      f"{debug_exc(_exc)}")
             raise
     except requests.exceptions.RequestException as exc:
         raise pywbem_requests_exception(exc, conn)
     except urllib3.exceptions.HTTPError as exc:
         warnings.warn(
-            "requests raised an urllib3 exception {} directly".
-            format(type(exc)), RequestExceptionWarning, 1)
+            f"requests raised an urllib3 exception {type(exc)} directly",
+            RequestExceptionWarning, 1)
         raise pywbem_urllib3_exception(exc, conn)
 
     if target_type == 'server':
@@ -553,8 +553,8 @@ def wbem_request(conn, req_data, cimxml_headers, target_type='server'):
 
         if target_type == 'server' and resp.status_code == 401:
 
-            msg = "WBEM server returned HTTP status {0} ({1}).". \
-                format(resp.status_code, resp.reason)
+            msg = (f"WBEM server returned HTTP status {resp.status_code} "
+                   f"({resp.reason}).")
 
             # According to RFC2016/2017, the server must include a
             # WWW-Authenticate header in the response when returning 401.
@@ -608,8 +608,8 @@ def wbem_request(conn, req_data, cimxml_headers, target_type='server'):
             not resp_content_type.startswith('application/xml') and \
             not resp_content_type.startswith('text/xml'):
         raise HeaderParseError(
-            "WBEM server returned invalid Content-type header: {!r}".
-            format(resp_content_type),
+            "WBEM server returned invalid Content-type header: "
+            f"{resp_content_type!r}",
             conn_id=conn.conn_id, request_data=req_body,
             response_data=resp.text)
 

@@ -15,18 +15,18 @@ VERBOSE = True  # TODO: Pass as command line option
 
 
 def env_info():
-    print("{}: Platform: {}".format(myname, sys.platform))
-    print("{}: Python executable: {}".format(myname, sys.executable))
-    print("{}: Python version: {}".format(myname, sys.version))
-    print("%s: Python module search path:" % myname)
+    print(f"{myname}: Platform: {sys.platform}")
+    print(f"{myname}: Python executable: {sys.executable}")
+    print(f"{myname}: Python version: {sys.version}")
+    print(f"{myname}: Python module search path:")
     pprint(sys.path)
 
 
 def main():
 
     if VERBOSE:
-        print("%s: Rebuilding the pywbem LEX/YACC table modules, if needed" % \
-              myname)
+        print(f"{myname}: Rebuilding the pywbem LEX/YACC table modules, "
+              "if needed")
 
     # We want to build the table modules in the target install directory.
     #
@@ -41,29 +41,29 @@ def main():
     # module search path before importing the _mof_compiler module, in order to
     # import it from the target install directory.
     if VERBOSE:
-        print("%s: Ensuring to build in pywbem install directory" % myname)
+        print(f"{myname}: Ensuring to build in pywbem install directory")
     my_abs_path = os.path.dirname(os.path.abspath(sys.argv[0]))
     removals = []
     for i, p in enumerate(sys.path):
         abs_p = os.path.abspath(p)
         if abs_p == my_abs_path:
             if DEBUG:
-                print("%s: Debug: Removing from module search path: %s" % \
-                      (myname, abs_p))
+                print(f"{myname}: Debug: Removing from module search path: "
+                      f"{abs_p}")
             removals.append(i)
     for i in reversed(removals):
         del sys.path[i]
     if DEBUG:
-        print("%s: Debug: Resulting module search path:" % myname)
+        print(f"{myname}: Debug: Resulting module search path:")
         pprint(sys.path)
 
     try:
         import pywbem
         if DEBUG:
-            print("%s: Debug: Pywbem package successfully imported from: %s" % \
-                  (myname, pywbem.__file__))
+            print(f"{myname}: Debug: Pywbem package successfully imported "
+                  f"from: {pywbem.__file__}")
     except ImportError as exc:
-        print("{}: Error: Import of pywbem package failed: {}".format(myname, exc))
+        print(f"{myname}: Error: Import of pywbem package failed: {exc}")
         env_info()
         return 1
 
@@ -71,14 +71,14 @@ def main():
     try:
         _mof_compiler._build(verbose=True)
     except Exception as exc:
-        print("%s: Error: Rebuilding the pywbem LEX/YACC table modules " \
-              "failed: %s" % (myname, exc))
+        print(f"{myname}: Error: Rebuilding the pywbem LEX/YACC table modules "
+              "failed: {exc}")
         env_info()
         return 1
 
     if VERBOSE:
-        print("%s: Successfully rebuilt the pywbem LEX/YACC table modules, "
-              "if needed" % myname)
+        print(f"{myname}: Successfully rebuilt the pywbem LEX/YACC table "
+              "modules, if needed")
     return 0
 
 if __name__ == '__main__':

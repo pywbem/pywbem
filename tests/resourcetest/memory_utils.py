@@ -81,9 +81,8 @@ def total_sizeof(obj, iters=None):
         """
         if DEBUG:
             o_str = repr(obj) if isinstance(obj, (str, bool, int)) else ''
-            print("Debug: {}: {} {} object {} at {}: {}".
-                  format(nesting[0], msg, type(obj), o_str, id(obj),
-                         size if size is not None else ''))
+            print(f"Debug: {nesting[0]}: {msg} {type(obj)} object {o_str} "
+                  f"at {id(obj)}: {size or ''}")
 
     # Built-in collection types where the collection items do not show up in
     # attributes.

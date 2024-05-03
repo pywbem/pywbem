@@ -23,5 +23,5 @@ import os
 from .utils import import_installed
 pywbem = import_installed('pywbem')  # pylint: disable=invalid-name
 
-print("Testing pywbem version {0} from {1}".
-      format(pywbem.__version__, os.path.dirname(pywbem.__file__)))
+print(f"Testing pywbem version {pywbem.__version__} from "
+      f"{os.path.dirname(pywbem.__file__)}")

@@ -79,9 +79,8 @@ def execute_request(conn, classname, max_open, max_pull):
                                          MaxObjectCount=max_open)
 
 
-    print('open rtn eos=%s context=%s, count=%s time=%s ms' %
-          (result.eos, result.context, len(result.instances),
-           start.elapsed_ms()))
+    print(f'open rtn eos={result.eos} context={result.context}, '
+          f'count={len(result.instances)} time={start.elapsed_ms()} ms')
 
     # save instances since we reuse result
     insts = result.instances
@@ -96,13 +95,12 @@ def execute_request(conn, classname, max_open, max_pull):
 
         insts.extend(result.instances)
 
-        print('pull rtn eos=%s context=%s, insts=%s time=%s ms' %
-              (result.eos, result.context, len(result.instances),
-               op_start.elapsed_ms()))
+        print(f'pull rtn eos={result.eos} context={result.context}, '
+              f'insts={len(result.instances)} time={op_start.elapsed_ms()} ms')
 
 
-    print('Result instance count=%s pull count=%s time=%.2f sec' % \
-          (len(insts), pull_count, start.elapsed_sec()))
+    print(f'Result instance count={len(insts)} pull count={pull_count} '
+          f'time={start.elapsed_sec():.2f} sec')
     return insts
 
 def main():
@@ -112,8 +110,8 @@ def main():
 
     # if less than required arguments, use the defaults
     if len(sys.argv) < 8:
-        print("Usage: %s server_url username password namespace classname "
-              "max_open, max_pull" %  sys.argv[0])
+        print(f"Usage: {sys.argv[0]} server_url username password namespace "
+              "classname max_open, max_pull")
         server_url = SERVER_URL
         username = USERNAME
         password = PASSWORD
@@ -130,9 +128,9 @@ def main():
         max_open = sys.argv[6]
         max_pull = sys.argv[7]
 
-    print('Parameters: server_url=%s\n username=%s\n namespace=%s\n' \
-          ' classname=%s\n max_open=%s,\n max_pull=%s' % \
-          (server_url, username, namespace, classname, max_open, max_pull))
+    print(f'Parameters: server_url={server_url}\n username={username}\n '
+          f'namespace={namespace}\n classname={classname}\n '
+          f'max_open={max_open},\n max_pull={max_pull}')
 
     # connect to the server
     conn = WBEMConnection(server_url, (username, password),
@@ -145,21 +143,18 @@ def main():
 
         # print the resulting instances
         for instance in instances:
-            print('\npath={}\n{}'.format(instance.path, instance.tomof()))
+            print(f'\npath={instance.path}\n{instance.tomof()}')
 
     # handle exceptions
     except CIMError as ce:
-        print('Operation Failed: CIMError: code=%s, Description=%s' % \
-              (ce.status_code_name, ce.status_description))
+        print(f'Operation Failed: CIMError: code={ce.status_code_name}, '
+              f'Description={ce.status_description}')
         sys.exit(1)
     except Error as err:
-        print ("Operation failed: %s" % err)
+        print (f"Operation failed: {err}")
         sys.exit(1)
 
     return 0
 
 if __name__ == '__main__':
     sys.exit(main())
-
-
-

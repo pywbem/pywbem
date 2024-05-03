@@ -21,7 +21,7 @@ from pywbem import WBEMConnection, CIMError, Error
 def _str_to_bool(str_):
     """Convert string to bool (in argparse context)."""
     if str_.lower() not in ['true', 'false', 'none']:
-        raise ValueError('Need bool; got %r' % str_)
+        raise ValueError(f'Need bool; got {str_!r}')
     return {'true': True, 'false': False, 'none': None}[str_.lower()]
 
 def add_nullable_boolean_argument(parser, name, default=None, help_=None):
@@ -42,14 +42,14 @@ def create_parser(prog):
     usage = '%(prog)s [options] server'
     desc = 'Provide an interactive shell for issuing operations against' \
            ' a WBEM server.'
-    epilog = """
+    epilog = f"""
 Examples:
-  {} https://localhost:15345 -n vendor -u sheldon -p penny
+  {prog} https://localhost:15345 -n vendor -u sheldon -p penny
           - (https localhost, port=15345, namespace=vendor user=sheldon
          password=penny)
 
-  {} http://[2001:db8::1234-eth0] -(http port 5988 ipv6, zone id eth0)
-""".format(prog, prog)
+  {prog} http://[2001:db8::1234-eth0] -(http port 5988 ipv6, zone id eth0)
+"""
 
     argparser = _argparse.ArgumentParser(
         prog=prog, usage=usage, description=desc, epilog=epilog,
@@ -171,10 +171,9 @@ def main():
 
     opts = parse_cmdline(arg_parser)
 
-    print('Parameters: server=%s\n username=%s\n namespace=%s\n'
-          ' classname=%s\n max_pull_size=%s\n use_pull=%s' %
-          (opts.server, opts.user, opts.namespace, opts.classname,
-           opts.max_object_count, opts.usepull))
+    print(f'Parameters: server={opts.server}\n username={opts.user}\n '
+          f'namespace={opts.namespace}\n classname={opts.classname}\n '
+          f'max_pull_size={opts.max_object_count}\n use_pull={opts.usepull}')
 
     # call method to connect to the server
     conn = WBEMConnection(opts.server, (opts.user, opts.password),
@@ -191,17 +190,17 @@ def main():
 
         # generate instances with
         for instance in iter_instances:
-            print(' {} {}'.format(type(instances), type(instance)))
+            print(f' {type(instances)} {type(instance)}')
             instances.append(instance)
-            print('\npath={}\n{}'.format(instance.path, instance.tomof()))
+            print(f'\npath={instance.path}\n{instance.tomof()}')
 
     # handle exceptions
     except CIMError as ce:
-        print('Operation Failed: CIMError: code=%s, Description=%s' %
-              (ce.status_code_name, ce.status_description))
+        print(f'Operation Failed: CIMError: code={ce.status_code_name}, '
+              f'Description={ce.status_description}')
         sys.exit(1)
     except Error as err:
-        print ("Operation failed: %s" % err)
+        print(f"Operation failed: {err}")
         sys.exit(1)
 
     inst_paths = [inst.path for inst in instances]
@@ -214,12 +213,12 @@ def main():
 
         # generate instances with
         for path in iter_paths:
-            print('path=%s' % path)
+            print(f'path={path}')
             paths.append(path)
 
         if len(paths) != len(paths):
-            print('Error path and enum response sizes different enum=%s path=%s'
-                  % (len(paths), len(paths)))
+            print('Error path and enum response sizes different '
+                  f'enum={len(paths)} path={len(paths)}')
         for path in paths:
             found = False
             for inst_path in inst_paths:
@@ -227,16 +226,16 @@ def main():
                     found = True
                     break
                 else:
-                    print('No match \n%s\n%s' %(path, inst_path))
+                    print(f'No match \n{path}\n{inst_path}')
             if not found:
-                print('Path %s not found in insts' % path)
+                print(f'Path {path} not found in insts')
     # handle exceptions
     except CIMError as ce:
-        print('Operation Failed: CIMError: code=%s, Description=%s' %
-              (ce.status_code_name, ce.status_description))
+        print(f'Operation Failed: CIMError: code={ce.status_code_name}, '
+              f'Description={ce.status_description}')
         sys.exit(1)
     except Error as err:
-        print ("Operation failed: %s" % err)
+        print (f"Operation failed: {err}")
         sys.exit(1)
 
     return 0

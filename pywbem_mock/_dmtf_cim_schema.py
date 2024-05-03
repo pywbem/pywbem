@@ -269,11 +269,10 @@ class DMTFCIMSchema:
 
         cim_schema_version = f'cim_schema_{self.schema_version_str}'
         mof_zip_bn = f'{cim_schema_version}{schema_type}-MOFs.zip'
-        self._schema_zip_url = \
-            'https://www.dmtf.org/sites/default/files/cim/' \
-            'cim_schema_v{0}{1}{2}/{3}'. \
-            format(schema_version[0], schema_version[1], schema_version[2],
-                   mof_zip_bn)
+        self._schema_zip_url = (
+            'https://www.dmtf.org/sites/default/files/cim/'
+            f'cim_schema_v{schema_version[0]}{schema_version[1]}'
+            f'{schema_version[2]}/{mof_zip_bn}')
         schema_mof_bld_name = cim_schema_version + '.mof'
 
         self._schema_zip_file = os.path.join(self._schema_root_dir, mof_zip_bn)
@@ -373,14 +372,11 @@ class DMTFCIMSchema:
         This displays the major properties of the object.
         """
 
-        return '{}(schema_version_str={}, schema_root_dir={}, ' \
-               'schema_mof_dir={}, ' \
-               'schema_pragma_file={})'.format(
-                   self.__class__.__name__,
-                   self.schema_version_str,
-                   self.schema_root_dir,
-                   self.schema_mof_dir,
-                   self.schema_pragma_file)
+        return (f'{self.__class__.__name__}('
+                f'schema_version_str={self.schema_version_str}, '
+                f'schema_root_dir={self.schema_root_dir}, '
+                f'schema_mof_dir={self.schema_mof_dir}, '
+                f'schema_pragma_file={self.schema_pragma_file})')
 
     def __repr__(self):
         """
@@ -388,16 +384,13 @@ class DMTFCIMSchema:
         :class:`~pywbem_mock.DMTFCIMSchema` object that is suitable for
         debugging.
         """
-        return '{}(schema_version={}, schema_root_dir={}, ' \
-               'schema_zip_file={}, schema_mof_dir={}, ' \
-               'schema_pragma_file={}, schema_zip_url={})' \
-               .format(self.__class__.__name__,
-                       self.schema_version,
-                       self.schema_root_dir,
-                       self.schema_zip_file,
-                       self.schema_mof_dir,
-                       self.schema_pragma_file,
-                       self.schema_zip_url)
+        return (f'{self.__class__.__name__}('
+                f'schema_version={self.schema_version}, '
+                f'schema_root_dir={self.schema_root_dir}, '
+                f'schema_zip_file={self.schema_zip_file}, '
+                f'schema_mof_dir={self.schema_mof_dir}, '
+                f'schema_pragma_file={self.schema_pragma_file}, '
+                f'schema_zip_url={self.schema_zip_url})')
 
     def _setup_dmtf_schema(self):
         """

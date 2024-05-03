@@ -521,8 +521,7 @@ def test_repository_valid_methods(desc, args, condition, capsys):
     for type_dict, obj_dict in input_items.items():
         xxx_repo = repos[type_dict]
         for name, obj in obj_dict.items():
-            assert xxx_repo.object_exists(name), '{} exists() fail {}' \
-                .format(desc, name)
+            assert xxx_repo.object_exists(name), f'{desc} exists() fail {name}'
 
             rtnd_obj = xxx_repo.get(name)
             assert rtnd_obj == obj

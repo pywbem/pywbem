@@ -43,11 +43,10 @@ def test_snia_smis_to_profile_not_swapped(wbem_connection):  # noqa: F811
         registered_org=SPEC_ORG,
         registered_name=SPEC_NAME)
     if not spec_insts:
-        pytest.skip("Server {0} at {1}: The {2} {3!r} specification is not "
-                    "advertised".
-                    format(wbem_connection.es_server.nickname,
-                           wbem_connection.url,
-                           SPEC_ORG, SPEC_NAME))
+        pytest.skip(
+            f"Server {wbem_connection.es_server.nickname} at "
+            f"{wbem_connection.url}: The {SPEC_ORG} {SPEC_NAME!r} "
+            "specification is not advertised")
 
     for spec_inst in spec_insts:
 
@@ -60,13 +59,12 @@ def test_snia_smis_to_profile_not_swapped(wbem_connection):  # noqa: F811
 
         if profiles_swapped:
             raise AssertionError(
-                "Server {0} at {1}: The instance representing the {2} {3!r} "
-                "specification references {4} profiles via "
-                "CIM_ElementConformsToProfile using incorrectly swapped roles "
-                "so that ConformantStandard is on the profile side".
-                format(wbem_connection.es_server.nickname,
-                       wbem_connection.url,
-                       SPEC_ORG, SPEC_NAME, len(profiles_swapped)))
+                f"Server {wbem_connection.es_server.nickname} at "
+                f"{wbem_connection.url}: The instance representing the "
+                f"{SPEC_ORG} {SPEC_NAME!r} "
+                f"specification references {len(profiles_swapped)} profiles "
+                "via CIM_ElementConformsToProfile using incorrectly swapped "
+                "roles so that ConformantStandard is on the profile side")
 
 
 def test_snia_smis_to_profile_not_reffed(wbem_connection):  # noqa: F811
@@ -84,11 +82,10 @@ def test_snia_smis_to_profile_not_reffed(wbem_connection):  # noqa: F811
         registered_org=SPEC_ORG,
         registered_name=SPEC_NAME)
     if not spec_insts:
-        pytest.skip("Server {0} at {1}: The {2} {3!r} specification is not "
-                    "advertised".
-                    format(wbem_connection.es_server.nickname,
-                           wbem_connection.url,
-                           SPEC_ORG, SPEC_NAME))
+        pytest.skip(
+            f"Server {wbem_connection.es_server.nickname} at "
+            f"{wbem_connection.url}: The {SPEC_ORG} {SPEC_NAME!r} "
+            "specification is not advertised")
 
     for spec_inst in spec_insts:
 
@@ -100,14 +97,12 @@ def test_snia_smis_to_profile_not_reffed(wbem_connection):  # noqa: F811
 
         if profiles_reffed:
             raise AssertionError(
-                "Server {0} at {1}: The instance representing the {2} {3!r} "
-                "specification incorrectly references {4} profiles via "
-                "CIM_ReferencedProfile (it should do that via "
-                "CIM_ElementConformsToProfile)".
-                format(wbem_connection.es_server.nickname,
-                       wbem_connection.url,
-                       SPEC_ORG, SPEC_NAME,
-                       len(profiles_reffed)))
+                f"Server {wbem_connection.es_server.nickname} at "
+                f"{wbem_connection.url}: The instance representing the "
+                f"{SPEC_ORG} {SPEC_NAME!r} "
+                f"specification incorrectly references {len(profiles_reffed)} "
+                "profiles via CIM_ReferencedProfile (it should do that via "
+                "CIM_ElementConformsToProfile)")
 
 
 def test_snia_smis_profile_tree_not_circular(wbem_connection):  # noqa: F811
@@ -126,17 +121,16 @@ def test_snia_smis_profile_tree_not_circular(wbem_connection):  # noqa: F811
         registered_org=SPEC_ORG,
         registered_name=SPEC_NAME)
     if not spec_insts:
-        pytest.skip("Server {0} at {1}: The {2} {3!r} specification is not "
-                    "advertised".
-                    format(wbem_connection.es_server.nickname,
-                           wbem_connection.url,
-                           SPEC_ORG, SPEC_NAME))
+        pytest.skip(
+            f"Server {wbem_connection.es_server.nickname} at "
+            f"{wbem_connection.url}: The {SPEC_ORG} {SPEC_NAME!r} "
+            "specification is not advertised")
 
     for spec_inst in spec_insts:
 
         spec_inst_uri = std_uri(spec_inst)
 
-        # print("\nDebug: spec:     {0}".format(spec_inst_uri))
+        # print(f"\nDebug: spec:     {spec_inst_uri}")
 
         top_profiles = server.conn.Associators(
             spec_inst.path,

@@ -86,8 +86,7 @@ def server_from_docker(image_name, image_port, host_port, container_name,
         except subprocess.CalledProcessError as exc:
             if exc.returncode > 1:
                 raise RuntimeError(
-                    "Command 'docker container inspect ...' failed: {}".
-                    format(exc))
+                    f"Command 'docker container inspect ...' failed: {exc}")
             container_exists = False
             container_running = False
         else:
@@ -101,8 +100,8 @@ def server_from_docker(image_name, image_port, host_port, container_name,
         if not container_exists:
             docker_pull_with_cache(image_name, verbose=verbose)
             if verbose:
-                print("Creating Docker container {} with "
-                      "image {}".format(container_name, image_name))
+                print(f"Creating Docker container {container_name} with "
+                      f"image {image_name}")
             subprocess.check_call(
                 ['docker', 'create',
                  '--name', container_name,
@@ -111,8 +110,7 @@ def server_from_docker(image_name, image_port, host_port, container_name,
                 stdout=subprocess.DEVNULL)
         else:
             if verbose:
-                print("Using existing Docker container {}".
-                      format(container_name))
+                print(f"Using existing Docker container {container_name}")
 
         if not container_running:
             if verbose:
@@ -122,8 +120,7 @@ def server_from_docker(image_name, image_port, host_port, container_name,
                 stdout=subprocess.DEVNULL)
         else:
             if verbose:
-                print("Docker container {} was already running".
-                      format(container_name))
+                print(f"Docker container {container_name} was already running")
 
         yield f'https://localhost:{host_port}'
 
@@ -160,8 +157,7 @@ def docker_pull_with_cache(image_name, verbose=False):
 
     if not os.path.exists(cache_dir):
         if verbose:
-            print("Creating local Docker image cache directory: {}".
-                  format(cache_dir))
+            print(f"Creating local Docker image cache directory: {cache_dir}")
         os.makedirs(cache_dir, 0o755)
 
     image_tar_fn = image_name.replace('/', '_').replace(':', '_') + '.tar'
@@ -176,8 +172,8 @@ def docker_pull_with_cache(image_name, verbose=False):
             stdout=subprocess.DEVNULL)
 
         if verbose:
-            print("Saving image {} in local Docker image cache: {}".
-                  format(image_name, image_tar_path))
+            print(f"Saving image {image_name} in local Docker image cache: "
+                  f"{image_tar_path}")
         subprocess.check_call(
             ['docker', 'save', '-o', image_tar_path, image_name],
             stdout=subprocess.DEVNULL)
@@ -185,8 +181,8 @@ def docker_pull_with_cache(image_name, verbose=False):
     else:
 
         if verbose:
-            print("Loading image {} from local Docker image cache: {}".
-                  format(image_name, image_tar_path))
+            print(f"Loading image {image_name} from local Docker image cache: "
+                  f"{image_tar_path}")
         subprocess.check_call(
             ['docker', 'load', '-i', image_tar_path],
             stdout=subprocess.DEVNULL)
@@ -198,8 +194,9 @@ def skip_if_unsupported_capability(conn, cap_name):
     by the server at the connection.
     """
     if not supports_capability(conn, cap_name):
-        pytest.skip("Server {} does not support capability: {}".
-                    format(conn.es_server.nickname, cap_name))
+        pytest.skip(
+            f"Server {conn.es_server.nickname} does not support capability: "
+            f"{cap_name}")
 
 
 def supports_capability(conn, cap_name):
@@ -242,8 +239,8 @@ def wbem_connection(request, es_server):  # noqa: F811
     # Note: We add an attribute to the es_server object to store this info.
     skip_msg = getattr(es_server, 'skip_msg', None)
     if skip_msg:
-        pytest.skip("Remembered skip reason from earlier attempt: {0}".
-                    format(skip_msg))
+        pytest.skip(
+            f"Remembered skip reason from earlier attempt: {skip_msg}")
 
     nickname = es_server.nickname
 
@@ -297,15 +294,14 @@ def wbem_connection(request, es_server):  # noqa: F811
                 'Association',
                 asserted=False)
         except ConnectionError as exc:
-            msg = "Server {0} at {1}: Server cannot be reached: {2} - {3}". \
-                format(nickname, url, exc.__class__.__name__, exc)
+            msg = (f"Server {nickname} at {url}: Server cannot be reached: "
+                   f"{exc.__class__.__name__} - {exc}")
             es_server.skip_msg = msg
             warnings.warn(msg, ToleratedServerIssueWarning)
             pytest.skip(msg)
         except AuthError as exc:
-            msg = "Server {0} at {1}: Server cannot be authenticated with: " \
-                "{2} - {3}". \
-                format(nickname, url, exc.__class__.__name__, exc)
+            msg = (f"Server {nickname} at {url}: Server cannot be "
+                   f"authenticated with: {exc.__class__.__name__} - {exc}")
             es_server.skip_msg = msg
             warnings.warn(msg, ToleratedServerIssueWarning)
             pytest.skip(msg)
@@ -362,9 +358,8 @@ def fixtureid_profile_definition(fixture_value):
     assert isinstance(pd, dict)
     assert 'registered_name' in pd
     assert 'registered_org' in pd
-    return "profile_definition={0}:{1}:{2}". \
-        format(pd['registered_org'], pd['registered_name'],
-               pd.get('registered_version', 'any'))
+    return (f"profile_definition={pd['registered_org']}:"
+            f"{pd['registered_name']}:{pd.get('registered_version', 'any')}")
 
 
 def _apply_profile_definition_defaults(pd):
@@ -383,7 +378,7 @@ def _apply_profile_definition_defaults(pd):
             raise ValueError(
                 "Profile definition error: The reference_direction item of a "
                 "profile definition can only be defaulted when the registered "
-                "organisation is DMTF or SNIA, but it is {}".format(org))
+                f"organisation is DMTF or SNIA, but it is {org}")
     if 'scoping_class' not in pd:
         pd['scoping_class'] = None
     if 'scoping_path' not in pd:
@@ -535,8 +530,9 @@ class ProfileTest:
             self.profile_org, self.profile_name, self.profile_version)
         assert self.profile_definition is not None
 
-        self.profile_id = "{}:{}:{}".format(
-            self.profile_org, self.profile_name, self.profile_version or 'any')
+        self.profile_id = (
+            f"{self.profile_org}:{self.profile_name}:"
+            f"{self.profile_version or 'any'}")
         profile_insts_id = self.profile_id + ':profile_insts'
 
         try:
@@ -552,10 +548,10 @@ class ProfileTest:
                 conn.url, profile_insts_id, profile_insts)
 
         if not profile_insts:
-            pytest.skip("{0} {1} profile (version {2}) is not advertised "
-                        "on server {3!r}".
-                        format(self.profile_org, self.profile_name,
-                               self.profile_version or 'any', self.conn.url))
+            pytest.skip(
+                f"{self.profile_org} {self.profile_name} profile "
+                f"(version {self.profile_version or 'any'}) is not advertised "
+                f"on server {self.conn.url!r}")
 
         self.profile_inst = latest_profile_inst(profile_insts)
         # pylint: enable=attribute-defined-outside-init

@@ -39,8 +39,7 @@ def execute_request(server_url, creds, namespace, classname):
         returned.
     """
 
-    print('Requesting url=%s, ns=%s, class=%s' % \
-        (server_url, namespace, classname))
+    print(f'Requesting url={server_url}, ns={namespace}, class={classname}')
 
     try:
         # Create a connection
@@ -52,29 +51,28 @@ def execute_request(server_url, creds, namespace, classname):
         INSTANCES = CONN.EnumerateInstances(classname)
 
         #Display of characteristics of the result object
-        print('instances type={} len={}'.format(type(INSTANCES),
-                                            len(INSTANCES)))
+        print(f"instances type={type(INSTANCES)} len={len(INSTANCES)}")
         #display the mof output
         for inst in INSTANCES:
-            print('path=%s\n' % inst.path)
+            print(f'path={inst.path}\n')
             print(inst.tomof())
 
     # handle any exception
     except Error as err:
         # If CIMError, display CIMError attributes
         if isinstance(err, CIMError):
-            print('Operation Failed: CIMError: code=%s, Description=%s' % \
-                  (err.status_code_name, err.status_description))
+            print(f'Operation Failed: CIMError: code={err.status_code_name}, '
+                  f'Description={err.status_description}')
         else:
-            print ("Operation failed: %s" % err)
+            print(f"Operation failed: {err}")
         sys.exit(1)
 
 def main():
     """ Get arguments and call the execution function"""
 
     if len(sys.argv) < 6:
-        print("Usage: %s server_url username password namespace' \
-              ' classname" %  sys.argv[0])
+        print(f"Usage: {sys.argv[0]} server_url username password namespace "
+              "classname")
         print('Using internal defaults')
         server_url = SERVER_URL
         namespace = TEST_NAMESPACE
@@ -99,5 +97,3 @@ def main():
 
 if __name__ == '__main__':
     sys.exit(main())
-
-

@@ -555,19 +555,16 @@ class OperationStatistic:
         This is a low-level method that is called by
         :meth:`pywbem.Statistics.formatted`.
         """
-        ret = ('{0:5d} {1:5d} {2:7.3f} {3:7.3f} {4:7.3f} '.
-               format(self.count, self.exception_count,
-                      self.avg_time, self.min_time, self.max_time))
+        ret = (f'{self.count:5d} {self.exception_count:5d} '
+               f'{self.avg_time:7.3f} {self.min_time:7.3f} '
+               f'{self.max_time:7.3f} ')
         if include_server_time:
-            ret += ('{0:7.3f} {1:7.3f} {2:7.3f} '.
-                    format(self.avg_server_time, self.min_server_time,
-                           self.max_server_time))
+            ret += (f'{self.avg_server_time:7.3f} {self.min_server_time:7.3f} '
+                    f'{self.max_server_time:7.3f} ')
         if include_lengths:
-            ret += ('{0:6.0f} {1:6.0f} {2:6.0f} '
-                    '{3:8.0f} {4:8.0f} {5:8.0f} '.
-                    format(self.avg_request_len, self.min_request_len,
-                           self.max_request_len, self.avg_reply_len,
-                           self.min_reply_len, self.max_reply_len))
+            ret += (f'{self.avg_request_len:6.0f} {self.min_request_len:6.0f} '
+                    f'{self.max_request_len:6.0f} {self.avg_reply_len:8.0f} '
+                    f'{self.min_reply_len:8.0f} {self.max_reply_len:8.0f} ')
         ret += f'{self.name}\n'
         return ret
 
