@@ -208,10 +208,10 @@ class Test_SNIA_Server_Profile(ProfileTest):
                     wbem_connection, inst,
                     'FunctionalProfilesSupported', 0)
             except AssertionError as exc:
-                warnings.warn("Downgraded the following test failure to a "
-                              "warning: {0}: {1}".
-                              format(exc.__class__.__name__, exc),
-                              ToleratedServerIssueWarning)
+                warnings.warn(
+                    "Downgraded the following test failure to a warning: "
+                    f"{exc.__class__.__name__}: {exc}",
+                    ToleratedServerIssueWarning)
 
             # Note: The SNIA Server profile mandates that the
             #       MultipleOperationsSupported property is False, but it does
@@ -223,10 +223,10 @@ class Test_SNIA_Server_Profile(ProfileTest):
                     wbem_connection, inst,
                     'MultipleOperationsSupported', [False])
             except AssertionError as exc:
-                warnings.warn("Downgraded the following test failure to a "
-                              "warning: {0}: {1}".
-                              format(exc.__class__.__name__, exc),
-                              ToleratedServerIssueWarning)
+                warnings.warn(
+                    "Downgraded the following test failure to a warning: "
+                    f"{exc.__class__.__name__}: {exc}",
+                    ToleratedServerIssueWarning)
 
         # Check that there is at least one associated istance
         assert_number_of_instances_minimum(

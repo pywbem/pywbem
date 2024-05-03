@@ -72,8 +72,7 @@ def _uprint(dest, text):  # pylint: disable=too-many-branches
         text = text + b'\n'
     else:
         raise TypeError(
-            "text must be a unicode or byte string, but is {0}".
-            format(type(text)))
+            f"text must be a unicode or byte string, but is {type(text)}")
     if dest is None:
         if isinstance(text, bytes):
             text = text.decode('utf-8')
@@ -88,8 +87,7 @@ def _uprint(dest, text):  # pylint: disable=too-many-branches
             fn.write(text)
     else:
         raise TypeError(
-            "dest must be None or a string, but is {0}".
-            format(type(text)))
+            f"dest must be None or a string, but is {type(text)}")
 
 
 class _PywbemCustomFormatter(_SmartFormatter,
@@ -481,7 +479,7 @@ the execution time for each test.
 
 NOTE: Running with a profiler heavily affects the runtime.
 """
-    epilog = """
+    epilog = f"""
 Examples:
   {prog}
 
@@ -494,7 +492,7 @@ Examples:
      Execute the test for all combinations of response counts of 10,000 and
      20,000 and for response sizes of 500 and 1000 bytes using cprofile
      profiler to generate and output a profile of the operation.
-""".format(prog=prog)  # noqa: E501
+"""  # noqa: E501
 # pylint: enable=line-too-long
 
     argparser = _argparse.ArgumentParser(
@@ -586,7 +584,7 @@ Examples:
 
     if args.top_n_rows <= 0:
         argparser.error("top-n-rows must be postive integer. "
-                        "{} not allowed".format(args.top_n_rows))
+                        f"{args.top_n_rows} not allowed")
 
     return args
 
@@ -598,10 +596,10 @@ def main():
     """
     args = parse_args()
 
-    print('Starting profiler={}, response-count={} response-size={} '
-          'runid={} log={}'.format(args.profiler, args.response_count,
-                                   args.response_size, args.runid,
-                                   args.log))
+    print(f'Starting profiler={args.profiler}, '
+          f'response-count={args.response_count} '
+          f'response-size={args.response_size} '
+          f'runid={args.runid} log={args.log}')
 
     if args.individual:
         execute_individual_tests(args)

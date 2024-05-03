@@ -137,11 +137,11 @@ def equal_model_path(p1, p2):
             and p1.classname.lower() == p2.classname.lower():
         return True
     if p1.classname.lower() != p2.classname.lower():
-        print(_format('ModelPathCompare. classnames %s and %s not equal.',
-                      p1.classname, p2.classname))
+        print(f'ModelPathCompare. classnames {p1.classname} and {p2.classname} '
+              'not equal.')
     else:
-        print(_format('ModelPathCompare. keybinding difference:\np1:\n%s'
-                      '\np2\n%s', p1.keybindings, p2.keybindings))
+        print(f'ModelPathCompare. keybinding difference:\n'
+              f'p1:\n{p1.keybindings}\np2:\n{p2.keybindings}')
     return False
 
 
@@ -234,25 +234,22 @@ def objs_equal(objdict1, objdict2, obj_type, parent_obj_name):
     if objdict1 == objdict2:
         return True
 
-    print('Mismatch: Obj type={} parent name {}'.format(
-        obj_type, parent_obj_name))
+    print(f'Mismatch: Obj type={obj_type} parent name {parent_obj_name}')
 
     if len(objdict1) != len(objdict2):
-        print('Number of %s(s):%s differ\n  p1(len=%s)=%s\n  p2(len=%s)=%s' %
-              (obj_type, parent_obj_name,
-               len(objdict1), sorted(objdict1.keys()),
-               len(objdict2), sorted(objdict2.keys())))
+        print(f'Number of {obj_type}(s):{parent_obj_name} differ\n'
+              f'  p1(len={len(objdict1)})={sorted(objdict1.keys())}\n'
+              f'  p2(len={len(objdict2)})={sorted(objdict2.keys())}')
         return False
 
     for name, value in objdict1.items():
         if name not in objdict2:
-            print('{}:{} {} in {} not in {}'.format(
-                obj_type, parent_obj_name, name, objdict1.keys().sort(),
-                objdict2.keys().sort()))
+            print(f'{obj_type}:{parent_obj_name} {name} in '
+                  f'{objdict1.keys().sort()} not in {objdict2.keys().sort()}')
 
         if value != objdict2[name]:
-            print('%s:%s mismatch \np1=%r\np2=%r' %
-                  (obj_type, parent_obj_name, value, objdict2[name]), )
+            print(f'{obj_type}:{parent_obj_name} mismatch \np1={value!r}\n'
+                  f'p2={objdict2[name]!r}')
         if getattr(value, "qualifiers", None):
             objs_equal(value.qualifiers, objdict2[name].qualifiers,
                        'qualifiers', parent_obj_name + ':' + name)
@@ -278,17 +275,18 @@ def insts_equal(inst1, inst2):
 
     if inst1.properties != inst2.properties:
         if len(inst1.properties) != len(inst2.properties):
-            print('Number of properties differ p1(%s)=%s, p2(%s)=%s' %
-                  (len(inst1.properties), inst1.properties.keys(),
-                   len(inst2.properties), inst2.properties.keys()))
+            print('Number of properties differ '
+                  f'p1({len(inst1.properties)})={inst1.properties.keys()}, '
+                  f'p2({len(inst2.properties)})={inst2.properties.keys()}')
         else:
             for prop1, pvalue1 in inst1.properties.items():
                 if pvalue1 != inst2.properties[prop1]:
-                    print('Inst mismatch property \np1=%r\np2=%r' %
-                          (inst1.properties[prop1], inst2.properties[prop1]))
+                    print('Inst mismatch property \n'
+                          f'p1={inst1.properties[prop1]!r}\n'
+                          f'p2={inst2.properties[prop1]!r}')
 
     objs_equal(inst1.qualifiers, inst2.qualifiers, 'qualifiers',
-               'instance  %s' % inst1.classname)
+               f'instance  {inst1.classname}')
 
     return False
 
@@ -304,12 +302,11 @@ def classes_equal(cls1, cls2):
     if cls1 == cls2:
         return True
     if cls1.classname != cls2.classname:
-        print("Classname mismatch {} != {}".format(
-            cls1.classname, cls2.classname))
+        print(f"Classname mismatch {cls1.classname} != {cls2.classname}")
         return False
     if cls1.superclass and cls1.superclass != cls2.superclass:
-        print("Class {} superclass mismatch {} != {}".format(
-            cls1. classname, cls1.superclass, cls2.superclass))
+        print(f"Class {cls1.classname} superclass mismatch "
+              f"{cls1.superclass} != {cls2.superclass}")
         return False
 
     objs_equal(cls1.qualifiers, cls2.qualifiers, 'qualifier', cls1.classname)
@@ -507,7 +504,7 @@ def build_cimfoosub_instance(id_):
     inst = CIMInstance('CIM_Foo_sub',
                        properties={
                            'InstanceID': inst_id,
-                           'cimfoo_sub': 'cimfoo_sub prop  for %s' % inst_id},
+                           'cimfoo_sub': f'cimfoo_sub prop  for {inst_id}'},
                        path=CIMInstanceName('CIM_Foo_sub',
                                             {'InstanceID': inst_id}))
     return inst
@@ -522,8 +519,7 @@ def build_cimfoosub2_instance(id_):
     inst = CIMInstance('CIM_Foo_sub2',
                        properties={
                            'InstanceID': inst_id,
-                           'cimfoo_sub2': 'cimfoo_sub2 prop for {}'.
-                                          format(inst_id)},
+                           'cimfoo_sub2': f'cimfoo_sub2 prop for {inst_id}'},
                        path=CIMInstanceName('CIM_Foo_sub2',
                                             {'InstanceID': inst_id}))
     return inst
@@ -539,8 +535,7 @@ def build_cimfoosub_sub_instance(id_):
                        properties={
                            'InstanceID': inst_id,
                            'cimfoo_sub': f'cimfoo_sub prop:{inst_id}',
-                           'cimfoo_sub_sub': 'cimfoo_sub_sub:{}'.
-                                             format(inst_id)},
+                           'cimfoo_sub_sub': f'cimfoo_sub_sub:{inst_id}'},
                        path=CIMInstanceName('CIM_Foo_sub_sub',
                                             {'InstanceID': inst_id}))
     return inst
@@ -1087,7 +1082,7 @@ class TestFakedWBEMConnection:
         # pylint: disable=protected-access
         FakedWBEMConnection._reset_logging_config()
         conn = FakedWBEMConnection(response_delay=3)
-        repr_ = '%r' % conn
+        repr_ = f'{conn!r}'
         assert repr_.startswith('FakedWBEMConnection(response_delay=3,')
 
     def test_attr(self):
@@ -1580,8 +1575,8 @@ class TestRepoMethods:
                 'CIM_Foo_sub_sub',
                 properties={
                     'InstanceID': inst_id,
-                    'cimfoo_sub': 'cimfoo_sub prop:  %s' % str_data,
-                    'cimfoo_sub_sub': 'cimfoo_sub_sub: %s' % str_data},
+                    'cimfoo_sub': f'cimfoo_sub prop:  {str_data}',
+                    'cimfoo_sub_sub': f'cimfoo_sub_sub: {str_data}'},
                 path=CIMInstanceName('CIM_Foo_sub_sub',
                                      {'InstanceID': inst_id}))
             conn.add_cimobjects(inst, namespace=ns)
@@ -1616,7 +1611,7 @@ class TestRepoMethods:
         captured = capsys.readouterr()
 
         result = captured.out
-        print('RESULT\n%s' % result)
+        print(f'RESULT\n{result}')
 
         assert result.startswith(
             "\n// ========Mock Repo Display fmt=mof namespaces=all")
@@ -2262,7 +2257,7 @@ class TestRepoMethods:
             """
         # compile as single unit by combining classes and instances
         # The compiler builds the instance paths.
-        all_mof = '{}\n\n{}'.format(tst_classes_mof, insts_mof)
+        all_mof = f'{tst_classes_mof}\n\n{insts_mof}'
 
         # The code to be tested
         conn.compile_mof_string(all_mof, namespace=ns)
@@ -4516,8 +4511,8 @@ class TestClassOperations:
                         set(new_class.qualifiers)
 
             else:
-                assert False, "test_create_class invalid test definition {}". \
-                    format(desc)
+                assert False, \
+                    f"test_create_class invalid test definition {desc}"
 
             # Get the class with local only False. and test for valid
             # ico, lo and non-lo properties/methods.
@@ -4565,8 +4560,9 @@ class TestClassOperations:
                                 spvalue = superclass.properties[sc_pname]
                                 assert spvalue.type == pvalue.type
                         else:
-                            assert False, "Override %s without property %s " \
-                                          "in superclass" % (pname, sc_pname)
+                            assert False, (
+                                f"Override {pname} without property {sc_pname} "
+                                f"in superclass")
                     else:   # superclass but no override
                         if pname in superclass.properties:
                             assert pvalue.propagated is True
@@ -4595,8 +4591,9 @@ class TestClassOperations:
                                 smvalue = superclass.methods[sc_mname]
                                 assert smvalue.type == mvalue.type
                         else:
-                            assert False, "Override %s without property %s " \
-                                          "in superclass" % (pname, sc_mname)
+                            assert False, (
+                                f"Override {pname} without property {sc_mname} "
+                                "in superclass")
                     else:   # superclass but no override
                         if mname in superclass.methods:
                             assert mvalue.propagated is True
@@ -5137,8 +5134,8 @@ class TestClassOperations:
                         set(modified_class.qualifiers)
 
             else:
-                assert False, "test_create_class invalid test definition {}". \
-                    format(desc)
+                assert False, \
+                    f"test_create_class invalid test definition {desc}"
 
             # Get the class with local only False. and test for valid
             # ico, lo and non-lo properties/methods.
@@ -5187,8 +5184,9 @@ class TestClassOperations:
                                 spvalue = superclass.properties[sc_pname]
                                 assert spvalue.type == pvalue.type
                         else:
-                            assert False, "Override %s without property %s " \
-                                          "in superclass" % (pname, sc_pname)
+                            assert False, (
+                                f"Override {pname} without property {sc_pname} "
+                                "in superclass")
                     else:   # superclass but no override
                         if pname in superclass.properties:
                             assert pvalue.propagated is True
@@ -5217,8 +5215,9 @@ class TestClassOperations:
                                 smvalue = superclass.methods[sc_mname]
                                 assert smvalue.type == mvalue.type
                         else:
-                            assert False, "Override %s without property %s " \
-                                          "in superclass" % (pname, sc_mname)
+                            assert False, (
+                                f"Override {pname} without property {sc_mname} "
+                                "in superclass")
                     else:   # superclass but no override
                         if mname in superclass.methods:
                             assert mvalue.propagated is True
@@ -6138,7 +6137,7 @@ class TestInstanceOperations:
         elif test == 3:   # create everything in tst_instances
             new_insts = tst_instances
         else:  # Error. Test not defined.
-            assert False, "The test parameter %s not defined" % test
+            assert False, f"The test parameter {test} not defined"
         if exp_rslt is None:
             for inst in new_insts:
 
@@ -7550,7 +7549,7 @@ class TestPullOperations:
             if isinstance(exp_exc, CIMError):
                 assert exc.status_code == exp_exc.status_code
         else:
-            assert False, 'Invalid test code %s' % test
+            assert False, f'Invalid test code {test}'
 
 
 class TestQualifierOperations:
@@ -10096,32 +10095,28 @@ class TestDMTFCIMSchema:
 
         assert schema.schema_version == DMTF_TEST_SCHEMA_VER
         assert schema.schema_root_dir == TESTSUITE_SCHEMA_DIR
-        assert schema.schema_version_str == '%s.%s.%s' % DMTF_TEST_SCHEMA_VER
+        assert schema.schema_version_str == \
+            '{}.{}.{}'.format(*DMTF_TEST_SCHEMA_VER)
         assert os.path.isdir(schema.schema_root_dir)
         assert os.path.isdir(schema.schema_mof_dir)
         assert os.path.isfile(schema.schema_pragma_file)
         assert os.path.isfile(schema.schema_zip_file)
 
-        mof_dir = 'mofFinal%s' % schema.schema_version_str
+        mof_dir = f'mofFinal{schema.schema_version_str}'
         test_schema_mof_dir = os.path.join(TESTSUITE_SCHEMA_DIR, mof_dir)
         assert schema.schema_mof_dir == test_schema_mof_dir
 
         assert schema.schema_pragma_file == \
             os.path.join(test_schema_mof_dir,
-                         'cim_schema_%s.mof' % (schema.schema_version_str))
+                         f'cim_schema_{schema.schema_version_str}.mof')
 
-        assert repr(schema) == 'DMTFCIMSchema(' \
-                               'schema_version=%s, ' \
-                               'schema_root_dir=%s, schema_zip_file=%s, ' \
-                               'schema_mof_dir=%s, ' \
-                               'schema_pragma_file=%s, ' \
-                               'schema_zip_url=%s)' % \
-                               (DMTF_TEST_SCHEMA_VER,
-                                TESTSUITE_SCHEMA_DIR,
-                                schema.schema_zip_file,
-                                test_schema_mof_dir,
-                                schema.schema_pragma_file,
-                                schema.schema_zip_url)
+        assert repr(schema) == (
+            f'DMTFCIMSchema(schema_version={DMTF_TEST_SCHEMA_VER}, '
+            f'schema_root_dir={TESTSUITE_SCHEMA_DIR}, '
+            f'schema_zip_file={schema.schema_zip_file}, '
+            f'schema_mof_dir={test_schema_mof_dir}, '
+            f'schema_pragma_file={schema.schema_pragma_file}, '
+            f'schema_zip_url={schema.schema_zip_url})')
 
         schema_mof = schema.build_schema_mof(['CIM_ComputerSystem', 'CIM_Door'])
 
@@ -10147,30 +10142,28 @@ class TestDMTFCIMSchema:
 
         assert schema.schema_version == DMTF_TEST_SCHEMA_VER
         assert schema.schema_root_dir == test_schema_root_dir
-        assert schema.schema_version_str == '%s.%s.%s' % DMTF_TEST_SCHEMA_VER
+        assert schema.schema_version_str == \
+            '{}.{}.{}'.format(*DMTF_TEST_SCHEMA_VER)
         assert os.path.isdir(schema.schema_root_dir)
         assert os.path.isdir(schema.schema_mof_dir)
         assert os.path.isfile(schema.schema_pragma_file)
         assert os.path.isfile(schema.schema_zip_file)
 
-        mof_dir = 'mofFinal%s' % schema.schema_version_str
+        mof_dir = f'mofFinal{schema.schema_version_str}'
         test_schema_mof_dir = os.path.join(test_schema_root_dir, mof_dir)
         assert schema.schema_mof_dir == test_schema_mof_dir
 
         assert schema.schema_pragma_file == \
             os.path.join(test_schema_mof_dir,
-                         'cim_schema_%s.mof' % (schema.schema_version_str))
+                         f'cim_schema_{schema.schema_version_str}.mof')
 
-        assert repr(schema) == 'DMTFCIMSchema(' \
-                               'schema_version=%s, ' \
-                               'schema_root_dir=%s, schema_zip_file=%s, ' \
-                               'schema_mof_dir=%s, ' \
-                               'schema_pragma_file=%s, schema_zip_url=%s)' % \
-                               (DMTF_TEST_SCHEMA_VER, test_schema_root_dir,
-                                schema.schema_zip_file,
-                                schema.schema_mof_dir,
-                                schema.schema_pragma_file,
-                                schema.schema_zip_url)
+        assert repr(schema) == (
+            f'DMTFCIMSchema(schema_version={DMTF_TEST_SCHEMA_VER}, '
+            f'schema_root_dir={test_schema_root_dir}, '
+            f'schema_zip_file={schema.schema_zip_file}, '
+            f'schema_mof_dir={schema.schema_mof_dir}, '
+            f'schema_pragma_file={schema.schema_pragma_file}, '
+            f'schema_zip_url={schema.schema_zip_url})')
 
         schema_mof = schema.build_schema_mof(['CIM_ComputerSystem', 'CIM_Door'])
 
@@ -10196,17 +10189,18 @@ class TestDMTFCIMSchema:
                                use_experimental=True, verbose=False)
 
         assert schema.schema_version == DMTF_TEST_SCHEMA_VER
-        assert schema.schema_version_str == '%s.%s.%s' % DMTF_TEST_SCHEMA_VER
+        assert schema.schema_version_str == \
+            '{}.{}.{}'.format(*DMTF_TEST_SCHEMA_VER)
         assert os.path.isdir(schema.schema_root_dir)
         assert os.path.isdir(schema.schema_mof_dir)
         assert schema.schema_root_dir == TESTSUITE_SCHEMA_DIR
-        mof_dir = 'mofExperimental%s' % schema.schema_version_str
+        mof_dir = f'mofExperimental{schema.schema_version_str}'
         test_schema_mof_dir = os.path.join(TESTSUITE_SCHEMA_DIR, mof_dir)
         assert test_schema_mof_dir == mof_dir
 
         assert schema.schema_pragma_file == \
             os.path.join(test_schema_mof_dir,
-                         'cim_schema_%s.mof' % (schema.schema_version_str))
+                         f'cim_schema_{schema.schema_version_str}.mof')
 
         # remove the second schema and test to be sure removed.
         schema.remove()
@@ -10231,13 +10225,13 @@ class TestDMTFCIMSchema:
         assert os.path.isdir(schema.schema_mof_dir)
 
         assert schema.schema_root_dir == TESTSUITE_SCHEMA_DIR
-        mof_dir = 'mofFinal%s' % schema.schema_version_str
+        mof_dir = f'mofFinal{schema.schema_version_str}'
         test_schema_mof_dir = os.path.join(TESTSUITE_SCHEMA_DIR, mof_dir)
         assert schema.schema_mof_dir == test_schema_mof_dir
 
         assert schema.schema_pragma_file == \
             os.path.join(test_schema_mof_dir,
-                         'cim_schema_%s.mof' % (schema.schema_version_str))
+                         f'cim_schema_{schema.schema_version_str}.mof')
 
         zip_path = schema.schema_zip_file
         assert os.path.isfile(zip_path)

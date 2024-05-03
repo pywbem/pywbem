@@ -102,7 +102,7 @@ class ValueMapping:
           print("Binary value: Values string")
           for bin_value in range(0, 12):
               values_str = myprop_vm.tovalues(bin_value)
-              print("{0:12}: {1!r}".format(bin_value, values_str))
+              print(f"{bin_value:12}: {values_str!r}")
 
       Resulting output:
 
@@ -145,7 +145,7 @@ class ValueMapping:
           print("Values string: Binary value")
           for values_str in values_strs:
               bin_value = myprop_vm.tobinary(values_str)
-              print("{0:12}: {1!r}".format(values_str, bin_value))
+              print(f"{values_str:12}: {bin_value!r}")
 
       Resulting output:
 
@@ -172,7 +172,7 @@ class ValueMapping:
 
           print("Values string: Binary value")
           for bin_value, values_str in myprop_vm.items():
-              print("{0:12}: {1!r}".format(values_str, bin_value))
+              print(f"{values_str:12}: {bin_value!r}")
 
       Resulting output:
 

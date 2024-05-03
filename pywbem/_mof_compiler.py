@@ -224,9 +224,8 @@ utf8_4_1 = r'\xF0[\x90-\xBF][\x80-\xBF][\x80-\xBF]'
 utf8_4_2 = r'[\xF1-\xF3][\x80-\xBF][\x80-\xBF][\x80-\xBF]'
 utf8_4_3 = r'\xF4[\x80-\x8F][\x80-\xBF][\x80-\xBF]'
 
-utf8Char = r'({})|({})|({})|({})|({})|({})|({})|({})'.format(
-    utf8_2, utf8_3_1, utf8_3_2, utf8_3_3, utf8_3_4, utf8_4_1, utf8_4_2,
-    utf8_4_3)
+utf8Char = (fr'({utf8_2})|({utf8_3_1})|({utf8_3_2})|({utf8_3_3})|({utf8_3_4})|'
+            fr'({utf8_4_1})|({utf8_4_2})|({utf8_4_3})')
 
 
 # pylint: disable=unused-argument
@@ -316,8 +315,7 @@ def t_stringValue(t):  # pylint: disable=missing-docstring
     return t
 
 
-identifier_re = r'([a-zA-Z_]|({0}))([0-9a-zA-Z_]|({0}))*'.format(
-    utf8Char)
+identifier_re = fr'([a-zA-Z_]|({utf8Char}))([0-9a-zA-Z_]|({utf8Char}))*'
 
 
 @lex.TOKEN(identifier_re)

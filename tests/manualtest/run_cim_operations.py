@@ -55,7 +55,7 @@ from pywbem._subscription_manager import SUBSCRIPTION_CLASSNAME, \
 # output files
 TEST_DIR = os.path.dirname(__file__)
 LOG_FILE_NAME = 'run_cim_operations.log'
-RUN_CIM_OPERATIONS_OUTPUT_LOG = '{}/{}'.format(TEST_DIR, LOG_FILE_NAME)
+RUN_CIM_OPERATIONS_OUTPUT_LOG = f'{TEST_DIR}/{LOG_FILE_NAME}'
 
 # Test for decorator for unimplemented tests
 # decorator is @unittest.skip(UNIMPLEMENTED)
@@ -130,8 +130,7 @@ class ClientTest(unittest.TestCase):
         # pylint: disable=undefined-variable
         warnings.simplefilter("ignore", ResourceWarning)  # noqa: F821
 
-        self.log('setup connection {0} ns {1}'.
-                 format(self.system_url, self.namespace))
+        self.log(f'setup connection {self.system_url} ns {self.namespace}')
 
         self.conn = WBEMConnection(
             self.system_url,
@@ -156,16 +155,15 @@ class ClientTest(unittest.TestCase):
             self.yamlfp = TestClientRecorder.open_file(self.yamlfile, 'a')
             self.conn.add_operation_recorder(TestClientRecorder(self.yamlfp))
 
-        self.log('Connected {0}, ns {1}'.
-                 format(self.system_url, CLI_ARGS['namespace']))
+        self.log(f"Connected {self.system_url}, ns {CLI_ARGS['namespace']}")
 
     def tearDown(self):
         """Close the test_client YAML file and display stats."""
 
         if self.stats_enabled:
-            print('{}: Test time {:.2f} sec.'.format(
-                self.id(), (time.time() - self.start_time)))
-            print('{}\n{}'.format(self.id(), self.conn.statistics.formatted()))
+            test_time = time.time() - self.start_time
+            print(f'{self.id()}: Test time {test_time:.2f} sec.')
+            print(f'{self.id()}\n{self.conn.statistics.formatted()}')
 
         if self.yamlfp is not None:
             self.yamlfp.close()
@@ -179,43 +177,40 @@ class ClientTest(unittest.TestCase):
            Returns result of request to caller
         """
 
-        self.log('cimcall fn {0} args *pargs {1} **kwargs {2}'.
-                 format(fn, pargs, kwargs))
+        self.log(f'cimcall fn {fn} args *pargs {pargs} **kwargs {kwargs}')
         try:
             result = fn(*pargs, **kwargs)
         except Exception as exc:
-            self.log('Operation %s failed with %s: %s\n' %
-                     (fn.__name__, exc.__class__.__name__, str(exc)))
+            self.log(f'Operation {fn.__name__} failed with {exc.__class__}: '
+                     f'{exc}\n')
             last_request = self.conn.last_request or self.conn.last_raw_request
-            self.log('Request:\n\n%s\n' % last_request)
+            self.log(f'Request:\n\n{last_request}\n')
             last_reply = self.conn.last_reply or self.conn.last_raw_reply
-            self.log('Reply:\n\n%s\n' % last_reply)
+            self.log(f'Reply:\n\n{last_reply}\n')
             raise
 
         # This code displays operation results by calling the method log
-        self.log('Operation %s succeeded\n' % fn.__name__)
+        self.log(f'Operation {fn.__name__} succeeded\n')
         last_request = self.conn.last_request or self.conn.last_raw_request
-        self.log('Request:\n\n%s\n' % last_request)
+        self.log(f'Request:\n\n{last_request}\n')
         last_reply = self.conn.last_reply or self.conn.last_raw_reply
-        self.log('Reply:\n\n%s\n' % last_reply)
+        self.log(f'Reply:\n\n{last_reply}\n')
 
         # account for issue where last operation exception, in particular
         # those few exceptions that occur outside of the try block in the
         # Iter... operations.
         if self.stats_enabled:
             # svr_time and operation_time may return None
-            svr_time = ('%.4f' % self.conn.last_server_response_time) \
+            svr_time = '{:.4f}'.format(self.conn.last_server_response_time) \
                 if self.conn.last_server_response_time else 'None'
 
-            operation_time = ('%.4f' % self.conn.last_operation_time) \
+            operation_time = '{:.4f}'.format(self.conn.last_operation_time) \
                 if self.conn.last_operation_time else 'None'
 
-            print('Operation stats: time %s req_len %d reply_len %d '
-                  'svr_time %s' %
-                  (operation_time,
-                   self.conn.last_request_len,
-                   self.conn.last_reply_len,
-                   svr_time))
+            print(f'Operation stats: time {operation_time} '
+                  f'req_len {self.conn.last_request_len} '
+                  f'reply_len {self.conn.last_reply_len} '
+                  f'svr_time {svr_time}')
 
         return result
 
@@ -322,15 +317,15 @@ class ClientTest(unittest.TestCase):
                     namespace = self.namespace
 
                 self.assertEqual(instance.path.namespace, namespace,
-                                 'Expected instance.path.namespace %s to '
-                                 'match expected namespace %s' %
-                                 (instance.path.namespace, namespace))
+                                 'Expected instance.path.namespace '
+                                 f'{instance.path.namespace} to match '
+                                 f'expected namespace {namespace}')
 
             if prop_count is not None:
                 self.assertEqual(len(instance.properties), prop_count,
-                                 'Expected %s properties; tested instance has '
-                                 '%s properties' % (prop_count,
-                                                    len(instance.properties)))
+                                 f'Expected {prop_count} properties; tested '
+                                 f'instance has {len(instance.properties)} '
+                                 'properties')
 
             if property_list is not None:
                 for p in property_list:
@@ -469,8 +464,8 @@ class ClientTest(unittest.TestCase):
             self.assertTrue(isinstance(inst1, CIMInstance))
             if not self.inst_in_list(inst1, insts2, ignore_host=ignore_host):
                 inst2pathlist = [inst.path for inst in insts2]
-                self.fail('Instance Lists do not match. %s not in other list'
-                          ' %s' % (inst1.path, inst2pathlist))
+                self.fail(f'Instance Lists do not match. {inst1.path} not in '
+                          f'other list {inst2pathlist}')
             else:
                 for inst2 in insts2:
                     if self.pathsEqual(inst1.path, inst2.path,
@@ -516,10 +511,10 @@ class ClientTest(unittest.TestCase):
                                         else:
                                             if self.verbose:
                                                 print(
-                                                    'Property %s values differ.'
-                                                    ' v1=%s\nv2=%s' %
-                                                    (p1.name, p1.value,
-                                                     p2.value))
+                                                    f'Property {p1.name} '
+                                                    'values differ.'
+                                                    f' v1={p1.value}\n'
+                                                    f'v2={p2.value}')
                                             continue
 
                                     self.assertEqual(p1, p2)
@@ -545,8 +540,7 @@ class ClientTest(unittest.TestCase):
         for path1 in paths1:
             self.assertTrue(isinstance(path1, CIMInstanceName))
             if not self.path_in_list(path1, paths2, ignore_host=ignore_host):
-                self.fail("Path Lists do not match. %s not in %s" %
-                          (path1, paths2))
+                self.fail(f"Path Lists do not match. {path1} not in {paths2}")
             else:
                 for path2 in paths2:
                     if self.pathsEqual(path1, path2, ignore_host=ignore_host):
@@ -609,9 +603,9 @@ class EnumerateInstances(ClientTest):
     def display_response(self, instances):
         """Display the response instances as mof output."""
         if self.verbose:
-            print('instance count = %s' % (len(instances)))
+            print(f'instance count = {len(instances)}')
             for inst in instances:
-                print('%s' % inst.tomof())
+                print(inst.tomof())
 
     def instance_classorigin(self, instance, exists):
         """Determine if classorigin in each property matches
@@ -705,7 +699,7 @@ class EnumerateInstances(ClientTest):
 
         if self.verbose:
             for p in cls.properties.values():
-                print('ClassPropertyName=%s' % p.name)
+                print(f'ClassPropertyName={p.name}')
 
     def test_instance_propertylist(self):
         """ Test property list on enumerate instances."""
@@ -741,15 +735,15 @@ class EnumerateInstances(ClientTest):
 
             if self.verbose:
                 for p in inst.properties.values():
-                    print('ClassPropertyName=%s' % p.name)
+                    print(f'ClassPropertyName={p.name}')
 
         if cls_property_count != inst_property_count:
-            print('ERROR: classproperty_count %s != inst_property_count %s' %
-                  (cls_property_count, inst_property_count))
+            print(f'ERROR: classproperty_count {cls_property_count} != '
+                  f'inst_property_count {inst_property_count}')
             for p in cls.properties.values():
-                print('ClassPropertyName=%s' % p.name)
+                print(f'ClassPropertyName={p.name}')
             for p in instances[0].properties.values():
-                print('InstancePropertyName=%s' % p.name)
+                print(f'InstancePropertyName={p.name}')
 
         # TODO Apparently ks 5/16 Pegasus did not implement all properties
         # now in the class
@@ -785,15 +779,15 @@ class EnumerateInstances(ClientTest):
 
             if self.verbose:
                 for p in inst.properties.values():
-                    print('ClassPropertyName=%s' % p.name)
+                    print(f'ClassPropertyName={p.name}')
 
         if cls_property_count != inst_property_count:
-            print('ERROR: classproperty_count %s != inst_property_count %s' %
-                  (cls_property_count, inst_property_count))
+            print(f'ERROR: classproperty_count {cls_property_count} != '
+                  f'inst_property_count {inst_property_count}')
             for p in cls.properties.values():
-                print('ClassPropertyName=%s' % p.name)
+                print(f'ClassPropertyName={p.name}')
             for p in instances[0].properties.values():
-                print('InstancePropertyName=%s' % p.name)
+                print(f'InstancePropertyName={p.name}')
 
         # TODO Apparently ks 5/16 Pegasus did not implement all properties
         # now in the class
@@ -1189,7 +1183,7 @@ class PullEnumerateInstances(ClientTest):
     def test_open_filter_returnsnone(self):
         """Test with filter that filters out all responses."""
 
-        filter_statement = "%s = 'blah'" % TEST_CLASS_PROPERTY2
+        filter_statement = f"{TEST_CLASS_PROPERTY2} = 'blah'"
         result = self.cimcall(self.conn.OpenEnumerateInstances,
                               TEST_CLASS,
                               MaxObjectCount=100,
@@ -1277,8 +1271,8 @@ class PullEnumerateInstancePaths(ClientTest):
         paths_enum = self.cimcall(self.conn.EnumerateInstanceNames, TEST_CLASS)
 
         if (len(paths_pulled) != len(paths_enum)):
-            print('ERROR result.paths len %s ne paths_enum len %s' %
-                  (len(paths_pulled), len(paths_enum)))
+            print(f'ERROR result.paths len {len(paths_pulled)} ne '
+                  f'paths_enum len {len(paths_enum)}')
 
         self.assertTrue(len(paths_pulled) == len(paths_enum))
 
@@ -1364,8 +1358,7 @@ class PullEnumerateInstancePaths(ClientTest):
         if diff == 0:
             self.assertPathsEqual(paths_pulled, paths_enum, ignore_host=True)
         elif paths_pulled / diff < 10:
-            print('Return diff count %s of total %s ignored' %
-                  (diff, paths_pulled))
+            print(f'Return diff count {diff} of total {paths_pulled} ignored')
         else:
             self.fail('Issues with pull vs non-pull responses')
 
@@ -1474,7 +1467,7 @@ class PullReferences(ClientTest):
 
             insts_enum = self.cimcall(self.conn.References, pathi)
             if insts_enum:
-                print('References {} count {}'.format(pathi, len(insts_enum)))
+                print(f'References {pathi} count {len(insts_enum)}')
             self.assertTrue(len(insts_pulled) == len(insts_enum))
 
             # TODO ks 5/30 2016 add tests here
@@ -1599,7 +1592,7 @@ class PullReferencePaths(ClientTest):
 
             paths_enum = self.cimcall(self.conn.ReferenceNames, pathi)
             if paths_enum:
-                print('References {} count {}'.format(pathi, len(paths_enum)))
+                print(f'References {pathi} count {len(paths_enum)}')
             self.assertTrue(len(paths) == len(paths_enum))
 
             # TODO ks 5/30 2016 add tests here
@@ -1711,8 +1704,7 @@ class PullAssociators(ClientTest):
             insts_enum = self.cimcall(self.conn.References, pathi)
 
             if insts_enum:
-                print('Associators {} count {}'.format(
-                    insts_pulled, len(insts_enum)))
+                print(f'Associators {insts_pulled} count {len(insts_enum)}')
             self.assertTrue(len(insts_pulled) == len(insts_enum))
             # TODO ks 5/30 2016 add tests here
             # Do this as a loop for all instances above.
@@ -1838,8 +1830,7 @@ class PullAssociatorPaths(ClientTest):
 
             paths_enum = self.cimcall(self.conn.AssociatorNames, pathi)
             if paths_enum:
-                print('Associator Names {} count {}'.format(
-                    pathi, len(paths_enum)))
+                print(f'Associator Names {pathi} count {len(paths_enum)}')
             self.assertEqual(len(paths_pulled), len(paths_enum))
             # TODO ks 5/30 2016 add tests here
             # Do this as a loop for all instances above.
@@ -1855,7 +1846,7 @@ class PullQueryInstances(ClientTest):
 
             result = self.cimcall(self.conn.OpenQueryInstances,
                                   'WQL',
-                                  'Select * from %s' % TEST_CLASS,
+                                  f'Select * from {TEST_CLASS}',
                                   MaxObjectCount=100)
 
             for i in result.instances:
@@ -1891,7 +1882,7 @@ class PullQueryInstances(ClientTest):
 
             result = self.cimcall(self.conn.OpenQueryInstances,
                                   'WQL',
-                                  'Select * from %s' % TEST_CLASS)
+                                  f'Select * from {TEST_CLASS}')
 
             for i in result.instances:
                 self.assertTrue(isinstance(i, CIMInstance))
@@ -1926,7 +1917,7 @@ class ExecQuery(ClientTest):
 
             instances = self.cimcall(self.conn.ExecQuery,
                                      'WQL',
-                                     'Select * from %s' % TEST_CLASS)
+                                     f'Select * from {TEST_CLASS}')
 
             self.assertTrue(len(instances) >= 1)
 
@@ -1954,7 +1945,7 @@ class ExecQuery(ClientTest):
 
             self.cimcall(self.conn.ExecQuery,
                          'WQL',
-                         'Select * from %s' % TEST_CLASS,
+                         f'Select * from {TEST_CLASS}',
                          namespace='root/blah')
 
         except CIMError as ce:
@@ -1967,7 +1958,7 @@ class ExecQuery(ClientTest):
 
             self.cimcall(self.conn.ExecQuery,
                          'wql',
-                         'Select * from %s' % TEST_CLASS,
+                         f'Select * from {TEST_CLASS}',
                          namespace='root/cimv2')
 
         except CIMError as ce:
@@ -1980,7 +1971,7 @@ class ExecQuery(ClientTest):
 
             self.cimcall(self.conn.ExecQuery,
                          'WQL',
-                         'SelectSLOP * from %s' % TEST_CLASS,
+                         f'SelectSLOP * from {TEST_CLASS}',
                          namespace='root/cimv2')
 
         except CIMError as ce:
@@ -2500,8 +2491,9 @@ class InvokeMethod(ClientTest):
         # TODO ks Mar 2017. Returns value 1 rather than zero for some reason
         # Sometimes returns value 0.
         # Review pegasus code.
-        self.assertEqual(result[0], 1, 'Expected method result value 1 '
-                         'Received result value %s' % result[0])
+        self.assertEqual(result[0], 1,
+                         'Expected method result value 1 '
+                         f'Received result value {result[0]}')
 
         # TODO: Call with empty arrays
 
@@ -3083,7 +3075,7 @@ class EnumerateClassNames(ClientTest):
             self.assertTrue(isinstance(name, str))
 
         if self.verbose:
-            print('Found %s top level classes' % len(class_names))
+            print(f'Found {len(class_names)} top level classes')
 
         # enumerate each entry in top_names
         for name in top_names:
@@ -3093,7 +3085,7 @@ class EnumerateClassNames(ClientTest):
                 self.assertTrue(isinstance(n, str))
             class_names += sub_names
         if self.verbose:
-            print('Found %s 1,2 level classes' % len(class_names))
+            print(f'Found {len(class_names)} 1,2 level classes')
 
         # Test with DeepInheritance
         top_names = self.cimcall(self.conn.EnumerateClassNames)
@@ -3112,7 +3104,7 @@ class EnumerateClassNames(ClientTest):
         # TODO could we assert some size limit here. Probably Not
         # since this applies to any server.
         if self.verbose:
-            print('end deep inheritance size %s' % len(full_name_list))
+            print(f'end deep inheritance size {len(full_name_list)}')
 
     def test_pywbem_person(self):
         '''Enumerate starting at pywbem_person with no extra parameters.'''
@@ -3206,11 +3198,11 @@ class GetClass(ClientClassTest):
         name = self.cimcall(self.conn.EnumerateClassNames)[0]
         cl = self.cimcall(self.conn.GetClass, name)
         if self.debug:
-            print('GetClass gets name %s' % name)
+            print(f'GetClass gets name {name}')
         self.verify_class(cl)
         mof_output = cl.tomof()
         if self.verbose:
-            print('MOF OUTPUT\n%s' % (mof_output))
+            print(f'MOF OUTPUT\n{mof_output}')
 
     def test_class_propertylist(self):
         """ Test with propertyList for getClass."""
@@ -3224,7 +3216,7 @@ class GetClass(ClientClassTest):
 
         if self.verbose:
             for p in cls.properties.values():
-                print('ClassPropertyName=%s' % p.name)
+                print(f'ClassPropertyName={p.name}')
 
     def test_class_single_property(self):
         """ Test with propertyList for getClass to confirm that single
@@ -3239,7 +3231,7 @@ class GetClass(ClientClassTest):
 
         if self.verbose:
             for p in cls.properties.values():
-                print('ClassPropertyName=%s' % p.name)
+                print(f'ClassPropertyName={p.name}')
 
     def test_nonexistent_class(self):
         try:
@@ -3894,13 +3886,13 @@ class PegasusServerTestBase(ClientTest):
             if self.verbose:
                 print('Namespaces:')
                 for n in namespaces:
-                    print('  %s' % (n))
+                    print(f'  {n}')
 
             return namespaces
 
         except CIMError as ce:
             if ce.args[0] != CIM_ERR_NOT_FOUND:
-                print('CIMError %s. Could not find' % class_name)
+                print(f'CIMError {class_name}. Could not find')
             raise
 
     def is_pegasus_server(self):
@@ -3988,7 +3980,7 @@ class PegasusServerTestBase(ClientTest):
             return True
         except CIMError as ce:
             if ce.args[0] != CIM_ERR_NOT_FOUND:
-                print('class get %s failed' % class_name)
+                print(f'class get {class_name} failed')
                 raise
             return False
 
@@ -4043,7 +4035,7 @@ class PegasusServerTestBase(ClientTest):
                              'SendTestIndicationCount Method error.')
 
         except Error as er:
-            print('Error: Invoke Method exception %s' % er)
+            print(f'Error: Invoke Method exception {er}')
             raise
 
 
@@ -4053,7 +4045,7 @@ class PegasusInteropTest(PegasusServerTestBase):
     def test_interop_namespace(self):
         interop = self.get_interop_namespace()
         if self.verbose:
-            print('interop=%r' % interop)
+            print(f'interop={interop!r}')
 
         self.assertTrue(interop is not None)
 
@@ -4080,9 +4072,9 @@ class PegasusInteropTest(PegasusServerTestBase):
         self.assertTrue(len(profiles) != 0)
         if self.verbose:
             for p in profiles:
-                print('org=%s RegisteredName=%s, RegisteredVersion=%s' %
-                      (p['RegisteredOrganization'], p['RegisteredName'],
-                       p['RegisteredVersion']))
+                print(f"org={p['RegisteredOrganization']} "
+                      f"RegisteredName={p['RegisteredName']}, "
+                      f"RegisteredVersion={p['RegisteredVersion']}")
 
 
 class PEGASUSCLITestClass(PegasusServerTestBase):
@@ -4103,30 +4095,30 @@ class PEGASUSCLITestClass(PegasusServerTestBase):
             xmlout = my_class.tocimxml().toprettyxml(indent='  ')
 
             if self.verbose:
-                print('MOF for {}\n{}'.format(my_class, mofout))
-                print('CIMXML  for {}\n{}'.format(my_class, xmlout))
+                print(f'MOF for {my_class}\n{mofout}')
+                print(f'CIMXML  for {my_class}\n{xmlout}')
 
             inst_paths = self.cimcall(self.conn.EnumerateInstanceNames,
                                       class_name, namespace=ns)
             for inst_path in inst_paths:
                 if self.verbose:
-                    print('class {} instance {}'.format(class_name, inst_path))
+                    print(f'class {class_name} instance {inst_path}')
                 inst_path_xml = inst_path.tocimxml().toprettyxml(indent='  ')
                 if self.verbose:
-                    print('INST PATH %s' % inst_path_xml)
+                    print(f'INST PATH {inst_path_xml}')
 
             # Enumerate instances of the class
             instances = self.cimcall(self.conn.EnumerateInstances,
                                      class_name, namespace=ns)
             for instance in instances:
                 if self.verbose:
-                    print('class %s============= instance %s'
-                          % (class_name, instance.path))
+                    print(f'class {class_name}============= '
+                          f'instance {instance.path}')
                 mofout = instance.tomof()
                 xmlout = instance.tocimxml().toprettyxml(indent='  ')
                 if self.verbose:
-                    print('MOF for {}\n{}'.format(instance, mofout))
-                    print('CIMXML  for {}\n{}'.format(instance, xmlout))
+                    print(f'MOF for {instance}\n{mofout}')
+                    print(f'CIMXML  for {instance}\n{xmlout}')
         # TODO create an instance write it, get it and test results
 
 
@@ -4150,8 +4142,8 @@ class PegasusTestEmbeddedInstance(RegexpMixin, PegasusServerTestBase):
                 str_mof = inst.tomof()
                 str_xml = inst.tocimxmlstr(2)
                 if self.verbose:
-                    print('====== {} MOF=====\n{}'.format(inst.path, str_mof))
-                    print('======{} XML=====\n{}'.format(inst.path, str_xml))
+                    print(f'====== {inst.path} MOF=====\n{str_mof}')
+                    print(f'======{inst.path} XML=====\n{str_xml}')
 
                 # confirm general characteristics of mof output
                 self.assert_regexp_matches(
@@ -4167,8 +4159,8 @@ class PegasusTestEmbeddedInstance(RegexpMixin, PegasusServerTestBase):
                 embedded_inst = prop.value
 
                 if self.verbose:
-                    print('EmbeddedInstance type=%s rep=%s' %
-                          (type(embedded_inst), repr(embedded_inst)))
+                    print(f'EmbeddedInstance type={type(embedded_inst)} '
+                          f'rep={embedded_inst}')
                 self.assertIsInstance(embedded_inst, CIMInstance,
                                       msg='Embedded Inst must be CIMInstance')
 
@@ -4176,7 +4168,7 @@ class PegasusTestEmbeddedInstance(RegexpMixin, PegasusServerTestBase):
                 if embedded_inst.path is not None:
                     self.assertIsInstance(embedded_inst.path, CIMInstanceName)
                 if self.verbose:
-                    print('embedded_inst mof=%s' % embedded_inst.tomof())
+                    print(f'embedded_inst mof={embedded_inst.tomof()}')
                 id_prop = embedded_inst.properties['Id']
                 self.assertIsInstance(id_prop, CIMProperty)
                 name_prop = embedded_inst.properties['name']
@@ -4201,7 +4193,7 @@ class PyWBEMServerClass(RegexpMixin, PegasusServerTestBase):
         org = org_vm.tovalues(inst['RegisteredOrganization'])
         name = inst['RegisteredName']
         vers = inst['RegisteredVersion']
-        print("  {} {} Profile {}".format(org, name, vers))
+        print(f"  {org} {name} Profile {vers}")
 
     def test_namespaces(self):
         """ Compare namespaces from the pegasus function with those from
@@ -4251,7 +4243,7 @@ class PyWBEMServerClass(RegexpMixin, PegasusServerTestBase):
                 org = org_vm.tovalues(inst['RegisteredOrganization'])
                 name = inst['RegisteredName']
                 vers = inst['RegisteredVersion']
-                print("  {} {} Profile {}".format(org, name, vers))
+                print(f"  {org} {name} Profile {vers}")
 
     def test_get_brand(self):
         """ Get brand info. If pegasus server test for correct response.
@@ -4265,8 +4257,8 @@ class PyWBEMServerClass(RegexpMixin, PegasusServerTestBase):
             self.assert_regexp_matches(server.version, r"^2\.1[0-7]\.[0-7]$")
         else:
             # Do not know what server it is so just display
-            print("Brand: %s" % server.brand)
-            print("Server Version:\n  %s" % server.version)
+            print(f"Brand: {server.brand}")
+            print(f"Server Version:\n  {server.version}")
 
     def test_indication_profile_info(self):
         """ Get the indications central class."""
@@ -4295,7 +4287,7 @@ class PyWBEMServerClass(RegexpMixin, PegasusServerTestBase):
                 indications_profile.path,
                 "CIM_IndicationService", "CIM_System", ["CIM_HostedService"])
         except Exception as exc:  # pylint: disable=broad-except
-            print("Error: %s" % str(exc))
+            print(f"Error: {exc}")
             ci_paths = []
             self.fail("No central class for indication profile")
 
@@ -4357,7 +4349,7 @@ class PyWBEMServerClass(RegexpMixin, PegasusServerTestBase):
                     else:
                         self.fail("Could not find CIM_ObjectManager")
         except Exception as exc:  # pylint: disable=broad-except
-            print("Error: %s" % str(exc))
+            print(f"Error: {exc}")
             self.fail("No Server class")
 
     def test_server_select_profiles(self):
@@ -4436,10 +4428,10 @@ class PyWBEMServerClass(RegexpMixin, PegasusServerTestBase):
                         self.cimcall(conn.DeleteInstance, instance.path)
                         return
                     except Exception as ex:  # pylint: disable=broad-except
-                        self.fail("Delete of created namespace failed %s " % ex)
+                        self.fail(f"Delete of created namespace failed {ex}")
 
-            self.fail("new ns %s not found in namespace instances %r" %
-                      (ns_name, instances))
+            self.fail(f"new ns {ns_name} not found in namespace instances "
+                      f"{instances!r}")
 
         server = WBEMServer(self.conn)
         namespaces = server.namespaces
@@ -4447,8 +4439,8 @@ class PyWBEMServerClass(RegexpMixin, PegasusServerTestBase):
         for test_ns in ['root/runcimoperationstestns', 'runcimoperationns']:
 
             if test_ns in namespaces:
-                self.fail("Test Create Namespace %s already in namespaces %s" %
-                          (test_ns, namespaces))
+                self.fail(f"Test Create Namespace {test_ns} already in "
+                          f"namespaces {namespaces}")
 
             server.create_namespace(test_ns)
 
@@ -5684,7 +5676,7 @@ class IterQueryInstances(PegasusServerTestBase):
 
             result = self.cimcall(self.conn.IterQueryInstances,
                                   'WQL',
-                                  'Select * from %s' % TEST_CLASS,
+                                  f'Select * from {TEST_CLASS}',
                                   MaxObjectCount=100)
             self.assertEqual(result.query_result_class, None)
             count = 0
@@ -5720,7 +5712,7 @@ class IterQueryInstances(PegasusServerTestBase):
             # Simplest invocation
             result = self.cimcall(self.conn.IterQueryInstances,
                                   'WQL',
-                                  'Select * from %s' % TEST_CLASS)
+                                  f'Select * from {TEST_CLASS}')
 
             self.assertEqual(result.query_result_class, None)
             count = 0
@@ -5758,7 +5750,7 @@ class IterQueryInstances(PegasusServerTestBase):
             # Simplest invocation
             result = self.cimcall(self.conn.IterQueryInstances,
                                   'WQL',
-                                  'Select * from %s' % TEST_CLASS)
+                                  f'Select * from {TEST_CLASS}')
 
             self.assertEqual(result.query_result_class, None)
             count = 0
@@ -5826,9 +5818,9 @@ class TestSubscriptionsClass(PyWBEMServerClass):
 
         try:
             if test_http_listener:
-                url = '{}:{}'.format(self.conn.url, http_listener_port)
+                url = f'{self.conn.url}:{http_listener_port}'
             else:
-                url = '{}:{}'.format(self.conn.url, https_listener_port)
+                url = f'{self.conn.url}:{https_listener_port}'
 
             # pylint: disable=attribute-defined-outside-init
             self.listener_url = url
@@ -5849,7 +5841,7 @@ class TestSubscriptionsClass(PyWBEMServerClass):
 
             listener.start()
         except Exception as ex:  # pylint: disable=broad-except
-            self.fail('CreateListener failed with exception %r' % ex)
+            self.fail(f'CreateListener failed with exception {ex!r}')
 
         return listener
 
@@ -5872,8 +5864,8 @@ class TestSubscriptionsClass(PyWBEMServerClass):
                                 Uint32(requested_count))])
 
         if result[0] != 0:
-            self.fail('Error: invokemethod to create indication. result = %s'
-                      % result[0])
+            self.fail('Error: invokemethod to create indication. '
+                      f'result = {result[0]}')
 
         # wait for indications to be received
         success = False
@@ -5890,8 +5882,9 @@ class TestSubscriptionsClass(PyWBEMServerClass):
             time.sleep(2)
             # self.assertEqual(RECEIVED_INDICATION_COUNT, requested_count)
         if requested_count != RECEIVED_INDICATION_COUNT:
-            print('Mismatch count receiving indications. Expected=%s '
-                  'Received=%s' % (requested_count, RECEIVED_INDICATION_COUNT))
+            print('Mismatch count receiving indications. '
+                  f'Expected={requested_count} '
+                  f'Received={RECEIVED_INDICATION_COUNT}')
 
         return RECEIVED_INDICATION_COUNT == requested_count
 
@@ -5966,7 +5959,7 @@ class TestSubscriptionsClass(PyWBEMServerClass):
         self.test_class = 'Test_IndicationProviderClass'
         self.test_class_namespace = 'test/TestProvider'
 
-        self.test_query = 'SELECT * from %s' % self.test_class
+        self.test_query = f'SELECT * from {self.test_class}'
         self.test_classname = CIMClassName(self.test_class,
                                            namespace=self.test_class_namespace)
 
@@ -6029,12 +6022,11 @@ class TestSubscriptionsClass(PyWBEMServerClass):
                 valid_subscriptions.append(inst)
 
         if self.verbose:
-            print('All objects: filters=%s dests=%s subs=%s' %
-                  (len(filter_instances),
-                   len(dest_insts), len(sub_insts)))
-            print('Pywbem objects: filters=%s dests=%s subs=%s' %
-                  (len(filter_paths), len(destination_paths),
-                   len(valid_subscriptions)))
+            print(f'All objects: filters={len(filter_instances)} '
+                  f'dests={len(dest_insts)} subs={len(sub_insts)}')
+            print(f'Pywbem objects: filters={len(filter_paths)} '
+                  f'dests={len(destination_paths)} '
+                  f'subs={len(valid_subscriptions)}')
 
         return sum([len(filter_paths), len(destination_paths),
                     len(valid_subscriptions)])
@@ -6053,8 +6045,8 @@ class TestSubscriptionsClass(PyWBEMServerClass):
         if sum(counts) == 0:
             return True
 
-        print('Server_id=%s. Unreleased filters=%s, subs=%s, dest=%s' %
-              (server_id, counts[0], counts[1], counts[2]))
+        print(f'Server_id={server_id}. Unreleased filters={counts[0]}, '
+              f'subs={counts[1]}, dest={counts[2]}')
         return False
 
     def display_all(self, sub_mgr, server_id):
@@ -6068,22 +6060,20 @@ class TestSubscriptionsClass(PyWBEMServerClass):
         owned_filters = sub_mgr.get_owned_filters(server_id)
         if filters:
             for i, filter_ in enumerate(filters):
-                print('filter %s %s %s', (i, is_owned(filter_, owned_filters),
-                                          filter_,))
+                print(f'filter {i} '
+                      f'{is_owned(filter_, owned_filters)} {filter_}')
 
         subscriptions = sub_mgr.get_all_subscriptions(server_id)
         owned_subs = sub_mgr.get_owned_subscriptions(server_id)
         if subscriptions:
             for i, subscription in enumerate(subscriptions):
-                print('subscription %s %s %s', (i,
-                                                is_owned(subscription,
-                                                         owned_subs),
-                                                subscription))
+                print(f'subscription {i} '
+                      f'{is_owned(subscription, owned_subs)} {subscription}')
 
         dests = sub_mgr.get_all_subscriptions(server_id)
         if dests:
             for i, dest in enumerate(dests):
-                print('destination {} {}'.format(i, dest))
+                print(f'destination {i} {dest}')
 
     def test_create_delete_subscription(self):
         """
@@ -6139,13 +6129,13 @@ class TestSubscriptionsClass(PyWBEMServerClass):
                     sub_mgr.remove_server(server_id)
 
                 except Exception as ex1:  # pylint: disable=broad-except
-                    print('WBEMSubscription mgr exception %r' % ex1)
+                    print(f'WBEMSubscription mgr exception {ex1!r}')
 
                 self.assertEqual(self.get_objects_from_server(), 0)
 
         except Exception as ex:  # pylint: disable=broad-except
             traceback.print_exc()
-            self.fail('Unexpected Exception %r' % ex)
+            self.fail(f'Unexpected Exception {ex!r}')
         finally:
             my_listener.stop()
 
@@ -6217,7 +6207,7 @@ class TestSubscriptionsClass(PyWBEMServerClass):
 
         except Exception as ex:  # pylint: disable=broad-except
             traceback.print_exc()
-            self.fail('Unexpected Exception %r' % ex)
+            self.fail(f'Unexpected Exception {ex!r}')
 
         finally:
             my_listener.stop()
@@ -6351,7 +6341,7 @@ class TestSubscriptionsClass(PyWBEMServerClass):
 
         except Exception as ex:  # pylint: disable=broad-except
             traceback.print_exc()
-            self.fail('Unexpected Exception %r' % ex)
+            self.fail(f'Unexpected Exception {ex!r}')
         finally:
             my_listener.stop()
 
@@ -6420,7 +6410,7 @@ class TestSubscriptionsClass(PyWBEMServerClass):
 
         except Exception as ex:  # pylint: disable=broad-except
             traceback.print_exc()
-            self.fail('Unexpected Exception %r' % ex)
+            self.fail(f'Unexpected Exception {ex!r}')
         finally:
             my_listener.stop()
 
@@ -6485,7 +6475,7 @@ class TestSubscriptionsClass(PyWBEMServerClass):
 
         except Exception as ex:  # pylint: disable=broad-except
             traceback.print_exc()
-            self.fail('Unexpected Exception %r' % ex)
+            self.fail(f'Unexpected Exception {ex!r}')
         finally:
             my_listener.stop()
 
@@ -6583,7 +6573,7 @@ class TestSubscriptionsClass(PyWBEMServerClass):
 
         except Exception as ex:  # pylint: disable=broad-except
             traceback.print_exc()
-            self.fail('Unexpected Exception %r' % ex)
+            self.fail(f'Unexpected Exception {ex!r}')
         finally:
             my_listener.stop()
 
@@ -6684,7 +6674,7 @@ class TestSubscriptionsClass(PyWBEMServerClass):
 
         except Exception as ex:  # pylint: disable=broad-except
             traceback.print_exc()
-            self.fail('Unexpected Exception %r' % ex)
+            self.fail(f'Unexpected Exception {ex!r}')
         finally:
             my_listener.stop()
 
@@ -6818,8 +6808,8 @@ def parse_args(argv_):
         print('Test program for CIM operations.')
         print('')
         print('Usage:')
-        print('    %s [GEN_OPTS] URL [USERNAME%%PASSWORD [UT_OPTS '
-              '[UT_CLASS ...]]] ' % argv[0])
+        print(f'    {argv[0]} [GEN_OPTS] URL [USERNAME%%PASSWORD [UT_OPTS '
+              '[UT_CLASS ...]]] ')
         print('')
         print('Where:')
         print('    GEN_OPTS            General options (see below).')
@@ -6843,7 +6833,7 @@ def parse_args(argv_):
         print('General options[GEN_OPTS]:')
         print('    --help, -h          Display this help text.')
         print('    -n NAMESPACE        Use this CIM namespace instead of '
-              'default: %s' % DEFAULT_NAMESPACE)
+              f'default: {DEFAULT_NAMESPACE}')
         print('    -t TIMEOUT          Use this timeout (in seconds) instead\n'
               '                        of no timeout\n')
         print('    -v                  Verbose output which includes:\n'
@@ -6862,10 +6852,10 @@ def parse_args(argv_):
 
         print('')
         print('Examples:')
-        print('    %s https://9.10.11.12 username%%password' % argv[0])
-        print('    %s --log https://myhostusername%%password' % argv[0])
-        print('    %s -v http://localhost username%%password'
-              ' GetQualifier' % argv[0])
+        print(f'    {argv[0]} https://9.10.11.12 username%password')
+        print(f'    {argv[0]} --log https://myhostusername%password')
+        print(f'    {argv[0]} -v http://localhost username%password '
+              'GetQualifier')
 
         print('------------------------')
         print('Unittest arguments[UT_OPTS]:')
@@ -6927,10 +6917,10 @@ def parse_args(argv_):
         elif argv[1] == '-hl':
             args_['debug'] = True
             del argv[1:2]
-            print('List of tests: %s' % ", ".join(TEST_LIST))
+            print('List of tests: {}'.format(", ".join(TEST_LIST)))
             sys.exit(2)
         else:
-            print("Error: Unknown option: %s" % argv[1])
+            print(f"Error: Unknown option: {argv[1]}")
             sys.exit(1)
 
     args_['url'] = argv[1]
@@ -6955,19 +6945,19 @@ def main():
     CLI_ARGS, sys.argv = parse_args(sys.argv)  # pylint: disable=invalid-name
     if CLI_ARGS['verbose']:
         print("Using WBEM Server:")
-        print("  server url: %s" % CLI_ARGS['url'])
-        print("  namespace: %s" % CLI_ARGS['namespace'])
-        print("  username: %s" % CLI_ARGS['username'])
-        print("  password: %s" % ("*" * len(CLI_ARGS['password'])))
-        print("  nvc: %s" % CLI_ARGS['nvc'])
-        print("  cacerts: %s" % CLI_ARGS['cacerts'])
-        print("  timeout: %s" % CLI_ARGS['timeout'])
-        print("  verbose: %s" % CLI_ARGS['verbose'])
-        print("  stats: %s" % CLI_ARGS['stats'])
-        print("  debug: %s" % CLI_ARGS['debug'])
-        print("  yamlfile: %s" % CLI_ARGS['yamlfile'])
-        print("  log: %s" % CLI_ARGS['log'])
-        print("  long_running: %s" % CLI_ARGS['long_running'])
+        print(f"  server url: {CLI_ARGS['url']}")
+        print(f"  namespace: {CLI_ARGS['namespace']}")
+        print(f"  username: {CLI_ARGS['username']}")
+        print("  password: {}".format("*" * len(CLI_ARGS['password'])))
+        print(f"  nvc: {CLI_ARGS['nvc']}")
+        print(f"  cacerts: {CLI_ARGS['cacerts']}")
+        print(f"  timeout: {CLI_ARGS['timeout']}")
+        print(f"  verbose: {CLI_ARGS['verbose']}")
+        print(f"  stats: {CLI_ARGS['stats']}")
+        print(f"  debug: {CLI_ARGS['debug']}")
+        print(f"  yamlfile: {CLI_ARGS['yamlfile']}")
+        print(f"  log: {CLI_ARGS['log']}")
+        print(f"  long_running: {CLI_ARGS['long_running']}")
 
         if CLI_ARGS['long_running'] is True:
             SKIP_LONGRUNNING_TEST = False
@@ -6976,14 +6966,14 @@ def main():
     if CLI_ARGS['yamlfile']:
         yamlfile_name = CLI_ARGS['yamlfile']
         if os.path.isfile(yamlfile_name):
-            backupfile_name = '%s.bak' % yamlfile_name
+            backupfile_name = f'{yamlfile_name}.bak'
             if os.path.isfile(backupfile_name):
                 os.remove(backupfile_name)
             os.rename(yamlfile_name, backupfile_name)
 
     if CLI_ARGS['log']:
         if os.path.isfile(RUN_CIM_OPERATIONS_OUTPUT_LOG):
-            backupfile_name = '%s.bak' % RUN_CIM_OPERATIONS_OUTPUT_LOG
+            backupfile_name = f'{RUN_CIM_OPERATIONS_OUTPUT_LOG}.bak'
             if os.path.isfile(backupfile_name):
                 os.remove(backupfile_name)
             os.rename(RUN_CIM_OPERATIONS_OUTPUT_LOG, backupfile_name)

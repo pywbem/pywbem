@@ -88,15 +88,14 @@ def process_indication(indication, host):
         if send_count != RCV_COUNT:
             print("Error in process_indication(): Assertion error: "
                   "Unexpected SequenceNumber in received indication: "
-                  "got {}, expected {}".format(send_count, RCV_COUNT))
+                  f"got {send_count}, expected {RCV_COUNT}")
             sys.stdout.flush()
             RCV_ERRORS = True
 
         RCV_COUNT += 1
 
     except Exception as exc:  # pylint: disable=broad-except
-        print("Error in process_indication(): {}: {}".
-              format(exc.__class__.__name__, exc))
+        print(f"Error in process_indication(): {exc.__class__.__name__}: {exc}")
         sys.stdout.flush()
         RCV_ERRORS = True
 
@@ -133,15 +132,15 @@ def send_indications(host, http_port, send_count):
         try:
             response = post_bsl(url, headers=headers, data=payload)
         except requests.exceptions.RequestException as exc:
-            msg = ("Testcase sending indication #{} raised {}: {}".
-                   format(i, exc.__class__.__name__, exc))
+            msg = (f"Testcase sending indication #{i} raised "
+                   f"{exc.__class__.__name__}: {exc}")
             new_exc = AssertionError(msg)
             new_exc.__cause__ = None  # Disable to see original traceback
             raise new_exc
 
         if response.status_code != 200:
-            msg = ("Testcase sending indication #{} failed with HTTP "
-                   "status {}".format(i, response.status_code))
+            msg = (f"Testcase sending indication #{i} failed with HTTP "
+                   f"status {response.status_code}")
             raise AssertionError(msg)
 
     endtime = timer.elapsed_sec()
@@ -152,9 +151,9 @@ def send_indications(host, http_port, send_count):
     assert not RCV_ERRORS, \
         "Errors occurred in process_indication(), as printed to stdout"
 
-    assert send_count == RCV_COUNT, \
-        "Mismatch between total send count {} and receive count {}". \
-        format(send_count, RCV_COUNT)
+    assert send_count == RCV_COUNT, (
+        f"Mismatch between total send count {send_count} and receive "
+        f"count {RCV_COUNT}")
 
     return endtime
 
@@ -191,9 +190,9 @@ def test_WBEMListener_send_indications(send_count):
         stdev_time = statistics.stdev(times)
         mean_rate = send_count / mean_time
 
-        print("\nSent {} indications ({} repetitions): mean: {:.3f} s, "
-              "stdev: {:.3f} s, mean rate: {:.0f} ind/s".
-              format(send_count, repetitions, mean_time, stdev_time, mean_rate))
+        print(f"\nSent {send_count} indications ({repetitions} repetitions): "
+              f"mean: {mean_time:.3f} s, stdev: {stdev_time:.3f} s, "
+              f"mean rate: {mean_rate:.0f} ind/s")
         sys.stdout.flush()
 
     finally:

@@ -802,8 +802,8 @@ def cleanup_recorder_yaml_file():
             # The file is still open at this point and on Windows,
             # a WindowsError is raised.
             warnings.warn(
-                "Cleaning up the test client YAML file {} failed: {}".
-                format(TEST_YAML_FILE, exc), UserWarning)
+                f"Cleaning up the test client YAML file {TEST_YAML_FILE} "
+                f"failed: {exc}", UserWarning)
 
 
 def test_BaseOperationRecorder_init():
@@ -1551,8 +1551,7 @@ def test_TestClientRecorder_record(
     test_client_recorder.record_staged()
 
     if DEBUG_TEST_YAML_FILE:
-        print("\nDebug: Test client YAML file for testcase: {}".
-              format(desc))
+        print(f"\nDebug: Test client YAML file for testcase: {desc}")
         if sys.platform == 'win32':
             os.system(f'type {TEST_YAML_FILE}')
         else:
@@ -1847,14 +1846,10 @@ class Test_LOR_PywbemResults(BaseLogOperationRecorderTests):
             IncludeClassOrigin=True,
             PropertyList=['propertyblah'])
 
-        result_req = \
-            "Request:test_id GetInstance(" \
-            "IncludeClassOrigin=True, " \
-            "IncludeQualifiers=True, " \
-            "InstanceName={ip!r}, " \
-            "LocalOnly=True, " \
-            "PropertyList=['propertyblah'])". \
-            format(ip=instancename)
+        result_req = (
+            "Request:test_id GetInstance(IncludeClassOrigin=True, "
+            f"IncludeQualifiers=True, InstanceName={instancename!r}, "
+            "LocalOnly=True, PropertyList=['propertyblah'])")
 
         capture.check(
             ('pywbem.api.test_id', 'DEBUG', result_req),
@@ -1990,7 +1985,7 @@ class Test_LOR_HTTPRequests(BaseLogOperationRecorderTests):
             '<NAMESPACE NAME="cimv2"/>\n'
             '</LOCALNAMESPACEPATH>\n'
             '<IPARAMVALUE NAME="InstanceName">\n'
-            '{ip}\n'
+            f'{instancename.tocimxmlstr(indent=0)}\n'
             '</IPARAMVALUE>\n'
             '<IPARAMVALUE NAME="LocalOnly">\n'
             '<VALUE>FALSE</VALUE>\n'
@@ -1998,8 +1993,7 @@ class Test_LOR_HTTPRequests(BaseLogOperationRecorderTests):
             '</IMETHODCALL>\n'
             '</SIMPLEREQ>\n'
             '</MESSAGE>\n'
-            '</CIM>)'.
-            format(ip=instancename.tocimxmlstr(indent=0))
+            '</CIM>)'
         )
 
         return url, target, method, headers, payload
@@ -2023,8 +2017,7 @@ class Test_LOR_HTTPRequests(BaseLogOperationRecorderTests):
             "CIMOperation:'MethodCall' "
             "CIMMethod:'GetInstance' "
             "CIMObject:'root/cimv2' "
-            "{}".
-            format(logged_payload(payload)))
+            f"{logged_payload(payload)}")
 
         capture.check(
             ('pywbem.http.test_id', 'DEBUG', result_req),
@@ -2098,13 +2091,12 @@ class Test_LOR_HTTPResponses(BaseLogOperationRecorderTests):
             '<SIMPLERSP>\n'
             '<IMETHODRESPONSE NAME="GetInstance">\n'
             '<IRETURNVALUE>\n'
-            '{i}\n'
+            f'{instance.tocimxmlstr(indent=0)}\n'
             '</IRETURNVALUE>\n'
             '</IMETHODRESPONSE>\n'
             '</SIMPLERSP>\n'
             '</MESSAGE>\n'
-            '</CIM>)\n'.
-            format(i=instance.tocimxmlstr(indent=0))
+            '</CIM>)\n'
         )
         headers = OrderedDict([
             ('Content-type', 'application/xml; charset="utf-8"'),
@@ -2132,10 +2124,7 @@ class Test_LOR_HTTPResponses(BaseLogOperationRecorderTests):
         result_resp = (
             "Response:test_id 200: 11 "
             "Content-type:'application/xml; charset=\"utf-8\"' "
-            "Content-length:'{bl}' "
-            "{b}".
-            format(bl=len(body), b=logged_payload(body))
-        )
+            f"Content-length:'{len(body)}' {logged_payload(body)}")
 
         capture.check(
             ('pywbem.http.test_id', 'DEBUG', result_resp),
@@ -2157,10 +2146,7 @@ class Test_LOR_HTTPResponses(BaseLogOperationRecorderTests):
         result_resp = (
             "Response:test_id 200: 11 "
             "Content-type:'application/xml; charset=\"utf-8\"' "
-            "Content-length:'{bl}' "
-            "''".
-            format(bl=len(body))
-        )
+            f"Content-length:'{len(body)}' ''")
 
         capture.check(
             ('pywbem.http.test_id', 'DEBUG', result_resp),
@@ -2182,10 +2168,8 @@ class Test_LOR_HTTPResponses(BaseLogOperationRecorderTests):
         result_resp = (
             "Response:test_id 200: 11 "
             "Content-type:'application/xml; charset=\"utf-8\"' "
-            "Content-length:'{bl}' "
-            '\'<?xml version="1.0" encoding="...\''.
-            format(bl=len(body))
-        )
+            f"Content-length:'{len(body)}' "
+            '\'<?xml version="1.0" encoding="...\'')
 
         capture.check(
             ('pywbem.http.test_id', 'DEBUG', result_resp),
@@ -2286,9 +2270,7 @@ class Test_LOR_PywbemArgsResults(BaseLogOperationRecorderTests):
         self.test_recorder.stage_pywbem_result(instance, exc)
 
         result_req = (
-            "Request:test_id GetInstance("
-            "InstanceName={!r})".
-            format(instancename))
+            f"Request:test_id GetInstance(InstanceName={instancename!r})")
 
         result_exc = _format(
             "Exception:test_id GetInstance('CIMError({0})')", exc)
@@ -2322,17 +2304,11 @@ class Test_LOR_PywbemArgsResults(BaseLogOperationRecorderTests):
         self.test_recorder.stage_pywbem_result(instance, exc)
 
         result_req = (
-            "Request:test_id GetInstance("
-            "IncludeClassOrigin=True, "
-            "IncludeQualifiers=True, "
-            "InstanceName={!r}, "
-            "LocalOnly=True, "
-            "PropertyList=['propertyblah'])".
-            format(instancename))
+            "Request:test_id GetInstance(IncludeClassOrigin=True, "
+            f"IncludeQualifiers=True, InstanceName={instancename!r}, "
+            "LocalOnly=True, PropertyList=['propertyblah'])")
 
-        result_ret = (
-            "Return:test_id GetInstance({!r})".
-            format(instance))
+        result_ret = f"Return:test_id GetInstance({instance!r})"
 
         capture.check(
             ('pywbem.api.test_id', 'DEBUG', result_req),
@@ -2440,12 +2416,9 @@ class Test_LOR_PywbemArgsResults(BaseLogOperationRecorderTests):
 
         result_req = (
             "Request:test_id OpenEnumerateInstances("
-            "ClassName={!r}, "
-            "IncludeClassOrigin=True, "
-            "IncludeQualifiers=True, "
-            "LocalOnly=True, "
-            "PropertyList=['propertyblah'])".
-            format(classname))
+            f"ClassName={classname!r}, IncludeClassOrigin=True, "
+            "IncludeQualifiers=True, LocalOnly=True, "
+            "PropertyList=['propertyblah'])")
 
         result_ret = (
             "Return:test_id OpenEnumerateInstances("
@@ -2491,20 +2464,15 @@ class Test_LOR_PywbemArgsResults(BaseLogOperationRecorderTests):
 
         result_req = (
             "Request:test_id OpenEnumerateInstancePaths("
-            "ClassName={!r}, "
-            "ContinueOnError=None, "
-            "FilterQuery='SELECT A from B', "
-            "FilterQueryLanguage='FQL', "
-            "MaxObjectCount=100, "
-            "OperationTimeout=10)".
-            format(classname))
+            f"ClassName={classname!r}, ContinueOnError=None, "
+            "FilterQuery='SELECT A from B', FilterQueryLanguage='FQL', "
+            "MaxObjectCount=100, OperationTimeout=10)")
 
         result_ret = (
             "Return:test_id OpenEnumerateInstancePaths("
             "pull_path_result_tuple("
             "context=('test_rtn_context', 'root/blah'), eos=False, "
-            "paths={!r}))".
-            format(result))
+            f"paths={result!r}))")
 
         capture.check(
             ('pywbem.api.test_id', 'DEBUG', result_req),
@@ -2626,28 +2594,26 @@ class Test_LOR_PywbemArgsResults(BaseLogOperationRecorderTests):
             result_req = (
                 "Request:test_id InvokeMethod("
                 "MethodName='Blah', "
-                "ObjectName={!r}, "
+                f"ObjectName={instancename!r}, "
                 "Params=OrderedDict("
-                "{{'StringParam': 'Spotty', "
+                "{'StringParam': 'Spotty', "
                 "'Uint8': Uint8(cimtype='uint8', minvalue=0, "
                 "maxvalue=255, 1), "
                 "'Sint8': Sint8(cimtype='sint8', minvalue=-128, "
                 "maxvalue=127, 2)"
-                "}}))".
-                format(instancename))
+                "}))")
         else:
             result_req = (
                 "Request:test_id InvokeMethod("
                 "MethodName='Blah', "
-                "ObjectName={!r}, "
+                f"ObjectName={instancename!r}, "
                 "Params=OrderedDict(["
                 "('StringParam', 'Spotty'), "
                 "('Uint8', Uint8(cimtype='uint8', minvalue=0, "
                 "maxvalue=255, 1)), "
                 "('Sint8', Sint8(cimtype='sint8', minvalue=-128, "
                 "maxvalue=127, 2))"
-                "]))".
-                format(instancename))
+                "]))")
 
         result_ret = "Return:test_id InvokeMethod(tuple )"
 

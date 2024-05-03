@@ -1035,8 +1035,9 @@ def test_request_invalid_params(testcase, init_kwargs, method, args, kwargs):
         _ = list(conn.IterEnumerateInstancePaths(*args, **kwargs))
 
     else:
-        assert False, "Test failed. Incomplete. "  \
-            "method {} not found".format(method)
+        assert False, (
+            "Test failed. Incomplete. "
+            f"method {method} not found")
 
     # Ensure that exceptions raised in the remainder of this function
     # are not mistaken as expected exceptions

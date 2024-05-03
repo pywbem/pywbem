@@ -32,8 +32,7 @@ The following example creates and runs a listener::
     def process_indication(indication, host):
         '''This function gets called when an indication is received.'''
 
-        print("Received CIM indication from {host}: {ind!r}".
-              format(host=host, ind=indication))
+        print(f"Received CIM indication from {host}: {indication!r}")
 
     def main():
 
@@ -1069,8 +1068,8 @@ class WBEMListener:
                     # Windows does not raise any exception if port is used
                     if getattr(exc, 'errno', None) == errno.EADDRINUSE:
                         new_exc = ListenerPortError(
-                            "WBEM listener port {0} is already in use".
-                            format(self._http_port))
+                            f"WBEM listener port {self._http_port} is already "
+                            "in use")
                         new_exc.__cause__ = None
                         raise new_exc  # ListenerPortError
                     raise
@@ -1107,8 +1106,8 @@ class WBEMListener:
                     # Windows does not raise any exception if port is used
                     if getattr(exc, 'errno', None) == errno.EADDRINUSE:
                         new_exc = ListenerPortError(
-                            "WBEM listener port {0} is already in use".
-                            format(self._https_port))
+                            f"WBEM listener port {self._https_port} is "
+                            "already in use")
                         new_exc.__cause__ = None
                         raise new_exc  # ListenerPortError
                     raise
@@ -1144,21 +1143,19 @@ class WBEMListener:
                         if exc.library == 'SSL' and 'PEM lib' in str(exc):
                             new_exc = ListenerCertificateError(
                                 "Invalid password for key file, bad key file, "
-                                "or bad certificate file. Original error: {}".
-                                format(exc))
+                                "or bad certificate file. Original error: "
+                                f"{exc}")
                             new_exc.__cause__ = None
                             raise new_exc  # ListenerCertificateError
                         new_exc = ListenerCertificateError(
                             "SSL error when loading the certificate chain: "
-                            "errno={}, library={}: {}".
-                            format(exc.errno, exc.library, exc))
+                            f"errno={exc.errno}, library={exc.library}: {exc}")
                         new_exc.__cause__ = None
                         raise new_exc  # ListenerCertificateError
                     except OSError as exc:
+                        fn = _cert_key_file(self._certfile, self._keyfile)
                         new_exc = ListenerCertificateError(
-                            "Issue opening {}: {}".
-                            format(_cert_key_file(self._certfile,
-                                                  self._keyfile), exc))
+                            f"Issue opening {fn}: {exc}")
                         new_exc.__cause__ = None
                         raise new_exc  # ListenerCertificateError
                     server.socket = ctx.wrap_socket(

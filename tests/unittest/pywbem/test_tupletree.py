@@ -43,12 +43,12 @@ def dom_to_tupletree(node):
             contents.append(dom_to_tupletree(child))
         elif child.nodeType == child.TEXT_NODE:
             assert isinstance(child.nodeValue, str), \
-                "text node %s is not a string %r" % child
+                f"text node is not a string: {child}"
             contents.append(child.nodeValue)
         elif child.nodeType == child.CDATA_SECTION_NODE:
             contents.append(child.nodeValue)
         else:
-            raise RuntimeError("can't handle %r" % child)
+            raise RuntimeError(f"can't handle {child}")
 
     for i in range(node.attributes.length):
         attr_node = node.attributes.item(i)

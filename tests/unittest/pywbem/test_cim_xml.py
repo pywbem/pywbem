@@ -455,8 +455,7 @@ def simple_QUALIFIER_DECLARATION_str(name='MyQualifier', type_='string'):
     Return a simple QUALIFIER.DECLARATION as a list of XML strings.
     """
     return [
-        '<QUALIFIER.DECLARATION NAME="{name}" TYPE="{type}"/>'.
-        format(name=name, type=type_),
+        f'<QUALIFIER.DECLARATION NAME="{name}" TYPE="{type_}"/>',
     ]
 
 
@@ -4260,10 +4259,9 @@ def test_cim_xml_node(testcase, xml_node, exp_xml_str_list, **kwargs):
         except CIMXMLValidationError as exc:
             raise AssertionError(
                 "DTD validation of CIM-XML failed:\n"
-                "{0}\n"
+                f"{exc}\n"
                 "CIM-XML string:\n"
-                "{1}".
-                format(exc, act_xml_str))
+                f"{act_xml_str}")
 
         # Verify that the XML string is as expected
         exp_xml_str = ''.join(iter_flattened(exp_xml_str_list))

@@ -198,8 +198,7 @@ TESTCASES_PARSE_URL = [
             ),
             exp_scheme=f'{DEFAULT_SCHEME}',
             exp_hostport=f'http:{DEFAULT_PORT_HTTP}',
-            exp_url='{scheme}://http:{port}'.
-            format(scheme=DEFAULT_SCHEME, port=DEFAULT_PORT_HTTP),
+            exp_url=f'{DEFAULT_SCHEME}://http:{DEFAULT_PORT_HTTP}',
         ),
         None, None, True
     ),
@@ -212,8 +211,7 @@ TESTCASES_PARSE_URL = [
             ),
             exp_scheme=f'{DEFAULT_SCHEME}',
             exp_hostport=f'https:{DEFAULT_PORT_HTTP}',
-            exp_url='{scheme}://https:{port}'.
-            format(scheme=DEFAULT_SCHEME, port=DEFAULT_PORT_HTTP),
+            exp_url=f'{DEFAULT_SCHEME}://https:{DEFAULT_PORT_HTTP}',
         ),
         None, None, True
     ),
@@ -316,10 +314,8 @@ TESTCASES_PARSE_URL = [
                 allow_defaults=True,
             ),
             exp_scheme=f'{DEFAULT_SCHEME}',
-            exp_hostport='[2001:db8::7348]:{port}'.
-            format(port=DEFAULT_PORT_HTTP),
-            exp_url='{scheme}://[2001:db8::7348]:{port}'.
-            format(scheme=DEFAULT_SCHEME, port=DEFAULT_PORT_HTTP),
+            exp_hostport=f'[2001:db8::7348]:{DEFAULT_PORT_HTTP}',
+            exp_url=f'{DEFAULT_SCHEME}://[2001:db8::7348]:{DEFAULT_PORT_HTTP}',
         ),
         None, None, True
     ),
@@ -331,10 +327,8 @@ TESTCASES_PARSE_URL = [
                 allow_defaults=True,
             ),
             exp_scheme='http',
-            exp_hostport='[2001:db8::7348]:{port}'.
-            format(port=DEFAULT_PORT_HTTP),
-            exp_url='http://[2001:db8::7348]:{port}'.
-            format(port=DEFAULT_PORT_HTTP),
+            exp_hostport=f'[2001:db8::7348]:{DEFAULT_PORT_HTTP}',
+            exp_url=f'http://[2001:db8::7348]:{DEFAULT_PORT_HTTP}',
         ),
         None, None, True
     ),
@@ -347,10 +341,8 @@ TESTCASES_PARSE_URL = [
                 allow_defaults=True,
             ),
             exp_scheme='http',
-            exp_hostport='[2001:db8::7348-1]:{port}'.
-            format(port=DEFAULT_PORT_HTTP),
-            exp_url='http://[2001:db8::7348-1]:{port}'.
-            format(port=DEFAULT_PORT_HTTP),
+            exp_hostport=f'[2001:db8::7348-1]:{DEFAULT_PORT_HTTP}',
+            exp_url=f'http://[2001:db8::7348-1]:{DEFAULT_PORT_HTTP}',
         ),
         None, None, True
     ),
@@ -363,10 +355,8 @@ TESTCASES_PARSE_URL = [
                 allow_defaults=True,
             ),
             exp_scheme='http',
-            exp_hostport='[2001:db8::7348-1]:{port}'.
-            format(port=DEFAULT_PORT_HTTP),
-            exp_url='http://[2001:db8::7348-1]:{port}'.
-            format(port=DEFAULT_PORT_HTTP),
+            exp_hostport=f'[2001:db8::7348-1]:{DEFAULT_PORT_HTTP}',
+            exp_url=f'http://[2001:db8::7348-1]:{DEFAULT_PORT_HTTP}',
         ),
         None, None, True
     ),
@@ -379,10 +369,8 @@ TESTCASES_PARSE_URL = [
                 allow_defaults=True,
             ),
             exp_scheme='http',
-            exp_hostport='[2001:db8::7348-eth1]:{port}'.
-            format(port=DEFAULT_PORT_HTTP),
-            exp_url='http://[2001:db8::7348-eth1]:{port}'.
-            format(port=DEFAULT_PORT_HTTP),
+            exp_hostport=f'[2001:db8::7348-eth1]:{DEFAULT_PORT_HTTP}',
+            exp_url=f'http://[2001:db8::7348-eth1]:{DEFAULT_PORT_HTTP}',
         ),
         None, None, True
     ),
@@ -395,10 +383,8 @@ TESTCASES_PARSE_URL = [
                 allow_defaults=True,
             ),
             exp_scheme='http',
-            exp_hostport='[2001:db8::7348-eth1]:{port}'.
-            format(port=DEFAULT_PORT_HTTP),
-            exp_url='http://[2001:db8::7348-eth1]:{port}'.
-            format(port=DEFAULT_PORT_HTTP),
+            exp_hostport=f'[2001:db8::7348-eth1]:{DEFAULT_PORT_HTTP}',
+            exp_url=f'http://[2001:db8::7348-eth1]:{DEFAULT_PORT_HTTP}',
         ),
         None, None, True
     ),
@@ -481,8 +467,7 @@ TESTCASES_PARSE_URL = [
             ),
             exp_scheme=f'{DEFAULT_SCHEME}',
             exp_hostport='[2001:db8::7348]:1234',
-            exp_url='{scheme}://[2001:db8::7348]:1234'.
-            format(scheme=DEFAULT_SCHEME),
+            exp_url=f'{DEFAULT_SCHEME}://[2001:db8::7348]:1234',
         ),
         None, None, True
     ),
@@ -797,8 +782,8 @@ TESTCASES_PYWBEM_REQUESTS_EXCEPTION = [
                         reason=urllib3.exceptions.ReadTimeoutError(
                             pool=DUMMY_POOL,
                             url='http://dummy',
-                            message="Read timed out. (read timeout={})".
-                            format(HTTP_CONNECT_TIMEOUT)))),
+                            message="Read timed out. (read timeout="
+                            f"{HTTP_CONNECT_TIMEOUT})"))),
                 conn=DUMMY_CONN_USING_HTTP,
             ),
             exp_exc_type=pywbem.ConnectionError,

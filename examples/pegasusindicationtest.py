@@ -145,8 +145,8 @@ class RunIndicationTest:
         self.repeat_loop = repeat_loop
         self.verbose = verbose
         if self.verbose:
-            print("Listener indication_destination_host IP address {}".
-                  format(self.indication_destination_host))
+            print("Listener indication_destination_host IP address "
+                  f"{self.indication_destination_host}")
 
         # Define WBEM server CIMClassName for test indication class
         self.indication_test_class_name = \
@@ -192,8 +192,7 @@ class RunIndicationTest:
                 self.create_subscription(self.server_id, sub_mgr)
 
         except Error as er:  # pylint: disable=invalid-name
-            print('Error {} communicating with WBEMServer {}'.
-                  format(er, self.conn))
+            print(f"Error {er} communicating with WBEMServer {self.conn}")
             sys.exit(1)
 
         # Run the test the number of times defined by repeat_loop
@@ -241,9 +240,9 @@ class RunIndicationTest:
         """
 
         # Create the destination instance
-        indication_dest_url = \
-            "http://{}:{}".format(self.indication_destination_host,
-                                    self.http_listener_port)
+        indication_dest_url = (
+            f"http://{self.indication_destination_host}:"
+            f"{self.http_listener_port}")
 
         destination = sub_mgr.add_destination(
             server_id, indication_dest_url,
@@ -260,9 +259,10 @@ class RunIndicationTest:
             server_id, filter_.path, destination_paths=destination.path)
 
         if self.verbose:
-            print("Subscription instances\n {0}\n{1}\n{2}".
-                  format(filter_.tomof(), destination.tomof(),
-                         subscriptions[0].tomof()))
+            print("Subscription instances:\n"
+                  f" {filter_.tomof()}\n"
+                  f"{destination.tomof()}\n"
+                  f"{subscriptions[0].tomof()}")
 
     def repeat_test_loop(self, repeat_loop):
         """
@@ -320,9 +320,9 @@ class RunIndicationTest:
             exp_seq_num = self.last_seq_num + 1
             if rcvd_seq_num != exp_seq_num:
                 missing_cnt = (rcvd_seq_num - 1) - self.last_seq_num
-                print('Missed {0} indications at {1}, last rcvd seq num={2}, '
-                      'exp seq num={2}'.format(missing_cnt, self.last_seq_num,
-                                               exp_seq_num))
+                print(f"Missed {missing_cnt} indications at "
+                      f"{self.last_seq_num}, last rcvd seq num={exp_seq_num}, "
+                      f"exp seq num={exp_seq_num}")
 
             self.last_seq_num = rcvd_seq_num
 
@@ -331,9 +331,8 @@ class RunIndicationTest:
 
         # pylint: disable=logging-format-interpolation
         self.listener.logger.info(
-            "Consumed CIM indication #{}: host={}\n{}".
-            format(self.received_indication_count, host,
-                   indication.tomof()))
+            f"Consumed CIM indication #{self.received_indication_count}: "
+            f"host={host}\n{indication.tomof()}")
 
     def display_pegasus_queue_info(self):
         """
@@ -344,16 +343,14 @@ class RunIndicationTest:
         insts = self.conn.EnumerateInstances(
             'PG_ListenerDestinationQueue', namespace='root/PG_Internal')
         for inst in insts:
-            print('ListenerDestinationName={}:\n   QueueFullDropped={} , '
-                  'RetryAttemptsExceeded={}, InQueue={}'
-                  .format(inst['ListenerDestinationName'],
-                          inst['QueueFullDroppedIndications'],
-                          inst['RetryAttemptsExceededIndications'],
-                          inst['CurrentIndications']))
+            print(f"ListenerDestinationName={inst['ListenerDestinationName']}:\n"
+                  f"   QueueFullDropped={inst['QueueFullDroppedIndications']}, "
+                  f"RetryAttemptsExceeded={inst['RetryAttemptsExceededIndications']}, "
+                  f"InQueue={inst['CurrentIndications']}")
 
             if self.verbose:
-                print("\nFull instance of OpenPegasus dest queue:\n{}".
-                      format(inst.tomof()))
+                print("\nFull instance of OpenPegasus dest queue:\n"
+                      f"{inst.tomof()}")
 
     def receive_expected_indications(self):
         """
@@ -407,10 +404,9 @@ class RunIndicationTest:
                     if elapsed_time.total_seconds() != 0:
                         ind_per_sec = self.received_indication_count / \
                             elapsed_time.total_seconds()
-                    print('Rcvd {} indications, time={} sec, {:.1f} '
-                          'indications/sec.'
-                          .format(self.received_indication_count,
-                                  elapsed_time.total_seconds(), ind_per_sec))
+                    print(f"Rcvd {self.received_indication_count} indications, "
+                          f"time={elapsed_time.total_seconds()} sec, "
+                          f"{ind_per_sec:.1f} indications/sec.")
                     return_flag = True
                     break
 
@@ -447,19 +443,16 @@ class RunIndicationTest:
                         elapsed_time = 0
                         ind_per_sec = 0
 
-                    print('Nothing received for {} sec: received={} '
-                          'time={} sec: {:.2f} per sec. stall ctr={}'.
-                          format(stalled_time.total_seconds(),
-                                 self.received_indication_count,
-                                 elapsed_time,
-                                 ind_per_sec,
-                                 stall_ctr))
+                    print(f"Nothing received for {stalled_time.total_seconds()} sec: "
+                          f"received={self.received_indication_count} "
+                          f"time={elapsed_time} sec: {ind_per_sec:.2f} per sec. "
+                          f"stall ctr={stall_ctr}")
                     break
 
                 # NOTE: Leave this in until we resolve issue # 3022
-                print("waiting {:.2f} sec. with no indications rcvd. count {}".
-                      format(stalled_time.total_seconds(),
-                             self.received_indication_count))
+                print(f"waiting {stalled_time.total_seconds():.2f} sec. "
+                      "with no indications rcvd. count "
+                      f"{self.received_indication_count}")
 
         # Because this can be a long loop, catch CTRL-C
         except KeyboardInterrupt:
@@ -472,11 +465,9 @@ class RunIndicationTest:
             if self.received_indication_count != self.requested_indications:
                 rcvd_ind_strs = [ind.tomof() for
                                  ind in self.received_indications]
-                print('ERROR. Extra indications received {}, requested {}, '
-                      'Received indications:\n{}'.
-                      format(self.received_indication_count,
-                             self.requested_indications,
-                             "\n".join(rcvd_ind_strs)))
+                print(f"ERROR. Extra indications received {self.received_indication_count}, "
+                      f"requested {self.requested_indications}, "
+                      f"Received indications:\n{'\n'.join(rcvd_ind_strs)}")
         return return_flag
 
     def send_request_for_indications(self, class_name, indication_count):
@@ -497,23 +488,22 @@ class RunIndicationTest:
 
             if self.verbose:
                 print("Send InvokeMethod to WBEM Server:")
-                print("  class_name {0} method {1} for {2} indications".
-                      format(class_name, send_indication_method,
-                             indication_count))
+                print(f"  class_name {class_name} method "
+                      f"{send_indication_method} for {indication_count} "
+                      "indications")
 
             result = self.conn.InvokeMethod(
                 send_indication_method, class_name,
                 [(send_count_param, Uint32(indication_count))])
 
             if result[0] != 0:
-                print('Error: SendTestIndicationCount Method error. '
-                      'Nonzero return from InvokeMethod={}'
-                      .format(result[0]))
+                print("Error: SendTestIndicationCount Method error. "
+                      f"Nonzero return from InvokeMethod={result[0]}")
                 return False
             return True
 
         except Error as er:  # pylint: disable=invalid-name
-            print(f'Error: Indication Method exception {er}')
+            print(f"Error: Indication Method exception {er}")
             return False
 
     @staticmethod
@@ -550,34 +540,34 @@ def connect_wbem_server(wbem_server_url, username, password, timeout):
     try:
         conn.GetQualifier('Association')
     except ConnectionError as cd:
-        print("Connection Error: {}. Connection to wbemserver {} failed".
-              format(cd, wbem_server_url))
+        print(f"Connection Error: {cd}. Connection to wbemserver "
+              f"{wbem_server_url} failed")
         sys.exit(1)
     except AuthError as ae:
-        print("Auth Error: {}. Connection to wbemserver {} failed".
-              format(ae, wbem_server_url))
+        print(f"Auth Error: {ae}. Connection to wbemserver {wbem_server_url} "
+              "failed")
         sys.exit(1)
     except Error:
         # Retest with EnumerateClassNames if Error received.
         try:
             conn.EnumerateClassNames()
         except Error as er1:
-            print("Error: {}. Connection to wbemserver {} failed".
-                  format(er1, wbem_server_url))
+            print(f"Error: {er1}. Connection to wbemserver {wbem_server_url} "
+                  "failed")
             sys.exit(1)
     return conn
 
 
 def usage(script_name):  # pylint: disable=missing-function-docstring
-    return """
+    return f"""
 This example tests pywbem capability to create subscriptions in a WBEM server
 and send indications from that server to a WBEM indication listener in
 multiple environments.
 
-{} creates a pywbem indication listener using the host name/IP address defined
-by <dest_host> argument, <--port> and an indication subscription to the server
-defined by <server-url> with listener destination address defined by
-<--dest_host> and <--port> options.
+{script_name} creates a pywbem indication listener using the host name/IP
+address defined by <dest_host> argument, <--port> and an indication subscription
+to the server defined by <server-url> with listener destination address defined
+by <--dest_host> and <--port> options.
 
 It then sends a method to a OpenPegasus specific provider in the WBEM Server to
 request that the server generate the number of indications defined by
@@ -598,29 +588,29 @@ This test only works with OpenPegasus because it uses an OpenPegasus
 specific CIM class (Test_IndicationProviderClass) and provider to send
 the indications.
 
-""".format(script_name)
+"""
 
 
 def examples(script_name):  # pylint: disable=missing-function-docstring
-    examples_txt = """
+    examples_txt = f"""
 EXAMPLES:
 Simple wbem server in same network as client and using loopback:
-    {0} localhost
+    {script_name} localhost
     Tests with localhost as WBEM server on same host as pywbem using default
     listener port, etc. and listener port 5000
 
   Network on another network (ex. Docker container)
-    {0} localhost:15988 -d 192.168.4.44
+    {script_name} localhost:15988 -d 192.168.4.44
     Tests with localhost:15988 as WBEM server (ex. in Docker container)
     and 192.4.44 as IP address of listener that is availiable to WBEM
     server in the container.
 
   Network on network and listener IP address constrained
-    {0} localhost:15988 -d 192.168.4.44 -l 192.168.4.44
+    {script_name} localhost:15988 -d 192.168.4.44 -l 192.168.4.44
     Tests with localhost:15988 as WBEM server (ex. in Docker container)
     and 192.4.44 as IP address of listener that is availiable to WBEM
     server in the container and listener IP bound to IP 192.168.4.44
-""".format(script_name)
+"""
     return examples_txt
 
 
@@ -704,8 +694,8 @@ def main():  # pylint: disable=too-many-branches
     log_file_name = f"{basename}.log" if args.log else None
     if args.log:
         if args.verbose:
-            print("Configure pywbem logger to files: requests={}, "
-                  "indications={}".format('pywbem.log', log_file_name))
+            print("Configure pywbem logger to files: requests=pywbem.log, "
+                  f"indications={log_file_name}")
         configure_logger('all', log_dest='file', detail_level='all',
                          connection=True)
 

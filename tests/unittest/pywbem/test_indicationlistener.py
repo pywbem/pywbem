@@ -618,15 +618,14 @@ def process_indication(indication, host):
         if send_count != RCV_COUNT:
             print("Error in process_indication(): Assertion error: "
                   "Unexpected SequenceNumber in received indication: "
-                  "got {}, expected {}".format(send_count, RCV_COUNT))
+                  f"got {send_count}, expected {RCV_COUNT}")
             sys.stdout.flush()
             RCV_ERRORS = True
 
         RCV_COUNT += 1
 
     except Exception as exc:  # pylint: disable=broad-except
-        print("Error in process_indication(): {}: {}".
-              format(exc.__class__.__name__, exc))
+        print(f"Error in process_indication(): {exc.__class__.__name__}: {exc}")
         sys.stdout.flush()
         RCV_ERRORS = True
 
@@ -727,8 +726,8 @@ def test_WBEMListener_send_indications(send_count):
                          "indication #%s", i)
 
             if response.status_code != 200:
-                msg = ("Testcase sending indication #{} failed with HTTP "
-                       "status {}".format(i, response.status_code))
+                msg = (f"Testcase sending indication #{i} failed with HTTP "
+                       f"status {response.status_code}")
                 LOGGER.error(msg)
                 raise AssertionError(msg)
 
@@ -739,20 +738,21 @@ def test_WBEMListener_send_indications(send_count):
             "Errors occurred in process_indication(), as printed to stdout"
 
         assert send_count == RCV_COUNT, \
-            "Mismatch between total send count {} and receive count {}". \
-            format(send_count, RCV_COUNT)
+            f"Mismatch between total send count {send_count} and receive " \
+            f"count {RCV_COUNT}"
 
     finally:
 
         endtime = timer.elapsed_sec()
         per_sec = send_count / endtime
 
-        LOGGER.debug("SUMMARY: Sent %d indications in %d sec or %.2f ind/sec",
-                     send_count, endtime, per_sec)
+        msg = (f"SUMMARY: Sent {send_count} indications in {endtime} sec "
+               f"or {per_sec:.2f} ind/sec")
+
+        LOGGER.debug(msg)
 
         if VERBOSE_SUMMARY:
-            print("\nSSUMMARY: Sent {} indications in {} sec or {:.2f} ind/sec".
-                  format(send_count, endtime, per_sec))
+            print(f"\n{msg}")
             sys.stdout.flush()
 
         LOGGER.debug("Start listener stop")

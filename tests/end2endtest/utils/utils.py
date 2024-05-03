@@ -108,21 +108,20 @@ class ServerObjectCache:
         list_dict = self._server_dict[server_url]
         if list_name in list_dict:
             raise KeyError(
-                "List {0!r} for server {1!r} is already in the cache".
-                format(list_name, server_url))
+                f"List {list_name!r} for server {server_url!r} is already "
+                "in the cache")
         list_dict[list_name] = deepcopy(obj_list)
 
     def del_list(self, server_url, list_name):
         """Delete list_name"""
         if server_url not in self._server_dict:
             raise KeyError(
-                "Server {0!r} is not in the cache".
-                format(server_url))
+                f"Server {server_url!r} is not in the cache")
         list_dict = self._server_dict[server_url]
         if list_name not in list_dict:
             raise KeyError(
-                "List {0!r} for server {1!r} is not in the cache".
-                format(list_name, server_url))
+                f"List {list_name!r} for server {server_url!r} is not in "
+                "the cache")
         del list_dict[list_name]
         if not list_dict:
             del self._server_dict[server_url]
@@ -131,13 +130,12 @@ class ServerObjectCache:
         """Get the list named list_name"""
         if server_url not in self._server_dict:
             raise KeyError(
-                "Server {0!r} is not in the cache".
-                format(server_url))
+                f"Server {server_url!r} is not in the cache")
         list_dict = self._server_dict[server_url]
         if list_name not in list_dict:
             raise KeyError(
-                "List {0!r} for server {1!r} is not in the cache".
-                format(list_name, server_url))
+                f"List {list_name!r} for server {server_url!r} is not in "
+                "the cache")
         return list_dict[list_name]
 
     def has_list(self, server_url, list_name):
@@ -204,10 +202,9 @@ def instance_of(conn, obj_list, classname):
         except CIMError as exc:
             if exc.status_code == CIM_ERR_INVALID_CLASS:
                 raise AssertionError(
-                    "Server {0} at {1}: Class {2!r} does not exist in "
-                    "namespace {3!r}".
-                    format(conn.es_server.nickname, conn.url,
-                           classname, namespace))
+                    f"Server {conn.es_server.nickname} at {conn.url}: "
+                    f"Class {classname!r} does not exist in "
+                    f"namespace {namespace!r}")
             conn.raise_as_assertion_error(exc, 'EnumerateInstanceNames')
         except Error as exc:
             conn.raise_as_assertion_error(exc, 'EnumerateInstanceNames')
@@ -276,11 +273,10 @@ class WBEMConnectionAsserted(WBEMConnection):
         parm_list.extend([f"{k}={v!r}" for k, v in kwargs.items()])
         parm_str = ", ".join(parm_list)
         return AssertionError(
-            "Server {0} at {1}: WBEMConnection.{2}() failed and raised "
-            "{3} - {4}. "
-            "Parameters: ({5})".
-            format(self.es_server.nickname, self.url, funcname,
-                   exc.__class__.__name__, exc, parm_str))
+            f"Server {self.es_server.nickname} at {self.url}: "
+            f"WBEMConnection.{funcname}() failed and raised "
+            f"{exc.__class__.__name__} - {exc}. "
+            f"Parameters: ({parm_str})")
 
     def EnumerateInstances(self, *args, **kwargs):
         # pylint: disable=arguments-differ
@@ -456,11 +452,9 @@ def server_func_asserted(server, funcname, *args, **kwargs):
         parm_list.extend([f"{k}={v!r}" for k, v in kwargs.items()])
         parm_str = ", ".join(parm_list)
         raise AssertionError(
-            "Server {0} at {1}: Calling WBEMServer.{2}() failed and "
-            "raised {3} - {4}. "
-            "Parameters: ({5})".
-            format(server.conn.es_server.nickname, server.conn.url,
-                   funcname, exc.__class__.__name__, exc, parm_str))
+            f"Server {server.conn.es_server.nickname} at {server.conn.url}: "
+            f"Calling WBEMServer.{funcname}() failed and raised "
+            f"{exc.__class__.__name__} - {exc}. Parameters: ({parm_str})")
 
 
 def server_prop_asserted(server, propname):

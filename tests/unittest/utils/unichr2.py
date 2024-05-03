@@ -44,6 +44,6 @@ def unichr2(cp):
     offset = cp - MAX_UCS2_CP - 1
     surr1 = (offset >> 10) + 0xD800
     surr2 = (offset & 0b1111111111) + 0xDC00
-    lit = 'u"\\u{:04X}\\u{:04X}"'.format(surr1, surr2)
+    lit = f'u"\\u{surr1:04X}\\u{surr2:04X}"'
     uchr = eval(lit)  # pylint: disable=eval-used
     return uchr

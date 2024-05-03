@@ -247,7 +247,7 @@ class ResolverMixin:  # pylint: disable=too-few-public-methods
                                 superclass.classname))
             else:
                 # This is our programming error
-                assert True, "Invalid Type {}" .format(type(super_obj))
+                assert True, f"Invalid Type {type(super_obj)}"
 
             self._set_new_object(new_obj, super_obj,
                                  new_class,

@@ -321,7 +321,7 @@ class TestSubMgrClass(BaseMethodsForTests):
         sm = "test_create_delete_subscription"
         server = WBEMServer(self.conn)
 
-        listener_url = '{}:{}'.format(self.conn.url, 50000)
+        listener_url = f'{self.conn.url}:{50000}'
 
         with WBEMSubscriptionManager(subscription_manager_id=sm) as sub_mgr:
 
@@ -412,7 +412,7 @@ class TestSubMgrClass(BaseMethodsForTests):
         sm = "test_create_delete_subscription"
         server = WBEMServer(self.conn)
 
-        listener_url = '{}:{}'.format(self.conn.url, 50000)
+        listener_url = f'{self.conn.url}:{50000}'
         # Create a single not_owned subscription
         with WBEMSubscriptionManager(subscription_manager_id=sm) as sub_mgr:
             server_id = sub_mgr.add_server(server)
@@ -463,7 +463,7 @@ class TestSubMgrClass(BaseMethodsForTests):
         sm = "test_subscription_object_recovery"
         server = WBEMServer(self.conn)
 
-        listener_url = '{}:{}'.format(self.conn.url, 50000)
+        listener_url = f'{self.conn.url}:{50000}'
 
         submgr1 = WBEMSubscriptionManager(subscription_manager_id=sm)
         server_id1 = submgr1.add_server(server)

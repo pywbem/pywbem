@@ -103,8 +103,6 @@ typing-extensions>=4.0.0; python_version <= '3.10'
 #   pylint 2.15.0 depends on mccabe >=0.6,<0.8 (python 3.11)
 #                 and on astroid>=2.12.4,<=2.14.0-dev0
 #   pylint 3.0.1 depends on mccabe >=0.6,<0.8
-#   flake8 3.8.0 depends on mccabe<0.7 and >=0.6
-#   flake8 5.0.0 depends on mccabe >=0.7.0,<0.8.0
 #   flake8 7.0.0 depends on mccabe >=0.7.0,<0.8.0
 flake8>=7.0.0
 mccabe>=0.7.0

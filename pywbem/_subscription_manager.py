@@ -1402,8 +1402,8 @@ class WBEMSubscriptionManager:
             if name_prop and name_prop.value == name:
                 raise CIMError(
                     CIM_ERR_ALREADY_EXISTS,
-                    "Listener destination instance with Name='{}' already "
-                    "exists: {}".format(name, inst.path))
+                    f"Listener destination instance with Name='{name}' already "
+                    f"exists: {inst.path}")
 
         if owned:
             # If an owned destination instance for the same destination and
@@ -1501,8 +1501,8 @@ class WBEMSubscriptionManager:
             if name_prop and name_prop.value == name:
                 raise CIMError(
                     CIM_ERR_ALREADY_EXISTS,
-                    "Filter instance with Name='{0}' already exists: {1}".
-                    format(name, inst.path))
+                    f"Filter instance with Name='{name}' already exists: "
+                    f"{inst.path}")
         filter_path = server.conn.CreateInstance(
             filter_inst, namespace=interop_ns)
         filter_inst = server.conn.GetInstance(filter_path)

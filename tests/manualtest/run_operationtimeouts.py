@@ -131,8 +131,7 @@ class ServerTimeoutTest(ClientTest):
         execution_time = None
 
         if self.debug:
-            print('execute url_type={} timeout={} delay={}'.
-                  format(url, timeout, delay))
+            print(f'execute url_type={url} timeout={timeout} delay={delay}')
 
         err_flag = ""
         opttimer = ElapsedTimer()
@@ -148,8 +147,8 @@ class ServerTimeoutTest(ClientTest):
             if delay > timeout:
                 err_flag = "Timeout Error: delay gt timeout"
                 if self.stop_on_err:
-                    self.fail('should not get good response for %delay > %s' %
-                              (delay, timeout))
+                    self.fail('should not get good response for '
+                              f'{delay} > {timeout}')
             if delay == timeout:
                 err_flag = "Good when timeout matches delay"
 
@@ -159,7 +158,7 @@ class ServerTimeoutTest(ClientTest):
             err_flag = "ConnectionError"
             execution_time = opttimer.elapsed_sec()
 
-            self.fail('{} exception {}'.format('Failed ConnectionError)', ce))
+            self.fail(f'Failed(ConnectionError) exception {ce}')
 
         # this exception tests against expected result. It terminates the
         # test only if the timeout is not expected
@@ -173,8 +172,7 @@ class ServerTimeoutTest(ClientTest):
             if delay < timeout:
                 err_flag = 'Error. delay < timeout'
                 if self.stop_on_err:
-                    self.fail('should not get timeout for %delay < %s' %
-                              (delay, timeout))
+                    self.fail(f'should not get timeout for {delay} < {timeout}')
             if delay == timeout:
                 err_flag = "Timeout when timeout matches delay"
 
@@ -184,19 +182,15 @@ class ServerTimeoutTest(ClientTest):
             execution_time = opttimer.elapsed_sec()
             request_result = 2
             if self.stop_on_err:
-                self.fail('{} exception {}'.format('Failed(Exception)', ec))
+                self.fail(f'Failed(Exception) exception {ec}')
 
         # generate table entry if verbose. This defines result for this
         # test
         if self.verbose:
             request_result_txt = ['Good Rtn', 'Timeout ', 'Failure']
 
-            print('%-12s %-7s %7d %5d %10.2f  %s' % (
-                url,
-                request_result_txt[request_result],
-                timeout, delay,
-                execution_time,
-                err_flag))
+            print(f'{url:-12s} {request_result_txt[request_result]:-7s} '
+                  f'{timeout:7d} {delay:5d} {execution_time:10.2f}  {err_flag}')
 
         return (request_result == 1)
 
@@ -208,9 +202,9 @@ class ServerTimeoutTest(ClientTest):
         for url_type in ['https', 'http']:
             if self.port:
                 if url_type == 'http':
-                    port = ":%s" % self.port
+                    port = f":{self.port}"
                 else:
-                    port = ":%s" % str(self.port + 1)
+                    port = f":{self.port + 1}"
             else:
                 port = ""
 
@@ -262,8 +256,8 @@ def parse_args(argv_):
         print('Complete test is in a single unittest function')
         print('')
         print('Usage:')
-        print('    %s [GEN_OPTS] URL [USERNAME%%PASSWORD [UT_OPTS '
-              '[UT_CLASS ...]]] ' % argv[0])
+        print(f'    {argv[0]} [GEN_OPTS] URL [USERNAME%%PASSWORD [UT_OPTS '
+              '[UT_CLASS ...]]] ')
         print('')
         print('Where:')
         print('    GEN_OPTS            General options (see below).')
@@ -335,7 +329,7 @@ def parse_args(argv_):
             args_['debug'] = True
             del argv[1:2]
         else:
-            print("Error: Unknown option: %s" % argv[1])
+            print(f"Error: Unknown option: {argv[1]}")
             sys.exit(1)
 
     args_['host'] = argv[1]
@@ -358,15 +352,15 @@ if __name__ == '__main__':
 
     if args['verbose'] in args:
         print("Using WBEM Server:")
-        print("  host: %s" % args['host'])
-        print("  username: %s" % args['username'])
+        print(f"  host: {args['host']}")
+        print(f"  username: {args['username']}")
         if args['password'] is not None:
-            print("  password: %s" % ("*" * len(args['password'])))
-        print("  maxtimeout: %s" % args['maxtimeout'])
-        print("  verbose: %s" % args['verbose'])
-        print("  stopOnErr: %s" % args['stopOnErr'])
-        print("  debug: %s" % args['debug'])
-        print("  port: %s" % args['port'])
+            print("  password: {}".format("*" * len(args['password'])))
+        print(f"  maxtimeout: {args['maxtimeout']}")
+        print(f"  verbose: {args['verbose']}")
+        print(f"  stopOnErr: {args['stopOnErr']}")
+        print(f"  debug: {args['debug']}")
+        print(f"  port: {args['port']}")
 
     # Note: unittest options are defined in separate args after
     # the url argument.

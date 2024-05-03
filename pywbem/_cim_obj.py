@@ -153,21 +153,14 @@ and for the :attr:`~pywbem.CIMClass.properties` attribute of
 The keys are always the property names, and the values are always
 :class:`~pywbem.CIMProperty` objects (at least when initializing classes).
 
-Before Python 3.6, intializing a dictionary (:class:`py:dict` or
-:class:`~py:collections.OrderedDict`) with keyword arguments caused the order of
-items to be lost before the dictionary was even initialized. With the Python
-versions supported by pywbem as of today, that problem no longer exists, so all
-of the following examples preserve the order of properties in the class:
+With the Python versions supported by pywbem as of today, the use of
+:class:`~py:collections.OrderedDict` is no longer needed because
+:class:`py:dict` preserves the order of items and also maintains the order of
+keyword init arguments.
+Therefore, all of the following arguments preserve the order of properties in
+the class created at the end:
 
 ::
-
-    # Using an OrderedDict object, initialized with keyword arguments:
-
-    c1_props = OrderedDict(
-        Prop1=CIMProperty('Prop1', value='abc'),
-        Prop2=CIMProperty('Prop2', value=None, type='string'),
-    )
-
 
     # Using a dict object, initialized with keyword arguments:
 
@@ -191,14 +184,6 @@ of the following examples preserve the order of properties in the class:
         CIMProperty('Prop1', value='abc'),
         CIMProperty('Prop2', value=None, type='string'),
     ]
-
-
-    # Using an OrderedDict object, initialized with list of tuple(key,value):
-
-    c1_props = OrderedDict([
-        ('Prop1', CIMProperty('Prop1', value='abc')),
-        ('Prop2', CIMProperty('Prop2', value=None, type='string')),
-    ])
 
 
     # Using a list of tuple(key,value):
@@ -272,13 +257,12 @@ WBEM_URI_INSTANCEPATH_REGEXP = re.compile(
 _KB_NOT_QUOTED = r'[^,"\'\\]+'
 _KB_SINGLE_QUOTED = r"'(?:[^'\\]|\\.)*'"
 _KB_DOUBLE_QUOTED = r'"(?:[^"\\]|\\.)*"'
-_KB_VAL = r'(?:{}|{}|{})'.format(
-    _KB_NOT_QUOTED, _KB_SINGLE_QUOTED, _KB_DOUBLE_QUOTED)
+_KB_VAL = fr'(?:{_KB_NOT_QUOTED}|{_KB_SINGLE_QUOTED}|{_KB_DOUBLE_QUOTED})'
 
 # To get all repetitions, capture a repeated group instead of repeating a
 # capturing group: https://www.regular-expressions.info/captureall.html
 WBEM_URI_KEYBINDINGS_REGEXP = re.compile(
-    r'^(\w+={0})((?:,\w+={0})*)$'.format(_KB_VAL),
+    fr'^(\w+={_KB_VAL})((?:,\w+={_KB_VAL})*)$',
     flags=(re.UNICODE | re.IGNORECASE))
 
 WBEM_URI_KB_FINDALL_REGEXP = re.compile(
@@ -349,8 +333,7 @@ class _DictView:
         return reversed(list(iter(self)))
 
     def __repr__(self):
-        return "{t}({d!r})".format(
-            t=self.__class__.__name__, d=self._dict)
+        return f"{self.__class__.__name__}({self._dict!r})"
 
 
 class propvalue_values(_DictView, ValuesView):
@@ -511,7 +494,7 @@ def _mof_escaped(strvalue):
     # The generic code would be (not skipping already handled chars):
     #     for cp in range(1, 32):
     #         c = chr(cp)
-    #         esc = '\\x{0:04X}'.format(cp)
+    #         esc = f'\\x{cp:04X}'
     #         escaped_str = escaped_str.replace(c, esc)
     escaped_str = escaped_str.\
         replace('\u0001', '\\x0001').\

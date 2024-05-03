@@ -32,11 +32,11 @@ class RegexpMixin:
         Raises:
             AssertionError if not matched
           """
-        assert re.search(pattern, text), \
-            "String text does not contain regexp pattern\n" \
-            "    text:    %r\n" \
-            "    pattern: %r\n" \
-            "%s" % (text, pattern, msg)
+        assert re.search(pattern, text), (
+            "String text does not contain regexp pattern\n"
+            f"    text:    {text!r}\n"
+            f"    pattern: {pattern!r}\n"
+            f"{msg}")
 
     @staticmethod
     def assert_regexp_matches(text, pattern, msg=None):
@@ -51,11 +51,11 @@ class RegexpMixin:
         Raises:
             AssertionError if not matched
           """
-        assert re.match(pattern, text), \
-            "String text does not match regexp pattern\n" \
-            "    text:    %r\n" \
-            "    pattern: %r\n" \
-            "%s" % (text, pattern, msg)
+        assert re.match(pattern, text), (
+            "String text does not match regexp pattern\n"
+            f"    text:    {text!r}\n"
+            f"    pattern: {pattern!r}\n"
+            f"{msg}")
 
 
 class FileMixin:
@@ -66,13 +66,13 @@ class FileMixin:
     def assert_file_exists(filename):
         """Test assert file exists"""
         assert os.path.exists(filename), \
-            "File does not exist but should: %s" % filename
+            f"File does not exist but should: {filename}"
 
     @staticmethod
     def assert_file_not_exists(filename):
         """Test assert file exists but should not"""
         assert not os.path.exists(filename), \
-            "File exists but should not: %s" % filename
+            f"File exists but should not: {filename}"
 
 
 class CIMObjectMixin:
@@ -117,7 +117,7 @@ class CIMObjectMixin:
         Verify that two CIMClass objects are equal.
         """
         assert act_class.classname == exp_class.classname
-        context = "class %s" % act_class.classname
+        context = f"class {act_class.classname}"
         assert act_class.superclass == exp_class.superclass
         self.assert_CIMProperty_dict(
             act_class.properties, exp_class.properties, context)
@@ -132,11 +132,11 @@ class CIMObjectMixin:
         """
 
         self.assert_dict_keys(act_properties, exp_properties,
-                              "%s, property names" % context)
+                              f"{context}, property names")
         for propname in act_properties:
             self.assert_CIMProperty_obj(
                 act_properties[propname], exp_properties[propname],
-                "{}, property {}".format(context, propname))
+                f"{context}, property {propname}")
 
     def assert_CIMMethod_dict(self, act_methods, exp_methods, context):
         """
@@ -144,11 +144,11 @@ class CIMObjectMixin:
         """
 
         self.assert_dict_keys(act_methods, exp_methods,
-                              "%s, method names" % context)
+                              f"{context}, method names")
         for methname in act_methods:
             self.assert_CIMMethod_obj(
                 act_methods[methname], exp_methods[methname],
-                "{}, method {}".format(context, methname))
+                f"{context}, method {methname}")
 
     def assert_CIMParameter_dict(self, act_parameters, exp_parameters, context):
         """
@@ -156,11 +156,11 @@ class CIMObjectMixin:
         """
 
         self.assert_dict_keys(act_parameters, exp_parameters,
-                              "%s, parameter names" % context)
+                              f"{context}, parameter names")
         for parmname in act_parameters:
             self.assert_CIMParameter_obj(
                 act_parameters[parmname], exp_parameters[parmname],
-                "{}, parameter {}".format(context, parmname))
+                f"{context}, parameter {parmname}")
 
     def assert_CIMQualifier_dict(self, act_qualifiers, exp_qualifiers, context):
         """
@@ -168,46 +168,46 @@ class CIMObjectMixin:
         """
 
         self.assert_dict_keys(act_qualifiers, exp_qualifiers,
-                              "%s, qualifier names" % context)
+                              f"{context}, qualifier names")
         for qualname in act_qualifiers:
             self.assert_CIMQualifier_obj(
                 act_qualifiers[qualname], exp_qualifiers[qualname],
-                "{}, qualifier {}".format(context, qualname))
+                f"{context}, qualifier {qualname}")
 
     def assert_CIMProperty_obj(self, act_property, exp_property, context):
         """
         Verify that two CIMProperty declaration objects are equal.
         """
 
-        assert act_property.name == exp_property.name, \
-            "%s (dict key), name attribute: %s (expected: %s)" % \
-            (context, act_property.name, exp_property.name)
-        assert act_property.value == exp_property.value, \
-            "%s, value attribute: %s (expected: %s)" % \
-            (context, act_property.value, exp_property.value)
-        assert act_property.type == exp_property.type, \
-            "%s, type attribute: %s (expected: %s)" % \
-            (context, act_property.type, exp_property.type)
-        assert act_property.reference_class == exp_property.reference_class, \
-            "%s, reference_class attribute: %s (expected: %s)" % \
-            (context,
-             act_property.reference_class, exp_property.reference_class)
-        assert act_property.embedded_object == exp_property.embedded_object, \
-            "%s, embedded_object attribute: %s (expected: %s)" % \
-            (context,
-             act_property.embedded_object, exp_property.embedded_object)
-        assert act_property.is_array == exp_property.is_array, \
-            "%s, is_array attribute: %s (expected: %s)" % \
-            (context, act_property.is_array, exp_property.is_array)
-        assert act_property.array_size == exp_property.array_size, \
-            "%s, array_size attribute: %s (expected: %s)" % \
-            (context, act_property.array_size, exp_property.array_size)
-        assert act_property.class_origin == exp_property.class_origin, \
-            "%s, class_origin attribute: %s (expected: %s)" % \
-            (context, act_property.class_origin, exp_property.class_origin)
-        assert act_property.propagated == exp_property.propagated, \
-            "%s, propagated attribute: %s (expected: %s)" % \
-            (context, act_property.propagated, exp_property.propagated)
+        assert act_property.name == exp_property.name, (
+            f"{context} (dict key), name attribute: {act_property.name} "
+            f"(expected: {exp_property.name})")
+        assert act_property.value == exp_property.value, (
+            f"{context}, value attribute: {act_property.value} "
+            f"(expected: {exp_property.value})")
+        assert act_property.type == exp_property.type, (
+            f"{context}, type attribute: {act_property.type} "
+            f"(expected: {exp_property.type})")
+        assert act_property.reference_class == exp_property.reference_class, (
+            f"{context}, "
+            f"reference_class attribute: {act_property.reference_class} "
+            f"(expected: {exp_property.reference_class})")
+        assert act_property.embedded_object == exp_property.embedded_object, (
+            f"{context}, "
+            f"embedded_object attribute: {act_property.embedded_object} "
+            f"(expected: {exp_property.embedded_object})")
+        assert act_property.is_array == exp_property.is_array, (
+            f"{context}, is_array attribute: {act_property.is_array} "
+            f"(expected: {exp_property.is_array})")
+        assert act_property.array_size == exp_property.array_size, (
+            f"{context}, array_size attribute: {act_property.array_size} "
+            f"(expected: {exp_property.array_size})")
+        assert act_property.class_origin == exp_property.class_origin, (
+            f"{context}, class_origin attribute: {act_property.class_origin} "
+            f"(expected: {exp_property.class_origin})")
+        assert act_property.propagated == exp_property.propagated, (
+            f"{context}, propagated attribute: {act_property.propagated} "
+            f"(expected: {exp_property.propagated})")
         self.assert_CIMQualifier_dict(
             act_property.qualifiers, exp_property.qualifiers, context)
 
@@ -216,18 +216,18 @@ class CIMObjectMixin:
         Verify that two CIMMethod objects are equal.
         """
 
-        assert act_method.name == exp_method.name, \
-            "%s (dict key), name attribute: %s (expected: %s)" % \
-            (context, act_method.name, exp_method.name)
-        assert act_method.return_type == exp_method.return_type, \
-            "%s, return_type attribute: %s (expected: %s)" % \
-            (context, act_method.return_type, exp_method.return_type)
-        assert act_method.class_origin == exp_method.class_origin, \
-            "%s, class_origin attribute: %s (expected: %s)" % \
-            (context, act_method.class_origin, exp_method.class_origin)
-        assert act_method.propagated == exp_method.propagated, \
-            "%s, propagated attribute: %s methodmethod (expected: %s)" % \
-            (context, act_method.propagated, exp_method.propagated)
+        assert act_method.name == exp_method.name, (
+            f"{context} (dict key), name attribute: {act_method.name} "
+            f"(expected: {exp_method.name})")
+        assert act_method.return_type == exp_method.return_type, (
+            f"{context}, return_type attribute: {act_method.return_type} "
+            f"(expected: {exp_method.return_type})")
+        assert act_method.class_origin == exp_method.class_origin, (
+            f"{context}, class_origin attribute: {act_method.class_origin} "
+            f"(expected: {exp_method.class_origin})")
+        assert act_method.propagated == exp_method.propagated, (
+            f"{context}, propagated attribute: {act_method.propagated} "
+            f"(expected: {exp_method.propagated})")
         self.assert_CIMParameter_dict(
             act_method.parameters, exp_method.parameters, context)
         self.assert_CIMQualifier_dict(
@@ -238,22 +238,22 @@ class CIMObjectMixin:
         Verify that two CIMParameter objects are equal.
         """
 
-        assert act_parameter.name == exp_parameter.name, \
-            "%s (dict key), name attribute: %s (expected: %s)" % \
-            (context, act_parameter.name, exp_parameter.name)
-        assert act_parameter.type == exp_parameter.type, \
-            "%s, type attribute: %s (expected: %s)" % \
-            (context, act_parameter.type, exp_parameter.type)
-        assert act_parameter.reference_class == exp_parameter.reference_class, \
-            "%s, reference_class attribute: %s (expected: %s)" % \
-            (context,
-             act_parameter.reference_class, exp_parameter.reference_class)
-        assert act_parameter.is_array == exp_parameter.is_array, \
-            "%s, is_array attribute: %s (expected: %s)" % \
-            (context, act_parameter.is_array, exp_parameter.is_array)
-        assert act_parameter.array_size == exp_parameter.array_size, \
-            "%s, array_size attribute: %s (expected: %s)" % \
-            (context, act_parameter.array_size, exp_parameter.array_size)
+        assert act_parameter.name == exp_parameter.name, (
+            f"{context} (dict key), name attribute: {act_parameter.name} "
+            f"(expected: {exp_parameter.name})")
+        assert act_parameter.type == exp_parameter.type, (
+            f"{context}, type attribute: {act_parameter.type} "
+            f"(expected: {exp_parameter.type})")
+        assert act_parameter.reference_class == exp_parameter.reference_class, (
+            f"{context}, "
+            f"reference_class attribute: {act_parameter.reference_class} "
+            f"(expected: {exp_parameter.reference_class})")
+        assert act_parameter.is_array == exp_parameter.is_array, (
+            f"{context}, is_array attribute: {act_parameter.is_array} "
+            f"(expected: {exp_parameter.is_array})")
+        assert act_parameter.array_size == exp_parameter.array_size, (
+            f"{context}, array_size attribute: {act_parameter.array_size} "
+            f"(expected: {exp_parameter.array_size})")
         self.assert_CIMQualifier_dict(
             act_parameter.qualifiers, exp_parameter.qualifiers, context)
 
@@ -263,30 +263,30 @@ class CIMObjectMixin:
         Verify that two CIMQualifier objects are equal.
         """
 
-        assert act_qualifier.name == exp_qualifier.name, \
-            "%s (dict key), name attribute: %s (expected: %s)" % \
-            (context, act_qualifier.name, exp_qualifier.name)
-        assert act_qualifier.value == exp_qualifier.value, \
-            "%s, value attribute: %s (expected: %s)" % \
-            (context, act_qualifier.value, exp_qualifier.value)
-        assert act_qualifier.type == exp_qualifier.type, \
-            "%s, type attribute: %s (expected: %s)" % \
-            (context, act_qualifier.type, exp_qualifier.type)
-        assert act_qualifier.propagated == exp_qualifier.propagated, \
-            "%s, propagated attribute: %s (expected: %s)" % \
-            (context, act_qualifier.propagated, exp_qualifier.propagated)
-        assert act_qualifier.overridable == exp_qualifier.overridable, \
-            "%s, overridable attribute: %s (expected: %s)" % \
-            (context, act_qualifier.overridable, exp_qualifier.overridable)
-        assert act_qualifier.tosubclass == exp_qualifier.tosubclass, \
-            "%s, tosubclass attribute: %s (expected: %s)" % \
-            (context, act_qualifier.tosubclass, exp_qualifier.tosubclass)
-        assert act_qualifier.toinstance == exp_qualifier.toinstance, \
-            "%s, toinstance attribute: %s (expected: %s)" % \
-            (context, act_qualifier.toinstance, exp_qualifier.toinstance)
-        assert act_qualifier.translatable == exp_qualifier.translatable, \
-            "%s, translatable attribute: %s (expected: %s)" % \
-            (context, act_qualifier.translatable, exp_qualifier.translatable)
+        assert act_qualifier.name == exp_qualifier.name, (
+            f"{context} (dict key), name attribute: {act_qualifier.name} "
+            f"(expected: {exp_qualifier.name})")
+        assert act_qualifier.value == exp_qualifier.value, (
+            f"{context}, value attribute: {act_qualifier.value} "
+            f"(expected: {exp_qualifier.value})")
+        assert act_qualifier.type == exp_qualifier.type, (
+            f"{context}, type attribute: {act_qualifier.type} "
+            f"(expected: {exp_qualifier.type})")
+        assert act_qualifier.propagated == exp_qualifier.propagated, (
+            f"{context}, propagated attribute: {act_qualifier.propagated} "
+            f"(expected: {exp_qualifier.propagated})")
+        assert act_qualifier.overridable == exp_qualifier.overridable, (
+            f"{context}, overridable attribute: {act_qualifier.overridable} "
+            f"(expected: {exp_qualifier.overridable})")
+        assert act_qualifier.tosubclass == exp_qualifier.tosubclass, (
+            f"{context}, tosubclass attribute: {act_qualifier.tosubclass} "
+            f"(expected: {exp_qualifier.tosubclass})")
+        assert act_qualifier.toinstance == exp_qualifier.toinstance, (
+            f"{context}, toinstance attribute: {act_qualifier.toinstance} "
+            f"(expected: {exp_qualifier.toinstance})")
+        assert act_qualifier.translatable == exp_qualifier.translatable, (
+            f"{context}, translatable attribute: {act_qualifier.translatable} "
+            f"(expected: {exp_qualifier.translatable})")
 
     def assert_dict_keys(self, act_dict, exp_dict, context):
         """
@@ -297,11 +297,11 @@ class CIMObjectMixin:
         if act_keys != exp_keys:
             missing_keys = exp_keys - act_keys
             added_keys = act_keys - exp_keys
-            msg = "Different sets of %s" % context
+            msg = f"Different sets of {context}"
             if missing_keys:
-                msg += ", missing: %s" % list(missing_keys)
+                msg += f", missing: {list(missing_keys)}"
             if added_keys:
-                msg += ", added: %s" % list(added_keys)
+                msg += f", added: {list(added_keys)}"
             self.fail(msg)
 
 
@@ -326,5 +326,4 @@ def assert_copy(cpy, org):
         # Immutable
         assert cpy == org
     else:
-        raise TypeError("assert_copy() does not support type {}".
-                        format(type(org)))
+        raise TypeError(f"assert_copy() does not support type {type(org)}")

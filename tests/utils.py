@@ -53,10 +53,10 @@ def skip_if_moftab_regenerated():
             # The _mofparsetab and _moflextab files should not be auto-generated
             # in this case.
             pytest.fail("Cannot run this MOF testcase against an installed "
-                        "pywbem (version {0}, installed at {1}) "
-                        "because that installation does not contain the "
-                        "_mofparsetab.py or _moflextab.py files".
-                        format(pywbem.__version__, pywbem.__file__))
+                        f"pywbem (version {pywbem.__version__}, installed at "
+                        f"{pywbem.__file__}) because that installation does "
+                        "not contain the _mofparsetab.py or _moflextab.py "
+                        "files")
         else:
             # The _mofparsetab and _moflextab files will be auto-generated.
             return
@@ -126,8 +126,8 @@ def import_installed(module_name):
             ix = None
         if ix is not None:
             if test_installed == 'DEBUG':
-                print("Debug: Removing {} at index {} from module search "
-                      "path".format(dirpath, ix))
+                print(f"Debug: Removing {dirpath} at index {ix} from module "
+                      "search path")
             del sys.path[ix]
 
         # Move CWD to end. Reason is that when testing with an editable
@@ -141,28 +141,28 @@ def import_installed(module_name):
                 ix = sys.path.index(dirpath)
             except ValueError:
                 if test_installed == 'DEBUG':
-                    print("Debug: Appending {} to end of module search "
-                          "path".format(dirpath))
+                    print(f"Debug: Appending {dirpath} to end of module search "
+                          "path")
                 sys.path.append(dirpath)
                 break
             if ix == len(sys.path) - 1:
                 # it exists once at the end
                 break
             if test_installed == 'DEBUG':
-                print("Debug: Removing {} at index {} from module search "
-                      "path".format(dirpath, ix))
+                print(f"Debug: Removing {dirpath} at index {ix} from module "
+                      "search path")
             del sys.path[ix]
 
     if module_name not in sys.modules:
         module = __import__(module_name, level=0)  # only absolute imports
         if test_installed == 'DEBUG':
-            print("Debug: {0} module newly loaded from: {1}".
-                  format(module_name, module.__file__))
+            print(f"Debug: {module_name} module newly loaded from: "
+                  f"{module.__file__}")
     else:
         module = sys.modules[module_name]
         if test_installed == 'DEBUG':
-            print("Debug: {0} module was already loaded from: {1}".
-                  format(module_name, module.__file__))
+            print(f"Debug: {module_name} module was already loaded from: "
+                  f"{module.__file__}")
     return module
 
 

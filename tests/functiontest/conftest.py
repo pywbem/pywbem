@@ -42,7 +42,6 @@ using comment lines for informally stated conditions::
     - name: {tc_name}
       description: {tc_desc}
       ignore_test: true/false  # default: false
-      ignore_python_version: 2/3/null  # default: null
       ignore_debug_comparison: true/false  # default: false
       pywbem_request:
         {WBEMConnection_ctor_args}
@@ -246,8 +245,8 @@ class YamlFile(pytest.File):
                 try:
                     tc_name = testcase['name']
                 except KeyError:
-                    raise ClientTestError("Test case #%s does not have a "
-                                          "'name' attribute" % i + 1)
+                    raise ClientTestError(
+                        f"Test case #{i + 1} does not have a 'name' attribute")
                 if hasattr(YamlItem, 'from_parent'):
                     # pylint: disable=no-member
                     yield YamlItem.from_parent(
@@ -305,10 +304,10 @@ class YamlItem(pytest.Item):
         """
         exc = excinfo.value
         if isinstance(exc, ClientTestFailure):  # pylint: disable=no-else-return
-            return "Failure running test case: %s" % exc
+            return f"Failure running test case: {exc}"
         if isinstance(exc, ClientTestError):
-            return "Error in definition of test case: %s" % exc
-        return "Error: %s" % exc
+            return f"Error in definition of test case: {exc}"
+        return f"Error: {exc}"
 
     def reportinfo(self):
         """
@@ -316,7 +315,7 @@ class YamlItem(pytest.Item):
         about the test case. The third tuple item is a string that
         identifies the test case in a human readable way.
         """
-        return self.fspath, 0, "{} in {}".format(self.name, self.filepath)
+        return self.fspath, 0, f"{self.name} in {self.filepath}"
 
 
 class ClientTestError(Exception):
@@ -333,10 +332,10 @@ def show_diff(conn, expected, actual, display_text):
     """Display the actual and expected data"""
 
     print("Details for the following assertion error:")
-    print("- Expected result {}: {}".format(display_text, expected))
-    print("- Actual result {}: {}".format(display_text, actual))
+    print(f"- Expected result {display_text}: {expected}")
+    print(f"- Actual result {display_text}: {actual}")
     if conn is not None and conn.debug:
-        print("- HTTP response data: %r" % conn.last_raw_reply)
+        print(f"- HTTP response data: {conn.last_raw_reply!r}")
 
 
 def str_tuple(tuple_):
@@ -348,7 +347,7 @@ def str_tuple(tuple_):
 
     Returns str rep of tuple on None if tuple_ is None
     """
-    return 'NoneType' if tuple_ is None else '{}'.format(tuple_)
+    return 'NoneType' if tuple_ is None else f'{tuple_}'
 
 
 def obj(value, tc_name):
@@ -407,9 +406,9 @@ def obj(value, tc_name):
             try:
                 ctor_call = getattr(pywbem, ctor_name)
             except AttributeError:
-                raise ClientTestError("Unknown type specified in "
-                                      "'pywbem_object' attribute: %s" %
-                                      ctor_name)
+                raise ClientTestError(
+                    "Unknown type specified in "
+                    f"'pywbem_object' attribute: {ctor_name}")
             ctor_args = OrderedDict()
             for arg_name in value:
                 if arg_name == "pywbem_object":
@@ -452,8 +451,8 @@ def tc_getattr(tc_name, dict_, key, default=-1):
     except (KeyError, IndexError, TypeError):
         if default != -1:
             return default
-        raise ClientTestError("%r attribute missing in test case %s" %
-                              (key, tc_name))
+        raise ClientTestError(
+            f"{key!r} attribute missing in test case {tc_name}")
     return value
 
 
@@ -475,8 +474,8 @@ def tc_getattr_list(tc_name, dict_, key, default=-1):
     except KeyError:
         if default != -1:
             return default
-        raise ClientTestError("%r attribute missing in test case %s" %
-                              (key, tc_name))
+        raise ClientTestError(
+            f"{key!r} attribute missing in test case {tc_name}")
     return value
 
 
@@ -681,8 +680,8 @@ def assertXMLEqual(s_act, s_exp, entity):
         x_act = etree.XML(_ensure_bytes(s_act), parser=parser)
         x_exp = etree.XML(_ensure_bytes(s_exp), parser=parser)
     except etree.XMLSyntaxError as exc:
-        raise AssertionError("XML cannot be validated for %s: %s" %
-                             (entity, exc))
+        raise AssertionError(
+            f"XML cannot be validated for {entity}: {exc}")
 
     def sort_embedded(root, sort_elements):
         """
@@ -754,8 +753,8 @@ def assertXMLEqual(s_act, s_exp, entity):
     if not checker.check_output(ns_act, ns_exp, 0):
         diff = checker.output_difference(doctest.Example("", ns_exp),
                                          ns_act, 0)
-        raise AssertionError("XML is not as expected in %s: %s" %
-                             (entity, diff))
+        raise AssertionError(
+            f"XML is not as expected in {entity}: {diff}")
 
 
 def utf8_with_surrogate_issues(in_str):
@@ -791,17 +790,12 @@ def runtestcase(testcase):
     # tc_desc = tc_getattr(tc_name, testcase, "description", None)
     tc_ignore_test = tc_getattr(
         tc_name, testcase, "ignore_test", False)
-    tc_ignore_python_version = tc_getattr(
-        tc_name, testcase, "ignore_python_version", None)
     tc_ignore_debug_comparison = tc_getattr(
         tc_name, testcase, "ignore_debug_comparison", False)
 
     # Determine if this test case should be skipped
     if tc_ignore_test:
         pytest.skip("Test case has 'ignore_test' set")
-        return
-    if tc_ignore_python_version == 3:
-        pytest.skip("Test case has 'ignore_python_version' set")
         return
 
     pywbem_request = tc_getattr(tc_name, testcase, "pywbem_request")
@@ -829,8 +823,8 @@ def runtestcase(testcase):
             try:
                 callback_func = getattr(Callback(), callback_name)
             except AttributeError:
-                raise ClientTestError("Unknown exception callback: %s" %
-                                      callback_name)
+                raise ClientTestError(
+                    f"Unknown exception callback: {callback_name}")
             params = {
                 "text": callback_func
             }
@@ -876,7 +870,7 @@ def runtestcase(testcase):
         op_call = getattr(conn, op_name)
 
     except AttributeError:
-        raise ClientTestError("Unknown operation name: %s" % op_name)
+        raise ClientTestError(f"Unknown operation name: {op_name}")
 
     # Invoke the PyWBEM operation to be tested
     raised_exception = None
@@ -934,51 +928,45 @@ def runtestcase(testcase):
 
     if exp_exception is not None:
         if raised_exception is None:
-            raise AssertionError("Testcase %s: A %s exception was "
-                                 "expected to be raised by PyWBEM "
-                                 "operation %s, but no exception was "
-                                 "actually raised." %
-                                 (tc_name, exp_exception, op_name))
+            raise AssertionError(
+                f"Testcase {tc_name}: A {exp_exception} exception was "
+                f"expected to be raised by PyWBEM operation {op_name}, "
+                "but no exception was actually raised.")
         if raised_exception.__class__.__name__ != exp_exception:
-            raise AssertionError("Testcase %s: A %s exception was "
-                                 "expected to be raised by PyWBEM "
-                                 "operation %s, but a different "
-                                 "exception was actually raised:\n"
-                                 "%s\n" %
-                                 (tc_name, exp_exception, op_name,
-                                  raised_traceback_str))
+            raise AssertionError(
+                f"Testcase {tc_name}: A {exp_exception} exception was "
+                f"expected to be raised by PyWBEM operation {op_name}, "
+                "but a different exception was actually raised:\n"
+                f"{raised_traceback_str}\n")
         if isinstance(raised_exception,
                       (pywbem.CIMXMLParseError, pywbem.XMLParseError)):
             req = raised_exception.request_data  # pylint: disable=no-member
             if req != conn.last_raw_request:
-                raise AssertionError("Testcase %s: The %s exception raised by "
-                                     "PyWBEM operation %s has unexpected "
-                                     "CIM-XML request data:\n"
-                                     "%s\n"
-                                     "Expected CIM-XML request data:\n"
-                                     "%s\n" %
-                                     (tc_name,
-                                      raised_exception.__class__.__name__,
-                                      op_name, req, conn.last_raw_request))
+                raise AssertionError(
+                    f"Testcase {tc_name}: The "
+                    f"{raised_exception.__class__.__name__} exception "
+                    f"raised by PyWBEM operation {op_name} has unexpected "
+                    "CIM-XML request data:\n"
+                    f"{req}\n"
+                    "Expected CIM-XML request data:\n"
+                    f"{conn.last_raw_request}\n")
             resp = raised_exception.response_data  # pylint: disable=no-member
             if resp != conn.last_raw_reply:
-                raise AssertionError("Testcase %s: The %s exception raised by "
-                                     "PyWBEM operation %s has unexpected "
-                                     "CIM-XML response data:\n"
-                                     "%s\n"
-                                     "Expected CIM-XML response data:\n"
-                                     "%s\n" %
-                                     (tc_name,
-                                      raised_exception.__class__.__name__,
-                                      op_name, resp, conn.last_raw_reply))
+                raise AssertionError(
+                    f"Testcase {tc_name}: The "
+                    f"{raised_exception.__class__.__name__} exception "
+                    f"raised by PyWBEM operation {op_name} has unexpected "
+                    "CIM-XML response data:\n"
+                    f"{resp}\n"
+                    "Expected CIM-XML response data:\n"
+                    f"{conn.last_raw_reply}\n")
     else:
         if raised_exception is not None:
-            raise AssertionError("Testcase %s: No exception was "
-                                 "expected to be raised by PyWBEM "
-                                 "operation %s, but an exception was "
-                                 "actually raised:\n"
-                                 "%s\n" %
-                                 (tc_name, op_name, raised_traceback_str))
+            raise AssertionError(
+                f"Testcase {tc_name}: No exception was expected to be "
+                f"raised by PyWBEM operation {op_name}, but an exception was "
+                "actually raised:\n"
+                f"{raised_traceback_str}\n")
 
     # Validate HTTP request produced by PyWBEM
 
@@ -992,9 +980,9 @@ def runtestcase(testcase):
         for header_name in exp_headers:
             act_header = http_request.headers[header_name]
             exp_header = exp_headers[header_name]
-            assert act_header == exp_header, \
-                "Value of %s header in HTTP request is: %s " \
-                "(expected: %s)" % (header_name, act_header, exp_header)
+            assert act_header == exp_header, (
+                f"Value of {header_name} header in HTTP request is: "
+                f"{act_header} (expected: {exp_header})")
         exp_data = tc_getattr(tc_name, exp_http_request, "data", None)
         if exp_data:
             assertXMLEqual(http_request.body, exp_data, "HTTP request")
@@ -1031,9 +1019,9 @@ def runtestcase(testcase):
             assert stat.min_request_len == exp_request_len
 
     if exp_reply_len is not None:
-        assert exp_reply_len == conn.last_reply_len, \
-            "Reply lengths do not match. exp %s rcvd %s" % \
-            (exp_reply_len, conn.last_reply_len)
+        assert exp_reply_len == conn.last_reply_len, (
+            f"Reply lengths do not match. exp {exp_reply_len} "
+            f"rcvd {conn.last_reply_len}")
 
         if conn.stats_enabled:
             snapshot = conn.statistics.snapshot()
@@ -1056,16 +1044,15 @@ def runtestcase(testcase):
         cim_status = 0
         error_instances = None
 
-    assert cim_status == exp_cim_status, \
-        "Error in WBEMConnection operation CIM status code. " \
-        "Expected %s; received %s" % \
-        (exp_cim_status, cim_status)
+    assert cim_status == exp_cim_status, (
+        "Error in WBEMConnection operation CIM status code. "
+        f"Expected {exp_cim_status}; received {cim_status}")
 
     exp_error_inst_objs = obj(exp_error_instances, tc_name)
-    assert error_instances == exp_error_inst_objs, \
-        "Error in WBEMConnection operation error instances.\n" \
-        "Expected: %s\nReceived: %s" % \
-        (exp_error_inst_objs, error_instances)
+    assert error_instances == exp_error_inst_objs, (
+        "Error in WBEMConnection operation error instances.\n"
+        f"Expected: {exp_error_inst_objs}\n"
+        f"Received: {error_instances}")
 
     # Returns either exp_result or exp_pull_result
     if exp_result is not None:
@@ -1164,8 +1151,7 @@ def runtestcase(testcase):
         # TODO redo as indexed loop to compare all items.
 
     else:
-        assert result is None, \
-            "PyWBEM CIM result is not None: %s" % repr(result)
+        assert result is None, f"PyWBEM CIM result is not None: {result!r}"
 
 
 def result_tuple(value, tc_name):

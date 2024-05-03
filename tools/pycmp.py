@@ -24,7 +24,7 @@ def main():
     parser = argparse.ArgumentParser(
         prog=MYNAME,
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        usage="%s [-h|--help] [options] olddir newdir" % MYNAME,
+        usage=f"{MYNAME} [-h|--help] [options] olddir newdir",
         description=
 """
 Compare the symbols in the external API of two versions of a Python package,
@@ -35,11 +35,11 @@ specify the package directory (inside of which there is the __init__.py file
 for the package).
 """,
         epilog=
-"""
+f"""
 example:
-  %s ../v1.0/foo foo
+  {MYNAME} ../v1.0/foo foo
     Compare the foo package version in ../v1.0/foo with the version in ./foo.
-""" % MYNAME)
+""")
 
     parser.add_argument("olddir", type=str,
                         help="path name of old package directory")
@@ -69,20 +69,20 @@ def compare_package_dirs(old_pkgdir, new_pkgdir):
     old_pkgname = abs_modulename(old_pkgdir, old_pkgdir)
     new_pkgname = abs_modulename(new_pkgdir, new_pkgdir)
     if old_pkgname != new_pkgname:
-        print("Error: Package names are not the same: {} / {}".format(old_pkgname, new_pkgname))
+        print(f"Error: Package names are not the same: {old_pkgname} / {new_pkgname}")
         return 1
     pkgname = old_pkgname
 
-    print("Comparing public symbols of Python package: %s" % pkgname)
-    print("    Old package directory: %s" % old_pkgdir)
-    print("    New package directory: %s" % new_pkgdir)
+    print(f"Comparing public symbols of Python package: {pkgname}")
+    print(f"    Old package directory: {old_pkgdir}")
+    print(f"    New package directory: {new_pkgdir}")
     print("")
     print("This report covers the following kinds of symbols:")
-    print("    Non-public symbols:                                                      %s" % False)
-    print("    Symbols of added or removed modules (-f option):                         %s" % bool(ARGS.full))
-    print("    Symbols imported from other packages (-o option):                        %s" % bool(ARGS.others))
-    print("    Symbols imported from other modules of this package (-i option):         %s" % bool(ARGS.imported))
-    print("    Symbols exported from this package (in __all__) (-e option):             %s" % bool(ARGS.exported))
+    print(f"    Non-public symbols:                                                      {False}")
+    print(f"    Symbols of added or removed modules (-f option):                         {bool(ARGS.full)}")
+    print(f"    Symbols imported from other packages (-o option):                        {bool(ARGS.others)}")
+    print(f"    Symbols imported from other modules of this package (-i option):         {bool(ARGS.imported)}")
+    print(f"    Symbols exported from this package (in __all__) (-e option):             {bool(ARGS.exported)}")
 
     if ARGS.debug:
         print("Debug: Gathering information about modules in old package")
@@ -106,22 +106,22 @@ def compare_package_dirs(old_pkgdir, new_pkgdir):
     print("\nModule changes:")
 
     for mn in sorted(added_modnames):
-        print("    Added module: %s" % mn)
+        print(f"    Added module: {mn}")
         if ARGS.full:
             modinfo = new_modinfos[mn]
             syminfos = modinfo['syminfos']
             for sn in sorted(syminfos):
                 si = syminfos[sn]
-                print("        Symbol: {name} ({typename}, {modname})".format(**si))
+                print(f"        Symbol: {si['name']} ({si['typename']}, {si['modname']})")
 
     for mn in sorted(removed_modnames):
-        print("    Removed module: %s" % mn)
+        print(f"    Removed module: {mn}")
         if ARGS.full:
             modinfo = old_modinfos[mn]
             syminfos = modinfo['syminfos']
             for sn in sorted(syminfos):
                 si = syminfos[sn]
-                print("        Symbol: {name} ({typename}, {modname})".format(**si))
+                print(f"        Symbol: {si['name']} ({si['typename']}, {si['modname']})")
 
     for mn in sorted(same_modnames):
         compare_modules(old_modinfos[mn], new_modinfos[mn], pkgname)
@@ -142,16 +142,16 @@ def compare_modules(old_modinfo, new_modinfo, pkgname):
             exclude_reason = EXCLUDE_REASON
         elif sym_pkgname is not None and sym_pkgname != pkgname and not ARGS.others:
             # None means unknown package origin, so we are not sure and don't exclude it
-            exclude_reason = "imported from other package %s" % sym_pkgname
+            exclude_reason = f"imported from other package {sym_pkgname}"
         elif sym_modname is not None and sym_modname != mod_name and not ARGS.imported:
             # None means unknown package origin, so we are not sure and don't exclude it
-            exclude_reason = "imported from other module %s of this package" % sym_modname
+            exclude_reason = f"imported from other module {sym_modname} of this package"
         if not exclude_reason:
             old_syminfos[sym] = si
         else:
             if ARGS.debug:
-                print("Debug: Excluding symbol %s defined in old module %s because: %s" % \
-                      (sym, mod_name, exclude_reason))
+                print(f"Debug: Excluding symbol {sym} defined in old module "
+                      f"{mod_name} because: {exclude_reason}")
 
     new_syminfos = {}
     for sym in new_modinfo['syminfos']:
@@ -163,16 +163,16 @@ def compare_modules(old_modinfo, new_modinfo, pkgname):
             exclude_reason = EXCLUDE_REASON
         elif sym_pkgname is not None and sym_pkgname != pkgname and not ARGS.others:
             # None means unknown package origin, so we are not sure and don't exclude it
-            exclude_reason = "imported from other package %s" % sym_pkgname
+            exclude_reason = f"imported from other package {sym_pkgname}"
         elif sym_modname is not None and sym_modname != mod_name and not ARGS.imported:
             # None means unknown package origin, so we are not sure and don't exclude it
-            exclude_reason = "imported from other module %s of this package" % sym_modname
+            exclude_reason = f"imported from other module {sym_modname} of this package"
         if not exclude_reason:
             new_syminfos[sym] = si
         else:
             if ARGS.debug:
-                print("Debug: Excluding symbol %s defined in new module %s because: %s" % \
-                      (sym, mod_name, exclude_reason))
+                print(f"Debug: Excluding symbol {sym} defined in new module "
+                      f"{mod_name} because: {exclude_reason}")
 
     added_symbols = set(new_syminfos.keys()) - set(old_syminfos.keys())
     removed_symbols = set(old_syminfos.keys()) - set(new_syminfos.keys())
@@ -194,31 +194,35 @@ def compare_modules(old_modinfo, new_modinfo, pkgname):
     if ARGS.exported and not have_report:
         have_report = len(added_exp_symbols) + len(removed_exp_symbols) > 0
     if have_report:
-        print("\nDifferences for module: %s" % mod_name)
+        print(f"\nDifferences for module: {mod_name}")
 
     def where(sym_modname, our_modname):
         if sym_modname == our_modname:
             return 'defined here'
         if sym_modname is None:
             return 'unknown origin'
-        return 'imported from %s' % sym_modname
+        return f"imported from {sym_modname}"
 
     for sym in sorted(added_symbols):
         si = new_syminfos[sym]
-        print("    Added   symbol: {:30} ({}, {})".format(sym, si['typename'], where(si['modname'], mod_name)))
+        print(f"    Added   symbol: {sym:30} ({si['typename']}, "
+              f"{where(si['modname'], mod_name)})")
 
     for sym in sorted(removed_symbols):
         si = old_syminfos[sym]
-        print("    Removed symbol: {:30} ({}, {})".format(sym, si['typename'], where(si['modname'], mod_name)))
+        print(f"    Removed symbol: {sym:30} ({si['typename']}, "
+              f"{where(si['modname'], mod_name)})")
 
     if ARGS.exported:
         for sym in sorted(added_exp_symbols):
             si = new_syminfos[sym]
-            print("    Added   exported symbol: {:30} ({}, {})".format(sym, si['typename'], where(si['modname'], mod_name)))
+            print(f"    Added   exported symbol: {sym:30} ({si['typename']}, "
+                  f"{where(si['modname'], mod_name)})")
 
         for sym in sorted(removed_exp_symbols):
             si = old_syminfos[sym]
-            print("    Removed exported symbol: {:30} ({}, {})".format(sym, si['typename'], where(si['modname'], mod_name)))
+            print(f"    Removed exported symbol: {sym:30} ({si['typename']}, "
+                  f"{where(si['modname'], mod_name)})")
 
 EXCLUDE_REASON = "non-public symbol"
 def exclude(syminfo):
@@ -241,19 +245,19 @@ def get_modinfos(pkgdir):
 
     if pkgpath not in sys.path:
         if ARGS.debug:
-            print("Debug: Inserting package dir into module search path: %s" % pkgpath)
+            print(f"Debug: Inserting package dir into module search path: {pkgpath}")
         sys.path.insert(0, pkgpath)
     else:
         if ARGS.debug:
-            print("Debug: Package dir is already in module search path: %s" % pkgpath)
+            print(f"Debug: Package dir is already in module search path: {pkgpath}")
         pass
     if pkgparentpath not in sys.path:
         if ARGS.debug:
-            print("Debug: Inserting parent package dir into module search path: %s" % pkgparentpath)
+            print(f"Debug: Inserting parent package dir into module search path: {pkgparentpath}")
         sys.path.insert(0, pkgparentpath)
     else:
         if ARGS.debug:
-            print("Debug: Parent package dir is already in module search path: %s" % pkgparentpath)
+            print(f"Debug: Parent package dir is already in module search path: {pkgparentpath}")
         pass
 
     use_exec = True
@@ -263,7 +267,7 @@ def get_modinfos(pkgdir):
     for mod_file in mod_files:
 
         if ARGS.debug:
-            print("Debug: Processing file: %s" % mod_file)
+            print(f"Debug: Processing file: {mod_file}")
 
         rel_modname = rel_modulename(mod_file, pkgdir)
         abs_modname = abs_modulename(mod_file, pkgdir)
@@ -282,7 +286,7 @@ def get_modinfos(pkgdir):
             ## wildcard information.
             #wc_sym_dict = wildcard_import(abs_modname)
             #if ARGS.debug:
-            #    print("Debug: Got symbols: %r" % sorted(wc_sym_dict.keys()))
+            #    print(f"Debug: Got symbols: {sorted(wc_sym_dict.keys())!r}")
             #wc_mi = get_modinfos_from_sym_dict(wc_sym_dict, abs_modname, mod_file)
             #if ARGS.debug:
             #    print("Debug: Got module infos:")
@@ -293,21 +297,21 @@ def get_modinfos(pkgdir):
             try:
                 if rel_modname == '.':
                     if ARGS.debug:
-                        print("Debug: Importing absolute module %s" % abs_modname)
+                        print(f"Debug: Importing absolute module {abs_modname}" )
                     mod_obj = importlib.import_module(abs_modname)
                 else:
                     if ARGS.debug:
-                        print("Debug: Importing relative module {} within package {}".format(rel_modname, pkgname))
+                        print(f"Debug: Importing relative module {rel_modname} within package {pkgname}")
                     mod_obj = importlib.import_module(rel_modname, pkgname)
             except ImportError as exc:
                 if ARGS.debug:
-                    print("Debug: Import failed (retrying): %s" % str(exc))
+                    print(f"Debug: Import failed (retrying): {exc}")
                 try:
                     if ARGS.debug:
-                        print("Debug: Importing absolute module %s" % abs_modname)
+                        print(f"Debug: Importing absolute module {abs_modname}")
                     mod_obj = importlib.import_module(abs_modname)
                 except ImportError as exc:
-                    print("Error: Import failed (aborting): %s" % str(exc))
+                    print(f"Error: Import failed (aborting): {exc}")
                     print("Loaded modules in package namespace:")
                     pprint([mod for mod in sorted(sys.modules.keys())
                             if mod == pkgname or mod.startswith(pkgname+'.')
@@ -316,7 +320,8 @@ def get_modinfos(pkgdir):
                     pprint(sys.path)
                     raise
 
-            assert abs_modname in sys.modules, "module %s is not in sys.modules after import" % abs_modname
+            assert abs_modname in sys.modules, \
+                f"module {abs_modname} is not in sys.modules after import"
 
             modinfos = get_modinfos_from_mod_obj(mod_obj, abs_modname, mod_file)
 
@@ -324,10 +329,10 @@ def get_modinfos(pkgdir):
             #del sys.modules[abs_modname] # this goes too far, probably
 
     if ARGS.debug:
-        print("Debug: Removing package dir from module search path: %s" % pkgpath)
+        print(f"Debug: Removing package dir from module search path: {pkgpath}")
     sys.path.remove(pkgpath)
     if ARGS.debug:
-        print("Debug: Removing parent package dir from module search path: %s" % pkgparentpath)
+        print(f"Debug: Removing parent package dir from module search path: {pkgparentpath}")
     sys.path.remove(pkgparentpath)
 
     return modinfos
@@ -347,7 +352,8 @@ def get_modinfos_from_sym_dict(sym_dict, abs_modname, mod_file):
     exp_symbols = sym_dict.get('__all__', all_symbols)
 
     unexpected_symbols = set(exp_symbols) - set(all_symbols)
-    assert len(unexpected_symbols) == 0, "module %s has unexpected exported symbols: %r" %  sorted(unexpected_symbols)
+    assert len(unexpected_symbols) == 0, \
+        f"module %s has unexpected exported symbols: {sorted(unexpected_symbols)!r}"
 
     modinfos = {}
     mi = {}
@@ -379,25 +385,25 @@ def get_modinfos_from_sym_dict(sym_dict, abs_modname, mod_file):
     return modinfos
 
 def module_import(_wci_modname):
-    _wci_stmt = 'import %s' % _wci_modname
+    _wci_stmt = f'import {_wci_modname}'
     if ARGS.debug:
-        print("Debug: Importing module: %s" % _wci_modname)
+        print(f"Debug: Importing module: {_wci_modname}")
     exec(_wci_stmt)
     imported = locals()
     del imported['_wci_modname']
     del imported['_wci_stmt']
     return imported
-    
+
 def wildcard_import(_wci_modname):
-    _wci_stmt = 'from %s import *' % _wci_modname
+    _wci_stmt = f'from {_wci_modname} import *'
     if ARGS.debug:
-        print("Debug: Importing * from module: %s" % _wci_modname)
+        print(f"Debug: Importing * from module: {_wci_modname}")
     exec(_wci_stmt)
     imported = locals()
     del imported['_wci_modname']
     del imported['_wci_stmt']
     return imported
-    
+
 def unload_modules(pkgname):
     removals = []
     for modname in sys.modules:
@@ -405,7 +411,7 @@ def unload_modules(pkgname):
             removals.append(modname)
     for modname in removals:
         if ARGS.debug:
-            print("Debug: Removing module from loaded modules: %s" % modname)
+            print(f"Debug: Removing module from loaded modules: {modname}")
         del sys.modules[modname]
 
 def abs_modulename(mod_file, pkgdir):

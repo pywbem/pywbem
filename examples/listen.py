@@ -58,13 +58,13 @@ def status(reset=None):
     '''
     global RECEIVED_INDICATION_DICT
     for host, count in RECEIVED_INDICATION_DICT.items():
-        print('Host {} Received {} indications'.format(host, count))
+        print(f'Host {host} Received {count} indications')
 
     if reset:
         for host in RECEIVED_INDICATION_DICT:
             RECEIVED_INDICATION_DICT[host] = 0
-            print('Host %s Reset: Received %s indications' %
-                  (host, RECEIVED_INDICATION_DICT[host]))
+            print(f'Host {host} Reset: Received '
+                  f'{RECEIVED_INDICATION_DICT[host]} indications')
         print('counts reset to 0')
 
 
@@ -75,8 +75,8 @@ def _main():
     global listener
 
     if len(_sys.argv) < 2 or _sys.argv[1] == '--help':
-        print("Usage: %s host http_port [https_port certfile keyfile]" % \
-              _sys.argv[0])
+        print(f"Usage: {_sys.argv[0]} host http_port "
+              "[https_port certfile keyfile]")
         _sys.exit(2)
 
     logging.basicConfig(stream=_sys.stderr, level=logging.INFO,
@@ -101,8 +101,8 @@ def _main():
         print(f"Error: {exc}")
         return 1
 
-    banner = """
-WBEM listener started on host {} (HTTP port: {}, HTTPS port: {}).
+    banner = f"""
+WBEM listener started on host {host} (HTTP port: {http_port}, HTTPS port: {https_port}).
 The host parameter may be:
 
   * a specific host name or host IP address on the computer; only
@@ -126,7 +126,7 @@ Modify logger characteristics through listener.logger:
      (ex. listener.logger.setLevel(logging.ERROR))
 
 Ctrl-d to exit
-""".format(host, http_port, https_port)
+"""
 
     # Determine file path of history file
     home_dir = '.'
@@ -134,7 +134,7 @@ Ctrl-d to exit
         home_dir = _os.environ['HOME'] # Linux
     elif 'HOMEPATH' in _os.environ:
         home_dir = _os.environ['HOMEPATH'] # Windows
-    histfile = '%s/.listen_history' % home_dir
+    histfile = f'{home_dir}/.listen_history'
 
     # Read previous command line history
     if _HAVE_READLINE:

@@ -432,8 +432,7 @@ class ParseError(_RequestExceptionMixin, _ResponseExceptionMixin, Error):
 
     def __str__(self):
         error_str = super().__str__()
-        ret_str = "{0}\nCIM-XML response: {1}". \
-            format(error_str, self.response_data)
+        ret_str = f"{error_str}\nCIM-XML response: {self.response_data}"
         return ret_str
 
 
@@ -672,9 +671,8 @@ class CIMError(_RequestExceptionMixin, Error):
     def __str__(self):
         inst_str = f" ({len(self.instances)} instances)" \
             if self.instances else ""
-        ret_str = "{} ({}): {}{}".format(
-            self.status_code, self.status_code_name, self.status_description,
-            inst_str)
+        ret_str = (f"{self.status_code} ({self.status_code_name}): "
+                   f"{self.status_description}{inst_str}")
         return ret_str
 
 

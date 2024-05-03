@@ -58,7 +58,7 @@ VERBOSE = False
 TEST_DIR = os.path.dirname(__file__)
 
 LOG_FILE_NAME = 'test_logging.log'
-TEST_OUTPUT_LOG = '{}/{}'.format(TEST_DIR, LOG_FILE_NAME)
+TEST_OUTPUT_LOG = f'{TEST_DIR}/{LOG_FILE_NAME}'
 
 
 @pytest.fixture(autouse=True)
@@ -473,14 +473,14 @@ class TestLoggerOutput(BaseLoggingExecutionTests):
             raise AssertionError("ConnectionError exception not raised")
 
         exp_line_patterns = [
-            r".*-{0}\..*-Connection:.* WBEMConnection\(url='{1}'".
-            format(LOGGER_API_CALLS_NAME, url),
-            r".*-{0}\..*-Request:.* GetQualifier\(QualifierName='Association'".
-            format(LOGGER_API_CALLS_NAME),
-            r".*-{0}\..*-Request:.* POST /cimom .* CIMMethod:'GetQualifier'".
-            format(LOGGER_HTTP_NAME),
-            r".*-{0}\..*-Exception:.* GetQualifier.*ConnectionError".
-            format(LOGGER_API_CALLS_NAME),
+            fr".*-{LOGGER_API_CALLS_NAME}\..*-Connection:.* "
+            fr"WBEMConnection\(url='{url}'",
+            fr".*-{LOGGER_API_CALLS_NAME}\..*-Request:.* "
+            r"GetQualifier\(QualifierName='Association'",
+            fr".*-{LOGGER_HTTP_NAME}\..*-Request:.* "
+            r"POST /cimom .* CIMMethod:'GetQualifier'",
+            fr".*-{LOGGER_API_CALLS_NAME}\..*-Exception:.* "
+            "GetQualifier.*ConnectionError",
         ]
 
         with open(TEST_OUTPUT_LOG, encoding='utf-8') as log_fp:

@@ -51,11 +51,10 @@ def test_get_central_instances(
         registered_version=profile_version)
 
     if not profile_insts:
-        pytest.skip("Server {0} at {1}: The {2} {3!r} profile (version {4}) "
-                    "is not advertised".
-                    format(wbem_connection.es_server.nickname,
-                           wbem_connection.url, profile_org,
-                           profile_name, profile_version or 'any'))
+        pytest.skip(
+            f"Server {wbem_connection.es_server.nickname} at "
+            f"{wbem_connection.url}: The {profile_org} {profile_name!r} "
+            f"profile (version {profile_version or 'any'}) is not advertised")
 
     # In case there is more than one version advertised, use only the latest
     # version.
@@ -65,10 +64,10 @@ def test_get_central_instances(
     if profile_definition['central_class'] is None:
         raise ValueError(
             "Profile definition error: The central_class attribute of "
-            "the {0} {1!r} profile (version {2}) with type {3} must be "
-            "non-null".
-            format(profile_org, profile_name, profile_version or 'any',
-                   profile_definition['type']))
+            f"the {profile_org} {profile_name!r} profile (version "
+            f"{profile_version or 'any'}) with type "
+            f"{profile_definition['type']} must be non-null")
+
     # Note: Even for component profiles, we allow scoping class and scoping
     # path to be unspecified (= None), because they do not matter if the
     # central class methodology is implemented.
@@ -115,8 +114,7 @@ def test_undefined_profiles(wbem_connection):  # noqa: F811
     if undefined_profile_ids:
         undefined_profile_lines = '\n'.join(undefined_profile_ids)
         raise AssertionError(
-            "Server {0} at {1} advertises the following profiles that are "
+            f"Server {wbem_connection.es_server.nickname} at "
+            f"{wbem_connection.url} advertises the following profiles that are "
             "not defined in profiles.yml. This may be caused by incorrectly "
-            "implemented profile names:\n{2}".
-            format(wbem_connection.es_server.nickname, wbem_connection.url,
-                   undefined_profile_lines))
+            f"implemented profile names:\n{undefined_profile_lines}")

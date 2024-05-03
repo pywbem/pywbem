@@ -156,9 +156,8 @@ def siunit_obj(cim_obj, use_ascii=False):
     # pylint: enable=line-too-long
 
     if not isinstance(cim_obj, (CIMProperty, CIMMethod, CIMParameter)):
-        raise TypeError("Invalid type for cim_obj: {}, "
-                        "must be CIMProperty, CIMMethod, or CIMParameter".
-                        format(type(cim_obj)))
+        raise TypeError(f"Invalid type for cim_obj: {type(cim_obj)}, "
+                        "must be CIMProperty, CIMMethod, or CIMParameter")
 
     punit_q = cim_obj.qualifiers.get('PUnit', None)
     punit = punit_q.value if punit_q else None
@@ -266,18 +265,16 @@ UC2ASCII = {
 SIMPLE_NAME = r'[A-Za-z_][A-Za-z_\-0-9 ]*?'
 WS = r'[ \t\n]?'  # optionality already included
 SP = r'[ ]?'  # optionality already included
-POSITIVE_WHOLE_NUMBER = r'[1-9][0-9]*'
-POSITIVE_NUMBER = r'(?:{pwn}|(?:{pwn}|0)\.[0-9]*)'. \
-    format(pwn=POSITIVE_WHOLE_NUMBER)
-NUMBER = fr'[\+\-]?{POSITIVE_NUMBER}'
-EXPONENT = fr'[\+\-]?{POSITIVE_WHOLE_NUMBER}'
+POS_WHOLE_NUMBER = r'[1-9][0-9]*'
+POS_NUMBER = fr'(?:{POS_WHOLE_NUMBER}|(?:{POS_WHOLE_NUMBER}|0)\.[0-9]*)'
+NUMBER = fr'[\+\-]?{POS_NUMBER}'
+EXPONENT = fr'[\+\-]?{POS_WHOLE_NUMBER}'
 DECIBEL_BASE_UNIT = fr'decibel{SP}\({SIMPLE_NAME}\)'
 
 BASE_UNIT = fr'(?:{SIMPLE_NAME}|{DECIBEL_BASE_UNIT})'
 
 # The top-level components in the (extended) PUnit formula
-TOP_COMP = r'(?:{bu}|{n}|{pwn}{ws}\^{ws}{e})'. \
-    format(bu=BASE_UNIT, ws=WS, n=NUMBER, pwn=POSITIVE_WHOLE_NUMBER, e=EXPONENT)
+TOP_COMP = fr'(?:{BASE_UNIT}|{NUMBER}|{POS_WHOLE_NUMBER}{WS}\^{WS}{EXPONENT})'
 
 # The pattern for the (extended) PUnit formula. This is an extended version
 # of the programmatic-unit term in DSP0004, whereby the top-level components
@@ -290,15 +287,13 @@ TOP_COMP = r'(?:{bu}|{n}|{pwn}{ws}\^{ws}{e})'. \
 # Note that the pattern allows for numeric modifiers to appear more than
 # once, but DSP0004 allows only one whole number modifier (mod1) and one
 # exponential number modifier (mod2). This is verified in the function.
-PUNIT = r'^({bu})((?:{ws}(?:\*|/){ws}{tc})*)$'. \
-    format(bu=BASE_UNIT, tc=TOP_COMP, ws=WS)
+PUNIT = fr'^({BASE_UNIT})((?:{WS}(?:\*|/){WS}{TOP_COMP})*)$'
 PUNIT_PATTERN = re.compile(PUNIT)
 
 # The modifier 1 and 2 patterns
-MOD1_PATTERN = re.compile(r'^{ws}({n}){ws}$'.
-                          format(ws=WS, n=NUMBER))
-MOD2_PATTERN = re.compile(r'^{ws}({pwn}){ws}\^{ws}({e}){ws}$'.
-                          format(ws=WS, pwn=POSITIVE_WHOLE_NUMBER, e=EXPONENT))
+MOD1_PATTERN = re.compile(fr'^{WS}({NUMBER}){WS}$')
+MOD2_PATTERN = re.compile(
+    fr'^{WS}({POS_WHOLE_NUMBER}){WS}\^{WS}({EXPONENT}){WS}$')
 
 # The abbreviated SI units for each PUnit base unit defined in DSP0004
 PUNIT_SIUNIT = NocaseDict([
@@ -619,8 +614,8 @@ def _siunit_from_punit(punit):
     """
 
     if not isinstance(punit, str):
-        raise TypeError("Invalid type for punit: {}, must be string".
-                        format(type(punit)))
+        raise TypeError(
+            f"Invalid type for punit: {type(punit)}, must be string")
 
     if punit == '':
         return ''
@@ -714,7 +709,7 @@ def _mod12(op, comp, mod1, mod2, punit):
         if mod1:
             raise ValueError(
                 "Numeric modifier 1 appears more than once in PUnit "
-                "qualifier: {!r}".format(punit))
+                f"qualifier: {punit!r}")
         mod1_num = int(m.group(1))
         mod1 = (op, mod1_num)
         return mod1, mod2, None
@@ -724,7 +719,7 @@ def _mod12(op, comp, mod1, mod2, punit):
         if mod2:
             raise ValueError(
                 "Numeric modifier 2 appears more than once in PUnit "
-                "qualifier: {!r}".format(punit))
+                f"qualifier: {punit!r}")
         mod2_base = int(m.group(1))
         mod2_exp = int(m.group(2))
         mod2 = (op, mod2_base, mod2_exp)
@@ -815,8 +810,8 @@ def _siunit_from_units(units):
     """
 
     if not isinstance(units, str):
-        raise TypeError("Invalid type for units: {}, must be string".
-                        format(type(units)))
+        raise TypeError(
+            f"Invalid type for units: {type(units)}, must be string")
 
     try:
         return UNITS_SIUNIT[units]

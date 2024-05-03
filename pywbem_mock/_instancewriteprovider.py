@@ -47,7 +47,7 @@ property:
 
         def CreateInstance(self, namespace, new_instance):
             new_instance.properties["InstanceID"] = \\
-                "{}.{}".format(new_instance.classname, uuid.uuid4())
+                f"{new_instance.classname}.{uuid.uuid4()}"
             return super(MyInstanceProvider, self).CreateInstance(
                 namespace, new_instance)
 

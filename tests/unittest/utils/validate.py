@@ -120,8 +120,8 @@ def validate_cim_xml(cim_xml_str, root_elem_name=None):
 
     # Make sure the validator checks the specified root element, if any
     if root_elem_name is not None:
-        cim_xml_str = '<!DOCTYPE {0} SYSTEM "{1}">\n{2}'. \
-            format(root_elem_name, dtd_file_fw, cim_xml_str)
+        cim_xml_str = (f'<!DOCTYPE {root_elem_name} SYSTEM "{dtd_file_fw}">\n'
+                       f'{cim_xml_str}')
         xmllint_cmd = 'xmllint --valid --noout -'
     else:
         xmllint_cmd = f'xmllint --dtdvalid {dtd_file_fw} --noout -'
@@ -178,27 +178,26 @@ def validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str):
       exp_xml_str (string): The expected CIM-XML string.
     """
 
-    assert _xml_semantic_compare(obj_xml_str, exp_xml_str), \
-        "Unexpected XML string (comparing at XML level):\n" \
-        "Actual:   {!r}\n" \
-        "Expected: {!r}\n".format(obj_xml_str, exp_xml_str)
+    assert _xml_semantic_compare(obj_xml_str, exp_xml_str), (
+        "Unexpected XML string (comparing at XML level):\n"
+        f"Actual:   {obj_xml_str!r}\n"
+        f"Expected: {exp_xml_str!r}\n")
 
     m = re.match(r'^<([^ >]+)', exp_xml_str)
-    assert m is not None, \
-        "Testcase issue: Cannot determine root element from expected " \
-        "CIM-XML string:\n{}".format(exp_xml_str)
+    assert m is not None, (
+        "Testcase issue: Cannot determine root element from expected "
+        f"CIM-XML string:\n{exp_xml_str}")
     root_elem_name = m.group(1)
 
     try:
         validate_cim_xml(obj_xml_str, root_elem_name)
     except CIMXMLValidationError as exc:
         raise AssertionError(
-            "DTD validation of CIM-XML for {0} object failed:\n"
-            "{1}\n"
-            "Required XML root element: {2}\n"
+            f"DTD validation of CIM-XML for {type(obj)} object failed:\n"
+            f"{exc}\n"
+            f"Required XML root element: {root_elem_name}\n"
             "CIM-XML string:\n"
-            "{3}".
-            format(type(obj), exc, root_elem_name, obj_xml_str))
+            f"{obj_xml_str}")
 
 
 def assert_xml_equal(act_xml_str, exp_xml_str):
@@ -222,7 +221,7 @@ def assert_xml_equal(act_xml_str, exp_xml_str):
       exp_xml_str (string): The expected XML string.
     """
 
-    assert _xml_semantic_compare(act_xml_str, exp_xml_str), \
-        "Unexpected XML element (XML attribute order does not matter):\n" \
-        "Actual:   {!r}\n" \
-        "Expected: {!r}\n".format(act_xml_str, exp_xml_str)
+    assert _xml_semantic_compare(act_xml_str, exp_xml_str), (
+        "Unexpected XML element (XML attribute order does not matter):\n"
+        f"Actual:   {act_xml_str!r}\n"
+        f"Expected: {exp_xml_str!r}\n")

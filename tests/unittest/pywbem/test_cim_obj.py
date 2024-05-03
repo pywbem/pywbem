@@ -1789,17 +1789,17 @@ def test_CIMInstanceName_eq_keybindings_order():
               "quality of this test.")
         print("  Hash values of keys: k1=%r (hash: %s), k2=%r (hash: %s)" %
               (key1, hash(key1) % 8, key2, hash(key2) % 8))
-        print("  First keys: k1={!r}, k2={!r}".format(k1_first, k2_first))
-        print("  Input dicts: d1={!r}, d2={!r}".format(d1, d2))
-        print("  Input key bindings: kb1={!r}, kb2={!r}".format(kb1, kb2))
+        print(f"  First keys: k1={k1_first!r}, k2={k2_first!r}")
+        print(f"  Input dicts: d1={d1!r}, d2={d2!r}")
+        print(f"  Input key bindings: kb1={kb1!r}, kb2={kb2!r}")
         print("  Object key bindings: obj1.kb=%r, obj2.kb=%r" %
               (obj1.keybindings, obj2.keybindings))
-        print("  Objects:\n    obj1={!r}\n    obj2={!r}".format(obj1, obj2))
-    assert obj1 == obj2, \
-        "CIMInstanceName objects with different iteration order of " \
-        "key bindings do not compare equal:\n" \
-        "  obj1=%r\n" \
-        "  obj2=%r" % (obj1, obj2)
+        print(f"  Objects:\n    obj1={obj1!r}\n    obj2={obj2!r}")
+    assert obj1 == obj2, (
+        "CIMInstanceName objects with different iteration order of "
+        "key bindings do not compare equal:\n"
+        f"  obj1={obj1}\n"
+        f"  obj2={obj2}")
 
 
 TESTCASES_CIMINSTANCENAME_HASH_EQ = [
@@ -2262,7 +2262,7 @@ def test_CIMInstanceName_repr(obj):
     if obj.keybindings:
         for key, value in obj.keybindings.items():
             search_str = _format("{0!A}: {1!A}", key, value)
-            assert re.search(search_str, r), "For key %r" % key
+            assert re.search(search_str, r), f"For key {key}"
 
     exp_namespace = _format('namespace={0!A}', obj.namespace)
     assert exp_namespace in r
@@ -3485,9 +3485,9 @@ def test_CIMInstanceName_tocimxmlstr_indent_int(
     obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
     exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
 
-    assert obj_xml_str == exp_xml_str, \
-        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
-        format(obj.__class__.__name__, indent)
+    assert obj_xml_str == exp_xml_str, (
+        f"{obj.__class__.__name__}.tocimxmlstr(indent={indent!r}) "
+        "returns unexpected CIM-XML string")
 
 
 @pytest.mark.parametrize(
@@ -3513,9 +3513,9 @@ def test_CIMInstanceName_tocimxmlstr_indent_str(
     obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
     exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
 
-    assert obj_xml_str == exp_xml_str, \
-        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
-        format(obj.__class__.__name__, indent_str)
+    assert obj_xml_str == exp_xml_str, (
+        f"{obj.__class__.__name__}.tocimxmlstr(indent={indent_str!r}) "
+        "returns unexpected CIM-XML string")
 
 
 TESTCASES_CIMINSTANCENAME_TOCIMXML_SPECIAL_KB = [
@@ -8468,9 +8468,9 @@ def test_CIMInstance_tocimxmlstr_indent_int(
     obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
     exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
 
-    assert obj_xml_str == exp_xml_str, \
-        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
-        format(obj.__class__.__name__, indent)
+    assert obj_xml_str == exp_xml_str, (
+        f"{obj.__class__.__name__}.tocimxmlstr(indent={indent!r}) "
+        "returns unexpected CIM-XML string")
 
 
 @pytest.mark.parametrize(
@@ -8496,9 +8496,9 @@ def test_CIMInstance_tocimxmlstr_indent_str(
     obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
     exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
 
-    assert obj_xml_str == exp_xml_str, \
-        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
-        format(obj.__class__.__name__, indent_str)
+    assert obj_xml_str == exp_xml_str, (
+        f"{obj.__class__.__name__}.tocimxmlstr(indent={indent_str!r}) "
+        "returns unexpected CIM-XML string")
 
 
 TESTCASES_CIMINSTANCE_TOMOF = [
@@ -17520,9 +17520,9 @@ def test_CIMProperty_tocimxmlstr_indent_int(
     obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
     exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
 
-    assert obj_xml_str == exp_xml_str, \
-        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
-        format(obj.__class__.__name__, indent)
+    assert obj_xml_str == exp_xml_str, (
+        f"{obj.__class__.__name__}.tocimxmlstr(indent={indent!r}) "
+        "returns unexpected CIM-XML string")
 
 
 @pytest.mark.parametrize(
@@ -17548,9 +17548,9 @@ def test_CIMProperty_tocimxmlstr_indent_str(
     obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
     exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
 
-    assert obj_xml_str == exp_xml_str, \
-        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
-        format(obj.__class__.__name__, indent_str)
+    assert obj_xml_str == exp_xml_str, (
+        f"{obj.__class__.__name__}.tocimxmlstr(indent={indent_str!r}) "
+        "returns unexpected CIM-XML string")
 
 
 TESTCASES_CIMPROPERTY_TOMOF = [
@@ -17735,7 +17735,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 qualifiers=[
                     CIMQualifier(
                         'Q1',
-                        value=['abcdef%02d' % _i for _i in range(0, 10)],
+                        value=[f'abcdef{_i:02d}' for _i in range(0, 10)],
                         type='string'),
                 ],
             ),
@@ -17761,7 +17761,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
                 qualifiers=[
                     CIMQualifier(
                         'Q1',
-                        value=['abc def ' * 10 + 'z%02d' % _i
+                        value=['abc def ' * 10 + f'z{_i:02d}'
                                for _i in range(0, 2)],
                         type='string'),
                 ],
@@ -18011,7 +18011,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
         dict(
             obj=CIMProperty(
                 name='P1',
-                value=['abcdef%02d' % _i for _i in range(0, 10)],
+                value=[f'abcdef{_i:02d}' for _i in range(0, 10)],
                 type='string',
             ),
             kwargs=dict(
@@ -22637,9 +22637,9 @@ def test_CIMQualifier_tocimxmlstr_indent_int(
     obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
     exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
 
-    assert obj_xml_str == exp_xml_str, \
-        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
-        format(obj.__class__.__name__, indent)
+    assert obj_xml_str == exp_xml_str, (
+        f"{obj.__class__.__name__}.tocimxmlstr(indent={indent!r}) "
+        "returns unexpected CIM-XML string")
 
 
 @pytest.mark.parametrize(
@@ -22665,9 +22665,9 @@ def test_CIMQualifier_tocimxmlstr_indent_str(
     obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
     exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
 
-    assert obj_xml_str == exp_xml_str, \
-        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
-        format(obj.__class__.__name__, indent_str)
+    assert obj_xml_str == exp_xml_str, (
+        f"{obj.__class__.__name__}.tocimxmlstr(indent={indent_str!r}) "
+        "returns unexpected CIM-XML string")
 
 
 TESTCASES_CIMQUALIFIER_TOMOF = [
@@ -22834,7 +22834,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
         dict(
             obj=CIMQualifier(
                 name='Q1',
-                value=['abcdef%02d' % _i for _i in range(0, 10)],
+                value=[f'abcdef{_i:02d}' for _i in range(0, 10)],
                 type='string',
             ),
             kwargs=dict(
@@ -22853,7 +22853,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
         dict(
             obj=CIMQualifier(
                 name='Q1',
-                value=['abc def ' * 10 + 'z%02d' % _i for _i in range(0, 2)],
+                value=['abc def ' * 10 + f'z{_i:02d}' for _i in range(0, 2)],
                 type='string',
             ),
             kwargs=dict(
@@ -24132,9 +24132,9 @@ def test_CIMClassName_tocimxmlstr_indent_int(
     obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
     exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
 
-    assert obj_xml_str == exp_xml_str, \
-        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
-        format(obj.__class__.__name__, indent)
+    assert obj_xml_str == exp_xml_str, (
+        f"{obj.__class__.__name__}.tocimxmlstr(indent={indent!r}) "
+        "returns unexpected CIM-XML string")
 
 
 @pytest.mark.parametrize(
@@ -24160,9 +24160,9 @@ def test_CIMClassName_tocimxmlstr_indent_str(
     obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
     exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
 
-    assert obj_xml_str == exp_xml_str, \
-        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
-        format(obj.__class__.__name__, indent_str)
+    assert obj_xml_str == exp_xml_str, (
+        f"{obj.__class__.__name__}.tocimxmlstr(indent={indent_str!r}) "
+        "returns unexpected CIM-XML string")
 
 
 TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
@@ -27069,9 +27069,9 @@ def test_CIMClass_tocimxmlstr_indent_int(
     obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
     exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
 
-    assert obj_xml_str == exp_xml_str, \
-        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
-        format(obj.__class__.__name__, indent)
+    assert obj_xml_str == exp_xml_str, (
+        f"{obj.__class__.__name__}.tocimxmlstr(indent={indent!r}) "
+        "returns unexpected CIM-XML string")
 
 
 @pytest.mark.parametrize(
@@ -27097,9 +27097,9 @@ def test_CIMClass_tocimxmlstr_indent_str(
     obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
     exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
 
-    assert obj_xml_str == exp_xml_str, \
-        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
-        format(obj.__class__.__name__, indent_str)
+    assert obj_xml_str == exp_xml_str, (
+        f"{obj.__class__.__name__}.tocimxmlstr(indent={indent_str!r}) "
+        "returns unexpected CIM-XML string")
 
 
 TESTCASES_CIMCLASS_TOMOF = [
@@ -29310,9 +29310,9 @@ def test_CIMMethod_tocimxmlstr_indent_int(testcase, obj, kwargs, exp_xml_str):
     obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
     exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
 
-    assert obj_xml_str == exp_xml_str, \
-        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
-        format(obj.__class__.__name__, indent)
+    assert obj_xml_str == exp_xml_str, (
+        f"{obj.__class__.__name__}.tocimxmlstr(indent={indent!r}) "
+        "returns unexpected CIM-XML string")
 
 
 @pytest.mark.parametrize(
@@ -29337,9 +29337,9 @@ def test_CIMMethod_tocimxmlstr_indent_str(testcase, obj, kwargs, exp_xml_str):
     obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
     exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
 
-    assert obj_xml_str == exp_xml_str, \
-        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
-        format(obj.__class__.__name__, indent_str)
+    assert obj_xml_str == exp_xml_str, (
+        f"{obj.__class__.__name__}.tocimxmlstr(indent={indent_str!r}) "
+        "returns unexpected CIM-XML string")
 
 
 TESTCASES_CIMMETHOD_TOMOF = [
@@ -29521,7 +29521,7 @@ TESTCASES_CIMMETHOD_TOMOF = [
                 qualifiers=[
                     CIMQualifier(
                         'Q1',
-                        value=['abcdef%02d' % _i for _i in range(0, 10)],
+                        value=[f'abcdef{_i:02d}' for _i in range(0, 10)],
                         type='string'),
                 ],
             ),
@@ -29545,7 +29545,7 @@ TESTCASES_CIMMETHOD_TOMOF = [
                 qualifiers=[
                     CIMQualifier(
                         'Q1',
-                        value=['abc def ' * 10 + 'z%02d' % _i
+                        value=['abc def ' * 10 + f'z{_i:02d}'
                                for _i in range(0, 2)],
                         type='string'),
                 ],
@@ -36549,9 +36549,9 @@ def test_CIMParameter_tocimxmlstr_indent_int(
     obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
     exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
 
-    assert obj_xml_str == exp_xml_str, \
-        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
-        format(obj.__class__.__name__, indent)
+    assert obj_xml_str == exp_xml_str, (
+        f"{obj.__class__.__name__}.tocimxmlstr(indent={indent!r}) "
+        "returns unexpected CIM-XML string")
 
 
 @pytest.mark.parametrize(
@@ -36577,9 +36577,9 @@ def test_CIMParameter_tocimxmlstr_indent_str(
     obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
     exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
 
-    assert obj_xml_str == exp_xml_str, \
-        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
-        format(obj.__class__.__name__, indent_str)
+    assert obj_xml_str == exp_xml_str, (
+        f"{obj.__class__.__name__}.tocimxmlstr(indent={indent_str!r}) "
+        "returns unexpected CIM-XML string")
 
 
 TESTCASES_CIMPARAMETER_TOMOF = [
@@ -36752,7 +36752,7 @@ TESTCASES_CIMPARAMETER_TOMOF = [
                 qualifiers=[
                     CIMQualifier(
                         'Q1',
-                        value=['abcdef%02d' % _i for _i in range(0, 10)],
+                        value=[f'abcdef{_i:02d}' for _i in range(0, 10)],
                         type='string'),
                 ],
             ),
@@ -36776,7 +36776,7 @@ TESTCASES_CIMPARAMETER_TOMOF = [
                 qualifiers=[
                     CIMQualifier(
                         'Q1',
-                        value=['abc def ' * 10 + 'z%02d' % _i
+                        value=['abc def ' * 10 + f'z{_i:02d}'
                                for _i in range(0, 2)],
                         type='string'),
                 ],
@@ -43314,9 +43314,9 @@ def test_CIMQualifierDeclaration_tocimxmlstr_indent_int(
     obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
     exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
 
-    assert obj_xml_str == exp_xml_str, \
-        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
-        format(obj.__class__.__name__, indent)
+    assert obj_xml_str == exp_xml_str, (
+        f"{obj.__class__.__name__}.tocimxmlstr(indent={indent!r}) "
+        "returns unexpected CIM-XML string")
 
 
 @pytest.mark.parametrize(
@@ -43343,9 +43343,9 @@ def test_CIMQualifierDeclaration_tocimxmlstr_indent_str(
     obj_xml = obj.tocimxml(**kwargs)  # This is tested elsewhere
     exp_xml_str = obj_xml.toprettyxml(indent=indent_str)
 
-    assert obj_xml_str == exp_xml_str, \
-        "{0}.tocimxmlstr(indent={1!r}) returns unexpected CIM-XML string". \
-        format(obj.__class__.__name__, indent_str)
+    assert obj_xml_str == exp_xml_str, (
+        f"{obj.__class__.__name__}.tocimxmlstr(indent={indent_str!r}) "
+        "returns unexpected CIM-XML string")
 
 
 TESTCASES_CIMQUALIFIERDECLARATION_TOMOF = [

@@ -45,18 +45,18 @@ The following example code displays some information about a WBEM server:
 
     def explore_server(server_url, username, password):
 
-        print("WBEM server URL:\\n  {0}".format(server_url))
+        print(f"WBEM server URL:\\n  {server_url}")
 
         conn = WBEMConnection(server_url, (username, password))
         server = WBEMServer(conn)
 
-        print("Brand:\\n  {0}".format(server.brand))
-        print("Version:\\n  {0}".format(server.version))
-        print("Interop namespace:\\n  {0}".format(server.interop_ns))
+        print(f"Brand:\\n  {server.brand}")
+        print(f"Version:\\n  {server.version}")
+        print(f"Interop namespace:\\n  {server.interop_ns}")
 
         print("All namespaces:")
         for ns in server.namespaces:
-            print("  {0}".format(ns))
+            print(f"  {ns}")
 
         print("Advertised management profiles:")
         org_vm = ValueMapping.for_property(server, server.interop_ns,
@@ -65,7 +65,7 @@ The following example code displays some information about a WBEM server:
             org = org_vm.tovalues(inst['RegisteredOrganization'])
             name = inst['RegisteredName']
             vers = inst['RegisteredVersion']
-            print("  {0} {1} Profile {2}".format(org, name, vers))
+            print(f"  {org} {name} Profile {vers}")
 
 Example output:
 
@@ -441,8 +441,7 @@ class WBEMServer:
         std_namespace = _ensure_unicode(namespace.strip('/'))
 
         if verbose:
-            print("Creating namespace {} (in WBEMServer)".
-                  format(std_namespace))
+            print(f"Creating namespace {std_namespace} (in WBEMServer)")
 
         try:
             ws_profiles = self.get_selected_profiles('DMTF', 'WBEM Server')
@@ -596,8 +595,7 @@ class WBEMServer:
         std_namespace = _ensure_unicode(namespace.strip('/'))
 
         if verbose:
-            print("Deleting namespace {} (in WBEMServer)".
-                  format(std_namespace))
+            print(f"Deleting namespace {std_namespace} (in WBEMServer)")
 
         # Use approach 1: DeleteInstance of CIM class for namespaces
 

@@ -213,7 +213,7 @@ def mode_ucs2(run_func):
     """
     for cp in range(0, MAX_UCS2_CP):
         cp_char = unichr2(cp)
-        test_string = 'U+{:06X}: {}'.format(cp, cp_char)
+        test_string = f'U+{cp:06X}: {cp_char}'
         run_func(test_string)
 
 
@@ -223,7 +223,7 @@ def mode_all(run_func):
     """
     for cp in range(0, MAX_UNICODE_CP):
         cp_char = unichr2(cp)
-        test_string = 'U+{:06X}: {}'.format(cp, cp_char)
+        test_string = f'U+{cp:06X}: {cp_char}'
         run_func(test_string)
 
 

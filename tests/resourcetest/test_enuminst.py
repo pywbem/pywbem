@@ -24,17 +24,16 @@ def test_enuminst_mock(num_props, num_insts):
 
     conn, cls, _ = tst_random_conn(num_insts, num_props)
 
-    print("\nResource consumption test: EnumerateInstances with "
-          "num_props={}, num_insts={}:".format(num_props, num_insts))
+    print(f"\nResource consumption test: EnumerateInstances with "
+          f"num_props={num_props}, num_insts={num_insts}:")
 
     with ResourceMeasurement() as rm:
         result = conn.EnumerateInstances(cls.classname)
 
     result_size = total_sizeof(result)
 
-    print("  Elapsed time: {:>12} ms".
-          format(f"{rm.elapsed_time_ms:.3f}"))
-    print("  CPU time:     {:>12} ms".format(f"{rm.cpu_time_ms:.3f}"))
+    print(f"  Elapsed time: {rm.elapsed_time_ms:>12.3f} ms")
+    print(f"  CPU time:     {rm.cpu_time_ms:>12.3f} ms")
     print(f"  Peak usage:   {rm.peak_size:>12} B")
     print(f"  Result size:  {result_size:>12} B")
 
@@ -53,16 +52,15 @@ def test_enuminstnames_mock(num_props, num_insts):
 
     conn, cls, _ = tst_random_conn(num_insts, num_props)
 
-    print("\nResource consumption test: EnumerateInstanceNames with "
-          "num_props={}, num_insts={}:".format(num_props, num_insts))
+    print(f"\nResource consumption test: EnumerateInstanceNames with "
+          f"num_props={num_props}, num_insts={num_insts}:")
 
     with ResourceMeasurement() as rm:
         result = conn.EnumerateInstanceNames(cls.classname)
 
     result_size = total_sizeof(result)
 
-    print("  Elapsed time: {:>12} ms".
-          format(f"{rm.elapsed_time_ms:.3f}"))
-    print("  CPU time:     {:>12} ms".format(f"{rm.cpu_time_ms:.3f}"))
+    print(f"  Elapsed time: {rm.elapsed_time_ms:>12.3f} ms")
+    print(f"  CPU time:     {rm.cpu_time_ms:>12.3f} ms")
     print(f"  Peak usage:   {rm.peak_size:>12} B")
     print(f"  Result size:  {result_size:>12} B")

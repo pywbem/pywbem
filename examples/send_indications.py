@@ -134,9 +134,8 @@ def send_indication(url, headers, payload, verbose, verify=None, keyfile=None,
 
     # validate response status code and xml
     if verbose or response.status_code != 200:
-        print('\nResponse code={} headers={} data={}'.format(response.status_code,
-                                                         response.headers,
-                                                         response.text))
+        print(f"\nResponse code={response.status_code} "
+              f"headers={response.headers} data={response.text}")
     root = ET.fromstring(response.text)
     if (root.tag != 'CIM') or (root.attrib['CIMVERSION'] != '2.0') \
             or (root.attrib['DTDVERSION'] != '2.4'):
@@ -162,12 +161,12 @@ def get_args():
     prog = "sendIndications"
     usage = '%(prog)s [options] listener-url'
     desc = 'Send indications to a listener. Verify set to False'
-    epilog = """
+    epilog = f"""
 Examples:
-  {} https://127.0.0.1 -p 5001
-  {} http://localhost:5000
-  {} http://[2001:db8::1234-eth0] -(http port 5988 ipv6, zone id eth0)
-""".format(prog, prog, prog)
+  {prog} https://127.0.0.1 -p 5001
+  {prog} http://localhost:5000
+  {prog} http://[2001:db8::1234-eth0] -(http port 5988 ipv6, zone id eth0)
+"""
 
     argparser = _argparse.ArgumentParser(
         prog=prog, usage=usage, description=desc, epilog=epilog,
@@ -249,9 +248,9 @@ def main():
                             'invalid')
     else:
         if opts.listenerPort is None:
-            url = '{}:{}'.format(opts.url, 5000)
+            url = f'{opts.url}:{5000}'
         else:
-            url = '{}:{}'.format(opts.url, opts.listenerPort)
+            url = f'{opts.url}:{opts.listenerPort}'
 
     if opts.verbose:
         print('url=%s' % url)
@@ -283,7 +282,7 @@ def main():
                                          cim_protocol_version)
 
         if opts.verbose:
-            print('headers={}\n\npayload={}'.format(headers, payload))
+            print(f'headers={headers}\n\npayload={payload}')
 
         success = send_indication(url, headers, payload, opts.verbose,
                                   verify=verification)
@@ -299,8 +298,8 @@ def main():
             print('Error return from send. Terminating.')
             return
     endtime = timer.elapsed_sec()
-    print('Sent {} in {} sec or {:.2f} ind/sec'.format(opts.deliver, endtime,
-                                                 (opts.deliver / endtime)))
+    print(f"Sent {opts.deliver} in {endtime} sec or "
+          f"{(opts.deliver / endtime):.2f} ind/sec")
 
 
 if __name__ == '__main__':
