@@ -165,7 +165,7 @@ class BaseMethodsForTests:
         self.test_class = 'Test_IndicationProviderClass'
         self.test_class_namespace = 'test/TestProvider'
 
-        self.test_query = 'SELECT * from %s' % self.test_class
+        self.test_query = f'SELECT * from {self.test_class}'
         self.test_classname = CIMClassName(self.test_class,
                                            namespace=self.test_class_namespace)
 
@@ -291,8 +291,8 @@ class BaseMethodsForTests:
         if sum(counts) == 0:
             return True
 
-        print('ERROR: Server_id=%s. Unreleased filters=%s, subs=%s, dest=%s' %
-              (server_id, counts[0], counts[1], counts[2]))
+        print(f'ERROR: Server_id={server_id}. Unreleased filters={counts[0]}, '
+              f'subs={counts[1]}, dest={counts[2]}')
         return False
 
     def get_submgr_inst_counts(self, sub_mgr, server_id):

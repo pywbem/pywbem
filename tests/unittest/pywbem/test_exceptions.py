@@ -28,7 +28,7 @@ from pywbem import Error, ConnectionError, AuthError, HTTPError, TimeoutError, \
 TEST_CONN_ID = 'fake-conn-id'
 
 # The expected connection information in exception messages
-TEST_CONN_STR = 'Connection id: %s' % TEST_CONN_ID
+TEST_CONN_STR = f'Connection id: {TEST_CONN_ID}'
 TEST_CONN_STR_NONE = 'Connection id: None'
 
 
@@ -378,8 +378,8 @@ def test_cimerror_1(status_tuple, conn_info):
     status_code, status_code_name = status_tuple
     conn_id_kwarg, exp_conn_str = conn_info
 
-    invalid_code_name = 'Invalid status code %s' % status_code
-    invalid_code_desc = 'Invalid status code %s' % status_code
+    invalid_code_name = f'Invalid status code {status_code}'
+    invalid_code_desc = f'Invalid status code {status_code}'
 
     exc = CIMError(status_code, **conn_id_kwarg)
 
@@ -409,7 +409,7 @@ def test_cimerror_2(status_tuple, conn_info):
     status_code, status_code_name = status_tuple
     conn_id_kwarg, exp_conn_str = conn_info
 
-    invalid_code_name = 'Invalid status code %s' % status_code
+    invalid_code_name = f'Invalid status code {status_code}'
     input_desc = 'foo'
 
     exc = CIMError(status_code, input_desc, **conn_id_kwarg)

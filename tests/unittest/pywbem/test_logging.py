@@ -103,7 +103,7 @@ class TestLoggingConfigure:
             elif log_name == 'http':
                 logger = logging.getLogger(LOGGER_HTTP_NAME)
             else:
-                assert 'Input error. log_name %s ' % log_name
+                assert f'Input error. log_name {log_name} '
 
             # TODO compare detail_level
 
@@ -546,7 +546,7 @@ class TestLoggerPropagate:
 
         with open(logger_filename, encoding='utf-8') as logger_fp:
             logger_line = logger_fp.read()
-        assert re.match(r'.*-%s\..*-Connection:' % logger_name, logger_line)
+        assert re.match(fr'.*-{logger_name}\..*-Connection:', logger_line)
 
         with open(pkg_filename, encoding='utf-8') as pkg_fp:
             pkg_line = pkg_fp.read()

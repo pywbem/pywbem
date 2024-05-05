@@ -25,7 +25,7 @@ from pywbem import Warning, ToleratedServerIssueWarning, \
 TEST_CONN_ID = 'fake-conn-id'
 
 # The expected connection information in exception messages
-TEST_CONN_STR = 'Connection id: %s' % TEST_CONN_ID
+TEST_CONN_STR = f'Connection id: {TEST_CONN_ID}'
 TEST_CONN_STR_NONE = 'Connection id: None'
 
 

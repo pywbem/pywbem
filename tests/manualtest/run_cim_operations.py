@@ -201,10 +201,10 @@ class ClientTest(unittest.TestCase):
         # Iter... operations.
         if self.stats_enabled:
             # svr_time and operation_time may return None
-            svr_time = '{:.4f}'.format(self.conn.last_server_response_time) \
+            svr_time = f'{self.conn.last_server_response_time:.4f}' \
                 if self.conn.last_server_response_time else 'None'
 
-            operation_time = '{:.4f}'.format(self.conn.last_operation_time) \
+            operation_time = f'{self.conn.last_operation_time:.4f}' \
                 if self.conn.last_operation_time else 'None'
 
             print(f'Operation stats: time {operation_time} '

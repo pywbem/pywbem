@@ -195,7 +195,7 @@ else
 fi
 
 py_m=$(python -c "import sys; print(sys.version_info[0])")
-py_mn=$(python -c "import sys; print('%s.%s' % (sys.version_info[0], sys.version_info[1]))")
+py_mn=$(python -c "import sys; print(f'{sys.version_info[0]}.{sys.version_info[1]}')")
 
 echo "$myname: Installing OS-level prerequisite packages for $purpose on platform ${platform}..."
 
