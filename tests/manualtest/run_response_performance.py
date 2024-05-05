@@ -247,22 +247,16 @@ class ExecuteTests:
         # set logfile name if log option set. If the individual
         # option set, this will be modified
         if self.log:
-            self.logfile = "{}_{}_{}_{}.{}".format(
-                PROFILE_OUT_PREFIX,
-                self.runid,
-                self.profiler,
-                self.file_datetime,
-                PROFILE_LOG_SUFFIX)
+            self.logfile = (
+                f"{PROFILE_OUT_PREFIX}_{self.runid}_{self.profiler}_"
+                f"{self.file_datetime}.{PROFILE_LOG_SUFFIX}")
         else:
             self.logfile = None
 
         # define a dumpfile for the cprofile save.
-        self.dumpfilename = "{}_{}_{}_{}.{}".format(
-            PROFILE_OUT_PREFIX,
-            self.runid,
-            self.profiler,
-            self.file_datetime,
-            PROFILE_DUMP_SUFFIX)
+        self.dumpfilename = (
+            f"{PROFILE_OUT_PREFIX}_{self.runid}_{self.profiler}_"
+            f"{self.file_datetime}.{PROFILE_DUMP_SUFFIX}")
 
         # number of lines to display for cprofile output
         self.top_n_rows = args.top_n_rows
@@ -284,21 +278,14 @@ class ExecuteTests:
         self.cprofilesort = ["tottime", "ncalls"]
 
     def __repr__(self):
-        return "ExecuteTests(runid={}, response_size={} response_count={} " \
-               "profiler={} verbose={}, log={}, file_datetime={}, " \
-               "logfile={}, dumpfilename={}, top_n_rows={}, " \
-               "cprofilesort={})".format(
-                   self.runid,
-                   self.response_size,
-                   self.response_count,
-                   self.profiler,
-                   self.verbose,
-                   self.log,
-                   self.file_datetime,
-                   self.logfile,
-                   self.dumpfilename,
-                   self.top_n_rows,
-                   self.cprofilesort)
+        return (
+            f"ExecuteTests(runid={self.runid}, "
+            f"response_size={self.response_size} "
+            f"response_count={self.response_count} "
+            f"profiler={self.profiler} verbose={self.verbose}, "
+            f"log={self.log}, file_datetime={self.file_datetime}, "
+            f"logfile={self.logfile}, dumpfilename={self.dumpfilename}, "
+            f"top_n_rows={self.top_n_rows}, cprofilesort={self.cprofilesort})")
 
     def execute_raw_tests(self, profiler=None):
         """
@@ -337,8 +324,8 @@ class ExecuteTests:
         try:
             ps.dump_stats(self.dumpfilename)
         except Exception as ex:  # pylint: disable=broad-except
-            print('cProfiler dump stats exception %s %s. Ignored' %
-                  (ex.__class__.__name__, ex))
+            print(f'cProfiler dump stats exception {ex.__class__.__name__} '
+                  f'{ex}. Ignored')
 
         # modify stats for display and output to stdout
         ps.strip_dirs()
@@ -382,8 +369,8 @@ class ExecuteTests:
         elif self.profiler == 'cprofile':
             table_rows = self.execute_cprofile_tests()
         else:
-            raise RuntimeError('profiler arg %s invalid. '
-                               'Should never occur' % self.profiler)
+            raise RuntimeError(
+                f'profiler arg {self.profiler} invalid. Should never occur')
 
         # build and output results report
         header = ["Exp inst\nsize",
@@ -392,12 +379,11 @@ class ExecuteTests:
                   "XML\nsize",
                   "Parse time\nsec.",
                   "Instances\nper sec"]
-        title = 'Results: profile={}, response_counts={},\n   ' \
-                'response-sizes={}, runid={} {}'.format(self.profiler,
-                                                        self.response_count,
-                                                        self.response_size,
-                                                        self.runid,
-                                                        self.file_datetime)
+        title = (
+            f'Results: profiler={self.profiler}, '
+            f'response_counts={self.response_count},\n   '
+            f'response-sizes={self.response_size}, runid={self.runid} '
+            f'{self.file_datetime}')
         table = tabulate(table_rows, header, tablefmt=self.tbl_output_format)
 
         # print statistics to terminal
@@ -427,27 +413,19 @@ def execute_individual_tests(args):
             # define a dump file name for each execution
             tests.response_count = [response_count]
             tests.response_size = [response_size]
-            tests.dumpfilename = "{}_{}_{}_{}_{}_{}.{}".format(
-                PROFILE_OUT_PREFIX,
-                tests.runid,
-                args.profiler,
-                tests.file_datetime,
-                response_count,
-                response_size,
-                PROFILE_DUMP_SUFFIX)
+            tests.dumpfilename = (
+                f"{PROFILE_OUT_PREFIX}_{tests.runid}_{args.profiler}_"
+                f"{tests.file_datetime}_{response_count}_{response_size}."
+                f"{PROFILE_DUMP_SUFFIX}")
 
             # If a log destination is defined modify the dump file name
             # for each individual  test suffixes the name with the
             # response_size and response_count
             if args.log:
-                tests.logfile = "{}_{}_{}_{}_{}_{}.{}".format(
-                    PROFILE_OUT_PREFIX,
-                    tests.runid,
-                    args.profiler,
-                    tests.file_datetime,
-                    response_count,
-                    response_size,
-                    PROFILE_LOG_SUFFIX)
+                tests.logfile = (
+                    f"{PROFILE_OUT_PREFIX}_{tests.runid}_{args.profiler}_"
+                    f"{tests.file_datetime}_{response_count}_{response_size}."
+                    f"{PROFILE_LOG_SUFFIX}")
 
             tests.execute_tests()
 
@@ -514,7 +492,7 @@ Examples:
              '   * `cprofile` uses cProfile and generates a table of\n'
              '     counts.\n'
              '   * `none` runs without profiler.\n'
-             ' Default: %s' % "none")
+             ' Default: none')
 
     tests_arggroup.add_argument(
         '-c', '--response-count', dest='response_count', nargs='+',
@@ -525,7 +503,7 @@ Examples:
              'integers. The test will be executed for each\n'
              'response-size and each value defined. The format is:\n'
              '   -c 1000 10000 100000\n'
-             'Default: %s' % DEFAULT_RESPONSE_COUNT)
+             f'Default: {DEFAULT_RESPONSE_COUNT}')
 
     tests_arggroup.add_argument(
         '-s', '--response-size', dest='response_size', nargs='+',
@@ -537,7 +515,7 @@ Examples:
              'executed for the combination of each response-count\n'
              'and each value provided. The format is:\n'
              '   -s 100 200 300\n'
-             'Default: %s' % DEFAULT_RESPONSE_SIZE)
+             f'Default: {DEFAULT_RESPONSE_SIZE}')
 
     tests_arggroup.add_argument(
         '-n', '--top-n-rows', dest='top_n_rows',
@@ -545,7 +523,7 @@ Examples:
         action='store', default=DEFAULT_TOP_N_ROWS,
         help='R|The number of rows of profile data for the cprofile\n'
              'display. This is the top n tottime results.\n'
-             'Default: %s' % DEFAULT_TOP_N_ROWS)
+             f'Default: {DEFAULT_TOP_N_ROWS}')
 
     tests_arggroup.add_argument(
         '-r', '--runid', dest='runid',
@@ -553,7 +531,7 @@ Examples:
         action='store', default=DEFAULT_RUNID,
         help='R|A string that is concatenated into each filename\n'
              'created by the script. It is suffixed with pywbem version.\n'
-             'Default: %s' % DEFAULT_RUNID)
+             f'Default: {DEFAULT_RUNID}')
 
     tests_arggroup.add_argument(
         '-i', '--individual', dest='individual',

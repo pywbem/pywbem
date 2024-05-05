@@ -132,11 +132,11 @@ conn = pywbem.WBEMConnection(server_url, (user, password))
 
 server = pywbem.WBEMServer(conn)
 
-print("Interop namespace:\n  %s" % server.interop_ns)
+print(f"Interop namespace:\n  {server.interop_ns}")
 
 print("All namespaces:")
 for ns in server.namespaces:
-    print("  %s" % ns)
+    print(f"  {ns}")
 ```
 
 # Project Planning

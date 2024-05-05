@@ -160,7 +160,7 @@ class Test_ValueMapping:
         values qualifiers.
         """
         server = getattr(self, server_arg)
-        setup_func_name = 'setup_for_%s' % element_kind
+        setup_func_name = f'setup_for_{element_kind}'
         setup_func = getattr(self, setup_func_name)
 
         vm = setup_func(server, integer_type, is_array, valuemap, values,
@@ -285,25 +285,25 @@ class Test_ValueMapping:
 
         # pylint: disable=protected-access
 
-        exp_conn = '_conn=%r' % vm._conn
+        exp_conn = f'_conn={vm._conn!r}'
         assert exp_conn in r
 
-        exp_namespace = '_namespace=%r' % vm._namespace
+        exp_namespace = f'_namespace={vm._namespace!r}'
         assert exp_namespace in r
 
-        exp_classname = '_classname=%r' % vm._classname
+        exp_classname = f'_classname={vm._classname!r}'
         assert exp_classname in r
 
-        exp_propname = '_propname=%r' % vm._propname
+        exp_propname = f'_propname={vm._propname!r}'
         assert exp_propname in r
 
-        exp_methodname = '_methodname=%r' % vm._methodname
+        exp_methodname = f'_methodname={vm._methodname!r}'
         assert exp_methodname in r
 
-        exp_parametername = '_parametername=%r' % vm._parametername
+        exp_parametername = f'_parametername={vm._parametername!r}'
         assert exp_parametername in r
 
-        exp_element_obj = '_element_obj=%r' % vm._element_obj
+        exp_element_obj = f'_element_obj={vm._element_obj!r}'
         assert exp_element_obj in r
 
         # We don't check the internal data attributes.
@@ -672,7 +672,7 @@ class Test_ValueMapping:
 
         values = []
         for v in valuemap:
-            values.append('val %s' % v)
+            values.append(f'val {v}')
 
         vm = self.setup_for_element(element_kind, server_arg, integer_type,
                                     is_array, valuemap, values)
@@ -711,7 +711,7 @@ class Test_ValueMapping:
 
         values = []
         for v in valuemap:
-            values.append('val %s' % v)
+            values.append(f'val {v}')
 
         vm = self.setup_for_element(element_kind, server_arg, integer_type,
                                     is_array, valuemap, values)
@@ -747,17 +747,17 @@ class Test_ValueMapping:
         maxvalue = type_from_name(integer_type).maxvalue
 
         valuemap = []
-        valuemap.append('%s' % minvalue)
-        valuemap.append('..%s' % (minvalue + 2))
-        valuemap.append('%s..' % (maxvalue - 2))
-        valuemap.append('%s' % maxvalue)
+        valuemap.append(f'{minvalue}')
+        valuemap.append(f'..{minvalue + 2}')
+        valuemap.append(f'{maxvalue - 2}..')
+        valuemap.append(f'{maxvalue}')
 
         exp_valuemap = [minvalue, (minvalue + 1, minvalue + 2),
                         (maxvalue - 2, maxvalue - 1), maxvalue]
 
         values = []
         for v in valuemap:
-            values.append('val %s' % v)
+            values.append(f'val {v}')
 
         vm = self.setup_for_element(element_kind, server_arg, integer_type,
                                     is_array, valuemap, values)
@@ -795,15 +795,15 @@ class Test_ValueMapping:
         maxvalue = type_from_name(integer_type).maxvalue
 
         valuemap = []
-        valuemap.append('..%s' % (minvalue + 2))
-        valuemap.append('%s..' % (maxvalue - 2))
+        valuemap.append(f'..{minvalue + 2}')
+        valuemap.append(f'{maxvalue - 2}..')
 
         exp_valuemap = [(minvalue, minvalue + 2),
                         (maxvalue - 2, maxvalue)]
 
         values = []
         for v in valuemap:
-            values.append('val %s' % v)
+            values.append(f'val {v}')
 
         vm = self.setup_for_element(element_kind, server_arg, integer_type,
                                     is_array, valuemap, values)

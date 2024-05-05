@@ -181,8 +181,8 @@ def run_single_test(conn, response_count, response_size, max_obj_cnt_array):
 
         # total_operationtime exists only if the server returns it
         if total_operationtime:
-            percentage = "{:0.2f}".format((pywbem_processingtime /
-                                           conn.last_operation_time) * 100)
+            _pct = pywbem_processingtime / conn.last_operation_time * 100
+            percentage = f"{_pct:0.2f}"
         else:
             percentage = 100  # This is fake but we don't know svr time.
 
@@ -235,7 +235,7 @@ def run_tests(conn, response_sizes, response_counts, pull_sizes, verbose):
         headers = ('ObjsCnt', 'Pull#', 'SvrTime', 'RspTime',
                    'OpTime-SvrTime', '%Not Svr')
 
-        print("{0:6s} {1:5s} {2:7s} {3:7s} {4:14s} {5:10s}".format(*headers))
+        print("{:6s} {:5s} {:7s} {:7s} {:14s} {:10s}".format(*headers))
 
         print('\n\nDetailed statistics for each pull  operations')
         for st in STATS_LIST:

@@ -90,7 +90,7 @@ class RunIndicationTest:  # pylint: disable=too-many-instance-attributes
     # a class that generates one indication for each call of a method
     indication_test_class = 'Test_IndicationProviderClass'
     test_class_namespace = 'test/TestProvider'
-    test_query = 'SELECT * from %s' % indication_test_class
+    test_query = f'SELECT * from {indication_test_class}'
 
     # If set, outputs all of the requests (apis and html) and responses to
     # pywbem log file. This is not same log as the listener output.

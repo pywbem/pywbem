@@ -79,7 +79,7 @@ class RunIndicationTest:
     # a class that generates indications for each call of a method
     indication_test_class = 'Test_IndicationProviderClass'
     test_class_namespace = 'test/TestProvider'
-    test_query = 'SELECT * from %s' % indication_test_class
+    test_query = f'SELECT * from {indication_test_class}'
 
     def __init__(self, wbem_conn, indication_destination_host,
                  listener_host, http_listener_port, requested_indications,

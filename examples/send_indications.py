@@ -129,7 +129,7 @@ def send_indication(url, headers, payload, verbose, verify=None, keyfile=None,
                                  verify=verify)
 
     except Exception as ex:
-        print('Exception %s' % ex)
+        print(f'Exception {ex}')
         return False
 
     # validate response status code and xml
@@ -140,13 +140,13 @@ def send_indication(url, headers, payload, verbose, verify=None, keyfile=None,
     if (root.tag != 'CIM') or (root.attrib['CIMVERSION'] != '2.0') \
             or (root.attrib['DTDVERSION'] != '2.4'):
 
-        print('Invalid XML\nResponse code=%s headers=%s data=%s' %
-              (response.status_code, response.headers, response.text))
+        print(f'Invalid XML\nResponse code={response.status_code} '
+              f'headers={response.headers} data={response.text}')
         return False
     for child in root:
         if child.tag != 'MESSAGE' or child.attrib['PROTOCOLVERSION'] != '1.4':
-            print('Invalid child\nResponse code=%s headers=%s data=%s' %
-                  (response.status_code, response.headers, response.text))
+            print(f'Invalid child\nResponse code={response.status_code} '
+                  f'headers={response.headers} data={response.text}')
             return False
 
     return response.status_code == 200
@@ -223,11 +223,11 @@ Examples:
     args = argparser.parse_args()
 
     if re.match('^http', args.url) is None:
-        print('ERROR: url must include schema. received %s' % args.url)
+        print(f'ERROR: url must include schema. received {args.url}')
         sys.exit(1)
 
     if args.verbose:
-        print('args: %s' % args)
+        print(f'args: {args}')
 
     return args, argparser
 
@@ -253,7 +253,7 @@ def main():
             url = f'{opts.url}:{opts.listenerPort}'
 
     if opts.verbose:
-        print('url=%s' % url)
+        print(f'url={url}')
 
     cim_protocol_version = '1.4'
 
@@ -277,7 +277,7 @@ def main():
     source_id = 'send_indications.py'
     for i in range(opts.deliver):
 
-        msg_id = '%s' % (i + rand_base)
+        msg_id = f'{i + rand_base}'
         payload = create_indication_data(msg_id, i, source_id, delta_time,
                                          cim_protocol_version)
 
@@ -289,7 +289,7 @@ def main():
 
         if success:
             if opts.verbose:
-                print('sent # %s' % i)
+                print(f'sent # {i}')
             else:
                 if i % 100 == 0:
                     sys.stdout.write('.')

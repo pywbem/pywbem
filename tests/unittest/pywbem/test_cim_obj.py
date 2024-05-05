@@ -1787,13 +1787,13 @@ def test_CIMInstanceName_eq_keybindings_order():
         print("\nInfo: CIMInstanceNameEquality.test_keybindings_order(): "
               "Key bindings have the same order of keys, lowering the "
               "quality of this test.")
-        print("  Hash values of keys: k1=%r (hash: %s), k2=%r (hash: %s)" %
-              (key1, hash(key1) % 8, key2, hash(key2) % 8))
+        print(f"  Hash values of keys: k1={key1!r} (hash: {hash(key1) % 8}), "
+              f"k2={key2!r} (hash: {hash(key2) % 8})")
         print(f"  First keys: k1={k1_first!r}, k2={k2_first!r}")
         print(f"  Input dicts: d1={d1!r}, d2={d2!r}")
         print(f"  Input key bindings: kb1={kb1!r}, kb2={kb2!r}")
-        print("  Object key bindings: obj1.kb=%r, obj2.kb=%r" %
-              (obj1.keybindings, obj2.keybindings))
+        print(f"  Object key bindings: obj1.kb={obj1.keybindings!r}, "
+              f"obj2.kb={obj2.keybindings!r}")
         print(f"  Objects:\n    obj1={obj1!r}\n    obj2={obj2!r}")
     assert obj1 == obj2, (
         "CIMInstanceName objects with different iteration order of "

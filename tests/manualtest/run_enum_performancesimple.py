@@ -46,7 +46,7 @@ def format_timedelta(td):
     minutes, seconds = divmod(remainder, 60)
     return f'{hours:02d}:{minutes:02d}:{seconds:05.2f}'
 
-    # return '{:02d}:{:02d}.{:05f}'.format(hours, minutes, seconds)
+    # return f'{hours:02d}:{minutes:02d}.{seconds:05f}'
 
 
 class ElapsedTimer:
