@@ -319,10 +319,6 @@ def pywbem_urllib3_exception(exc, conn):
         if m:
             exc_name = m.group(1)
             exc_message = m.group(2)
-            if exc_message.endswith(','):
-                # TODO-OLDPYTHON: Rework
-                # Python <3.6 represents it as tuple with trailing comma
-                exc_message = exc_message.rstrip(',')
             if exc_message.startswith('"'):
                 exc_message = exc_message.strip('"')
             elif exc_message.startswith("'"):

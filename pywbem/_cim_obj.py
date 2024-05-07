@@ -217,7 +217,7 @@ from .config import SEND_VALUE_NULL
 from . import config
 from ._cim_types import _CIMComparisonMixin, type_from_name, cimtype, \
     atomic_to_cim_xml, CIMType, CIMDateTime, number_types, CIMInt, \
-    CIMFloat, _Longint, Char16, SlottedPickleMixin
+    CIMFloat, Char16, SlottedPickleMixin
 from ._nocasedict import NocaseDict
 from ._utils import _ensure_unicode, _ensure_bool, \
     _hash_name, _hash_item, _hash_dict, _format, _integerValue_to_int, \
@@ -2209,7 +2209,7 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
                 # IEE-754 floating point numbers between decimal and binary
                 # without loss.
                 ret.append(repr(value))
-            elif isinstance(value, (CIMInt, int, _Longint)):
+            elif isinstance(value, (CIMInt, int)):
                 # intNN
                 ret.append(str(value))
             elif isinstance(value, CIMInstanceName):

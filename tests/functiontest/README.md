@@ -311,5 +311,5 @@ Elements in `http_response` element
 
 * `data`:
   The CIM-XML payload in the HTTP response handed back to the PyWBEM
-  client. The CIm-XML is handed back as resulting from the specified
+  client. The CIM-XML is handed back as resulting from the specified
   YAML, including any whitespace.

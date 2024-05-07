@@ -50,20 +50,6 @@ from abc import abstractmethod
 __all__ = ['BaseObjectStore', 'BaseRepository']
 
 
-def compatibleabstractproperty(func):
-    """
-    TODO-OLDPYTHON: Resolve
-    Python 2 and python 3 differ in decorator for abstract property.
-    in python 3 (gt 3.3) it is:
-        @property
-        @abstractproperty
-    in python 2
-        @abstractproperty
-    """
-
-    return property(abstractmethod(func))
-
-
 class BaseObjectStore:
     """
     An abstract class that defines the APIs for the methods of an object store
@@ -271,7 +257,8 @@ class BaseRepository:
        CIM objects of a single CIM type by namespace in the repository.
     """
 
-    @compatibleabstractproperty
+    @property
+    @abstractmethod
     def namespaces(self):
         """
         :term:`NocaseList` of :term:`string`:

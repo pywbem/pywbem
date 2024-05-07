@@ -9323,9 +9323,9 @@ class TestInvokeMethod:
     Test invoking extrinsic methods in FakedWBEMConnection
     """
 
-    INVOKEMETHOD1_TESTCASES = [
+    INVOKEMETHOD_TESTCASES = [
 
-        # Testcases for test_invokemethod1(), with list items as follows:
+        # Testcases for test_invokemethod(), with list items as follows:
         #
         # desc: Description of testcase
         # inputs: Dictionary of input parameters for
@@ -9774,9 +9774,9 @@ class TestInvokeMethod:
         "ns", INITIAL_NAMESPACES + [None])
     @pytest.mark.parametrize(
         "desc, inputs, exp_result, exp_exc, condition",
-        INVOKEMETHOD1_TESTCASES)
-    def test_invokemethod1(self, conn, tst_instances_mof, ns, desc, inputs,
-                           exp_result, exp_exc, condition):
+        INVOKEMETHOD_TESTCASES)
+    def test_invokemethod(self, conn, tst_instances_mof, ns, desc, inputs,
+                          exp_result, exp_exc, condition):
         # pylint: disable=no-self-use,unused-argument
         """
         Test extrinsic method invocation through the

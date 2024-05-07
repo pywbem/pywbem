@@ -25,7 +25,6 @@ from pywbem import CIMInstance, CIMInstanceName, CIMClass, CIMClassName, \
     Sint32, Sint64, Real32, Real64, Char16, CIMDateTime, \
     MinutesFromUTC, __version__, MissingKeybindingsWarning  # noqa: E402
 from pywbem._nocasedict import NocaseDict  # noqa: E402
-from pywbem._cim_types import _Longint  # noqa: E402
 from pywbem._cim_obj import mofstr  # noqa: E402
 from pywbem._utils import _format  # noqa: E402
 from pywbem import cimvalue  # noqa: E402
@@ -8857,9 +8856,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
     # * kwargs: Keyword arguments for the test function:
     #   * cls_props: Dict of input properties for CIMClass.
     #   * inst_prop_vals: Dict of property values for the instance.
-    #     Is specified as OrderedDict to avoid UserWarning about unordered items
-    #     in py<3.7.
-    #     TODO-OLDPYTHON: Rework
+    #     Order required in this dict so limited to py>=3.7.
     #   * kwargs: Dict of input args to from_class method
     #   * exp_props: Expected properties in created instance as a dictionary
     # * exp_exc_types: Expected exception type(s), or None.
@@ -8872,7 +8869,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         " passes (returns instance that matches exp_props",
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
-            inst_prop_vals=OrderedDict(
+            inst_prop_vals=dict(
                 [('ID', 'inst_id'), ('STR', 'str_val'),
                  ('U32', Uint32(3))]),
             kwargs={},
@@ -8886,7 +8883,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         "to lower case in test",
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
-            inst_prop_vals=OrderedDict(
+            inst_prop_vals=dict(
                 [('id', 'inst_id'), ('str', 'str_val'),
                  ('u32', Uint32(3))]),
             kwargs={'include_path': True},
@@ -8900,7 +8897,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         "property_values is a case independent dictionary.",
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
-            inst_prop_vals=OrderedDict(
+            inst_prop_vals=dict(
                 [('id', 'inst_id'), ('str', 'str_val'),
                  ('u32', Uint32(3))]),
             kwargs={'include_path': True},
@@ -8914,7 +8911,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         " passes (returns instance that matches exp_props",
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP, REF_PROP),
-            inst_prop_vals=OrderedDict(
+            inst_prop_vals=dict(
                 [('ID', 'inst_id'), ('STR', 'str_val'),
                  ('U32', Uint32(3)),
                  ('REF', CIMInstanceName('CIM_Foo',
@@ -8940,7 +8937,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         "inc_null_prop=True passes",
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
-            inst_prop_vals=OrderedDict(
+            inst_prop_vals=dict(
                 [('ID', 'inst_id'), ('STR', 'str_val')]),
             kwargs={'include_missing_properties': True},
             exp_props={'ID': 'inst_id', 'STR': 'str_val',
@@ -8952,7 +8949,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         "Verify 2 props defined in instance inc_nul_prop=True passes",
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
-            inst_prop_vals=OrderedDict(
+            inst_prop_vals=dict(
                 [('ID', 'inst_id'), ('STR', 'str_val')]),
             kwargs={'include_missing_properties': True},
             exp_props={'ID': 'inst_id', 'STR': 'str_val',
@@ -8964,7 +8961,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         "Verify 2 props defined in instance inc_null_prop=False passes",
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
-            inst_prop_vals=OrderedDict(
+            inst_prop_vals=dict(
                 [('ID', 'inst_id'), ('STR', 'str_val')]),
             kwargs={'include_missing_properties': False},
             exp_props={'ID': 'inst_id', 'STR': 'str_val'},
@@ -8978,7 +8975,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         "passes.",
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
-            inst_prop_vals=OrderedDict(
+            inst_prop_vals=dict(
                 [('ID', 'inst_id'), ('STR', 'str_val'),
                  ('U32', Uint32(3))]),
             kwargs={'include_path': True},
@@ -8991,7 +8988,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         "Verify Class with 3 properties, params: include_path=False passes",
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
-            inst_prop_vals=OrderedDict(
+            inst_prop_vals=dict(
                 [('ID', 'inst_id'), ('STR', 'str_val'),
                  ('U32', Uint32(3))]),
             kwargs={'include_path': False},
@@ -9007,7 +9004,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         "passes",
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
-            inst_prop_vals=OrderedDict(
+            inst_prop_vals=dict(
                 [('ID', 'inst_id'), ('STR', 'blah'), ('U32', None)]),
             kwargs={'include_path': False},
             exp_props={'ID': 'inst_id', 'STR': "blah",
@@ -9021,7 +9018,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         "Verify class with one property. include_class_origin=True passes",
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
-            inst_prop_vals=OrderedDict([('ID', 'inst_id')]),
+            inst_prop_vals=dict([('ID', 'inst_id')]),
             kwargs={'include_path': False, 'include_class_origin': True,
                     'include_missing_properties': False},
             exp_props={'ID': CIMProperty('ID', 'inst_id', type='string',
@@ -9034,7 +9031,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         "creates new instance with path",
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
-            inst_prop_vals=OrderedDict(
+            inst_prop_vals=dict(
                 [('ID', 'inst_id'), ('STR', 'str_val'),
                  ('U32', Uint32(3))]),
             kwargs={'include_path': True},
@@ -9048,7 +9045,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         "include_missing_properties=False fails.",
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
-            inst_prop_vals=OrderedDict(
+            inst_prop_vals=dict(
                 [('STR', 'str_val'), ('U32', Uint32(99999))]),
             kwargs={'include_path': True,
                     'include_missing_properties': False},
@@ -9062,7 +9059,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         "test fails, key propety value None",
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
-            inst_prop_vals=OrderedDict(
+            inst_prop_vals=dict(
                 [('STR', 'str_val'), ('U32', Uint32(99999))]),
             kwargs={'include_path': True},
             exp_props={'ID': 'inst_id', 'STR': 'str_val',
@@ -9074,7 +9071,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         "Instance with property in instance but not in class fails",
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
-            inst_prop_vals=OrderedDict(
+            inst_prop_vals=dict(
                 [('ID', 'inst_id'), ('STR', 'str_val'), ('U32', Uint32(3)),
                  ('BLAH', Uint64(9))]),
             kwargs={},
@@ -9087,7 +9084,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         "Instance with property type different than class fails",
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
-            inst_prop_vals=OrderedDict(
+            inst_prop_vals=dict(
                 [('ID', 'inst_id'), ('STR', 'str_val'), ('U32', 'blah')]),
             kwargs={},
             exp_props={'ID': 'inst_id', 'STR': 'str_val',
@@ -9099,7 +9096,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         "Class with with valid array property passes test",
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP, ARR_PROP),
-            inst_prop_vals=OrderedDict(
+            inst_prop_vals=dict(
                 [('ID', 'inst_id'), ('STR', 'str_val'), ('U32', Uint32(3)),
                  ('A32', [Uint32(3), Uint32(9999)])]),
             kwargs={},
@@ -9112,7 +9109,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         "Class with with array property but non-array in instance fails",
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP, ARR_PROP),
-            inst_prop_vals=OrderedDict(
+            inst_prop_vals=dict(
                 [('ID', 'inst_id'), ('STR', 'str_val'), ('U32', Uint32(3)),
                  ('A32', Uint32(3))]),
             kwargs={},
@@ -9125,7 +9122,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         "Same properties in instance and class. Default params with namespace",
         dict(
             cls_props=(ID_PROP, STR_PROP, INT_PROP),
-            inst_prop_vals=OrderedDict(
+            inst_prop_vals=dict(
                 [('ID', 'inst_id'), ('STR', 'str_val'),
                  ('U32', Uint32(3))]),
             kwargs={'namespace': 'root/blah', 'include_path': True},
@@ -9141,7 +9138,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         "include_missing_properties not set. No properties set in instance",
         dict(
             cls_props=(ID_PROP_D, STR_PROP_D, INT_PROP_D),
-            inst_prop_vals=OrderedDict(),
+            inst_prop_vals=dict(),
             kwargs={'include_path': True,
                     'include_missing_properties': False},
             exp_props={'ID': 'cls_id', 'STR': 'cls_str', 'U32': Uint32(4)},
@@ -9153,7 +9150,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         "include_missing_properties is set",
         dict(
             cls_props=(ID_PROP_D, STR_PROP_D, INT_PROP_D),
-            inst_prop_vals=OrderedDict(),
+            inst_prop_vals=dict(),
             kwargs={'include_path': True,
                     'include_missing_properties': True},
             exp_props={'ID': 'cls_id', 'STR': 'cls_str', 'U32': Uint32(4)},
@@ -9164,7 +9161,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         "Class default props. All props in instance. ",
         dict(
             cls_props=(ID_PROP_D, STR_PROP_D, INT_PROP_D),
-            inst_prop_vals=OrderedDict(
+            inst_prop_vals=dict(
                 [('ID', 'inst_id'), ('STR', 'str_val'), ('U32', Uint32(3)),
                  ('A32', Uint32(3))]),
             kwargs={'include_path': True,
@@ -9178,7 +9175,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
         "Verify no input properties via empty dict",
         dict(
             cls_props=(ID_PROP_D, STR_PROP_D, INT_PROP_D),
-            inst_prop_vals=OrderedDict(),
+            inst_prop_vals=dict(),
             kwargs={'include_path': False,
                     'include_missing_properties': False},
             exp_props={},
@@ -11583,7 +11580,7 @@ TESTCASES_CIMPROPERTY_INIT = [
         "(raises ValueError instead of TypeError since 0.12)",
         dict(
             init_args=[],
-            init_kwargs=dict(name='FooProp', value=[_Longint(1)]),
+            init_kwargs=dict(name='FooProp', value=[1]),
             exp_attrs=None
         ),
         ValueError, None, True
