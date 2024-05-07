@@ -91,4 +91,4 @@ General options:
                                    (Default=all)
 
 Example: mof_compiler CIM_Schema_2.45.mof -s https://localhost -n root/cimv2
--u sheldon -p p42
+-u sheldon -p 42

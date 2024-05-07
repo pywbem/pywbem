@@ -80,11 +80,6 @@ from .config import ENFORCE_INTEGER_RANGE
 from ._utils import _ensure_unicode, _hash_item, _format, _to_unicode, \
     _eq_item
 
-
-# pylint: disable=invalid-name
-_Longint = int
-
-
 __all__ = ['cimtype', 'type_from_name', 'MinutesFromUTC', 'CIMType',
            'CIMDateTime', 'CIMInt', 'Uint8', 'Sint8', 'Uint16', 'Sint16',
            'Uint32', 'Sint32', 'Uint64', 'Sint64', 'CIMFloat', 'Real32',
@@ -98,11 +93,6 @@ class _CIMComparisonMixin:  # pylint: disable=too-few-public-methods
 
     The implementations of ordering tests are also provided and raise an
     exception because ordering of CIM objects is not supported.
-
-    In Python 2, the rich comparison operators (e.g. `__eq__()`) have
-    precedence over the traditional comparator method (`__cmp__()`).
-    In Python 3, the comparator method (`__cmp__()`) no longer exists.
-    Therefore, implementing the rich comparison operators works in both.
     """
 
     __slots__ = []
@@ -168,23 +158,18 @@ class _CIMComparisonMixin:  # pylint: disable=too-few-public-methods
 
 class SlottedPickleMixin:
     """
-    TODO-OLDPYTHON: Rework
+    Starting with Python 3.8, the default pickle protocol is protocol 4, which
+    supports objects with slots by default, without requiring that they define
+    methods __getstate__() and __setstate__().
 
-    On Python 2, the built-in 'pickle' module uses pickle protocol 0 by default.
-    Using protocol 0 causes pickle to raise TypeError for objects with slots
-    that do not define methods __getstate__() and __setstate__().
+    However, objects pickled from Python versions < 3.8 (using the built-in
+    methods) saved all attributes in one shot by saving their __dict__ value,
+    so the default unpickling after introduction of slots attempts to set the
+    __dict__ which fails with AttributeError.
 
-    In Python 3.0, the default pickle protocol changed to protocol 3 and in
-    Python 3.8 to protocol 4, both of which support objects with slots by
-    default, without requiring that they define methods __getstate__() and
-    __setstate__().
-
-    That led to the idea to provide these methods only when running on
-    Python 2. However, it turns out that objects pickled before this change
-    (using the built-in methods) save all attributes in one shot by saving
-    their __dict__ value, so the default unpickling after introduction of
-    slots attempts to set the __dict__ which fails with AttributeError.
-    Therefore, these methods need to be provided also for Python 3.
+    Therefore, these methods are provided to cover upgrading from use of
+    objects pickled with python versions older than 3.8 to define __getstate__
+    and __setstate__.
 
     Also, because code in pywbem_mock/_resolvermixin.py dynamically added
     the non-existing attributes 'classorigin' and 'propagated' to CIMClass
@@ -829,7 +814,7 @@ class CIMDateTime(_CIMComparisonMixin, CIMType):
 # CIM integer types
 
 
-class CIMInt(CIMType, _Longint):
+class CIMInt(CIMType, int):
     """
     Base type for CIM integer data types. Derived from :class:`~pywbem.CIMType`
     and :class:`py3:int` (for Python 3) or :class:`py2:long` (for Python 2).
@@ -887,19 +872,20 @@ class CIMInt(CIMType, _Longint):
     maxvalue = None
 
     def __new__(cls, *args, **kwargs):
-        ""  # Avoids docstring to be inherited
+        ""  # Avoids docstring being inherited
 
         # TODO-OLDPYTHON: Rework
         # Python 3.7 removed support for passing the value for int() as a
         # keyword argument named 'x'. It now needs to be passed as a positional
         # argument. The testclient test case definitions rely on a keyword
         # argument, so we now transform the keyword arg into a positional
-        # arg.
+        # arg. This is used in the invokemethod function tests for
+        # InvokeMethod Parameter and response return elements.
         if 'x' in kwargs:
             args = list(*args)  # args is passed as a tuple
             args.append(kwargs.pop('x'))
 
-        value = _Longint(*args, **kwargs)
+        value = int(*args, **kwargs)
         if ENFORCE_INTEGER_RANGE:
             if value > cls.maxvalue or value < cls.minvalue:
                 raise ValueError(
@@ -908,7 +894,13 @@ class CIMInt(CIMType, _Longint):
         # The value needs to be processed here, because int/long is immutable
         return super().__new__(cls, *args, **kwargs)
 
-    # Note: __str__() is added later, for Python 3.
+    def __str__(self):
+        """
+        Python 3.8 removed __str__() on int causing recursive loop failures.
+        The int.__repr__method returns exactly what is needed for a string
+        representation.
+        """
+        return f"{int.__repr__(self)}"
 
     def __repr__(self):
         """
@@ -917,8 +909,8 @@ class CIMInt(CIMType, _Longint):
         return _format(
             "{s.__class__.__name__}("
             "cimtype={s.cimtype!A}, "
-            "minvalue={s.minvalue}, "  # Avoid long indicator 'L' in Python 2
-            "maxvalue={s.maxvalue}, "  # Avoid long indicator 'L' in Python 2
+            "minvalue={s.minvalue}, "
+            "maxvalue={s.maxvalue}, "
             "{s})",
             s=self)
 
@@ -1085,7 +1077,15 @@ class CIMFloat(CIMType, float):
 
     __slots__ = []
 
-    # Note: __str__() is added later, for Python 3.
+    def __str__(self):
+        """
+        Return a string representation of the value. Python 3.8 removed
+        __str__() on float causing an infinite recursion for the CIMInt and
+        class whose __repr__() calls __str__() on itself. The
+        float.__repr__method returns exactly what is needed for a string
+        representation.
+        """
+        return float.__repr__(self)
 
     def __repr__(self):
         """Return a string representation suitable for debugging."""
@@ -1128,20 +1128,6 @@ class Real64(CIMFloat):
 
 # Python number types listed in :term:`number`.
 number_types = (int, float)  # pylint: disable=invalid-name
-
-
-# TODO-OLDPYTHON: Rework
-# Python 3.8 removed __str__() on int and float and thereby caused an infinite
-# recursion for the CIMInt and CIMFloat classes whose __repr__() calls
-# __str__() on itself.
-# The following addresses that by implementing __str__() on these classes,
-# representing the values using int/float.__repr__(). In Python 3, these
-# methods return exactly what is needed for a string representation. Note that
-# in Python 2, repr(long) has a trailing 'L' which would not be suitable.
-CIMInt.__str__ = int.__repr__
-CIMFloat.__str__ = float.__repr__
-# MinutesFromUTC.__repr__() does not call str() on itself
-# CIMDatetime has its own __str__()
 
 
 def cimtype(obj):

@@ -41,8 +41,6 @@ __all__ = ['BaseOperationRecorder', 'TestClientRecorder',
            'LogOperationRecorder',
            'OpArgs', 'OpResult', 'HttpRequest', 'HttpResponse']
 
-# pylint: disable=invalid-name
-_Longint = int
 
 OpArgsTuple = namedtuple("OpArgsTuple", ["method", "args"])
 
@@ -582,9 +580,8 @@ class LogOperationRecorder(BaseOperationRecorder):
         if self.enabled and self.api_detail_level is not None and \
                 self.apilogger.isEnabledFor(logging.DEBUG):
 
-            # Order kwargs.  Note that this is done automatically starting
-            # with python 3.6
-            # TODO-OLDPYTHON: Rework
+            # Order kwargs.
+            # Sort required to pass tests. Ordering issue without this sort.
             kwstr = ', '.join([(f'{key}={kwargs[key]!r}')
                                for key in sorted(kwargs.keys())])
 
@@ -994,16 +991,8 @@ class TestClientRecorder(BaseOperationRecorder):
             # bool is a subclass of int in Python.
             return obj
         if isinstance(obj, CIMInt):
-            # TODO-OLDPYTHON: Resolve
-            # CIMInt is _Longint and therefore may exceed the value range of
-            # int in Python 2. Therefore, we convert it to _Longint.
-            return _Longint(obj)
+            return int(obj)
         if isinstance(obj, int):
-            # TODO-OLDPYTHON: Resolve
-            # This case must be after CIMInt, because CIMInt is _Longint and
-            # would match a long value in Python 2.
-            # We don't convert int to _Longint, because the value
-            # fits into the provided type, and there is no need to convert it.
             return obj
         if isinstance(obj, CIMFloat):
             return float(obj)
