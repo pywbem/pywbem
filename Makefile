@@ -291,8 +291,8 @@ pytest_warning_opts := -W default
 pytest_end2end_warning_opts := $(pytest_warning_opts)
 
 # Versions of the vendorized packages:
-nocasedict_version := 1.1.2
-nocaselist_version := 1.1.1
+nocasedict_version := 2.0.3
+nocaselist_version := 2.0.2
 
 # Dist info directories of the vendorized packages:
 nocasedict_dist_dir := nocasedict-$(nocasedict_version).dist-info

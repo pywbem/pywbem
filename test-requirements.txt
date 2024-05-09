@@ -9,6 +9,11 @@
 # Direct dependencies for test and indirect dependencies for test that are
 # needed for some reason (must be consistent with minimum-constraints-develop.txt)
 
+# six
+# urllib3 1.26.5 vendors six 1.16.0 which is needed on Python 3.10 to remove ImportWarning
+six>=1.14.0; python_version <= '3.9'
+six>=1.16.0; python_version >= '3.10'
+
 # Unit test (imports into testcases):
 packaging>=21.3
 # pytest 4.3.1 solves an issue on Python 3 with minimum package levels

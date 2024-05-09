@@ -4,10 +4,13 @@ This module provides class HashableMixin.
 
 from __future__ import print_function, absolute_import
 
+from typing import Any
+from ._nocasedict import NocaseDict
+
 __all__ = ['HashableMixin']
 
 
-class HashableMixin(object):
+class HashableMixin(NocaseDict):
     # pylint: disable=too-few-public-methods
     """
     A mixin class that adds case-insensitive hashability to
@@ -51,7 +54,7 @@ class HashableMixin(object):
         # 'foo'
     """
 
-    def __hash__(self):
+    def __hash__(self) -> Any:
         """
         Return a case-insensitive and order-insensitive hash value for the
         dictionary.

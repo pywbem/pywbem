@@ -13,10 +13,17 @@ PyYAML>=5.3.1
 requests>=2.31.0
 yamlloader>=0.5.5
 
-# The vendorized nocasedict and nocaselist use six
-# urllib3 1.26.5 vendors six 1.16.0 which is needed on Python 3.10 to remove ImportWarning
-six>=1.14.0; python_version <= '3.9'
-six>=1.16.0; python_version >= '3.10'
+# typing-extensions
+# nocaselist 2.x requires typing-extensions>=3.10 on Python<=3.9
+# On Python 3.6, pip 21.3.1 is the newest version and it fails recognizing
+#   that typing-extensions 4.2.0 started requiring Python>=3.7
+# Development dependencies:
+#   twine 5.0.0 requires rich>=12.0.0
+#   rich 12.0.0 requires Python>=3.6 and typing-extensions>=3.7.4,<5.0 on Python<=3.7
+#   rich 12.1.0 requires Python>=3.6 and typing-extensions>=4.0.0,<5.0 on Python<=3.8
+#   rich 13.x.x requires Python>=3.7 and typing-extensions>=4.0.0,<5.0 on Python<=3.8
+typing-extensions>=4.0.0,<4.2.0; python_version == '3.6'
+typing-extensions>=4.0.0; python_version >= '3.7' and python_version <= '3.9'
 
 
 # Indirect dependencies for install that are needed for some reason (must be consistent with minimum-constraints-install.txt)

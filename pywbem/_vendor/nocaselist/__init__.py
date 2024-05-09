@@ -1,3 +1,4 @@
+# Copyright (C) 2020 Andreas Maier
 """
 nocaselist - A case-insensitive list for Python
 """

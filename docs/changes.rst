@@ -84,6 +84,11 @@ Released: not yet
   archives on Pypi never had that directory, but a locally produced
   source distribution archives had that directory. (issue #3177)
 
+* Increased the minimum versions of the vendored 'nocasedict' and 'nocaselist'
+  packages to 2.0.x in order to get rid of the dependency on the 'six' package.
+  This added a dependency on the 'typing-extensions' package on Python<=3.9.
+  (issue #3155)
+
 **Known issues:**
 
 * See `list of open issues`_.
@@ -800,7 +805,7 @@ Released: 2021-04-26
   in a non-default namespace because it tried to get the qualifiers from the
   default namespace. (see issue #2502)
 
-* Test: Changed dependency to 'typed-ast' to match the needs of 'astroid' and to
+* Test: Changed dependency on 'typed-ast' to match the needs of 'astroid' and to
   install it only on CPython. This allows re-enabling PyPy3 on Travis.
 
 * Test: Pinned psutil to <=5.6.3 on PyPy2+3 to avoid an installation error.
@@ -1521,7 +1526,7 @@ below this list.
   Python 2.6. For this reason, Python 2.6 support has been removed from pywbem
   in its 1.0.0 version.
   This allowed eliminating a lot of Python version dependent code,
-  eliminating the dependency to the unittest2 package, and lifting a number
+  eliminating the dependency on the unittest2 package, and lifting a number
   of restrictions in test code.
 
 * Migrated pywbem to use the 'requests' Python package for all HTTP/HTTPS
@@ -2059,7 +2064,7 @@ Released: 2019-12-01
 
 * Docs: Fixed errors in description of CIMInstance.update_existing().
 
-* Added dependency to pywin32 package for Windows, and pinned it to version 225
+* Added dependency on pywin32 package for Windows, and pinned it to version 225
   to work around an issue in its version 226. (See issue ##1946)
 
 * Modified pywbem_mock to create the instance path of new instances
