@@ -1,3 +1,4 @@
+# Copyright (C) 2020 Andreas Maier
 """
 Version of the nocaselist package.
 """
@@ -9,4 +10,4 @@ Version of the nocaselist package.
 #:
 #: * "M.N.P.dev1": Development level 1 of a not yet released version M.N.P
 #: * "M.N.P": A released version M.N.P
-__version__ = '1.1.1'
+__version__: str = '2.0.2'

@@ -5,7 +5,7 @@ Utility functions of the nocasedict package.
 import inspect
 
 
-def _stacklevel_above_nocasedict():
+def _stacklevel_above_nocasedict() -> int:
     """
     Return the stack level (with 1 = caller of this function) of the first
     caller that is not defined in the _nocasedict module and that is not
@@ -26,6 +26,8 @@ def _stacklevel_above_nocasedict():
             if class_name != 'nocasedict':
                 break
         stacklevel += 1
+        if frame.f_back is None:
+            break
         frame = frame.f_back
     del frame
     return stacklevel

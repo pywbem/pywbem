@@ -88,9 +88,6 @@ tomlkit>=0.10.1
 dill>=0.3.4; python_version <= '3.10'
 dill>=0.3.6; python_version >= '3.11'
 
-# rich 13.3.5 requires typing-extensions>=4.0.0,<5.0
-typing-extensions>=4.0.0; python_version <= '3.10'
-
 # Flake8 and dependents (no imports, invoked via flake8 script):
 # flake8 5.x and 6.x report false positive E231 "missing whitespace after ':'"
 #   for ':' used in f-strings. This was fixed in pycodestyle 2.11.0, which

@@ -5,10 +5,12 @@ class NocaseDict.
 
 from __future__ import print_function, absolute_import
 
+from typing import Type
+
 __all__ = ['KeyableByMixin']
 
 
-def KeyableByMixin(key_attr):
+def KeyableByMixin(key_attr: str) -> Type:
     # pylint: disable=invalid-name
     """
     A generator function returning a mixin class that adds the ability to the
@@ -40,5 +42,5 @@ def KeyableByMixin(key_attr):
         # MyDict({'A': <__main__.Obj object at 0x10bc3d820>,
         #         'B': <__main__.Obj object at 0x10bc89af0>})
     """
-    return type('KeyableByMixin_{}'.format(key_attr),
+    return type(f'KeyableByMixin_{key_attr}',
                 (), {'nocasedict_KeyableByMixin_key_attr': key_attr})
