@@ -1038,6 +1038,9 @@ Released: 2021-04-26
   workflow on Ubuntu (Docker is not available in GHithub Actions on Windows or
   MacOS).
 
+* Dev: Optimized the dependencies in the Makefile such that "make build" does
+  not execute the commands again on subsequent invocations. (issue #3167)
+
 **Cleanup:**
 
 * Test: Fixed all remaining ResourceWarnings during test. (issue #86)
