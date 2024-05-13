@@ -38,6 +38,8 @@ Released: not yet
 
 **Bug fixes:**
 
+* Fixed safety issues up to 2024-05-13.
+
 * Fix issue where pywbemlistener that fails startup can cause thread
   exception. See issue #3157
 
