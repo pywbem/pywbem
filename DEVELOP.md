@@ -117,87 +117,86 @@ local clone of the ``pywbem/pywbem`` Git repo.
     If the safety run fails, you need to fix the safety issues that are
     reported.
 
-6.  Add a new tag for the version that is being released and push it to the
-    remote repo. This needs to be done before pushing the changes because the
-    version is calculated based on the most recent tag in the commit history.
-
-        git tag ${MNU}
-        git push --tags
-
-7.  Commit your changes and push the topic branch to the remote repo:
+6.  Commit your changes and push the topic branch to the remote repo:
 
         git commit -asm "Release ${MNU}"
         git push --set-upstream origin release_${MNU}
 
-8.  On GitHub, create a Pull Request for branch ``release_M.N.U``. This will
+7.  On GitHub, create a Pull Request for branch ``release_M.N.U``. This will
     trigger the CI runs.
 
     Important: When creating Pull Requests, GitHub by default targets the
     ``master`` branch. When releasing based on a stable branch, you need to
     change the target branch of the Pull Request to ``stable_M.N``.
 
-9.  On GitHub, close milestone ``M.N.U``.
+    Set the milestone of that PR to version M.N.U.
 
-10. On GitHub, once the checks for the Pull Request for branch ``start_M.N.U``
+    The PR creation will cause the "test" workflow to run. That workflow runs
+    tests for all defined environments, since it discovers by the branch name
+    that this is a PR for a release.
+
+8.  On GitHub, close milestone ``M.N.U``.
+
+    Verify that the milestone has no open items anymore. If it does have open
+    items, investigate why and fix.
+
+9.  On GitHub, once the checks for the Pull Request for branch ``release_M.N.U``
     have succeeded, merge the Pull Request (no review is needed). This
     automatically deletes the branch on GitHub.
 
-11. Clean up the release branch on the local repo:
+    If the PR did not succeed, fix the issues.
+
+10. Publish the package
 
         git checkout ${BRANCH}
         git pull
-        git branch -d release_${MNU}
+        git branch -D release_${MNU}
+        git branch -D -r origin/release_${MNU}
+        git tag -f ${MNU}
+        git push -f --tags
 
-12. When releasing based on the master branch, create and push a new stable
-    branch for the same minor version:
+    Pushing the new tag will cause the "publish" workflow to run. That workflow
+    builds the package, publishes it on PyPI, creates a release for it on Github,
+    and finally creates a new stable branch on Github if the master branch was
+    released.
 
-        git checkout -b stable_${MN}
-        git push --set-upstream origin stable_${MN}
-        git checkout ${BRANCH}
+11. Verify the publishing
 
-    Note that no GitHub Pull Request is created for any ``stable_*`` branch.
+    Wait for the "publish" workflow for the new release to have completed:
+    https://github.com/pywbem/pywbem/actions/workflows/publish.yml
 
-13. When releasing based on the master branch, activate the new stable branch
-    ``stable_M.N`` on ReadTheDocs:
+    Then, perform the following verifications:
 
-    * Go to https://readthedocs.org/projects/pywbem/versions/ and log in.
+    * Verify that the new version is available on PyPI at
+      https://pypi.python.org/pypi/pywbem/
 
-    * Activate the new version ``stable_M.N``.
+    * Verify that the new version has a release on Github at
+      https://github.com/pywbem/pywbem/releases
 
-      This triggers a build of that version. Verify that the build succeeds
-      and that new version is shown in the version selection popup at
-      https://pywbem.readthedocs.io/.
+    * Verify that the new version has documentation on ReadTheDocs at
+      https://pywbem.readthedocs.io/en/stable/changes.html
 
-14. On GitHub, edit the new tag ``M.N.U``, and create a release description on
-    it. This will cause it to appear in the Release tab.
+      The new version M.N.U should be automatically active on ReadTheDocs,
+      causing the documentation for the new version to be automatically built
+      and published.
 
-    You can see the tags in GitHub via Code -> Releases -> Tags.
+      If you cannot see the new version after some minutes, log in to
+      https://readthedocs.org/projects/pywbem/versions/ and activate
+      the new version.
 
-15. Upload the package to PyPI:
-
-        make upload
-
-    This will show the package version and will ask for confirmation.
-
-    **Attention!** This only works once for each version. You cannot release
-    the same version twice to PyPI.
-
-    Verify that the released version arrived on PyPI at
-    https://pypi.python.org/pypi/pywbem/
-
-16. Switch to the directory of the ``pywbem.github.io`` repo and perform the
+12. Switch to the directory of the ``pywbem.github.io`` repo and perform the
     following steps from that directory:
 
         cd ../pywbem.github.io
 
-17. Check out the ``master`` branch and update it from upstream:
+13. Check out the ``master`` branch and update it from upstream:
 
         git checkout master
         git pull
 
     In this repo, we don´t use a topic branch for these changes.
 
-18. Edit the installation page:
+14. Edit the installation page:
 
         vi pywbem/installation.html
 
@@ -211,7 +210,7 @@ local clone of the ``pywbem/pywbem`` Git repo.
     ``pywbem/installation.html`` that the new release shows up correctly,
     and that all of its links work.
 
-19. Commit the changes and push to the upstream repo:
+15. Commit the changes and push to the upstream repo:
 
         git commit -asm "Release $MNU"
         git push
@@ -313,6 +312,8 @@ local clone of the ``pywbem/pywbem`` Git repo.
     the version is not increased. So when developing 1.8.0, the calculated
     version is e.g. 1.8.0a1.dev11+g7c3eb911.
 
+    Note that the "publish" workflow will not run for this tag.
+
         git tag ${MNU}a0
         git push --tags
 
@@ -344,4 +345,5 @@ local clone of the ``pywbem/pywbem`` Git repo.
 
         git checkout ${BRANCH}
         git pull
-        git branch -d start_${MNU}
+        git branch -D start_${MNU}
+        git branch -D -r origin/start_${MNU}

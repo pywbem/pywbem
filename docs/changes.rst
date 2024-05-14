@@ -74,6 +74,9 @@ Released: not yet
   Updated the release description in DEVELOP.md to no longer edit the version
   file, but to set tags.
 
+* Development: Changed release process to use a GitHub Actions workflow.
+  (issue #3128)
+
 **Cleanup:**
 
 * Eliminated a warning about about ambiguity of the package list when building
