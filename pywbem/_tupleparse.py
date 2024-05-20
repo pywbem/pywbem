@@ -1118,7 +1118,7 @@ class TupleParser:
         If TYPE is not specified but VALUETYPE is specified, the CIM type is
         defaulted for a VALUETYPE of 'string' and 'boolean'. For a VALUETYPE of
         'numeric', the CIM type remains undetermined and the numeric values are
-        returned as Python int/long or float objects.
+        returned as Python int or float objects.
 
           ::
 
@@ -2393,7 +2393,7 @@ class TupleParser:
         """
         Unpack a single (non-array) CIM typed string value of any CIM type
         except 'reference' and return it as a CIM data type object, or Python
-        int/long/float, or None.
+        int/float, or None.
 
         data (unicode string): CIM-XML string value, or None (in which case
           None is returned).
@@ -2461,7 +2461,7 @@ class TupleParser:
         data (unicode string): CIM-XML string value. Must not be None.
 
         cimtype (string): CIM data type name (e.g. 'uint8'), or None (in which
-          case the value is returned as a Python int/long or float).
+          case the value is returned as a Python int or float).
         """
 
         assert data is not None
@@ -2474,7 +2474,6 @@ class TupleParser:
         # Some notes:
         # * For integer numbers, only decimal and hexadecimal strings are
         #   allowed - no binary or octal.
-        # * In Python 2, int() automatically returns a long, if needed.
         # * For real values, DSP0201 defines a subset of the syntax supported
         #   by Python float(), including the special states Inf, -Inf, NaN. The
         #   only known difference is that DSP0201 requires a digit after the
@@ -2496,7 +2495,7 @@ class TupleParser:
 
         # Convert the Python number into a CIM data type
         if cimtype is None:
-            return value  # int/long or float (used for keybindings)
+            return value  # int or float (used for keybindings)
 
         # The caller ensured a numeric type for cimtype
         CIMType = type_from_name(cimtype)

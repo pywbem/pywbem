@@ -817,7 +817,10 @@ class CIMDateTime(_CIMComparisonMixin, CIMType):
 class CIMInt(CIMType, int):
     """
     Base type for CIM integer data types. Derived from :class:`~pywbem.CIMType`
-    and :class:`py3:int` (for Python 3) or :class:`py2:long` (for Python 2).
+    and :class:`py3:int`. The input parameters are consistent with
+    :class:`py3:int` except that argument `x` can also be passed as a keyword
+    input parameter to maintain a consistent interface despite changes to the
+    Python :class:`py3:int` ('x' was changed to positional only in python 3.8).
 
     This class has a concept of a valid range for the represented integer,
     based upon the capability of the CIM data type as defined in
@@ -825,18 +828,27 @@ class CIMInt(CIMType, int):
     or MaxValue qualifiers are not taken into account at this level.
 
     The valid value range is enforced when an instance of a subclass of this
-    class (e.g. :class:`~pywbem.Uint8`) is created. Values outside of the
-    valid range raise a :exc:`ValueError`.
-    The enforcement of the valid value range can be disabled via the
-    configuration variable :data:`~pywbem.config.ENFORCE_INTEGER_RANGE`.
+    class (e.g. :class:`~pywbem.Uint8`) is created. Values outside of the valid
+    range raise a :exc:`ValueError`. Enforcement of the valid value range can
+    be disabled via the configuration variable
+    :data:`~pywbem.config.ENFORCE_INTEGER_RANGE`.
 
     Two objects of subclasses of this base class compare equal if their numeric
     values compare equal. Objects of this class are immutable and
     :term:`hashable`, with the hash value being based on its numeric value.
 
+    Parameters:
+          x (:term:`integer` or :term:`string`):
+            A number or a string that can be converted into an integer number.
+            The parameter 'x' can be either a positional or keyword argument
+            for compatibility with Python<=3.7. Default value: 0.
+
+          base (:term:`integer`):
+            A number representing the number base  (radix) of 'x'. Default
+            value: 10. Allowed only if 'x' is a string.
+
     Instances of subclasses of this class can be initialized with the usual
     input arguments supported by :term:`integer`, for example:
-
     ::
 
         >>> pywbem.Uint8(42)
@@ -846,6 +858,12 @@ class CIMInt(CIMType, int):
         Uint8(cimtype='uint8', 42)
 
         >>> pywbem.Uint8('2A', 16)
+        Uint8(cimtype='uint8', 42)
+
+        >>> pywbem.Uint8('2A', base=16)
+        Uint8(cimtype='uint8', 42)
+
+        >>> pywbem.Uint8(x='2A', base=16)
         Uint8(cimtype='uint8', 42)
 
         >>> pywbem.Uint8('100', 16)
@@ -874,13 +892,10 @@ class CIMInt(CIMType, int):
     def __new__(cls, *args, **kwargs):
         ""  # Avoids docstring being inherited
 
-        # TODO-OLDPYTHON: Rework
         # Python 3.7 removed support for passing the value for int() as a
-        # keyword argument named 'x'. It now needs to be passed as a positional
-        # argument. The testclient test case definitions rely on a keyword
-        # argument, so we now transform the keyword arg into a positional
-        # arg. This is used in the invokemethod function tests for
-        # InvokeMethod Parameter and response return elements.
+        # keyword argument named 'x'. It now must be passed as a positional
+        # argument.  CIMInt has retained the positional or keyword capability
+        # so we transform the keyword arg into a positional arg.
         if 'x' in kwargs:
             args = list(*args)  # args is passed as a tuple
             args.append(kwargs.pop('x'))
@@ -891,7 +906,7 @@ class CIMInt(CIMType, int):
                 raise ValueError(
                     _format("Integer value {0} is out of range for CIM "
                             "datatype {1}", value, cls.cimtype))
-        # The value needs to be processed here, because int/long is immutable
+        # The value needs to be processed here, because int is immutable
         return super().__new__(cls, *args, **kwargs)
 
     def __str__(self):
@@ -920,6 +935,13 @@ class Uint8(CIMInt):
     A value of CIM data type uint8. Derived from :class:`~pywbem.CIMInt`.
 
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
+
+    Parameters:
+          x (:term:`integer` or :term:`string`):
+            A number or a string that can be converted into an integer number.
+
+          base (:term:`integer`):
+            A number representing the number format (radix). Default value: 10.
     """
 
     __slots__ = []
@@ -937,6 +959,13 @@ class Sint8(CIMInt):
     A value of CIM data type sint8. Derived from :class:`~pywbem.CIMInt`.
 
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
+
+    Parameters:
+          x (:term:`integer` or :term:`string`):
+            A number or a string that can be converted into an integer number.
+
+          base (:term:`integer`):
+            A number representing the number format (radix). Default value: 10.
     """
 
     __slots__ = []
@@ -954,6 +983,14 @@ class Uint16(CIMInt):
     A value of CIM data type uint16. Derived from :class:`~pywbem.CIMInt`.
 
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
+
+    Parameters:
+        x (:term:`integer` or :term:`string`):
+          A number or a string that can be converted into an integer number.
+          'x' may be a position or keyword argument.
+
+        base (:term:`integer`):
+          A number representing the number format (radix). Default value: 10.
     """
 
     __slots__ = []
@@ -971,6 +1008,14 @@ class Sint16(CIMInt):
     A value of CIM data type sint16. Derived from :class:`~pywbem.CIMInt`.
 
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
+
+    Parameters:
+        x (:term:`integer` or :term:`string`):
+          A number or a string that can be converted into an integer number.
+          'x' may be a position or keyword argument.
+
+        base (:term:`integer`):
+          A number representing the number format (radix). Default value: 10.
     """
 
     __slots__ = []
@@ -988,6 +1033,14 @@ class Uint32(CIMInt):
     A value of CIM data type uint32. Derived from :class:`~pywbem.CIMInt`.
 
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
+
+    Parameters:
+        x (:term:`integer` or :term:`string`):
+          A number or a string that can be converted into an integer number.
+          x' may be a position or keyword argument.
+
+          base (:term:`integer`):
+            'x' may be a position or keyword argument.
     """
 
     __slots__ = []
@@ -1005,6 +1058,14 @@ class Sint32(CIMInt):
     A value of CIM data type sint32. Derived from :class:`~pywbem.CIMInt`.
 
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
+
+    Parameters:
+        x (:term:`integer` or :term:`string`):
+          A number or a string that can be converted into an integer number.
+          'x' may be a position or keyword argument.
+
+        base (:term:`integer`):
+          A number representing the number format (radix). Default value: 10.
     """
 
     __slots__ = []
@@ -1022,6 +1083,14 @@ class Uint64(CIMInt):
     A value of CIM data type uint64. Derived from :class:`~pywbem.CIMInt`.
 
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
+
+    Parameters:
+        x (:term:`integer` or :term:`string`):
+          A number or a string that can be converted into an integer number.
+          'x' may be a position or keyword argument.
+
+        base (:term:`integer`):
+          A number representing the number format (radix). Default value: 10.
     """
 
     __slots__ = []
@@ -1039,6 +1108,14 @@ class Sint64(CIMInt):
     A value of CIM data type sint64. Derived from :class:`~pywbem.CIMInt`.
 
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
+
+    Parameters:
+        x (:term:`integer` or :term:`string`):
+          A number or a string that can be converted into an integer number.
+          'x' may be a position or keyword argument.
+
+        base (:term:`integer`):
+          A number representing the number format (radix). Default value: 10.
     """
 
     __slots__ = []
