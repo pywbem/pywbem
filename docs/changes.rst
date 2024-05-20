@@ -93,6 +93,9 @@ Released: not yet
   This added a dependency on the 'typing-extensions' package on Python<=3.9.
   (issue #3155)
 
+* Document the input parameters for the integer cim types (Uint8, etc.)
+  including the use of 'x' as either a keyword or positional input parameter.
+
 **Known issues:**
 
 * See `list of open issues`_.
