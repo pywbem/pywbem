@@ -34,4 +34,5 @@ setuptools!=61.0.0
 urllib3>=1.26.18
 
 certifi>=2023.07.22
-idna>=2.8
+# minimum version = 3.7 per security issue 67895 May 2024
+idna>=3.7
