@@ -476,6 +476,7 @@ Examples:
         url = args.server
 
     elif re.match(r"^[a-zA-Z0-9]+://", args.server) is not None:
+        url = None  # avoid pylint isssue
         argparser.error('Invalid scheme on server argument.'
                         ' Use "http" or "https"')
 

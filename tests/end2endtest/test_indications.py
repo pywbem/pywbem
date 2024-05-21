@@ -73,6 +73,7 @@ def test_indications(wbem_connection):  # noqa: F811
 
     # Skipping tests for python 2.7 and 3.7 if issues losing indications
     if sys.version_info[0:2] in ((2, 7), (3, 7)):
+        test_run_loops = None  # avoid pylint issue
         skip("Skipping test_indications for python 2.7, 3.7")
     else:
         test_run_loops = ((1, 1), (1, 2), (1, 10), (1, 100), (1, 1000))

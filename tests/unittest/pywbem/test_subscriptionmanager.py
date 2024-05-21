@@ -1644,7 +1644,8 @@ def test_subscriptionmanager(testcase, submgr_id, connection_attrs,
             submgr.remove_destinations(server_id,
                                        dest_paths[remove_destinations])
             result = len(added_destinations) - 1
-        elif isinstance(remove_destinations, list):
+        else:
+            assert isinstance(remove_destinations, list)
             removal_paths = [added_destinations[i].path for i in
                              remove_destinations]
             submgr.remove_destinations(server_id, removal_paths)
@@ -1660,7 +1661,8 @@ def test_subscriptionmanager(testcase, submgr_id, connection_attrs,
         elif isinstance(remove_filters, int):
             submgr.remove_filter(server_id, filter_paths[remove_filters])
             result = len(added_filters) - 1
-        elif isinstance(remove_filters, list):
+        else:
+            assert isinstance(remove_filters, list)
             # Must remove one by one
             for item in remove_filters:
                 submgr.remove_filter(server_id, filter_paths[item])
@@ -1677,7 +1679,8 @@ def test_subscriptionmanager(testcase, submgr_id, connection_attrs,
             submgr.remove_subscriptions(server_id,
                                         sub_paths[remove_destinations])
             result = len(sub_paths) - 1
-        elif isinstance(remove_subscriptions, list):
+        else:
+            assert isinstance(remove_subscriptions, list)
             removal_list = [added_subscriptions[i].path for i in
                             remove_subscriptions]
             submgr.remove_subscriptions(server_id, removal_list)

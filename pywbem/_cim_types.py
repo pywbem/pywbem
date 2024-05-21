@@ -364,6 +364,7 @@ class CIMType(SlottedPickleMixin):  # pylint: disable=too-few-public-methods
 
 
 class Char16(CIMType, six.text_type):
+    # pylint: disable=too-few-public-methods
     """
     A value of CIM data type char16.
 
@@ -664,7 +665,7 @@ class CIMDateTime(_CIMComparisonMixin, CIMType):
             # not exist for python 2.7; use utcnow(timezone.utc).
             utc_unaware = datetime.utcnow()
         else:
-            utc_unaware = datetime.now(timezone.utc).replace(tzinfo=None)
+            utc_unaware = datetime.now(timezone.utc).replace(tzinfo=None)  # noqa: E501 pylint: disable=E0606
 
         local_unaware = datetime.now()
         if local_unaware < utc_unaware:
