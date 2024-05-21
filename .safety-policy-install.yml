@@ -54,7 +54,9 @@ security:
         62044:
             reason: Fixed pip version 23.3 requires Python>=3.7 and is used there
         67599:
-            reason: Dissputed issue in pip version 23.3 - No known fix
+            reason: Disputed issue in pip version 23.3 - No known fix
+        67895:
+            reason: Fixed idna version 3.7 requires requests>=2.26.0 which requires Python>=3.6 and is used there
 
     # Continue with exit code 0 when vulnerabilities are found.
     continue-on-vulnerability-error: False
