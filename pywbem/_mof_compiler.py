@@ -1854,6 +1854,7 @@ def p_instanceDeclaration(p):
             # qualifiers, default value,
             pprop = cprop.copy()
             embedded_object_type = None
+            allowed_types = None
             pprop.qualifiers = NocaseDict()
             # If embedded instance/object property, compile the value component
             # and put into the property value.
