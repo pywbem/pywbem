@@ -40,6 +40,8 @@ Released: not yet
 
 * Fixed safety issues up to 2024-05-13.
 
+* Fixed new issues reported by Pylint 3.2.
+
 * Fix issue where pywbemlistener that fails startup can cause thread
   exception. See issue #3157
 
