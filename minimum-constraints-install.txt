@@ -12,7 +12,7 @@
 
 pip==23.3
 setuptools==66.1.0
-setuptools-scm==8.0
+setuptools-scm==8.0.1
 wheel==0.38.1
 
 
