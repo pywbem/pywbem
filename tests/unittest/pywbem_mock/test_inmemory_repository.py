@@ -190,10 +190,16 @@ def test_objectstore(testcase, init_args, cls_kwargs, inst_kwargs, qual_kwargs):
     # Setup the ObjectStore
     xxx_repo = InMemoryObjectStore(*init_args)
 
+    # cls_kwargs rqd if inst_kwargs defined
+    if inst_kwargs:
+        assert cls_kwargs is not None
+
     if cls_kwargs:
         cls = CIMClass(**cls_kwargs)
     if inst_kwargs:
         inst = CIMInstance(**inst_kwargs)
+        # pylint: disable=possibly-used-before-assignment
+        # Ignore case where cls not defined.
         inst.path = CIMInstanceName.from_instance(
             cls, inst, namespace=namespace, host='me', strict=True)
     if qual_kwargs:

@@ -79,6 +79,7 @@ class ClientTest(unittest.TestCase):
         # pylint: disable=global-variable-not-assigned,global-statement
         global args  # pylint: disable=invalid-name
 
+        # pylint: disable=possibly-used-before-assignment
         self.host = args['host']  # pylint: disable=used-before-assignment
         self.port = args['port']
         self.verbose = args['verbose']

@@ -3471,7 +3471,7 @@ class TestClassOperations:
         """
 
         # Verify test valid in that class exists in repo
-
+        exp_class = None
         for cl_ in tst_classes:
             if cl_.classname.lower() == cln.lower():
                 exp_class = cl_
@@ -9202,7 +9202,6 @@ class Method1UserProvider(MethodProvider):
         if methodname.lower() in ['method1', 'staticmethod1']:
 
             if params:
-
                 # Consider InputParam1 a required parameter if params exist.
                 if "InputParam1" not in params:
                     raise CIMError(
@@ -9307,6 +9306,7 @@ class Method1UserProvider(MethodProvider):
                             'OutputParam1', 'string', value='returnvalue'),
                     ]
             else:
+                return_value = 0
                 out_params = None
 
             if val == 'outparam_invalid2_valueerror':

@@ -1649,6 +1649,10 @@ def test_subscriptionmanager(testcase, submgr_id, connection_attrs,
                              remove_destinations]
             submgr.remove_destinations(server_id, removal_paths)
             result = len(added_destinations) - len(remove_destinations)
+        else:
+            result = 0
+            assert f"Remove_destination: {type(remove_destinations)} invalid."
+        # pylint: disable=possibly-used-before-assignment
         assert len(submgr.get_all_destinations(server_id)) == result
 
     if remove_filters is not None:

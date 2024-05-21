@@ -1860,6 +1860,8 @@ def p_instanceDeclaration(p):
             elif 'EmbeddedObject' in cprop.qualifiers:
                 allowed_types = (CIMInstance,)
                 embedded_object_type = "object"
+            else:
+                allowed_types = ()
 
             if embedded_object_type:
                 if pval:

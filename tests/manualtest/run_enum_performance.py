@@ -427,6 +427,7 @@ Examples:
     elif re.match(r"^[a-zA-Z0-9]+://", args.server) is not None:
         argparser.error('Invalid scheme on server argument.'
                         ' Use "http" or "https"')
+        url = None
 
     else:
         url = f'https://{args.server}'
