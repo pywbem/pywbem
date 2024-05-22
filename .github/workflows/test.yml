@@ -209,9 +209,6 @@ jobs:
       run: |
         echo "Package dependency tree of installed Python packages:"
         python -m pipdeptree --all
-    - name: Debug issue with unknown package version
-      run: |
-        bash -c "ls -l pywbem/_version.py; git tag; python -m setuptools_scm"
     - name: Run check_reqs
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
