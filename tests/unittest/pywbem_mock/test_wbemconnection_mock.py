@@ -3472,6 +3472,7 @@ class TestClassOperations:
 
         # Verify test valid in that class exists in repo
 
+        exp_class = None
         for cl_ in tst_classes:
             if cl_.classname.lower() == cln.lower():
                 exp_class = cl_
@@ -9201,6 +9202,7 @@ class Method1UserProvider(MethodProvider):
 
         if methodname.lower() in ['method1', 'staticmethod1']:
 
+            return_value = 0
             if params:
 
                 # Consider InputParam1 a required parameter if params exist.
@@ -9233,7 +9235,6 @@ class Method1UserProvider(MethodProvider):
                 # Generate output parameters and return value based on value in
                 # InputParam1
                 val = param.value
-                return_value = 0
                 if val == 'namespace':
                     # return as list of CIMParameter
                     out_params = [

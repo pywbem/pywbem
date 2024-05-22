@@ -192,6 +192,8 @@ def test_objectstore(testcase, init_args, cls_kwargs, inst_kwargs, qual_kwargs):
 
     if cls_kwargs:
         cls = CIMClass(**cls_kwargs)
+    else:
+        cls = None
     if inst_kwargs:
         inst = CIMInstance(**inst_kwargs)
         inst.path = CIMInstanceName.from_instance(
