@@ -192,7 +192,12 @@ jobs:
       run: |
         echo "Installed Python packages:"
         make pip_list
-    - name: Development setup
+    - name: Install OS packages for development
+      uses: re-actors/bindep@release/v1
+      with:
+        file: bindep.txt
+        profile: test
+    - name: Install Python packages for development
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
         RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
@@ -209,6 +214,12 @@ jobs:
       run: |
         echo "Package dependency tree of installed Python packages:"
         python -m pipdeptree --all
+    - name: Run check_bindep
+      env:
+        PACKAGE_LEVEL: ${{ matrix.package_level }}
+        RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
+      run: |
+        make check_bindep
     - name: Run check_reqs
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}

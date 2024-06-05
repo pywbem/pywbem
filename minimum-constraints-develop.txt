@@ -13,6 +13,9 @@
 six==1.14.0; python_version <= '3.9'
 six==1.16.0; python_version >= '3.10'
 
+# Binary package dependency management
+bindep==2.11.0
+
 # Unit test (imports into testcases):
 packaging==21.3
 pytest==4.6.0; python_version <= '3.9'

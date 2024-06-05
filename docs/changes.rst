@@ -34,6 +34,8 @@ Released: not yet
   distribution of pywbem, because of the transition from setup.py to
   pyproject.toml.
 
+* Dev/Test: Removed the pywbem_os_setup.py/bat scripts that install binary
+  packages for development and test.
 **Deprecations:**
 
 **Bug fixes:**
@@ -98,6 +100,9 @@ Released: not yet
 
 * Document the input parameters for the integer cim types (Uint8, etc.)
   including the use of 'x' as either a keyword or positional input parameter.
+
+* Migrated from scripts for managing binary dependencies to use the 'bindep'
+  Python package. (issue #3195)
 
 **Known issues:**
 

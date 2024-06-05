@@ -364,6 +364,7 @@ help:
 	@echo "  develop    - Install Python development prereqs (includes develop_os once after clobber)"
 	@echo "  vendor     - Install or update the vendorized packages"
 	@echo "  check_reqs - Perform missing dependency checks"
+	@echo "  check_bindep - Perform binary package dependency checks"
 	@echo "  build      - Build the source and wheel distribution archives in: $(dist_dir)"
 	@echo "  builddoc   - Build documentation in: $(doc_build_dir)"
 	@echo "  check      - Run Flake8 on sources"
@@ -509,11 +510,11 @@ develop_os: $(done_dir)/develop_os_$(pymn)_$(PACKAGE_LEVEL).done
 $(done_dir)/develop_os_$(pymn)_$(PACKAGE_LEVEL).done: Makefile $(done_dir)/base_$(pymn)_$(PACKAGE_LEVEL).done pywbem_os_setup.sh pywbem_os_setup.bat
 	@echo "Makefile: Installing OS-level development requirements"
 	-$(call RM_FUNC,$@)
-ifeq ($(PLATFORM),Windows_native)
-	pywbem_os_setup.bat develop
-else
-	./pywbem_os_setup.sh develop
-endif
+# ifeq ($(PLATFORM),Windows_native)
+# 	pywbem_os_setup.bat develop
+# else
+# 	./pywbem_os_setup.sh develop
+# endif
 	echo "done" >$@
 	@echo "Makefile: Done installing OS-level development requirements"
 
@@ -584,7 +585,7 @@ todo: $(done_dir)/todo_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Target $@ done."
 
 .PHONY: all
-all: install develop check_reqs build builddoc check ruff pylint installtest test leaktest resourcetest perftest
+all: install develop check_reqs check_bindep build builddoc check ruff pylint installtest test leaktest resourcetest perftest
 	@echo "Makefile: Target $@ done."
 
 .PHONY: clobber
@@ -842,6 +843,13 @@ else
 	rm -f minimum-constraints-all.txt.tmp
 	@echo "Makefile: Done checking missing dependencies of some development packages"
 endif
+	@echo "Makefile: $@ done."
+
+.PHONY: check_bindep
+check_bindep: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done
+	@echo "Makefile: Checking binary package dependencies"
+	bindep --profiles
+	bindep test
 	@echo "Makefile: $@ done."
 
 .PHONY: test
