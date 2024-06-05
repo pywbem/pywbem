@@ -106,7 +106,6 @@ autodocsumm==0.2.12
 Babel==2.10.0
 
 # PyLint (no imports, invoked via pylint script):
-# Not installed below Python 3.6
 pylint==2.13.0; python_version <= '3.10'
 pylint==2.15.0; python_version == '3.11'
 pylint==3.0.3; python_version >= '3.12'
