@@ -99,6 +99,9 @@ Released: not yet
 * Document the input parameters for the integer cim types (Uint8, etc.)
   including the use of 'x' as either a keyword or positional input parameter.
 
+* Test: Migrated from 'pytz' to 'zoneinfo'/'tzdata' for the tests that use it.
+  (issue #3191)
+
 **Known issues:**
 
 * See `list of open issues`_.

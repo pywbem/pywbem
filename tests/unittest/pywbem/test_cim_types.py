@@ -7,7 +7,10 @@ Test CIM types.
 import re
 from datetime import timedelta, datetime
 
-import pytz
+try:
+    import zoneinfo
+except ImportError:
+    from backports import zoneinfo
 import pytest
 
 from ..utils.pytest_extensions import simplified_test_function
@@ -1021,21 +1024,11 @@ TESTCASES_MINUTESFROMUTC_UTCOFFSET = [
         None, None, True
     ),
     (
-        "Test with UTC offset 150 and datetime with tzinfo for EST (ignored)",
+        "Test with UTC offset 150 and datetime with tzinfo",
         dict(
             offset=150,
-            dt=datetime.now(pytz.timezone('US/Eastern')),
+            dt=datetime.now(tz=zoneinfo.ZoneInfo('US/Eastern')),
             exp_utc_offset=150,
-        ),
-        None, None, True
-    ),
-    (
-        "Test with UTC offset -150 and datetime with tzinfo for EDT (ignored)",
-        dict(
-            offset=-150,
-            dt=pytz.timezone('US/Eastern').
-            localize(datetime.now(), is_dst=True),
-            exp_utc_offset=-150,
         ),
         None, None, True
     ),
@@ -1097,20 +1090,10 @@ TESTCASES_MINUTESFROMUTC_DST = [
         None, None, True
     ),
     (
-        "Test with UTC offset 150 and datetime with tzinfo for EST (ignored)",
+        "Test with UTC offset 150 and datetime with tzinfo",
         dict(
             offset=150,
-            dt=datetime.now(pytz.timezone('US/Eastern')),
-            exp_dst_offset=0,
-        ),
-        None, None, True
-    ),
-    (
-        "Test with UTC offset -150 and datetime with tzinfo for EDT (ignored)",
-        dict(
-            offset=-150,
-            dt=pytz.timezone('US/Eastern').
-            localize(datetime.now(), is_dst=True),
+            dt=datetime.now(tz=zoneinfo.ZoneInfo('US/Eastern')),
             exp_dst_offset=0,
         ),
         None, None, True
@@ -1243,21 +1226,11 @@ TESTCASES_MINUTESFROMUTC_TZNAME = [
         None, None, True
     ),
     (
-        "Test with UTC offset 150 and datetime with tzinfo for EST (ignored)",
+        "Test with UTC offset 150 and datetime with tzinfo",
         dict(
             offset=150,
-            dt=datetime.now(pytz.timezone('US/Eastern')),
+            dt=datetime.now(tz=zoneinfo.ZoneInfo('US/Eastern')),
             exp_tzname='02:30',
-        ),
-        None, None, True
-    ),
-    (
-        "Test with UTC offset -150 and datetime with tzinfo for EDT (ignored)",
-        dict(
-            offset=-150,
-            dt=pytz.timezone('US/Eastern').
-            localize(datetime.now(), is_dst=True),
-            exp_tzname='-02:30',
         ),
         None, None, True
     ),
