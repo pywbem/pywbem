@@ -36,8 +36,10 @@ yagot==0.5.0
 
 importlib-metadata==4.8.3
 
-pytz==2016.10; python_version <= '3.9'
-pytz==2019.1; python_version >= '3.10'
+# zoneinfo is part of Python starting with Python 3.9
+backports.zoneinfo==0.2.1; python_version == '3.8'
+# tzdata is needed by zoneinfo on systems with no timezone database (e.g. Windows)
+tzdata==2024.1; sys_platform == 'win32'
 
 # Unit test (indirect dependencies):
 pluggy==0.13.0
