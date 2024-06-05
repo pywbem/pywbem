@@ -1,0 +1,27 @@
+# Dependencies on binary packages for the pywbem project
+#
+# Note: These packages are used only for development of pywbem.
+#       The installation of pywbem by users does not have any specific
+#       dependencies on binary packages in addition to what is normally present.
+
+libxml2-utils [platform:dpkg test]
+libxslt1-dev [platform:dpkg test]
+
+libxml2 [platform:rpm test]
+libxslt [platform:rpm test]
+
+libxml2 [platform:brew test]
+libxslt [platform:brew test]
+
+grep [platform:msys_nt-10.0-20348 test]
+xmllint [platform:msys_nt-10.0-20348 test]
+
+# libxml2 [platform:cygwin test]
+# libxslt [platform:cygwin test]
+# libxml2-devel [platform:cygwin test]
+# libxslt-devel [platform:cygwin test]
+# libcrypt-devel [platform:cygwin test]
+# libzmq-devel [platform:cygwin test]
+# libffi-devel [platform:cygwin test]
+# python3-devel [platform:cygwin test]
+# python3-cython [platform:cygwin test]
