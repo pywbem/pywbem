@@ -33,6 +33,9 @@ Released: not yet
   macos-latest got upgraded from 12 to 14 and no longer supports Python 3.6
   and 3.7.
 
+* Test: Excluded testfixtures 8.3.0 to circumvent a new AssertionError that
+  is raised in test_recorder.py.
+
 **Enhancements:**
 
 **Cleanup:**
