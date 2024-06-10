@@ -24,7 +24,12 @@ packaging>=21.3
 # pytest-cov 4.0.0 depends on pytest>=4.6
 pytest>=4.6.0,!=6.0,<8.0; python_version <= '3.9'
 pytest>=6.2.5,<8.0; python_version >= '3.10'
-testfixtures>=6.9.0
+# TODO: testfixtures 8.3.0 introduced a new check that causes AssertionError to
+#       be raised in test_recorder.py.
+#       Issue https://github.com/simplistix/testfixtures/issues/200 describes
+#       the issue. To circumvent the issue, 8.3.0 is excluded for now.
+#       Find a permanent solution.
+testfixtures>=6.9.0,!=8.3.0
 # pylint>=2.15 requires colorama>=0.4.5
 colorama>=0.4.5
 
