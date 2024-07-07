@@ -424,7 +424,7 @@ def obj(value, tc_name):
                 obj_ = ctor_call(**ctor_args)
             for w in rec_warnings:
                 # Ignore DeprecationWarnings, re-issue any others
-                if w.category != DeprecationWarning:
+                if w.category is not DeprecationWarning:
                     warnings.warn(w.message, w.category, 1)
         else:
             obj_ = OrderedDict()
@@ -1084,7 +1084,7 @@ def runtestcase(testcase):
         # The testcase can only specify lists but not tuples, so we
         # tolerate tuple/list mismatches:
         act_type = type(result)
-        if act_type == tuple:
+        if act_type is tuple:
             act_type = list
         exp_type = type(exp_result_obj)
         # pylint: disable=unidiomatic-typecheck
