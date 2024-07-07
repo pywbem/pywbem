@@ -3287,8 +3287,8 @@ TESTCASES_ABSTRACT_MOF_INSTANCE_COMPILE = [
     (
         "Validate creation single instance of Abstract class",
         dict(
-            instmof="instance of TST_AbstractClass { " \
-                    'InstanceID = "Inst1"; ' \
+            instmof="instance of TST_AbstractClass { "
+                    'InstanceID = "Inst1"; '
                     "};",
             result_inst=CIMInstance(
                 "TST_AbstractClass",
@@ -3303,8 +3303,8 @@ TESTCASES_ABSTRACT_MOF_INSTANCE_COMPILE = [
     (
         "Validate creation single instance of not Abstract class",
         dict(
-            instmof="instance of TST_AbstractClassSub { " \
-                    'InstanceID = "Inst1"; ' \
+            instmof="instance of TST_AbstractClassSub { "
+                    'InstanceID = "Inst1"; '
                     "};",
             result_inst=CIMInstance(
                 "TST_AbstractClassSub",

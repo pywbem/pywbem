@@ -301,8 +301,8 @@ setup_options = dict(
     platforms='any',
 
     # Keep these Python versions in sync with pywbem/__init__.py
-    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, ' \
-    '!=3.5.*',
+    python_requires=('>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, '
+                     '!=3.5.*'),
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
