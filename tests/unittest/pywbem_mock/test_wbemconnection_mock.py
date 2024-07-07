@@ -10287,16 +10287,16 @@ class TestDMTFCIMSchema:
             #           expected exception object
 
             [['CIM_ComputerSystem', 'CIM_Door'],
-             '#pragma locale ("en_US")\n' \
-             '#pragma include ("Device/CIM_Door.mof")\n' \
+             '#pragma locale ("en_US")\n'
+             '#pragma include ("Device/CIM_Door.mof")\n'
              '#pragma include ("System/CIM_ComputerSystem.mof")\n'],
 
             [['CIM_Door'],
-             '#pragma locale ("en_US")\n' \
+             '#pragma locale ("en_US")\n'
              '#pragma include ("Device/CIM_Door.mof")\n'],
 
             ['CIM_Door',
-             '#pragma locale ("en_US")\n' \
+             '#pragma locale ("en_US")\n'
              '#pragma include ("Device/CIM_Door.mof")\n'],
 
             [['CIM_Blah'], ValueError()],
