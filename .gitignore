@@ -36,7 +36,7 @@ mofparsetab.py
 _mofparsetab.py
 moflextab.py
 _moflextab.py
-pywbem/_version.py
+pywbem/_version_scm.py
 tests/runtests.log
 /tests/testtmp/
 /tests/schema/mof*/

@@ -173,7 +173,7 @@ package_version := $(shell $(PYTHON_CMD) -m setuptools_scm 2>$(DEV_NULL))
 
 # The version file is recreated by setuptools-scm on every build, so it is
 # excluuded from git, and also from some dependency lists.
-version_file := $(package_name)/_version.py
+version_file := $(package_name)/_version_scm.py
 
 # Python versions
 python_version := $(shell $(PYTHON_CMD) tools/python_version.py 3)
