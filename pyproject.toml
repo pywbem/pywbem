@@ -73,4 +73,4 @@ test = {file = ['test-requirements.txt']}
 
 [tool.setuptools_scm]
 # Get the version from the Git tag, and write a version file:
-version_file = "pywbem/_version.py"
+version_file = "pywbem/_version_scm.py"
