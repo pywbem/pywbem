@@ -62,9 +62,9 @@ yamlloader==0.5.5
 # for python version >= 3.7 when issue #3006 resolved.
 # TODO issue #3006. Update the following to include urllib3 version 2 for
 # python >= python 3.7 when issue resolved.
-urllib3==1.26.18,<2.0.0; python_version == '2.7'
-urllib3==1.26.18,<2.0.0; python_version == '3.6'
-urllib3==1.26.18; python_version >= '3.7'
+urllib3==1.26.19,<2.0.0; python_version == '2.7'
+urllib3==1.26.19,<2.0.0; python_version == '3.6'
+urllib3==1.26.19; python_version >= '3.7'
 
 certifi==2019.11.28; python_version == '2.7'
 certifi==2023.07.22; python_version >= '3.6'
@@ -87,4 +87,5 @@ charset-normalizer==2.0.0; python_version >= '3.10'
 # rich 13.3.5 requires typing-extensions>=4.0.0,<5.0
 # typing-extensions 4.0.0 removed support for Python < 3.6
 typing-extensions==3.10.0; python_version == '2.7'
-typing-extensions==4.0.0; python_version >= '3.6'
+typing-extensions==4.1.0; python_version == '3.6'
+typing-extensions==4.7.1; python_version >= '3.7' and python_version <= '3.10'

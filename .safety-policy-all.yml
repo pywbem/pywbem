@@ -155,6 +155,22 @@ security:
             reason: Fixed tornado version 6.3.3 requires Python>=3.8 and is used there
         65647:
             reason: Fixed cryptography version 42.0.5 requires Python>=3.7 and is used there
+        68477:
+            reason: Fixed virtualenv version 20.21.0 requires Python>=3.7 and is used there
+        70612:
+            reason: Safety issue and CVE do not list a fixed version of Jinja2
+        70598:
+            reason: Fixed ruamel-yaml version 0.16.7 requires Python>=3.5 and is used there
+        70790:
+            reason: Fixed tqdm version 4.66.3 requires Python>=3.7 and is used there
+        71199:
+            reason: Fixed anyio version 4.4.0 requires Python>=3.8 and is used there
+        71591:
+            reason: Fixed Jinja2 version 3.1.4 requires Python>=3.7 and is used there
+        71628:
+            reason: Fixed jupyter-server version 2.14.1 requires Python>=3.8 and is used there
+        71629:
+            reason: Fixed jupyter-server version 2.7.2 requires Python>=3.8 and is used there
 
     # Continue with exit code 0 when vulnerabilities are found.
     continue-on-vulnerability-error: False
