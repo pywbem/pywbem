@@ -32,6 +32,7 @@ cprofilerstats*.profile
 /build_doc/
 /build_build_ext/
 /build_cythonize/
+/pywbem/_version_scm.py
 mofparsetab.py
 _mofparsetab.py
 moflextab.py

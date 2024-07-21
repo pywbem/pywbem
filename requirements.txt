@@ -43,9 +43,9 @@ setuptools!=61.0.0; python_version >= '3.7'
 # urllib3 needs to be pinned to <1.25 for requests <2.22.0
 # urllib3 1.26.5 vendors six 1.16.0 which is needed on Python 3.10 to remove ImportWarning
 # urllib3 2.0 requires py>=3.7
-urllib3>=1.26.18,<2.0.0; python_version == '2.7'
-urllib3>=1.26.18,<2.0.0; python_version == '3.6'
-urllib3>=1.26.18; python_version >= '3.7'
+urllib3>=1.26.19,<2.0.0; python_version == '2.7'
+urllib3>=1.26.19,<2.0.0; python_version == '3.6'
+urllib3>=1.26.19; python_version >= '3.7'
 
 # certifi 2020.6.20 removed support for Python 2.7 but does not declare it
 certifi>=2019.11.28,<2020.6.20; python_version == '2.7'

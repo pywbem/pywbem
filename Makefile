@@ -349,13 +349,13 @@ dist_dependent_files := \
 
 # Packages whose dependencies are checked using pip-missing-reqs
 ifeq ($(python_m_version),2)
-  check_reqs_packages := pytest coverage coveralls flake8 pylint safety twine jupyter notebook
+  check_reqs_packages := pytest coverage coveralls flake8 pylint twine jupyter notebook
 else
 ifeq ($(python_mn_version),3.5)
-  check_reqs_packages := pytest coverage coveralls flake8 pylint safety twine jupyter notebook
+  check_reqs_packages := pytest coverage coveralls flake8 pylint twine jupyter notebook
 else
 ifeq ($(python_mn_version),3.6)
-  check_reqs_packages := pytest coverage coveralls flake8 pylint safety twine jupyter notebook
+  check_reqs_packages := pytest coverage coveralls flake8 pylint twine jupyter notebook
 else
 ifeq ($(python_mn_version),3.7)
   check_reqs_packages := pytest coverage coveralls flake8 pylint safety twine jupyter notebook
@@ -852,15 +852,22 @@ $(done_dir)/safety_all_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/develop_$(pymn
 ifeq ($(python_m_version),2)
 	@echo "Makefile: Warning: Skipping Safety for all packages on Python $(python_version)" >&2
 else
+ifeq ($(python_mn_version),3.6)
+	@echo "Makefile: Warning: Skipping Safety for all packages on Python $(python_version)" >&2
+else
 	@echo "Makefile: Running Safety for all packages"
 	-$(call RM_FUNC,$@)
 	bash -c "safety check --policy-file $(safety_all_policy_file) -r minimum-constraints.txt --full-report || test '$(RUN_TYPE)' != 'release' || exit 1"
 	echo "done" >$@
 	@echo "Makefile: Done running Safety for all packages"
 endif
+endif
 
 $(done_dir)/safety_install_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile $(safety_install_policy_file) minimum-constraints-install.txt
 ifeq ($(python_m_version),2)
+	@echo "Makefile: Warning: Skipping Safety for install packages on Python $(python_version)" >&2
+else
+ifeq ($(python_mn_version),3.6)
 	@echo "Makefile: Warning: Skipping Safety for install packages on Python $(python_version)" >&2
 else
 	@echo "Makefile: Running Safety for install packages"
@@ -868,6 +875,7 @@ else
 	safety check --policy-file $(safety_install_policy_file) -r minimum-constraints-install.txt --full-report
 	echo "done" >$@
 	@echo "Makefile: Done running Safety for install packages"
+endif
 endif
 
 ifdef TEST_INSTALLED
