@@ -28,7 +28,8 @@ __all__ = ['Error', 'ConnectionError', 'AuthError', 'HTTPError', 'TimeoutError',
            'ProtocolVersionError', 'CIMXMLParseError', 'XMLParseError',
            'HeaderParseError', 'CIMError', 'ModelError',
            'ListenerError', 'ListenerCertificateError',
-           'ListenerPortError', 'ListenerPromptError']
+           'ListenerPortError', 'ListenerPromptError',
+           'ListenerQueueFullError']
 
 
 class _RequestExceptionMixin:
@@ -765,6 +766,19 @@ class ListenerPromptError(ListenerError):
     key file of the pywbem listener was interrupted or ended.
 
     *New in pywbem 1.3.*
+
+    Derived from :exc:`~pywbem.ListenerError`.
+    """
+    pass
+
+
+class ListenerQueueFullError(ListenerError):
+    """
+    This exception indicates that the listener received indication queue has
+    reached the maximum count of indications defined in the listener
+    creation max_queue_size parameter.
+
+    *New in pywbem 1.8.*
 
     Derived from :exc:`~pywbem.ListenerError`.
     """
