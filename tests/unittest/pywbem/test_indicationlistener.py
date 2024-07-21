@@ -7,6 +7,7 @@ Test _listener.py module.
 import sys
 import re
 import logging
+import threading
 from time import time, sleep
 from random import randint
 
@@ -18,7 +19,8 @@ from ...utils import import_installed, post_bsl
 from ...elapsed_timer import ElapsedTimer
 from ..utils.pytest_extensions import simplified_test_function
 pywbem = import_installed('pywbem')
-from pywbem import WBEMListener, ListenerPortError  # noqa: E402
+from pywbem import WBEMListener, ListenerPortError, \
+    ListenerQueueFullError   # noqa: E402
 from pywbem._utils import _format  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
@@ -29,11 +31,17 @@ from pywbem._utils import _format  # noqa: E402
 # log level, and add code to set or unset the log level of the root logger
 # globally or specifically in each test case.
 LOGLEVEL = logging.NOTSET  # NOTSET disables logging
+# LOGLEVEL = logging.INFO    # Enable to generate logs at info level
 # LOGLEVEL = logging.DEBUG   # Enable to generate logs at debug level
 
 # Set name of the log file
 LOG_NAME = 'test_indicationlistener'
 LOGFILE = LOG_NAME + '.log'
+
+# test variables to allow selectively executing tests.
+OK = True
+RUN = True
+FAIL = False
 
 
 def configure_root_logger(logfile):
@@ -104,6 +112,7 @@ TESTCASES_WBEMLISTENER_INIT = [
                 https_port=6998,
                 certfile='certfile.pem',
                 keyfile='keyfile.pem',
+                max_ind_queue_size=9,
             ),
             exp_attrs=dict(
                 host='woot.com',
@@ -111,6 +120,8 @@ TESTCASES_WBEMLISTENER_INIT = [
                 https_port=6998,
                 certfile='certfile.pem',
                 keyfile='keyfile.pem',
+                max_ind_queue_size=9
+
             ),
         ),
         None, None, True
@@ -161,6 +172,7 @@ TESTCASES_WBEMLISTENER_INIT = [
                 https_port=None,
                 certfile=None,
                 keyfile=None,
+                max_ind_queue_size=0,
             ),
             exp_attrs=dict(
                 host='woot.com',
@@ -168,6 +180,8 @@ TESTCASES_WBEMLISTENER_INIT = [
                 https_port=None,
                 certfile=None,
                 keyfile=None,
+                max_ind_queue_size=0,
+
             ),
         ),
         None, None, True
@@ -254,6 +268,30 @@ TESTCASES_WBEMLISTENER_INIT = [
         ),
         None, None, True
     ),
+    (
+        "Verify valid max_ind_queue_size argument",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
+                host='woot.com',
+                http_port=None,
+                https_port=6998,
+                certfile='certfile.pem',
+                keyfile='keyfile.pem',
+                max_ind_queue_size=1000,
+            ),
+            exp_attrs=dict(
+                host='woot.com',
+                http_port=None,
+                https_port=6998,
+                certfile='certfile.pem',
+                keyfile='keyfile.pem',
+                max_ind_queue_size=1000,
+
+            ),
+        ),
+        None, None, True
+    ),
 
     # Failure cases
     (
@@ -318,6 +356,34 @@ TESTCASES_WBEMLISTENER_INIT = [
                 host='woot.com',
                 http_port=None,
                 https_port=None,
+            ),
+            exp_attrs=None,
+        ),
+        ValueError, None, True
+    ),
+    (
+        "Verify failure when providing invalid type max_ind_queue_size",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
+                host='woot.com',
+                http_port=None,
+                https_port=None,
+                max_ind_queue_size="fred",
+            ),
+            exp_attrs=None,
+        ),
+        ValueError, None, True
+    ),
+    (
+        "Verify failure when providing invalid max_ind_queue_size integer",
+        dict(
+            init_args=[],
+            init_kwargs=dict(
+                host='woot.com',
+                http_port=None,
+                https_port=None,
+                max_ind_queue_size=-1,
             ),
             exp_attrs=None,
         ),
@@ -573,20 +639,21 @@ def create_indication_data(msg_id, sequence_number, delta_time, protocol_ver):
 
 
 # Verbosity in test_WBEMListener_send_indications()
-VERBOSE_SUMMARY = False  # Show summary for each run
+VERBOSE_SUMMARY = True  # Show summary for each run
 
 # Global variables used to communicate between the test case function and
-# the process_indication() function running in context of the listener
+# the process_indication_callback() function running in context of the listener
 # thread. These must be global, because in Python 2, closure variables
 # cannot be modified.
 RCV_COUNT = 0
 RCV_ERRORS = False
+CALLBACK_DELAY = 0
 
 
-def process_indication(indication, host):
+def process_indication_callback(indication, host):
     # pylint: disable=unused-argument
     """
-    This function gets called by the listener when an indication is
+    This callback function gets called by the listener when an indication is
     received.
 
     It tests the received indication sequence number against the RCV_COUNT
@@ -607,16 +674,26 @@ def process_indication(indication, host):
     # Note: Global variables that are modified must be declared global
     global RCV_COUNT  # pylint: disable=global-statement
     global RCV_ERRORS  # pylint: disable=global-statement
+    # global CALLBACK_DELAY  # delay in first return from callback
 
     LOGGER.debug(
         "Callback function called for indication #%s: %r",
         RCV_COUNT, indication.classname)
 
+    # Delay the callback execution. This is set if the test is
+    # defined to test for full queue and fail.  It delays each callback the
+    # numbr of seconds in CALLBACK_DELAY
+    if CALLBACK_DELAY:
+        sleep(CALLBACK_DELAY)
+        LOGGER.debug(
+            "Callback delayed rcv_cnt #%s:  delay %s",
+            RCV_COUNT, CALLBACK_DELAY)  # FUTURE: remove this.
+
     try:
 
         send_count = int(indication.properties['SequenceNumber'].value)
         if send_count != RCV_COUNT:
-            print("Error in process_indication(): Assertion error: "
+            print("Error in process_indication_callback(): Assertion error: "
                   "Unexpected SequenceNumber in received indication: "
                   f"got {send_count}, expected {RCV_COUNT}")
             sys.stdout.flush()
@@ -625,17 +702,113 @@ def process_indication(indication, host):
         RCV_COUNT += 1
 
     except Exception as exc:  # pylint: disable=broad-except
-        print(f"Error in process_indication(): {exc.__class__.__name__}: {exc}")
+        print(f"Error in process_indication_callback(): "
+              f"{exc.__class__.__name__}: {exc}")
         sys.stdout.flush()
+        LOGGER.debug(
+            "Error in process_indication_callback() %s: %s",
+            exc.__class__.__name__, exc)
         RCV_ERRORS = True
 
 
-@pytest.mark.parametrize(
-    "send_count",
-    [1, 10, 100]  # 1000 in some environments takes 30 min
+WBEMLISTENER_SEND_INDICATIONS_TESTCASES = [
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * kwargs: Keyword arguments for the test function:
+    #   * send_count: CIMInstanceName object to be tested.
+    #   * max_queue: Max size of queue argument.
+    #   * exp_success: Boolan, True if successful completion expected. If
+    #     exception expected, set False
+    #   * callback_delay - number that defines delay (seconds)) in first
+    #     callback execution. Required for tests of queue full.
+    # * exp_exc_types: Expected exception type(s), or None.
+    # * exp_warn_types: Expected warning type(s), or None.
+    # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
+    (
+        "Send 1 indication",
+        {
+            'send_count': 1,
+            'max_queue': 0,
+            'exp_success': True,
+            'callback_delay': 0,
+        },
+        None, None, OK
+    ),
+    (
+        "Send 10 indications",
+        {
+            'send_count': 10,
+            'max_queue': 0,
+            'exp_success': True,
+            'callback_delay': 2,
 
-)
-def test_WBEMListener_send_indications(send_count):
+        },
+        None, None, OK
+    ),
+    (
+        "Send 100 indications",
+        {
+            'send_count': 100,
+            'max_queue': 0,
+            'exp_success': True,
+            'callback_delay': 0,
+
+        },
+        None, None, OK
+    ),
+    (
+        " Test queue full. Send 5 indications but fail at 2",
+        {
+            'send_count': 5,
+            'max_queue': 2,
+            'exp_success': False,
+            'callback_delay': 1,
+
+        },
+        None, None, OK
+    ),
+    (
+        " Test queue full. Send 100 indications Full = 200, no fail",
+        {
+            'send_count': 100,
+            'max_queue': 190,
+            'exp_success': True,
+            'callback_delay': 1,
+
+        },
+        None, None, OK
+    ),
+    (
+        " Test queue full. Send 5 indications full=6. No fail",
+        {
+            'send_count': 5,
+            'max_queue': 6,
+            'exp_success': False,
+            'callback_delay': 1,
+
+        },
+        None, None, OK
+    ),
+    (
+        " Test queue full. Send 100 indications, full = 90 but fail at 90",
+        {
+            'send_count': 100,
+            'max_queue': 90,
+            'exp_success': False,
+            'callback_delay': 1,
+
+        },
+        None, None, OK
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, kwargs, exp_exc_types, exp_warn_types, condition",
+    WBEMLISTENER_SEND_INDICATIONS_TESTCASES)
+@simplified_test_function
+def test_WBEMListener_send_indications(testcase, send_count, max_queue,
+                                       exp_success, callback_delay):
     """
     Test WBEMListener with an indication generator.
 
@@ -660,10 +833,12 @@ def test_WBEMListener_send_indications(send_count):
     The indication instance is modified for each indication count so that each
     carries its own sequence number.
     """
-
     # Note: Global variables that are modified must be declared global
     global RCV_COUNT  # pylint: disable=global-statement
     global RCV_ERRORS  # pylint: disable=global-statement
+    global CALLBACK_DELAY  # pylint: disable=global-statement
+
+    CALLBACK_DELAY = callback_delay
 
     # Enable logging for this test function
     if LOGLEVEL > logging.NOTSET:
@@ -677,13 +852,14 @@ def test_WBEMListener_send_indications(send_count):
         host = 'localhost'
     http_port = 50000
 
-    listener = WBEMListener(host, http_port)
-    listener.add_callback(process_indication)
-    listener.start()
+    listener = WBEMListener(host, http_port, max_ind_queue_size=max_queue)
+    listener.add_callback(process_indication_callback)
+
     timer = ElapsedTimer()
+    stop_indication_sender = False
 
     try:
-
+        listener.start()
         start_time = time()
         url = f'http://{host}:{http_port}'
         cim_protocol_version = '1.4'
@@ -695,15 +871,20 @@ def test_WBEMListener_send_indications(send_count):
             'CIMProtocolVersion': cim_protocol_version,
         }
         # We include Accept-Encoding because of requests issue.
-        # He supplies it if we don't.  TODO try None
+        # He supplies it if we don't.  TODO: try None
 
         delta_time = time() - start_time
         random_base = randint(1, 10000)
 
         RCV_COUNT = 0
         RCV_ERRORS = False
-        LOGGER.debug("Testcase sending %s indications", send_count)
+        LOGGER.debug(
+            "Testcase %s. Sending #%s indications", testcase.desc, send_count)
         for i in range(send_count):
+
+            if stop_indication_sender:
+                LOGGER.debug("Testcase stop sending indications #%s", i)
+                break
 
             msg_id = random_base + i
             payload = create_indication_data(msg_id, i, delta_time,
@@ -714,50 +895,103 @@ def test_WBEMListener_send_indications(send_count):
             try:
                 response = post_bsl(url, headers=headers, data=payload)
             except requests.exceptions.RequestException as exc:
-                msg = ("Testcase sending indication #{} raised {}: {}",
-                       (i, exc.__class__.__name__, exc))
+                msg = (f"Testcase sending indication #{i} "
+                       f"raised {exc.__class__.__name__}: {exc}")
                 LOGGER.error(msg)
-                new_exc = AssertionError(msg)
-                # Disable to see original traceback
-                new_exc.__cause__ = None
-                raise new_exc
+                # If testing for fail with max_queue, stop sending if
+                # exception from sender and do not execute AssertionError
+                if max_queue and i >= max_queue:
+                    LOGGER.debug("Stop msg sending. Send exception max_"
+                                 "queue= #%s  indication #%s", max_queue, i)
+                    break
 
-            LOGGER.debug("Testcase received response from sending "
-                         "indication #%s", i)
+                new_exec = AssertionError(msg)
+                # Disable to see original traceback
+                new_exec.__cause__ = None
+                raise new_exec
+
+            LOGGER.debug("Received response from sending indication #%s", i)
 
             if response.status_code != 200:
                 msg = (f"Testcase sending indication #{i} failed with HTTP "
                        f"status {response.status_code}")
                 LOGGER.error(msg)
-                raise AssertionError(msg)
+                # Ignore error if testing for queue full error
+                if not stop_indication_sender:
+                    raise AssertionError(msg)
 
-        # Make sure the listener thread has processed all indications
-        sleep(1)
+        # Indications sent.
+        # Confirm that the listener thread has processed all indications. Waits
+        # for indication queue to empty.
+        # Cancel any callback delays so callbacks just clear queue.
+        CALLBACK_DELAY = 0
 
-        assert not RCV_ERRORS, \
-            "Errors occurred in process_indication(), as printed to stdout"
+        # max seconds to wait for queue to empty
+        # NOTE: This does not have any short circuit if the callback processor
+        # hangs up and does not finish.  It just runs out the timer.
+        queue_empty_retries = max((send_count * 5), 30)
 
-        assert send_count == RCV_COUNT, \
-            f"Mismatch between total send count {send_count} and receive " \
-            f"count {RCV_COUNT}"
+        # Wait loop to allow receive queue to empty.
+        for i in range(queue_empty_retries):
+            sleep(0.2)   # sleep 200 ms to allow callbacks to execute
+            LOGGER.debug(
+                "wait for empty queue. qsize=%s empty=%s retries=%s",
+                listener.ind_delivery_queue.qsize(),
+                listener.ind_delivery_queue_empty(),
+                i)
+            if listener.ind_delivery_queue_empty():
+                LOGGER.debug("Break from wait loop.")
+                break
+
+            LOGGER.debug("Waiting, %s still in queue.",
+                         listener.ind_delivery_queue.qsize())
+
+        assert listener.ind_delivery_queue_empty(), \
+            f"Test failed in wait for indications loop. rcv_count=" \
+            f"{RCV_COUNT} still in queue=" \
+            f"{listener.ind_delivery_queue()}"
+
+        # Test for receive error, and correct receive count
+        # Ignore rcvd count asserts if exp_success is False.
+        if exp_success:
+            assert not RCV_ERRORS, \
+                f"Errors occurred in process_indication_callback(), as " \
+                f" printed to stdout. testcase={testcase}."
+
+            assert send_count == RCV_COUNT, \
+                f"Mismatch between total send count {send_count} and " \
+                f" receive count {RCV_COUNT}. testcase={testcase}."
+
+    except ListenerQueueFullError:
+        if exp_success:
+            assert False, "Unexpxpected ListenerQueueFullError. Test Fail"
+        else:
+            LOGGER.debug("Expected and received ListenerQueueFullError")
+            stop_indication_sender = True
+            listener.stop()
+            LOGGER.debug("Testcase fail expected, listener closed.")
 
     finally:
+
+        LOGGER.debug("Start listener stop")
+        listener.stop()
+        LOGGER.debug("End listener stop")
 
         endtime = timer.elapsed_sec()
         per_sec = send_count / endtime
 
-        msg = (f"SUMMARY: Sent {send_count} indications in {endtime} sec "
-               f"or {per_sec:.2f} ind/sec")
+        msg = (f"SUMMARY: Sent #{send_count} indications in {endtime} sec; "
+               f"{per_sec:.2f} ind/sec")
 
-        LOGGER.debug(msg)
+        LOGGER.info(msg)
 
         if VERBOSE_SUMMARY:
             print(f"\n{msg}")
             sys.stdout.flush()
 
-        LOGGER.debug("Start listener stop")
-        listener.stop()
-        LOGGER.debug("End listener stop")
+        # Test that only the main thread exists.
+        assert threading.active_count() == 1
+
         # Disable logging for this test function
         if LOGLEVEL > logging.NOTSET:
             logging.getLogger('').setLevel(logging.NOTSET)
@@ -792,7 +1026,7 @@ def test_WBEMListener_incorrect_method(method, exp_status):
     }
 
     listener = WBEMListener(host, http_port)
-    listener.add_callback(process_indication)
+    listener.add_callback(process_indication_callback)
     listener.start()
 
     try:
@@ -908,7 +1142,7 @@ def test_WBEMListener_incorrect_headers(desc, headers, exp_status, exp_headers):
     # headers = copy(headers)
 
     listener = WBEMListener(host, http_port)
-    listener.add_callback(process_indication)
+    listener.add_callback(process_indication_callback)
     listener.start()
 
     try:
@@ -1068,7 +1302,7 @@ def test_WBEMListener_incorrect_payload1(
     }
 
     listener = WBEMListener(host, http_port)
-    listener.add_callback(process_indication)
+    listener.add_callback(process_indication_callback)
     listener.start()
 
     try:
@@ -1233,7 +1467,7 @@ def test_WBEMListener_incorrect_payload2(
     }
 
     listener = WBEMListener(host, http_port)
-    listener.add_callback(process_indication)
+    listener.add_callback(process_indication_callback)
     listener.start()
 
     try:

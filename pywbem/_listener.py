@@ -21,6 +21,14 @@ The :class:`~pywbem.WBEMListener` class provides a thread-based WBEM listener
 service that can receive CIM indications from multiple WBEM servers and that
 calls registered callback functions to deliver the received indications.
 
+The listener receives indications from an indication sender, validates the
+formtting of the indication and queues each received indication into an
+interprocess queue. A seperate thread monitors this queue and calls the
+callback functions for each indication in the queue.
+
+This insures that timing in the callback functions does not interfere with the
+reception of indications from the indication sender.
+
 Examples
 --------
 
@@ -105,20 +113,74 @@ back to the indication sender, at the ``INFO`` logging level
 
 In addition, it will log errors at the ``ERROR`` logging level.
 
-Starting with Python 2.7, the Python root logger will by default (i.e. when not
-being configured) print log records of logging level ``WARNING``
-or greater to `sys.stderr`. So the indication and response interactions will not
-be printed by default, but any errors logged at the ``ERROR``
-logging level will be printed by default.
+The Python root logger will by default (i.e. when not being configured) print
+log records of logging level ``WARNING`` or greater to `sys.stderr`. So the
+indication and response interactions will not be printed by default, but any
+errors logged at the ``ERROR`` logging level will be printed by default.
 
-Pywbem adds a null handler to the logger named `'pywbem'`, in order to prevent
-the "No handlers could be found for logger ..." warning.
-This follows best practices recommended in `Configuring logging for a library
-<https://docs.python.org/2/howto/logging.html#configuring-logging-for-a-library>`_
-and in several articles, for example in `this article
-<http://pieces.openpolitics.com/2012/04/python-logging-best-practices/>`_.
-Because this warning is no longer issued on Python 3.4 and higher, pywbem
-adds a null handler only on Python 2.7.
+Listener indication flood
+-------------------------
+
+A listener processes indications through an interprocess queue so a flood of
+indications from the indication sender where the callback processing was taking
+longer than indication reception could over time result in indications piling
+up in the received indication queue. While this is not normally an issue a
+flood of indications from the sender could result in more indications in the
+queue than the memory of the client can support. Effective with version 1.8.0,
+an optional argument was added to the listener initialization
+(max_ind_queue_size) that causes generation of an exception
+(ListenerQueueFullError) and stopping of sending indication reception. Since
+this effectively stops the listener, it should only be used if the number of
+indications in the queue is a threat to the memory in the client, not for
+temporary slowdown of the flow of indications from the indication sender.
+
+It closes the listener connections and discards indications in the queue.
+
+The following example creates and runs a listener::
+
+    import logging
+    from pywbem import WBEMListener
+
+    def process_indication(indication, host):
+        '''This function gets called when an indication is received.'''
+
+        print(f"Received CIM indication from {host}: {indication!r}")
+
+    def main():
+
+        # Configure logging of the listener via the Python root logger
+        logging.basicConfig(
+            filename='listener.log', level=logging.WARNING,
+            format='%(asctime)s - %(levelname)s - %(message)s')
+
+        certkeyfile = 'listener.pem'
+
+        # Set host name to wildcard host address to recieve indications on
+        # any network address defined for this system.
+        listener = WBEMListener(host="",
+                                http_port=5990,
+                                https_port=5991,
+                                certfile=certkeyfile,
+                                keyfile=certkeyfile,
+                                max_ind_queue_size=5000,
+                                )
+        listener.add_callback(process_indication)
+
+        try:
+            listener.start()
+
+            # process_indication() will be called for each received indication
+
+            . . .  # wait for some condition to end listening
+
+        except ListenerQueueFullError:
+            print("Indication listener failed. Indication queue full.")
+            listener.stop()
+
+
+        finally:
+            listener.stop()
+
 
 
 .. _`WBEMListener class`:
@@ -126,12 +188,6 @@ adds a null handler only on Python 2.7.
 WBEMListener class
 ------------------
 """
-
-# FUTURE: we should add the following:
-#  1. Max size for callback queue.  We do not want to kill the client
-#     Queue has a Full state so we can use that and stop the server from
-#     sending if the queue is full.
-#
 
 import sys
 import os
@@ -147,11 +203,13 @@ import queue
 try:
     import termios
 except ImportError:
-    # termios is only supported on ssome operating systems
+    # termios is only supported on some operating systems
     termios = None
 import socketserver
 import http.client
 from http.server import HTTPStatus, HTTPServer, BaseHTTPRequestHandler
+
+from time import sleep
 
 from . import _cim_xml
 from ._version import __version__
@@ -162,7 +220,7 @@ from ._tupleparse import TupleParser
 from ._tupletree import xml_to_tupletree_sax
 from ._exceptions import CIMXMLParseError, XMLParseError, CIMVersionError, \
     DTDVersionError, ProtocolVersionError, ListenerCertificateError, \
-    ListenerPortError, ListenerPromptError
+    ListenerPortError, ListenerPromptError, ListenerQueueFullError
 from ._utils import _format
 
 # CIM-XML protocol related versions implemented by the WBEM listener.
@@ -502,6 +560,7 @@ class ListenerRequestHandler(BaseHTTPRequestHandler):
                             "but {0!A}", indication_inst))
                 return
             # server.listener created in WBEMListener.start function
+            # This function may generate queue full exception.
             self.server.listener.handle_indication(indication_inst,
                                                    self.client_address[0])
 
@@ -700,11 +759,14 @@ class ListenerRequestHandler(BaseHTTPRequestHandler):
                        __version__, self.server_version, self.sys_version)
 
 
-class StoppableThread(threading.Thread):
+class CallbackThread(threading.Thread):
     """
-    Thread subclass with a stop() method. The thread itself must check
-    regularly for the stopped() event ( i.e. if stop_event.is_set()) and
-    exit the thread code.
+    Thread subclass with a stop() method.
+
+    The thread itself must check regularly for the stopped() event ( i.e. if
+    stop_event.is_set()) exit the thread code.
+
+    This subclass does not pass exceptions to the parent.
     """
 
     def __init__(self, *args, **kwargs):
@@ -721,6 +783,38 @@ class StoppableThread(threading.Thread):
     def stopped(self):
         """Test for thread stop event set"""
         return self.stop_event.is_set()
+
+
+class ServerThread(threading.Thread):
+    """
+    Thread subclass that passes exceptions from the thread back to the
+    calling thread when join executed.
+    """
+
+    def __init__(self, *args, **kwargs):
+        """
+        Init with arguments for the thread
+        """
+        super().__init__(*args, **kwargs)
+        # Placeholder for possible exception.
+        self.exec = None
+
+    def run(self):
+        """
+        Add try block to Thread run function
+        """
+        try:
+            super().run()
+        except ListenerQueueFullError as e:
+            self.exec = e
+
+    def join(self, *args, **kwargs):
+        """
+        Pass exception in self.exec to the calling thread.
+        """
+        super().join(*args, **kwargs)
+        if self.exec:
+            raise self.exec
 
 
 # pylint: disable=too-many-instance-attributes
@@ -747,7 +841,7 @@ class WBEMListener:
     """
 
     def __init__(self, host, http_port=None, https_port=None,
-                 certfile=None, keyfile=None):
+                 certfile=None, keyfile=None, max_ind_queue_size=0):
         """
         Parameters:
 
@@ -798,6 +892,29 @@ class WBEMListener:
 
             `None` means not to use a private key file. Setting up a port
             for HTTPS requires specifying a private key file.
+
+          max_ind_queue_size (:term:`integer`):
+            A positive integer which defines the maximum number of the received
+            indications that can be in the received indication queue.  If the
+            queue of received indications reaches this size, the queue is
+            blocked and the :exc:`~pywbem.ConnectionError` is raised.
+
+            The default is 0 which disables the test for queue full.
+
+            If set, this should be a large number since the goal is to stop
+            receiving indications on the connection and may result in an
+            indication receive failure on the WBEM server indication export
+            function.
+
+        Raises:
+
+          :exc:`~pywbem.ListenerQueueFullError`: if number of indications
+          in the listener queue exceeds max_ind_queue_size.
+
+          TypeError: port, max_ind_queue_size arguments invalid type.
+
+          ValueError: No connection port specified, max_ind_queue_size
+          invalid integer.
         """
 
         self._host = host
@@ -846,8 +963,20 @@ class WBEMListener:
 
         self._callbacks = []  # Registered callback functions
 
-        # define callback queue and callback thread.
-        self.rcvd_indication_queue = None
+        if not isinstance(max_ind_queue_size, int):
+            raise TypeError("max_ind_queue_size argument must be aninteger.")
+        if max_ind_queue_size < 0:
+            raise ValueError(
+                "max__ind_queue_size argument must be positive integer.")
+        self._max_ind_queue_size = max_ind_queue_size
+
+        # Define timeout in seconds for gets on ind_delivery_queue
+        # Causes wait after indication queue get if queue is empty.
+        # Choice of 2 seconds was arbitrary.
+        #
+        self.queue_get_timeout = 2
+
+        self.ind_delivery_queue = None
         self.callback_thread = None
 
     def __str__(self):
@@ -877,6 +1006,7 @@ class WBEMListener:
             "_keyfile={s._keyfile!A}, "
             "_logger={s._logger!A}, "
             "_callbacks={s._callbacks!A})",
+            "_max_ind_queue_size={s._max_ind_queue_size!A})",
             s=self)
 
     def __enter__(self):
@@ -990,34 +1120,47 @@ class WBEMListener:
         """
         return self._logger
 
-    def stop_callback_thread(self):
+    @property
+    def max_ind_queue_size(self):
         """
-        Stop the indication delivery thread and queue and eliminate them. This
-        allows the delivery of indications already in the queue. and then
-        closes the thread and queue.
+        Return a positive integer the maximum queue size. If this value is not
+        0, an exception will be generated when this queue size is reached. If
+        it is zero the exception is disabled.
         """
-        assert self.callback_thread
-        assert self.rcvd_indication_queue
-        self.logger.info("Stopping queued delivery")
-        self.callback_thread.stop()
-        self.logger.info("Joining queued delivery")
-        self.callback_thread.join()
-        self.logger.info("Join finished threaded Deliver queue")
-        self.callback_thread = None
-        self.rcvd_indication_queue = None
+        return self._max_ind_queue_size
+
+    def ind_delivery_queue_empty(self):
+        """
+        Return boolean True if the indication queue is empty. Otherwise return
+        False. This is available becasue the queue_size attribute only returns
+         an approximation.
+        """
+        return self.ind_delivery_queue.empty()
+
+    def queue_size(self):
+        """
+        Return an integer with the approximate count of the number of
+        indications currently in the received indication queue for this
+        listener. """
+        return self.ind_delivery_queue.qsize()
 
     def start(self):
         """
-        Start the WBEM listener threads, if they are not yet running.
+        Start the WBEM listener and callback threads, if they are not yet
+        running.
+
+        A interthread queue for holding indications recieved from a server
+        thread and a thread for delivering indications from the queue to the
+        callback functions are defined and the callback thread is started.
 
         A thread serving CIM-XML over HTTP is started if an HTTP port was
-        specified for the listener.
-        A thread serving CIM-XML over HTTPS is started if an HTTPS
-        port was specified for the listener.
+        specified for the listener. A thread serving CIM-XML over HTTPS is
+        started if an HTTPS port was specified for the listener.
 
         These server threads will handle the ExportIndication export message
-        described in :term:`DSP0200` and they will invoke the registered
-        callback functions for any received CIM indications.
+        described in :term:`DSP0200` and they will pass each indication
+        received to the callback queue.  A separate thread handles passing
+        received messages from this queue to the callback functions defined.
 
         The listener must be stopped again in order to free the TCP/IP port it
         listens on. The listener can be stopped explicitly using the
@@ -1043,16 +1186,25 @@ class WBEMListener:
           :exc:`py:OSError`: Other error
           :exc:`py:IOError`: Other error (Python 2.7 only)
         """
-        # Start delivery queue and thread if not started
-        if not self.callback_thread:
-            self.rcvd_indication_queue = queue.Queue()
-            self.callback_thread = StoppableThread(
-                target=self.deliver_indications_from_queue,
-                args=(self.rcvd_indication_queue,))
-            # This insures that thread stops when process stopped
-            self.callback_thread.daemon = True
-            self.callback_thread.start()
-            self.logger.info("Callback queue thread started")
+
+        assert not self.callback_thread
+        assert not self.ind_delivery_queue
+
+        # Create received indication inter_thread queue and set queue max size
+        # if max_ind_queue_size param is set
+        self.ind_delivery_queue = queue.Queue(
+            maxsize=self._max_ind_queue_size)
+
+        # Start callback thread
+        self.callback_thread = CallbackThread(
+            target=self.deliver_indications_forever,
+            args=(self.ind_delivery_queue,),
+            name='Callback',
+            daemon=True)
+
+        self.callback_thread.start()
+        self.logger.info("Callback thread started max_queue=%s",
+                         self._max_ind_queue_size)
 
         if self._http_port:
             if not self._http_server:
@@ -1062,7 +1214,7 @@ class WBEMListener:
                     server = ThreadedHTTPServer((self._host, self._http_port),
                                                 ListenerRequestHandler)
                 except OSError as exc:
-                    self.stop_callback_thread()
+                    self.stop_indication_delivery()
                     # Linux/macOS on py2: socket.error (derived from IOError);
                     # Linux/macOS on py3: OSError;
                     # Windows does not raise any exception if port is used
@@ -1076,8 +1228,10 @@ class WBEMListener:
 
                 # pylint: disable=attribute-defined-outside-init
                 server.listener = self
-                thread = threading.Thread(target=server.serve_forever)
-                thread.daemon = True  # Exit server thread upon main thread exit
+                thread = ServerThread(target=server.serve_forever,
+                                      name='http',
+                                      daemon=True)
+                # Insure thread is stopped on main thread exit
                 self._http_server = server
                 self._http_thread = thread
                 thread.start()
@@ -1100,7 +1254,7 @@ class WBEMListener:
                     server = ThreadedHTTPServer((self._host, self._https_port),
                                                 ListenerRequestHandler)
                 except OSError as exc:
-                    self.stop_callback_thread()
+                    self.stop_indication_delivery()
                     # Linux/macOS on py2: socket.error (derived from IOError);
                     # Linux/macOS on py3: OSError;
                     # Windows does not raise any exception if port is used
@@ -1170,8 +1324,10 @@ class WBEMListener:
                         keyfile=self._keyfile,
                         server_side=True)
 
-                thread = threading.Thread(target=server.serve_forever)
-                thread.daemon = True  # Exit server thread upon main thread exit
+                thread = ServerThread(target=server.serve_forever,
+                                      name="https",
+                                      daemon=True)
+
                 self._https_server = server
                 self._https_thread = thread
                 thread.start()
@@ -1186,9 +1342,54 @@ class WBEMListener:
 
     def stop(self):
         """
-        Stop the WBEM listener threads and callback thread, if they are running.
+        Stop the WBEM listeners, the WBEM listener threads and callback thread,
+        if they are running.
         """
+        self.stop_servers()
+        self.stop_indication_delivery()
 
+    def stop_indication_delivery(self, immediate=False):
+        """
+        Stop the indication delivery thread and the queue and handle indications
+        in the queue.
+
+        If immediate is True, indications are cleared from the queue without
+        calling the callbacks.
+
+        If force is False, indications are forwarded to the callback until
+        the queue is empty before stopping delivery.
+        """
+        # Callback thread could already be stopped by FullQueue exception.
+        if not self.callback_thread:
+            return
+        assert self.ind_delivery_queue
+        if not immediate:
+            # Wait for queue to empty through callbacks
+            while not self.ind_delivery_queue.empty():
+                self.logger.debug("Wait for delivery queue to empty")
+                sleep(0.1)
+        else:
+            # clear the queue immediatly
+            clr_count = 0
+            while not self.ind_delivery_queue.empty():
+                self.ind_delivery_queue.get(block=False, timeout=0)
+                clr_count += 1
+                self.ind_delivery_queue.task_done()
+
+            self.logger.debug(
+                "%s indications discarded from queue", clr_count)
+
+        self.logger.info("Stopping callback thread and queue")
+        self.callback_thread.stop()
+        self.callback_thread.join()
+        self.callback_thread = None
+        self.ind_delivery_queue = None
+        self.logger.info("Joined callback thread")
+
+    def stop_servers(self):
+        """
+        Stop the WBEM listener threads.
+        """
         # Stopping the server will cause its `serve_forever()` method
         # to return, which will cause the server thread to terminate.
 
@@ -1201,58 +1402,88 @@ class WBEMListener:
             self.logger.info("Stopped threaded HTTP server")
 
         if self._https_server:
-            self.logger.info("Stopping threaded Queue")
+            self.logger.info("Stopping threaded HTTPS server")
             self._https_server.shutdown()
             self._https_server.server_close()
             self._https_server = None
             self._https_thread = None
-            self.logger.info("Stopped threaded Queue")
+            self.logger.info("Stopped threaded HTTPS server")
 
-        if self.callback_thread:
-            self.stop_callback_thread()
-
-    def deliver_indications_from_queue(self, delivery_queue):
+    def deliver_indications_forever(self, ind_queue):
         """
-        Deliver indications from delivery_queue to the defined consumer. This
-        function runs a loop in its own thread and only returns when the
+        Deliver indications from delivery_queue to the defined consumer.
+
+        This function runs a loop in its own thread and only returns when the
         stop_event is set.
 
-        It delivers remaining indications in the queue before it returns.
+        It delivers indications as fast as the callbacks complete while
+        indications exist in the queue and waits for time defined by
+        self.queue_get_timeout for indications to arrive if
+        ind_delivery_queue is empty.
 
+        If stop_event.is_set() and the queue is emtpy it returns. This should
+        only happen if the listener is stopped.
         """
-        # Queue get wait timeout in seconds. This is short because it impacts
-        # time to stop the thread.
-        queue_get_timeout = 2
-        self.logger.debug("Start deliver indications from queue.")
-        # Continues to deliver queued indications until empty after stop_event
-        # set.
+        # Deliver queued indications until queue empty and stop_event set.
+        self.logger.debug("Started callback thread.")
         while True:
             try:
-                self.logger.debug("Get from queue. %d in queue",
-                                  delivery_queue.qsize())
-                indication_tuple = delivery_queue.get(block=True,
-                                                      timeout=queue_get_timeout)
-                # self.logger.debug("Got from queue")
-                self.deliver_indication_to_callback(indication_tuple[0],
-                                                    indication_tuple[1])
-            # FUTURE: add test for excessive indications in queue.
-            # Probably stop and get out with some indication of problem.
+                self.logger.debug(
+                    "Get from queue. queue_size=%d", self.queue_size())
+
+                indication_tuple = ind_queue.get(
+                    block=True,
+                    timeout=self.queue_get_timeout)
+
+                self.deliver_indication_to_callbacks(indication_tuple[0],
+                                                     indication_tuple[1])
+                # Marks this item done in queue.
+                # Really for delivering to multiple workers rather than
+                # this simple case of a single worker. However this
+                # keeps the queue clean.
+                ind_queue.task_done()
+
+            # If queue empty and stop event set break out of loop
             except queue.Empty:
-                self.logger.debug("Queue empty")
-                if self.callback_thread.stop_event.is_set():
-                    self.logger.debug("Stop Deliver: stop_event set")
+                self.logger.debug("Queue empty exception received")
+
+                if self.callback_thread.stopped():
+                    self.logger.debug("Queue empty exception. stop callback")
                     break
 
         return
 
     def handle_indication(self, indication, host):
         """
-        Entry point from the listener with a single indication.
-        Puts the indication in the indication queue.
-        """
-        self.rcvd_indication_queue.put((indication, host))
+        Entry point from the listener server threads with a single indication.
+        Puts the indication in the received indication queue.
 
-    def deliver_indication_to_callback(self, indication, host):
+        If the self.queue_full parameter is not 0, an exception will be
+        executed if the queue contains the number of indication defined by the
+        listener max_ind_queue_size parameter. This completely stops the
+        indication receive thread because this function does not return.
+
+        """
+        try:
+            self.logger.debug("handle_indication rcvd indication queue put.")
+
+            # Do not block put to queue. It puts or raises the Full exception
+            self.ind_delivery_queue.put((indication, host), block=False)
+            self.logger.debug(
+                "Rcvd indication queue put done. queue_size #%s",
+                self.queue_size())
+
+        except queue.Full:
+            self.logger.debug(
+                "Rcvd indication queue full. ListenerQueueFullError Exception, "
+                "queue_size = #%s", self.queue_size)
+            new_exc = ListenerQueueFullError(
+                "Listener indiation delivery queue full, "
+                f"queue_size = {self.queue_size}. Closing listener.")
+            new_exc.__cause__ = None
+            raise new_exc  # ListenerQueueFullError
+
+    def deliver_indication_to_callbacks(self, indication, host):
         """
         This function is called to deliver a single indication to all
         registered callback functions. It is not supposed to be called
@@ -1298,6 +1529,15 @@ class WBEMListener:
         If the callback function is already known to the listener, it will not
         be added.
 
+        Multiple callback functions may be defined by repeating this function
+        with each callback function required.
+
+        All of the defined callbacks will be executed for each indication.
+        They will be executed serially in the order that they were added and
+        on the same thread.
+
+        The callback interface is defined in the callback_interface function.
+
         Parameters:
 
           callback (:func:`~pywbem.callback_interface`):
@@ -1329,7 +1569,8 @@ def callback_interface(indication, host):
 
         Exception: If a callback function raises any exception this is logged
           as an error using the listener logger and the next registered
-          callback function is called.
+          callback function is called. The exception is not passed back from
+          the callback thread.
     """
     raise NotImplementedError
 

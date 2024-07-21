@@ -81,6 +81,9 @@ Released: not yet
 * Development: Changed release process to use a GitHub Actions workflow.
   (issue #3128)
 
+* Add argument to set maximum limit on WBEMListener indication queue. (issue
+  #3168)
+
 **Cleanup:**
 
 * Eliminated a warning about about ambiguity of the package list when building
