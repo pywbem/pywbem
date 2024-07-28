@@ -34,10 +34,8 @@ It covers all variants of versions that can be released:
 * Releasing a new update version (M.N.Unew) based on the stable branch of its
   minor version
 
-The description assumes that the ``pywbem/pywbem`` repo and the
-``pywbem/pywbem.github.io`` repo are both cloned locally in sibling directories
-named ``pywbem`` and ``pywbem.github.io``.
-Their upstream repos are assumed to have the remote name ``origin``.
+The description assumes that the ``pywbem/pywbem`` repo is cloned locally, and
+its upstream repo is assumed to have the remote name ``origin``.
 
 Any commands in the following steps are executed in the main directory of your
 local clone of the ``pywbem/pywbem`` Git repo.
@@ -183,37 +181,6 @@ local clone of the ``pywbem/pywbem`` Git repo.
       If you cannot see the new version after some minutes, log in to
       https://readthedocs.org/projects/pywbem/versions/ and activate
       the new version.
-
-12. Switch to the directory of the ``pywbem.github.io`` repo and perform the
-    following steps from that directory:
-
-        cd ../pywbem.github.io
-
-13. Check out the ``master`` branch and update it from upstream:
-
-        git checkout master
-        git pull
-
-    In this repo, we don´t use a topic branch for these changes.
-
-14. Edit the installation page:
-
-        vi pywbem/installation.html
-
-    To make the following changes in the installation table:
-
-    * If you are releasing a new minor or major version, insert a new row.
-    * If you are releasing a fix version, update the row for the release
-      it replaces.
-
-    Verify with a web browser on the locally changed file
-    ``pywbem/installation.html`` that the new release shows up correctly,
-    and that all of its links work.
-
-15. Commit the changes and push to the upstream repo:
-
-        git commit -asm "Release $MNU"
-        git push
 
 
 Starting a new version
