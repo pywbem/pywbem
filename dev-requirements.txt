@@ -148,7 +148,7 @@ pywin32>=227; sys_platform == 'win32' and python_version <= '3.9'
 pywin32>=306; sys_platform == 'win32' and python_version >= '3.10'
 
 # The tornado package is used by ipykernel which is used by jupyter.
-tornado>=6.3.3
+tornado>=6.4.1
 
 # Table output formatter used by the manual performance tests to display timing results
 tabulate>=0.8.3

@@ -32,5 +32,5 @@ setuptools!=61.0.0
 
 urllib3>=1.26.19
 
-certifi>=2023.07.22
+certifi>=2024.07.04
 idna>=3.7

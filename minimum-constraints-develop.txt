@@ -24,7 +24,7 @@ colorama==0.4.5
 easy-vault==0.7.0
 easy-server==0.8.0
 pytest-easy-server==0.8.0
-cryptography==42.0.5
+cryptography==42.0.8
 keyring==18.0.0
 
 # jsonschema 4.18.0 required by jupyter-events 0.9.1
@@ -176,7 +176,7 @@ pywin32==227; sys_platform == 'win32' and python_version <= '3.9'
 pywin32==306; sys_platform == 'win32' and python_version >= '3.10'
 
 # The tornado package is used by ipykernel which is used by jupyter.
-tornado==6.3.3
+tornado==6.4.1
 
 # Table output formatter used by the manual performance tests to display
 # timing results
@@ -288,4 +288,4 @@ webencodings==0.5.1
 widgetsnbextension==4.0.0
 # importlib-metadata 4.8.3 depends on zipp>=0.5
 # importlib-resources 5.6.0 depends on zipp>=3.1.0; python_version < "3.10"
-zipp==3.1.0; python_version <= '3.9'
+zipp==3.19.1
