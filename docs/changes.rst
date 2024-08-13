@@ -25,7 +25,7 @@ Released: not yet
 
 **Bug fixes:**
 
-* Fixed safety issues up to 2024-07-21.
+* Fixed safety issues up to 2024-08-13.
 
 * Fixed new issues reported by Pylint 3.2.
 
