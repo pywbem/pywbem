@@ -34,7 +34,7 @@ typing-extensions==4.7.1; python_version <= '3.9'
 # Indirect dependencies for install that are needed for some reason (must be consistent with requirements.txt)
 
 urllib3==1.26.19
-certifi==2023.07.22
+certifi==2024.07.04
 
 # requests 2.31 requires idna>=2.5,<4
 # anyio 3.1.0 depends on idna>=2.8

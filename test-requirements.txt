@@ -37,7 +37,7 @@ colorama>=0.4.5
 easy-vault>=0.7.0
 easy-server>=0.8.0
 pytest-easy-server>=0.8.0
-cryptography>=42.0.5
+cryptography>=42.0.8
 keyring>=18.0.0
 
 # jsonschema 4.18.0 required by jupyter-events 0.9.1
