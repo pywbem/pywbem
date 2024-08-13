@@ -35,7 +35,7 @@ pytest-easy-server==0.8.0
 cryptography==3.3; python_version == '2.7'
 cryptography==3.4.7; python_version == '3.6'
 # minimum version 42.0.2, safety issue 2024-3-17
-cryptography==42.0.5; python_version >= '3.7'
+cryptography==42.0.8; python_version >= '3.7'
 keyring==18.0.0
 
 jsonschema==2.6.0; python_version <= '3.6'
@@ -274,7 +274,7 @@ pywin32==306; sys_platform == 'win32' and python_version >= '3.10'
 tornado==4.4.2; python_version == '2.7'
 tornado==6.1; python_version == '3.6'
 tornado==6.2; python_version == '3.7'
-tornado==6.3.3; python_version >= '3.8'
+tornado==6.4.1; python_version >= '3.8'
 
 # Table output formatter used by the manual performance tests to display
 # timing results
@@ -456,4 +456,5 @@ widgetsnbextension==4.0.0; python_version >= '3.7'
 # importlib-metadata 4.8.3 depends on zipp>=0.5
 # importlib-resources 5.6.0 depends on zipp>=3.1.0; python_version < "3.10"
 zipp==1.2.0; python_version == '2.7'
-zipp==3.1.0; python_version >= '3.6' and python_version <= '3.9'
+zipp==3.1.0; python_version >= '3.6' and python_version <= '3.7'
+zipp==3.19.1; python_version >= '3.8'
