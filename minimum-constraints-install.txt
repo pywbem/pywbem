@@ -30,8 +30,8 @@ pip==23.3; python_version >= '3.7'
 # setuptools safety issue 52495 affects 65.1.1
 setuptools==41.5.1; python_version == '2.7'
 setuptools==59.6.0; python_version == '3.6'
-setuptools==65.5.1; python_version >= '3.7' and python_version <= '3.11'
-setuptools==66.1.0; python_version >= '3.12'
+setuptools==65.5.1; python_version == '3.7'
+setuptools==70.0.0; python_version >= '3.8'
 
 # wheel 0.36.2 fixes empty and invalid tag issues in archive file name, and supports get_platform() with args
 # wheel 0.38.1 fixes CVE issue 51499, and dropped support for Python <=3.6
