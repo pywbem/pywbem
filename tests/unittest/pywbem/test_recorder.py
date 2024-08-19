@@ -1640,13 +1640,12 @@ class BaseLogOperationRecorderTests(object):
         """
         Setup that is run before each test method.
         """
-        # Shut down any existing logger and reset WBEMConnection and
-        # reset WBEMConnection class attributes
-        # pylint: disable=protected-access
-        WBEMConnection._reset_logging_config()
-        logging.shutdown()
+        # Reset WBEMConnection logging.
         # NOTE We do not clean up handlers or logger names already defined.
         #      That should not affect the tests.
+
+        # pylint: disable=protected-access
+        WBEMConnection._reset_logging_config()
 
     def recorder_setup(self, detail_level=None):
         """
