@@ -67,8 +67,9 @@ Released: not yet
   - minimum-constraints.txt to minimum-constraints-develop.txt
   - .safety-policy-all.yml to .safety-policy-develop.yml
 
-  Removed pywbem/_version.py from git tracking, because it is now dynamically
-  created when building the distribution.
+  The version is now maintained automatically in 'pywbem/_version_scm.py'
+  which is not tracked in git and is created/updated when building the
+  distribution archives.
 
 * Development: The pywbem version during development now uses an automatically
   calculated dev number and the git commit hash, e.g. ``1.8.0a1.dev9+gad875911``.
