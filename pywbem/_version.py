@@ -21,8 +21,8 @@ Definition of the package version, and check for supported Python versions.
 try:
     from ._version_scm import version, version_tuple
 except ImportError:
-    version: str = "unknown"
-    version_tuple: tuple = ("unknown")
+    version = "unknown"
+    version_tuple = ("unknown")
 
 __all__ = ['__version__', '__version_tuple__']
 
@@ -33,7 +33,7 @@ __all__ = ['__version__', '__version_tuple__']
 #:
 #: * "M.N.Pa1.dev7+g1234567": A not yet released version M.N.P
 #: * "M.N.P": A released version M.N.P
-__version__: str = version
+__version__ = version
 
 #: The full version of this package including any development levels, as a
 #: tuple of version items, converted to integer where possible.
@@ -42,4 +42,4 @@ __version__: str = version
 #:
 #: * (M, N, P, 'a1', 'dev7', 'g1234567'): A not yet released version M.N.P
 #: * (M, N, P): A released version M.N.P
-__version_tuple__: tuple = version_tuple
+__version_tuple__ = version_tuple

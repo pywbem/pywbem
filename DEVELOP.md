@@ -266,51 +266,42 @@ local clone of the ``pywbem/pywbem`` Git repo.
 
         .. _`list of open issues`: https://github.com/pywbem/pywbem/issues
 
-4.  Add an initial Git tag for the new release stream and push it to the
-    remote repo.
-
-    Note: An initial tag is necessary because the automatic version calculation
-    done by setuptools-scm uses the most recent tag in the commit history and
-    increases the least significant part of the version by one, without
-    providing any controls to change that behavior. So without this initial tag
-    when developing 1.8.0, the most recent tag would be 1.7.0 and the calculated
-    version would be e.g. 1.7.1.dev11+g7c3eb911. The "a0" at the end of the tag
-    is necessary because it adds a new least significant part, so the rest of
-    the version is not increased. So when developing 1.8.0, the calculated
-    version is e.g. 1.8.0a1.dev11+g7c3eb911.
-
-    Note that the "publish" workflow will not run for this tag.
-
-        git tag ${MNU}a0
-        git push --tags
-
-5.  Commit your changes and push them to the remote repo:
+4.  Commit your changes and push them to the remote repo:
 
         git commit -asm "Start ${MNU}"
         git push --set-upstream origin start_${MNU}
 
-6.  On GitHub, create a Pull Request for branch ``start_M.N.U``.
+5.  On GitHub, create a Pull Request for branch ``start_M.N.U``.
 
     Important: When creating Pull Requests, GitHub by default targets the
     ``master`` branch. When starting a version based on a stable branch, you
     need to change the target branch of the Pull Request to ``stable_M.N``.
 
-7.  On GitHub, create a milestone for the new version ``M.N.U``.
+6.  On GitHub, create a milestone for the new version ``M.N.U``.
 
     You can create a milestone in GitHub via Issues -> Milestones -> New
     Milestone.
 
-8.  On GitHub, go through all open issues and pull requests that still have
+7.  On GitHub, go through all open issues and pull requests that still have
     milestones for previous releases set, and either set them to the new
     milestone, or to have no milestone.
 
-9.  On GitHub, once the checks for the Pull Request for branch ``start_M.N.U``
+8.  On GitHub, once the checks for the Pull Request for branch ``start_M.N.U``
     have succeeded, merge the Pull Request (no review is needed). This
     automatically deletes the branch on GitHub.
 
-10. Update and clean up the local repo:
+9.  Add release start tag and clean up the local repo:
+
+    Note: An initial tag is necessary because the automatic version calculation
+    done by setuptools-scm uses the most recent tag in the commit history and
+    increases the least significant part of the version by one, without
+    providing any controls to change that behavior.
+
+    .. code-block:: sh
 
         git checkout ${BRANCH}
         git pull
         git branch -D start_${MNU}
         git branch -D -r origin/start_${MNU}
+        git tag -f ${MNU}a0
+        git push -f --tags
