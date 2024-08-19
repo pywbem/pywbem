@@ -733,7 +733,7 @@ $(sdist_file): pyproject.toml MANIFEST.in $(dist_dependent_files) $(moftab_files
 	$(PYTHON_CMD) -m build --sdist --outdir $(dist_dir) .
 	@echo "Makefile: Done creating the source distribution archive: $(sdist_file)"
 
-$(bdist_file): pyproject.toml MANIFEST.in $(dist_dependent_files) $(moftab_files) $(done_dir)/vendor_$(pymn)_$(PACKAGE_LEVEL).done
+$(bdist_file) $(version_file): pyproject.toml MANIFEST.in $(dist_dependent_files) $(moftab_files) $(done_dir)/vendor_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Creating the normal wheel distribution archive: $(bdist_file)"
 	-$(call RM_FUNC,MANIFEST)
 	-$(call RMDIR_FUNC,build $(package_name).egg-info-INFO .eggs)
