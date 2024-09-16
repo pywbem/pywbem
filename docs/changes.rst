@@ -55,6 +55,9 @@ Released: not yet
 * Test: Excluded testfixtures 8.3.0 to circumvent a new AssertionError that
   is raised in test_recorder.py.
 
+* Test: Fixed the issue that coveralls was not found in the test workflow on MacOS
+  with Python 3.9-3.11, by running it without login shell.
+
 **Enhancements:**
 
 * Development: Migrated from setup.py to pyproject.toml since that is the
