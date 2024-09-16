@@ -375,7 +375,6 @@ jobs:
     - name: Send coverage result to coveralls.io
       # no coverage in py27 container because no test is run
       if: matrix.python-version != '2.7'
-      shell: bash -l {0}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         COVERALLS_PARALLEL: true
