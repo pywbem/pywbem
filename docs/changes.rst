@@ -40,7 +40,9 @@ Released: not yet
 
 * Fixed safety issues up to 2024-08-18.
 
-* Fixed new issues reported by Pylint 3.2.
+* Fixed new issues reported by Pylint 3.2 and 3.3.
+
+* Excluded Pylint 3.3.0 due to alse positive no-member on f-string.
 
 * Fix issue where pywbemlistener that fails startup can cause thread
   exception. See issue #3157

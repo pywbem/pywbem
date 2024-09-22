@@ -59,9 +59,10 @@ Babel>=2.9.1
 # Pylint 2.15 / astroid 2.12 is needed to circumvent issue https://github.com/PyCQA/pylint/issues/7972 on Python 3.11
 # Pylint 3.0.1 / astroid 3.0.1 python 3.12
 # astroid 2.13.0 uses typing-extensions on Python<3.11 but misses to require it on 3.10. See https://github.com/PyCQA/astroid/issues/1942
-pylint>=2.13.0; python_version <= '3.10'
-pylint>=2.15.0; python_version == '3.11'
-pylint>=3.0.3; python_version >= '3.12'
+# Pylint 3.3.0 is excluded due to false positive no-member on f-string. See https://github.com/pylint-dev/pylint/issues/9947
+pylint>=2.13.0,!=3.3.0; python_version <= '3.10'
+pylint>=2.15.0,!=3.3.0; python_version == '3.11'
+pylint>=3.0.3,!=3.3.0; python_version >= '3.12'
 astroid>=2.11.0; python_version <= '3.10'
 astroid>=2.12.4; python_version == '3.11'
 astroid>=3.0.2; python_version >= '3.12'
