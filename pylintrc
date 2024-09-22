@@ -180,7 +180,7 @@ disable=I0011, bad-option-value,
         too-many-locals, too-many-branches, too-many-statements,
         too-many-lines, too-many-public-methods,
         too-many-nested-blocks, too-many-return-statements, too-many-arguments,
-        wildcard-import, unused-wildcard-import,
+        too-many-positional-arguments, wildcard-import, unused-wildcard-import,
         locally-enabled, superfluous-parens,
         unnecessary-pass, useless-return,
         signature-differs, raise-missing-from, super-with-arguments,
@@ -482,6 +482,10 @@ max-locals=20
 
 # Maximum number of parents for a class (see R0901).
 max-parents=14
+
+# Maximum number of positional arguments for function / method.
+# Added in pylint 3.3.0
+# max-positional-arguments=8
 
 # Maximum number of public methods for a class (see R0904).
 max-public-methods=20
