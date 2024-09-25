@@ -27,6 +27,10 @@ pytest>=6.2.5,<8.0; python_version >= '3.10'
 testfixtures>=6.9.0
 # pylint>=2.15 requires colorama>=0.4.5
 colorama>=0.4.5
+# FormEncode is used for xml comparisons in unit test
+# TODO: Re-enable FormEncode once the fix for https://github.com/formencode/formencode/issues/181 has been released.
+# FormEncode>=2.x.x
+FormEncode @ git+https://github.com/formencode/formencode.git@main
 
 # Easy-server packages
 easy-vault>=0.7.0
@@ -55,9 +59,6 @@ pluggy>=0.13.0
 
 decorator>=4.0.11
 
-# FormEncode is used for xml comparisons in unit test
-FormEncode>=2.0.0
-
 # Lxml
 # lxml>=5.0 fails installing on macOS 14 with Python 3.8, see https://bugs.launchpad.net/lxml/+bug/2063945
 # lxml 4.9.2 addresses changes in Python 3.11
@@ -68,6 +69,7 @@ lxml>=4.6.2; python_version == '3.9'
 lxml>=4.6.4; python_version == '3.10'
 lxml>=4.9.2; python_version == '3.11'
 lxml>=4.9.3; python_version == '3.12'
+lxml>=5.3.0; python_version >= '3.13'
 
 virtualenv>=20.15.0; python_version <= '3.11'  # requires six<2,>=1.12.0
 virtualenv>=20.23.0; python_version >= '3.12'

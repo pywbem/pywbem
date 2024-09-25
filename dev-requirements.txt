@@ -51,7 +51,7 @@ sphinxcontrib-serializinghtml>=1.1.5; python_version == '3.8'
 sphinxcontrib-serializinghtml>=1.1.9; python_version >= '3.9'
 sphinxcontrib-websupport>=1.2.4
 autodocsumm>=0.2.12
-Babel>=2.9.1
+Babel>=2.11.0
 
 # PyLint (no imports, invoked via pylint script)
 # Pylint requires astroid
@@ -175,8 +175,8 @@ pip-check-reqs>=2.4.3,!=2.5.0; python_version <= '3.11'
 pip-check-reqs>=2.5.1; python_version >= '3.12'
 
 # notebook 6.4.10 depends on pyzmq>=17
-pyzmq>=24.0.0; python_version <= '3.11'
-pyzmq>=25.1.1; python_version >= '3.12'
+# pyzmq 26.1.0 added wheel archives for Python 3.13
+pyzmq>=26.1.0
 
 # bleach is used by nbconvert and readme-renderer
 bleach>=3.3.0
