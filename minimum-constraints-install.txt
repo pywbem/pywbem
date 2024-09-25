@@ -13,13 +13,13 @@
 pip==23.3
 setuptools==70.0.0
 setuptools-scm==8.1.0
-wheel==0.38.1
+wheel==0.41.3
 
 
 # Direct dependencies for install (must be consistent with requirements.txt)
 
 ply==3.10
-PyYAML==5.3.1
+PyYAML==6.0.2
 # requests version 2.32.0 required by safety issue 71064 (2.32.0, 2.32.1 yanked)
 requests==2.32.2
 yamlloader==0.5.5

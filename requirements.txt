@@ -7,7 +7,12 @@
 # Direct dependencies for install (must be consistent with minimum-constraints-install.txt)
 
 ply>=3.10
-PyYAML>=5.3.1
+# PyYAML is also pulled in by dparse and python-coveralls
+# PyYAML 6.0 has wheel archives for Python 3.6 - 3.11
+# PyYAML 6.0.0 fails install since Cython 3 was released, see issue
+#   https://github.com/yaml/pyyaml/issues/724.
+# PyYAML 6.0.2 provides wheel archives for Python 3.13 on Windows
+PyYAML>=6.0.2
 # requests 2.22.0 removed the pinning of urllib3 to <1.25.0
 # requests 2.25.0 tolerates urllib3 1.26.5 which is needed on Python 3.10 to remove ImportWarning in six
 # requests 2.32.2 safety issue 71064 requires requests ver >=2.32.0 (2.32.0, 2.32.1 yanked)

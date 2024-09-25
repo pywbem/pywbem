@@ -60,7 +60,17 @@ Released: not yet
 * Test: Fixed the issue that coveralls was not found in the test workflow on MacOS
   with Python 3.9-3.11, by running it without login shell.
 
+* Increased minimum version of PyYAML to 6.0.2, to fix an install error for
+  Python 3.13 on Windows. (related to issue #3225)
+
 **Enhancements:**
+
+* Added support for Python 3.13. (issue #3225)
+
+* Added testing on Python 3.13.0-rc.1. Testing on Windows needed to be excluded
+  for that Python version due to an install issue with pywin32. That install
+  issue affects only development and test of pywbem, but not its installation
+  by users. (issues #3225, #3230)
 
 * Development: Migrated from setup.py to pyproject.toml since that is the
   recommended direction for Python packages. The make targets have not changed
