@@ -70,7 +70,7 @@ Released: not yet
 
 * Added support for Python 3.13. (issue #3225)
 
-* Added testing on Python 3.13.0-rc.1. Testing on Windows needed to be excluded
+* Added testing on Python 3.13. Testing on Windows needed to be excluded
   for that Python version due to an install issue with pywin32. That install
   issue affects only development and test of pywbem, but not its installation
   by users. (issues #3225, #3230)
