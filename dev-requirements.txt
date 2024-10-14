@@ -32,8 +32,9 @@ tox>=2.5.0
 # Sphinx (no imports, invoked via sphinx-build script):
 # Sphinx 6.0.0 started requiring Python>=3.8
 # Sphinx 7.2.0 started requiring Python>=3.9
+# Sphinx>=8.0.0 fails on autodocsumm with TypeError: "cannot unpack non-iterable ObjectMember object"
 Sphinx>=7.1.0,!=7.2.0,!=7.2.1,!=7.2.2,!=7.2.3; python_version == '3.8'
-Sphinx>=7.2.4; python_version >= '3.9'
+Sphinx>=7.2.4,<8.0.0; python_version >= '3.9'
 # Sphinx 7.1.0 pins docutils to <0.21
 docutils>=0.18.1,<0.21; python_version == '3.8'
 docutils>=0.18.1; python_version >= '3.9'

@@ -908,13 +908,13 @@ class WBEMListener:
 
         Raises:
 
-          :exc:`~pywbem.ListenerQueueFullError`: if number of indications
-          in the listener queue exceeds max_ind_queue_size.
+          :exc:`pywbem.ListenerQueueFullError`: if number of
+            indications in the listener queue exceeds max_ind_queue_size.
 
           TypeError: port, max_ind_queue_size arguments invalid type.
 
           ValueError: No connection port specified, max_ind_queue_size
-          invalid integer.
+            invalid integer.
         """
 
         self._host = host
@@ -1133,7 +1133,7 @@ class WBEMListener:
         """
         Return boolean True if the indication queue is empty. Otherwise return
         False. This is available becasue the queue_size attribute only returns
-         an approximation.
+        an approximation.
         """
         return self.ind_delivery_queue.empty()
 

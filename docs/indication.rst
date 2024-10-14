@@ -54,6 +54,11 @@ Listener exceptions
     :autosummary:
     :autosummary-inherited-members:
 
+.. autoclass:: pywbem.ListenerQueueFullError
+    :members:
+    :autosummary:
+    :autosummary-inherited-members:
+
 .. autoclass:: pywbem.ListenerError
     :members:
     :autosummary:

@@ -63,6 +63,9 @@ Released: not yet
 * Increased minimum version of PyYAML to 6.0.2, to fix an install error for
   Python 3.13 on Windows. (related to issue #3225)
 
+* Pinned Sphinx to <8.0.0 in order to circumvent autodocsumm error TypeError:
+  "cannot unpack non-iterable ObjectMember object".
+
 **Enhancements:**
 
 * Added support for Python 3.13. (issue #3225)
