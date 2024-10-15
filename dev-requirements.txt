@@ -55,33 +55,18 @@ autodocsumm>=0.2.12
 Babel>=2.11.0
 
 # PyLint (no imports, invoked via pylint script)
-# Pylint requires astroid
-# Pylint 2.14 / astroid 2.11 support wrapt 1.14 which is required for Python 3.11
-# Pylint 2.15 / astroid 2.12 is needed to circumvent issue https://github.com/PyCQA/pylint/issues/7972 on Python 3.11
-# Pylint 3.0.1 / astroid 3.0.1 python 3.12
-# astroid 2.13.0 uses typing-extensions on Python<3.11 but misses to require it on 3.10. See https://github.com/PyCQA/astroid/issues/1942
-# Pylint 3.3.0 is excluded due to false positive no-member on f-string. See https://github.com/pylint-dev/pylint/issues/9947
-pylint>=2.13.0,!=3.3.0; python_version <= '3.10'
-pylint>=2.15.0,!=3.3.0; python_version == '3.11'
-pylint>=3.0.3,!=3.3.0; python_version >= '3.12'
-astroid>=2.11.0; python_version <= '3.10'
-astroid>=2.12.4; python_version == '3.11'
-astroid>=3.0.2; python_version >= '3.12'
-# lazy-object-proxy is used by astroid
+pylint>=3.0.1; python_version == '3.8'
+pylint>=3.3.1; python_version >= '3.9'
+astroid>=3.0.1; python_version == '3.8'
+astroid>=3.3.5; python_version >= '3.9'
 lazy-object-proxy>=1.4.3
-wrapt>=1.11.2; python_version <= '3.10'
-wrapt>=1.14; python_version >= '3.11'
-# platformdirs is used by pylint starting with its 2.10
-platformdirs>=2.5.0; python_version <= '3.11'
-platformdirs>=3.2.0; python_version >= '3.12'
-# isort 4.2.8 fixes a pylint issue with false positive on import order of ssl on Windows
+wrapt>=1.14
+# platformdirs is also used by tox
+platformdirs>=4.1.0
 # isort 4.3.8 fixes an issue with py310 and works on py310 (Note that isort 5.10.0 has official support for py310)
 isort>=4.3.8
-# Pylint 2.14 uses tomlkit>=0.10.1
 tomlkit>=0.10.1
-# dill is used by pylint >=2.13
-dill>=0.3.4; python_version <= '3.10'
-dill>=0.3.6; python_version >= '3.11'
+dill>=0.3.7
 
 # Flake8 and dependents (no imports, invoked via flake8 script):
 # flake8 5.x and 6.x report false positive E231 "missing whitespace after ':'"
@@ -194,9 +179,8 @@ terminado>=0.8.3,<0.10.0
 
 # jupyter-server 1.24.0 depends on anyio>=3.1.0,<4
 anyio>=3.1.0
-distlib>=0.3.4; python_version <= '3.11'
-distlib>=0.3.7; python_version >= '3.12'
-filelock>=3.0.0
+distlib>=0.3.7
+filelock>=3.13.1
 gitdb>=4.0.8
 # nbconvert 6.5.1 depends on traitlets>=5.0
 # jupyter-server 1.17.0 depends on traitlets>=5.1
