@@ -66,6 +66,9 @@ Released: not yet
 * Pinned Sphinx to <8.0.0 in order to circumvent autodocsumm error TypeError:
   "cannot unpack non-iterable ObjectMember object".
 
+* Dev: Fixed pydantic install issue on Pyhton 3.13 by excluding safety-schemas
+  version 0.0.7
+  
 **Enhancements:**
 
 * Added support for Python 3.13. (issue #3225)
