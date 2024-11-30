@@ -40,7 +40,7 @@ easy-server>=0.8.0
 pytest-easy-server>=0.8.0
 cryptography>=3.3; python_version == '2.7'
 cryptography>=3.4.7; python_version == '3.6'
-cryptography>=42.0.8; python_version >= '3.7'
+cryptography>=43.0.1; python_version >= '3.7'
 keyring>=18.0.0
 
 jsonschema>=2.6.0,!=4.0.0; python_version <= '3.6'
@@ -99,4 +99,4 @@ lxml>=4.9.3; python_version == '3.12'
 
 virtualenv>=16.1.0,!=20.0.19,!=20.0.32; python_version <= '3.7'
 virtualenv>=20.15.0; python_version >= '3.8' and python_version <= '3.11'  # requires six<2,>=1.12.0
-virtualenv>=20.23.0; python_version >= '3.12'
+virtualenv>=20.26.6; python_version >= '3.12'

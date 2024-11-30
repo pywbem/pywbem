@@ -185,6 +185,8 @@ security:
             reason: Fixed tornado version 6.4.0 requires Python>=3.8 and is used there
         72132:
             reason: Fixed zipp version 3.19.1 requires Python>=3.8 and is used there
+        73456:
+            reason: Fixed virtualenv version 20.26.6 is only used on Python>=3.12 to avoid other changes
 
     # Continue with exit code 0 when vulnerabilities are found.
     continue-on-vulnerability-error: False
