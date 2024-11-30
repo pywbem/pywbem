@@ -35,7 +35,7 @@ pytest-easy-server==0.8.0
 cryptography==3.3; python_version == '2.7'
 cryptography==3.4.7; python_version == '3.6'
 # minimum version 42.0.2, safety issue 2024-3-17
-cryptography==42.0.8; python_version >= '3.7'
+cryptography==43.0.1; python_version >= '3.7'
 keyring==18.0.0
 
 jsonschema==2.6.0; python_version <= '3.6'
@@ -77,7 +77,7 @@ coveralls==3.3.0; python_version >= '3.6'
 
 # Virtualenv
 virtualenv==20.15.0; python_version <= '3.11'  # requires six<2,>=1.12.0
-virtualenv==20.23.0; python_version >= '3.12'
+virtualenv==20.26.6; python_version >= '3.12'
 
 
 # Direct dependencies for development (without test) and indirect dependencies
@@ -148,7 +148,7 @@ wrapt==1.12; python_version >= '3.6' and python_version <= '3.10'
 wrapt==1.14; python_version >= '3.11'
 platformdirs==2.2.0; python_version == '3.6'
 platformdirs==2.5.0; python_version >= '3.7' and python_version <= '3.11'
-platformdirs==3.2.0; python_version >= '3.12'
+platformdirs==3.9.1; python_version >= '3.12'
 isort==4.3.8
 tomlkit==0.10.1; python_version >= '3.7'
 dill==0.3.4; python_version >= '3.6' and python_version <= '3.10'
@@ -249,15 +249,15 @@ notebook==4.3.1; python_version == '2.7'
 notebook==6.4.10; python_version == '3.6'
 notebook==6.5.4; python_version == '3.7'
 # safety issue sets new minimum 7.1.0 17  2024-3-17
-notebook==7.1.0; python_version >= '3.8'
+notebook==7.2.2; python_version >= '3.8'
 
 notebook-shim==0.2.3; python_version >= '3.7'
 
-jupyterlab-server==2.22.1; python_version >= '3.8'
+jupyterlab-server==2.27.1; python_version >= '3.8'
 
 # safety vulnerability #64588, #64587 with jupyterlab < 4.0.11
 # notebook 7.1.0 depends on jupyterlab<4.2 and >=4.1.1
-jupyterlab==4.1.1; python_version >= '3.8'
+jupyterlab==4.2.6; python_version >= '3.8'
 
 pyrsistent==0.14.0; python_version == '2.7'
 pyrsistent==0.14.0; python_version == '3.6'
@@ -323,7 +323,7 @@ distlib==0.3.4; python_version <= '3.11'
 distlib==0.3.7; python_version >= '3.12'
 # previous version filelock==3.0.0
 filelock==3.2.0; python_version <= "3.11"
-filelock==3.11.0; python_version >= "3.12"
+filelock==3.12.2; python_version >= "3.12"
 # gitdb2 is a mirror Pypi name for certain gitdb versions.
 gitdb2==2.0.6; python_version == '2.7'
 gitdb2==2.0.6; python_version == '3.6'

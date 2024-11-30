@@ -13,7 +13,7 @@ ply>=3.10
 # PyYAML 5.2 addressed issue 38639 reported by safety
 # PyYAML 6.0 removed support for Python 2.7, but 6.0b1 installs in installtest
 PyYAML>=5.3.1,<6.0; python_version == '2.7'
-PyYAML>=5.3.1; python_version >= '3.6'
+PyYAML>=6.0.1; python_version >= '3.6'
 # virtualenv 20.0.0 (required on py3.8+) requires six>=0.12.0
 # tox 3.17 (used in dev-requirements.txt) requires six>=1.14.0
 # six 1.16.0 removes the ImportWarning raised by Python 3.10
