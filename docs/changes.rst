@@ -38,7 +38,7 @@ Released: not yet
 
 **Bug fixes:**
 
-* Fixed safety issues up to 2024-08-18.
+* Fixed safety issues up to 2024-11-30.
 
 * Fixed new issues reported by Pylint 3.2 and 3.3.
 
@@ -68,7 +68,7 @@ Released: not yet
 
 * Dev: Fixed pydantic install issue on Pyhton 3.13 by excluding safety-schemas
   version 0.0.7
-  
+
 **Enhancements:**
 
 * Added support for Python 3.13. (issue #3225)
