@@ -69,6 +69,9 @@ Released: not yet
 * Dev: Fixed pydantic install issue on Pyhton 3.13 by excluding safety-schemas
   version 0.0.7
 
+* Test: Python 3.13 was pinned to 3.13.0 to work around a pylint issue on
+  Python 3.13.1.
+
 **Enhancements:**
 
 * Added support for Python 3.13. (issue #3225)
