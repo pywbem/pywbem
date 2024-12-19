@@ -7,6 +7,9 @@
 # Build distribution archive
 build>=1.1.1
 
+# Change log
+towncrier>=22.8.0
+
 # Cythonize
 Cython>=3.0.0
 
