@@ -1,0 +1,2 @@
+Development: Increased minimum version of PyYAML to 6.0.2, to fix an install
+error for Python 3.13 on Windows.

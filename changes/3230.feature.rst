@@ -1,0 +1,4 @@
+Test: Added testing on Python 3.13. Testing on Windows needed to be excluded
+for that Python version due to an install issue with pywin32. That install
+issue affects only development and test of pywbem, but not its installation
+by users.
