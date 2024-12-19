@@ -1,0 +1,2 @@
+Development: Migrated to use towncrier for change logs.
+See docs/development.rst for details and usage.

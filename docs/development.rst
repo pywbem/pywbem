@@ -539,6 +539,112 @@ For further discussion of good and bad practices regarding commits, see:
 .. _How to Get Your Change Into the Linux Kernel: https://www.kernel.org/doc/Documentation/SubmittingPatches
 
 
+.. _`Creating and submitting a change to pywbem`:
+
+Creating and submitting a change to pywbem
+------------------------------------------
+
+All changes to pywbem are made through Github with PRs created on topic
+branches and merged with the current master after successful group review.
+
+To make a change, create a topic branch. You can assume that you are the only
+one using that branch, so force-pushes to that branch and rebasing that branch
+is fine.
+
+When you are ready to push your change, describe the change for users of the
+package in a change fragment file. That is a small file in RST format with just
+a single change. For more background, read the
+[towncrier concept](https://towncrier.readthedocs.io/en/stable/markdown.html)
+(which uses Markdown format in that description and calls these files
+'news fragment files').
+
+To create a change fragment file, execute:
+
+For changes that have a corresponding issue:
+
+.. code-block:: sh
+
+    towncrier create <issue>.<type>.rst --edit
+
+For changes that have no corresponding issue:
+
+.. code-block:: sh
+
+    towncrier create noissue.<number>.<type>.rst --edit
+
+For changes where you do not want to create a change log entry:
+
+.. code-block:: sh
+
+    towncrier create noissue.<number>.notshown.rst --edit
+    # The file content will be ignored - it can also be empty
+
+where:
+
+* ``<issue>`` - The issue number of the issue that is addressed by the change.
+  If the change addresses more than one issue, copy the new change fragment file
+  after its content has been edited, using the other issue number in the file
+  name. It is important that the file content is exactly the same, so that
+  towncrier can create a single change log entry from the two (or more) files.
+
+  If the change has no related issue, use the ``noissue.<number>.<type>.rst``
+  file name format, where ``<number>`` is any number that results in a file name
+  that does not yet exist in the ``changes`` directory.
+
+* ``<type>`` - The type of the change, using one of the following values:
+
+  - ``incompatible`` - An incompatible change. This will show up in the
+    "Incompatible Changes" section of the change log. The text should include
+    a description of the incompatibility from a user perspective and if
+    possible, how to mitigate the change or what replacement functionality
+    can be used instead.
+
+  - ``deprecation`` - An externally visible functionality is being deprecated
+    in this release.
+    This will show up in the "Deprecations" section of the change log.
+    The deprecated functionality still works in this release, but may go away
+    in a future release. If there is a replacement functionality, the text
+    should mention it.
+
+  - ``fix`` - A bug fix in the code, documentation or development environment.
+    This will show up in the "Bug fixes" section of the change log.
+
+  - ``feature`` - A feature or enhancement in the code, documentation or
+    development environment.
+    This will show up in the "Enhancements" section of the change log.
+
+  - ``cleanup`` - A cleanup in the code, documentation or development
+    environment, that does not fix a bug and is not an enhanced functionality.
+    This will show up in the "Cleanup" section of the change log.
+
+  - ``notshown`` - The change will not be shown in the change log.
+
+This command will create a new change fragment file in the ``changes``
+directory and will bring up your editor (usually vim).
+
+If your change does multiple things of different types listed above, create
+a separate change fragment file for each type.
+
+If you need to modify an existing change log entry as part of your change,
+edit the existing corresponding change fragment file.
+
+Add the new or changed change fragment file(s) to your commit. The test
+workflow running on your Pull Request will check whether your change adds or
+modifies change fragment files.
+
+You can review how your changes will show up in the final change log for
+the upcoming release by running:
+
+.. code-block:: sh
+
+    towncrier build --draft
+
+Always make sure that your pushed branch has either just one commit, or if you
+do multiple things, one commit for each logical change. What is not OK is to
+submit for review a PR with the multiple commits it took you to get to the final
+result for the change.
+
+
 .. _`Core Development Team`:
 
 Core Development Team

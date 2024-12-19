@@ -1,0 +1,3 @@
+Increased the minimum versions of the vendored 'nocasedict' and 'nocaselist'
+packages to 2.0.x in order to get rid of the dependency on the 'six' package.
+This added a dependency on the 'typing-extensions' package on Python<=3.9.

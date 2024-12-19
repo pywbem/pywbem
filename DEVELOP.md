@@ -75,21 +75,19 @@ local clone of the ``pywbem/pywbem`` Git repo.
         git pull
         git checkout -b release_${MNU}
 
-3.  Edit the change log:
+3.  Update the change log:
 
-        vi docs/changes.rst
+    First make a dry-run to print the change log as it would be:
 
-    and make the following changes in the section of the version that is being
-    released:
+        towncrier build --draft
 
-    * Finalize the version.
-    * Change the release date to today's date.
-    * Make sure that all changes are described.
-    * Make sure the items shown in the change log are relevant for and
-      understandable by users.
-    * In the "Known issues" list item, remove the link to the issue tracker and
-      add text for any known issues you want users to know about.
-    * Remove all empty list items.
+    If you are satisfied with the change log, update the change log:
+
+        towncrier build --yes
+
+    This will update the change log file ``docs/changes.rst`` with the
+    information from the change fragment files in the ``changes`` directory, and
+    will delete these change fragment files.
 
 4.  Edit the README file for PyPI:
 
@@ -237,60 +235,31 @@ local clone of the ``pywbem/pywbem`` Git repo.
         git pull
         git checkout -b start_${MNU}
 
-3.  Edit the change log:
-
-        vi docs/changes.rst
-
-    and insert the following section before the top-most section:
-
-        pywbem M.N.U.dev
-        ----------------
-
-        This version contains all fixes up to version M.N-1.x.
-
-        Released: not yet
-
-        **Incompatible changes:**
-
-        **Deprecations:**
-
-        **Bug fixes:**
-
-        **Enhancements:**
-
-        **Cleanup:**
-
-        **Known issues:**
-
-        * See `list of open issues`_.
-
-        .. _`list of open issues`: https://github.com/pywbem/pywbem/issues
-
-4.  Commit your changes and push them to the remote repo:
+3.  Commit your changes and push them to the remote repo:
 
         git commit -asm "Start ${MNU}"
         git push --set-upstream origin start_${MNU}
 
-5.  On GitHub, create a Pull Request for branch ``start_M.N.U``.
+4.  On GitHub, create a Pull Request for branch ``start_M.N.U``.
 
     Important: When creating Pull Requests, GitHub by default targets the
     ``master`` branch. When starting a version based on a stable branch, you
     need to change the target branch of the Pull Request to ``stable_M.N``.
 
-6.  On GitHub, create a milestone for the new version ``M.N.U``.
+5.  On GitHub, create a milestone for the new version ``M.N.U``.
 
     You can create a milestone in GitHub via Issues -> Milestones -> New
     Milestone.
 
-7.  On GitHub, go through all open issues and pull requests that still have
+6.  On GitHub, go through all open issues and pull requests that still have
     milestones for previous releases set, and either set them to the new
     milestone, or to have no milestone.
 
-8.  On GitHub, once the checks for the Pull Request for branch ``start_M.N.U``
+7.  On GitHub, once the checks for the Pull Request for branch ``start_M.N.U``
     have succeeded, merge the Pull Request (no review is needed). This
     automatically deletes the branch on GitHub.
 
-9.  Add release start tag and clean up the local repo:
+8.  Add release start tag and clean up the local repo:
 
     Note: An initial tag is necessary because the automatic version calculation
     done by setuptools-scm uses the most recent tag in the commit history and
