@@ -48,6 +48,10 @@ Released: not yet
 
 **Cleanup:**
 
+* Test: Changed tests on Github Actions on Python 3.7 on Ubuntu to use the
+  ubuntu-20.04 image because the ubuntu-latest image was upgraded to
+  Ubuntu 24.04 which no longer supports Python 3.7.
+
 **Known issues:**
 
 * See `list of open issues`_.
