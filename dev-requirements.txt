@@ -359,9 +359,14 @@ bleach>=3.3.0; python_version == '2.7'
 bleach>=3.3.0; python_version >= '3.6'
 
 # pywinpty is used by terminado <- notebook <- jupyter
-# pywinpty does not declare supported Pyrthon versions and 1.0 has removed support for py27.
+# pywinpty does not declare supported Python versions and 1.0 has removed support for py27.
+# pywinpty 2.0.14 has an issue with latest maturin on Python 3.8, see https://github.com/andfoy/pywinpty/issues/486
+# pywinpty <2.0.14 has the above issue on Python 3.13
 pywinpty>=0.5; os_name == "nt" and python_version <= '3.6'
-pywinpty>=2.0.3; os_name == "nt" and python_version >= '3.7'
+pywinpty>=2.0.10; os_name == "nt" and python_version == '3.7'
+pywinpty>=2.0.12,!=2.0.14; os_name == "nt" and python_version == '3.8'
+pywinpty>=2.0.12; os_name == "nt" and python_version >= '3.9' and python_version <= '3.12'
+pywinpty>=2.0.14; os_name == "nt" and python_version >= '3.13'
 
 # This version caused by notebook 6.4.10 depends on terminado>=0.8.3
 # terminado 0.10.0 requires pywinpty>=1.1.0, see issue there

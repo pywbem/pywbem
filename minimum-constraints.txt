@@ -307,7 +307,9 @@ bleach==3.3.0; python_version >= '3.6'
 
 # pywinpty is used by terminado <- notebook <- jupyter
 pywinpty==0.5; os_name == "nt" and python_version <= '3.6'
-pywinpty==2.0.3; os_name == "nt" and python_version >= '3.7'
+pywinpty==2.0.10; os_name == "nt" and python_version == '3.7'
+pywinpty==2.0.12; os_name == "nt" and python_version >= '3.8' and python_version <= '3.12'
+pywinpty==2.0.14; os_name == "nt" and python_version >= '3.13'
 
 # This version caused by notebook 6.4.10 depends on terminado>=0.8.3
 terminado==0.6; python_version == '2.7'

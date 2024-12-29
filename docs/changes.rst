@@ -41,6 +41,9 @@ Released: not yet
 * Test: Fixed the issue that coveralls was not found in the test workflow on MacOS
   with Python 3.9-3.11, by running it without login shell.
 
+* Development: Circumvented an issue when installing certain versions of pywinpty
+  with latest version of maturin on certain Python versions.
+
 **Enhancements:**
 
 **Cleanup:**
