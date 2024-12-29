@@ -204,7 +204,8 @@ pyzmq==26.1.0
 bleach==3.3.0
 
 # pywinpty is used by terminado <- notebook <- jupyter
-pywinpty==2.0.3; os_name == "nt"
+pywinpty==2.0.12; os_name == "nt" and python_version >= '3.8' and python_version <= '3.12'
+pywinpty==2.0.14; os_name == "nt" and python_version >= '3.13'
 
 terminado==0.8.3
 
