@@ -44,6 +44,9 @@ Released: not yet
 * Development: Circumvented an issue when installing certain versions of pywinpty
   with latest version of maturin on certain Python versions.
 
+* Circumvented an issue with yamlloader on Python 3.6 by excluding yamlloader
+  1.5.0.
+
 **Enhancements:**
 
 **Cleanup:**
