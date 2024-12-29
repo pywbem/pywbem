@@ -52,6 +52,9 @@ Released: not yet
   ubuntu-20.04 image because the ubuntu-latest image was upgraded to
   Ubuntu 24.04 which no longer supports Python 3.7.
 
+* Test: Removed tests on GitHub Actions on Python 3.6 and 3.7 on MacOS, because
+  the macos-12 image that still supported these Python versions is now rejected.
+
 **Known issues:**
 
 * See `list of open issues`_.
