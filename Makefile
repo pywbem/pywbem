@@ -16,7 +16,6 @@
 #     python (This Makefile uses the active Python environment, virtual Python
 #       environments are supported)
 #     pip (in the active Python environment)
-#     twine (in the active Python environment)
 #   These additional commands are used on Linux, OS-X and on Windows with
 #   UNIX-like environments:
 #     uname
@@ -347,7 +346,7 @@ dist_dependent_files_all := \
 dist_dependent_files := $(filter-out $(version_file), $(dist_dependent_files_all))
 
 # Packages whose dependencies are checked using pip-missing-reqs
-check_reqs_packages := pytest coverage coveralls flake8 pylint safety sphinx twine jupyter notebook towncrier
+check_reqs_packages := pytest coverage coveralls flake8 pylint safety sphinx notebook jupyter_console ipywidgets towncrier
 
 PIP_INSTALL_CMD := $(PYTHON_CMD) -m pip install
 
@@ -382,7 +381,6 @@ help:
 	@echo "  todo       - Check for TODOs in Python and docs sources"
 	@echo "  end2endtest - Run end2end tests (in $(test_dir)/end2endtest)"
 	@echo "  develop_os - Install OS-level development prereqs"
-	@echo "  upload     - build + upload the distribution archive files to PyPI"
 	@echo "  clean      - Remove any temporary files"
 	@echo "  clobber    - Remove everything created to ensure clean start - use after setting git tag"
 	@echo "  pip_list   - Display the Python packages as seen by make"
@@ -610,15 +608,6 @@ clean:
 	-$(call RM_FUNC,$(package_name)/mofparsetab.py* $(package_name)/moflextab.py*)
 	-$(call RMDIR_FUNC,build .cache $(package_name).egg-info .eggs)
 	@echo "Makefile: Done removing temporary build products"
-	@echo "Makefile: Target $@ done."
-
-.PHONY: upload
-upload: _check_version $(dist_files)
-	@echo "Makefile: Checking files before uploading to PyPI"
-	twine check $(dist_files)
-	@echo "Makefile: Uploading to PyPI: pywbem $(package_version)"
-	twine upload $(dist_files)
-	@echo "Makefile: Done uploading to PyPI"
 	@echo "Makefile: Target $@ done."
 
 .PHONY: html
