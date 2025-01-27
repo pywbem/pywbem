@@ -94,11 +94,6 @@ entrypoints>=0.3.0
 # Ruff checker
 ruff>=0.3.5
 
-# Twine (no imports, invoked via twine script):
-twine>=3.0.0
-# readme-renderer 23.0 has made cmarkgfm part of extras (it fails on Cygwin)
-readme-renderer>=23.0
-
 # Jupyter Notebook (no imports, invoked via jupyter script):
 
 jupyter>=1.0.0
@@ -170,7 +165,7 @@ pip-check-reqs>=2.5.1; python_version >= '3.12'
 # pyzmq 26.1.0 added wheel archives for Python 3.13
 pyzmq>=26.1.0
 
-# bleach is used by nbconvert and readme-renderer
+# bleach is used by nbconvert
 bleach>=3.3.0
 
 # pywinpty is used by terminado <- notebook <- jupyter
