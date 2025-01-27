@@ -355,12 +355,12 @@ ifeq ($(python_mn_version),3.5)
   check_reqs_packages := pytest coverage coveralls flake8 pylint twine jupyter notebook
 else
 ifeq ($(python_mn_version),3.6)
-  check_reqs_packages := pytest coverage coveralls flake8 pylint twine jupyter notebook
+  check_reqs_packages := pytest coverage coveralls flake8 pylint twine ipywidgets jupyter_console notebook
 else
 ifeq ($(python_mn_version),3.7)
-  check_reqs_packages := pytest coverage coveralls flake8 pylint safety twine jupyter notebook
+  check_reqs_packages := pytest coverage coveralls flake8 pylint safety twine ipywidgets jupyter_console notebook
 else
-  check_reqs_packages := pytest coverage coveralls flake8 pylint safety sphinx twine jupyter notebook
+  check_reqs_packages := pytest coverage coveralls flake8 pylint safety sphinx twine ipywidgets jupyter_console notebook
 endif
 endif
 endif

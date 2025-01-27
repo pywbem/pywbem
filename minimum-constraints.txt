@@ -362,6 +362,7 @@ cffi==1.16.0; python_version >= '3.8'
 Click==7.1.1; python_version == '2.7'
 Click==8.0.2; python_version >= '3.6'
 clint==0.5.1
+comm==0.2.2
 configparser==4.0.2; python_version == '2.7'
 contextlib2==0.6.0.post1; python_version == '2.7'
 dataclasses==0.8; python_version == '3.6'  # used by safety 2.3.1 and argon-cffi
@@ -373,6 +374,7 @@ enum34==1.1.10; python_version == '2.7'
 future==0.18.3
 futures==3.3.0; python_version == '2.7'
 html5lib==0.999999999
+id==1.5.0
 imagesize==1.3.0
 # importlib-resources is used by virtualenv 20.0, jsonschema 4.17
 # importlib-resources 4.0.0 removed support for Python <=3.5
@@ -407,7 +409,7 @@ pexpect==4.2.1; python_version == '2.7'
 # ipython 7.23.1 depends on pexpect>4.3, sys_platform != "win32"
 # pexpect==4.3.1; python_version >= '3.6' and sys_platform != "win32"
 pexpect==4.4.0; python_version >= '3.6'
-pickleshare==0.7.4
+pickleshare==0.7.5
 prometheus-client==0.12.0; python_version == '2.7'
 prometheus-client==0.13.1; python_version >= '3.6'
 prompt-toolkit==1.0.3; python_version == '2.7'
