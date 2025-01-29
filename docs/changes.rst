@@ -64,6 +64,9 @@ Released: not yet
 * Test: Removed tests on GitHub Actions on Python 3.6 and 3.7 on MacOS, because
   the macos-12 image that still supported these Python versions is now rejected.
 
+* Development: Cleaned up dependencies regarding use of Python 3.5, which is
+  no longer supported since pywbem 1.6.
+
 **Known issues:**
 
 * See `list of open issues`_.

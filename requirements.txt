@@ -52,5 +52,5 @@ urllib3>=1.26.19; python_version >= '3.7'
 certifi>=2019.11.28,<2020.6.20; python_version == '2.7'
 certifi>=2024.07.04; python_version >= '3.6'
 
-idna>=2.8; python_version <= '3.5'
+idna>=2.8; python_version == '2.7'
 idna>=3.7; python_version >= '3.6'
