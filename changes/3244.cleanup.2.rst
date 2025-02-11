@@ -1,0 +1,2 @@
+Docs: Reduced INSTALL.md to contain a link to the
+corresponding chapter of the online documentation.
