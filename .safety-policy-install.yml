@@ -61,6 +61,8 @@ security:
             reason: Fixed requests version 2.32.2 requires Python>=3.8 and is used there
         72236:
             reason: Fixed setuptools version 70.0.0 requires Python>=3.8 and is used there
+        75180:
+            reason: Fixed pip version 25.0 requires Python>=3.8 and is used there
 
     # Continue with exit code 0 when vulnerabilities are found.
     continue-on-vulnerability-error: False
