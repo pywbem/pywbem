@@ -9,5 +9,5 @@ files have been added to the source distribution archive:
   * Makefile
   * tox.ini
 
-The new set of files in the source distribution archive now allows to build,
-check and test the project using "make" from only that archive.
+The new set of files in the source distribution archive now allows building,
+checking and testing the project using "make" from only that archive.
