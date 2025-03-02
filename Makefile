@@ -327,6 +327,7 @@ dist_dependent_files_all := \
     README.md \
     README_PYPI.md \
     INSTALL.md \
+    AUTHORS.md \
     requirements.txt \
     test-requirements.txt \
     pyproject.toml \
@@ -380,6 +381,7 @@ help:
 	@echo "  testc      - No longer supported: Run unit and function tests against cythonized wheel distribution archive"
 	@echo "  todo       - Check for TODOs in Python and docs sources"
 	@echo "  end2endtest - Run end2end tests (in $(test_dir)/end2endtest)"
+	@echo "  authors    - Generate AUTHORS.md file from git log"
 	@echo "  develop_os - Install OS-level development prereqs"
 	@echo "  clean      - Remove any temporary files"
 	@echo "  clobber    - Remove everything created to ensure clean start - use after setting git tag"
@@ -419,6 +421,9 @@ help:
 	@echo "      uncollectable (=leak) objects only."
 	@echo "  YAGOT_IGNORE_TYPES - Optional: Ignore the specified comma-separated list of types in"
 	@echo "      garbage checks."
+
+.PHONY: _always
+_always:
 
 .PHONY: platform
 platform:
@@ -584,6 +589,21 @@ todo: $(done_dir)/todo_$(pymn)_$(PACKAGE_LEVEL).done
 .PHONY: all
 all: install develop check_reqs build builddoc check ruff pylint installtest test leaktest resourcetest perftest
 	@echo "Makefile: Target $@ done."
+
+.PHONY: authors
+authors: AUTHORS.md
+	@echo "Makefile: $@ done."
+
+# Make sure the AUTHORS.md file is up to date but has the old date when it did
+# not change to prevent redoing dependent targets.
+AUTHORS.md: _always
+	echo "# Authors of this project" >AUTHORS.md.tmp
+	echo "" >>AUTHORS.md.tmp
+	echo "Sorted list of authors derived from git commit history:" >>AUTHORS.md.tmp
+	echo '```' >>AUTHORS.md.tmp
+	sh -c "git shortlog --summary --email HEAD | cut -f 2 | sort >>AUTHORS.md.tmp"
+	echo '```' >>AUTHORS.md.tmp
+	sh -c "if ! diff -q AUTHORS.md.tmp AUTHORS.md; then echo 'Updating AUTHORS.md as follows:'; diff AUTHORS.md.tmp AUTHORS.md; mv AUTHORS.md.tmp AUTHORS.md; else echo 'AUTHORS.md was already up to date'; rm AUTHORS.md.tmp; fi"
 
 .PHONY: clobber
 clobber: clean
