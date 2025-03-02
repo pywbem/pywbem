@@ -51,7 +51,8 @@ Released: not yet
   failure of make check_reqs because the package Levenshtein required by
   safety and Sphinx. See PR 3253 for details.
 
-**Enhancements:**
+* Cython: Pinned "wheel" to <0.44.0 to still have get_platform() which is used
+  for building the cythonized archive.
 
 **Cleanup:**
 

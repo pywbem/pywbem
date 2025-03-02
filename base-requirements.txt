@@ -1,0 +1,33 @@
+# Pip requirements file for base packages for a Python env.
+# Base packages are those needed for pip and automatic package version detection.
+
+# Base dependencies (must be consistent with minimum-constraints-install.txt
+
+# * pip>=9.0.0 to support the --upgrade-strategy option
+# * setuptools>=20.5 to support environment markers
+# * pip 10.0.0 introduced the --exclude-editable option.
+# * pip 18.0 is needed on pypy3 (py36) to support constraints like cffi!=1.11.3,>=1.8.
+# * pip 20.0 introduced the  --no-python-version-warning option
+# * pip 20.2 introduced a new resolver whose backtracking had issues that were resolved only in 21.2.2.
+# * pip>=21.0 is needed for the cryptography package on Windows on GitHub Actions.
+# * pip 22.0 dropped support for Python 3.6.
+pip>=19.3.1; python_version == '2.7'
+pip>=21.3.1; python_version == '3.6'
+pip>=23.3; python_version == '3.7'
+pip>=25.0; python_version >= '3.8'
+
+# setuptools 41.5.0 fixes build errors with Visual C++ 14.0 on Windows
+# setuptools 41.5.1 fixes a py27 regression introduced by 41.5.0.
+# setuptools 44.0.0, last version that states py 2.7 requirement
+# setuptools 49.0.0 fixes the comparison of Python versions in requirements that was
+#   based on strings and thus ignored certain requirements on Python 3.10.
+# setuptools safety issue 52495 affects 65.1.1
+setuptools>=41.5.1; python_version == '2.7'
+setuptools>=59.6.0; python_version == '3.6'
+setuptools>=65.5.1; python_version == '3.7'
+setuptools>=70.0.0; python_version >= '3.8'
+
+# wheel 0.36.2 fixes empty and invalid tag issues in archive file name, and supports get_platform() with args
+# wheel 0.38.1 fixes CVE issue 51499, and dropped support for Python <=3.6
+wheel>=0.36.2; python_version <= '3.6'
+wheel>=0.38.1,<0.44.0; python_version >= '3.7'

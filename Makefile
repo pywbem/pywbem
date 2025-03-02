@@ -482,10 +482,10 @@ endif
 	$(PIP_INSTALL_CMD) $(pip_level_opts) pip
 	echo "done" >$@
 
-$(done_dir)/install_basic_$(pymn)_$(PACKAGE_LEVEL).done: Makefile $(done_dir)/pip_upgrade_$(pymn)_$(PACKAGE_LEVEL).done
+$(done_dir)/install_basic_$(pymn)_$(PACKAGE_LEVEL).done: Makefile $(done_dir)/pip_upgrade_$(pymn)_$(PACKAGE_LEVEL).done base-requirements.txt
 	@echo "Makefile: Installing/upgrading basic Python packages with PACKAGE_LEVEL=$(PACKAGE_LEVEL)"
 	-$(call RM_FUNC,$@)
-	$(PIP_INSTALL_CMD) $(pip_level_opts) setuptools wheel
+	$(PIP_INSTALL_CMD) $(pip_level_opts) -r base-requirements.txt
 	echo "done" >$@
 	@echo "Makefile: Done installing/upgrading basic Python packages"
 
@@ -560,7 +560,7 @@ endif
 develop: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Target $@ done."
 
-$(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/pip_upgrade_$(pymn)_$(PACKAGE_LEVEL).done $(done_dir)/install_$(pymn)_$(PACKAGE_LEVEL).done $(done_dir)/develop_os_$(pymn)_$(PACKAGE_LEVEL).done $(done_dir)/install_basic_$(pymn)_$(PACKAGE_LEVEL).done dev-requirements.txt test-requirements.txt
+$(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/pip_upgrade_$(pymn)_$(PACKAGE_LEVEL).done $(done_dir)/install_basic_$(pymn)_$(PACKAGE_LEVEL).done $(done_dir)/install_$(pymn)_$(PACKAGE_LEVEL).done $(done_dir)/develop_os_$(pymn)_$(PACKAGE_LEVEL).done $(done_dir)/install_basic_$(pymn)_$(PACKAGE_LEVEL).done dev-requirements.txt test-requirements.txt
 	@echo "Makefile: Installing Python development requirements (with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
 	-$(call RM_FUNC,$@)
 	$(PIP_INSTALL_CMD) $(pip_level_opts) -r dev-requirements.txt
