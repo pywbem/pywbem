@@ -1200,7 +1200,7 @@ class WBEMListener:
             target=self.deliver_indications_forever,
             args=(self.ind_delivery_queue,),
             name='Callback',
-            daemon=True)
+            daemon=False)
 
         self.callback_thread.start()
         self.logger.info("Callback thread started max_queue=%s",
@@ -1230,7 +1230,7 @@ class WBEMListener:
                 server.listener = self
                 thread = ServerThread(target=server.serve_forever,
                                       name='http',
-                                      daemon=True)
+                                      daemon=False)
                 # Insure thread is stopped on main thread exit
                 self._http_server = server
                 self._http_thread = thread
@@ -1326,7 +1326,7 @@ class WBEMListener:
 
                 thread = ServerThread(target=server.serve_forever,
                                       name="https",
-                                      daemon=True)
+                                      daemon=False)
 
                 self._https_server = server
                 self._https_thread = thread
@@ -1478,7 +1478,7 @@ class WBEMListener:
                 "Rcvd indication queue full. ListenerQueueFullError Exception, "
                 "queue_size = #%s", self.queue_size)
             new_exc = ListenerQueueFullError(
-                "Listener indiation delivery queue full, "
+                "Listener indication delivery queue full, "
                 f"queue_size = {self.queue_size}. Closing listener.")
             new_exc.__cause__ = None
             raise new_exc  # ListenerQueueFullError
