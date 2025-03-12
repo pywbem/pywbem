@@ -450,6 +450,12 @@ jobs:
         TESTOPTS: "-x"
       run: |
         make testc
+    - name: Run test of installed version
+      env:
+        PACKAGE_LEVEL: ${{ matrix.package_level }}
+        RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
+      run: |
+        make testinstalled
     - name: Run safety
       env:
         PACKAGE_LEVEL: ${{ matrix.package_level }}
