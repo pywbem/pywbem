@@ -50,6 +50,11 @@ Released: 2025-03-02
 * Cython: Pinned "wheel" to <0.44.0 to still have get_platform() which is used
   for building the cythonized archive.
 
+* Test: Fixed testing of installed version of pywbem. Added a new make target
+  'testinstalled' that installs pywbem into a virtual environment and then
+  runs a small subset of the unit tests with TEST_INSTALLED=1. Added
+  'make testinstalled' to the test workflow.
+
 **Cleanup:**
 
 * Test: Changed tests on Github Actions on Python 3.7 on Ubuntu to use the
