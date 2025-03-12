@@ -29,5 +29,6 @@ setuptools>=70.0.0; python_version >= '3.8'
 
 # wheel 0.36.2 fixes empty and invalid tag issues in archive file name, and supports get_platform() with args
 # wheel 0.38.1 fixes CVE issue 51499, and dropped support for Python <=3.6
+# wheel 0.44.0 (requires py>=3.8) removed bdist_wheel.get_platform(), which is now in setuptools>=71.0.0
 wheel>=0.36.2; python_version <= '3.6'
 wheel>=0.38.1,<0.44.0; python_version >= '3.7'
