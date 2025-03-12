@@ -284,7 +284,11 @@ else
 endif
 pytest_end2end_opts := -v --tb=short $(pytest_opts) --es-file $(test_dir)/end2endtest/es_server.yml --es-schema-file $(test_dir)/end2endtest/es_schema.yml
 
-pytest_cov_opts := --cov $(package_name) --cov $(mock_package_name) $(coverage_report) --cov-config .coveragerc
+ifdef TEST_INSTALLED
+  pytest_cov_opts :=
+else
+  pytest_cov_opts := --cov $(package_name) --cov $(mock_package_name) $(coverage_report) --cov-config .coveragerc
+endif
 
 pytest_warning_opts := -W default
 pytest_end2end_warning_opts := $(pytest_warning_opts)
@@ -372,6 +376,7 @@ help:
 	@echo "  installtest - Run install tests"
 	@echo "  safety     - Run Safety for install and all"
 	@echo "  test       - Run unit and function tests (in tests/unittest and tests/functiontest)"
+	@echo "  testinstalled - Simulate the testing of an installed version of pywbem"
 	@echo "  leaktest   - Run memory leak tests (in tests/leaktest)"
 	@echo "  resourcetest - Run resource consumption tests (in tests/resourcetest)"
 	@echo "  perftest   - Run performance tests (in tests/perftest)"
@@ -533,10 +538,17 @@ endif
 develop: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Target $@ done."
 
-$(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/base_$(pymn)_$(PACKAGE_LEVEL).done $(done_dir)/install_$(pymn)_$(PACKAGE_LEVEL).done $(done_dir)/develop_os_$(pymn)_$(PACKAGE_LEVEL).done dev-requirements.txt minimum-constraints-develop.txt minimum-constraints-install.txt
+$(done_dir)/test_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/base_$(pymn)_$(PACKAGE_LEVEL).done test-requirements.txt minimum-constraints-develop.txt minimum-constraints-install.txt
+	@echo "Makefile: Installing Python test requirements (with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
+	-$(call RM_FUNC,$@)
+	$(PIP_INSTALL_CMD) $(pip_level_opts) -r test-requirements.txt
+	echo "done" >$@
+	@echo "Makefile: Done installing Python test requirements"
+
+$(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/test_$(pymn)_$(PACKAGE_LEVEL).done $(done_dir)/base_$(pymn)_$(PACKAGE_LEVEL).done $(done_dir)/install_$(pymn)_$(PACKAGE_LEVEL).done $(done_dir)/develop_os_$(pymn)_$(PACKAGE_LEVEL).done dev-requirements.txt minimum-constraints-develop.txt minimum-constraints-install.txt
 	@echo "Makefile: Installing Python development requirements (with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
 	-$(call RM_FUNC,$@)
-	$(PIP_INSTALL_CMD) $(pip_level_opts) -r test-requirements.txt -r dev-requirements.txt
+	$(PIP_INSTALL_CMD) $(pip_level_opts) -r dev-requirements.txt
 	echo "done" >$@
 	@echo "Makefile: Done installing Python development requirements"
 
@@ -946,9 +958,9 @@ $(done_dir)/safety_install_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/develop_$(
 	@echo "Makefile: Done running Safety for install packages"
 
 ifdef TEST_INSTALLED
-  test_deps =
+  test_deps = $(done_dir)/test_$(pymn)_$(PACKAGE_LEVEL).done $(moftab_files)
 else
-  test_deps = $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done $(moftab_files)
+  test_deps = $(done_dir)/test_$(pymn)_$(PACKAGE_LEVEL).done $(moftab_files)
 endif
 
 $(done_dir)/todo_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile $(pylint_rc_file) $(py_src_files) $(py_test_files)
@@ -983,6 +995,18 @@ test: $(test_deps)
 	py.test --color=yes $(pytest_cov_opts) $(pytest_warning_opts) $(pytest_opts) $(test_dir)/unittest $(test_dir)/functiontest -s
 	@echo "Makefile: Done running unit and function tests"
 
+.PHONY: testinstalled
+testinstalled: $(done_dir)/install_pywbem_$(pymn)_$(PACKAGE_LEVEL).done base-requirements.txt
+	@echo "Makefile: Running short unit test in virtualenv with installed version of pywbem"
+ifeq ($(PLATFORM),Windows_native)
+	@echo "Makefile: Warning: Skipping the test on native Windows" >&2
+else
+	-$(call RMDIR_R_FUNC,.virtualenv/testinstalled)
+	virtualenv .virtualenv/testinstalled
+	bash -cx "source .virtualenv/testinstalled/bin/activate; $(PYTHON_CMD) --version; $(PIP_INSTALL_CMD) $(pip_level_opts) -r base-requirements.txt; $(PIP_INSTALL_CMD) $(pip_level_opts) .; $(PIP_CMD) list; TEST_INSTALLED=1 TESTCASES=test_mof_compiler.py TESTOPTS='-x' make test"
+endif
+	@echo "Makefile: Done running short unit test in virtualenv with installed version of pywbem"
+
 .PHONY: testc
 testc:
 	$(error Cythonizing pywbem is no longer supported by this Makefile)
@@ -1004,19 +1028,19 @@ leaktest: $(test_deps)
 	@echo "Makefile: Done running memory leak tests"
 
 .PHONY: end2endtest
-end2endtest: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done $(moftab_files)
+end2endtest: $(test_deps)
 	@echo "Makefile: Running end2end tests"
 	py.test --color=yes $(pytest_end2end_warning_opts) $(pytest_end2end_opts) $(test_dir)/end2endtest -s
 	@echo "Makefile: Done running end2end tests"
 
 .PHONY: resourcetest
-resourcetest: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done $(moftab_files)
+resourcetest: $(test_deps)
 	@echo "Makefile: Running resource consumption tests"
 	py.test --color=yes $(pytest_warning_opts) $(pytest_opts) $(test_dir)/resourcetest -s
 	@echo "Makefile: Done running resource consumption tests"
 
 .PHONY: perftest
-perftest: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done $(moftab_files)
+perftest: $(test_deps)
 	@echo "makefile: Running performance tests"
 	py.test --color=yes $(pytest_warning_opts) $(pytest_opts) $(test_dir)/perftest -s
 	@echo "makefile: Done running performance tests"

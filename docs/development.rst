@@ -387,7 +387,7 @@ installed into the system Python:
 
    .. code-block:: bash
 
-       $ virtualenv --system-site-packages --no-setuptools --no-pip --no-wheel .virtualenv/test
+       $ virtualenv --system-site-packages .virtualenv/test
        $ source .virtualenv/test/bin/activate
 
    The pywbem project is set up so that Git ignores the ``.virtualenv``
