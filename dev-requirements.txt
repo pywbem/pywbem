@@ -65,7 +65,7 @@ sphinxcontrib-serializinghtml>=1.1.5; python_version == '3.8'
 sphinxcontrib-serializinghtml>=1.1.9; python_version >= '3.9'
 sphinxcontrib-websupport>=1.2.4; python_version >= '3.8'
 autodocsumm>=0.2.12; python_version >= '3.8'
-Babel>=2.9.1; python_version >= '3.8'
+Babel>=2.11.0; python_version >= '3.8'
 
 # PyLint (no imports, invoked via pylint script)
 # Pylint requires astroid
@@ -78,6 +78,7 @@ Babel>=2.9.1; python_version >= '3.8'
 # Pylint 3.0.1 / astroid 3.0.1 python 3.12
 # astroid 2.13.0 uses typing-extensions on Python<3.11 but misses to require it on 3.10. See https://github.com/PyCQA/astroid/issues/1942
 # Pylint 3.3.0 is excluded due to false positive no-member on f-string. See https://github.com/pylint-dev/pylint/issues/9947
+# wrapt 1.17.0 added wheel files for Python 3.13
 pylint>=2.13.0,<2.14.0; python_version == '3.6'
 pylint>=2.13.0,!=3.3.0; python_version >= '3.7' and python_version <= '3.10'
 pylint>=2.15.0,!=3.3.0; python_version == '3.11'
@@ -89,7 +90,7 @@ typed-ast>=1.4.0,<1.5.0; python_version >= '3.6' and python_version < '3.8' and 
 # lazy-object-proxy is used by astroid
 lazy-object-proxy>=1.4.3; python_version >= '3.6'
 wrapt>=1.11.2; python_version >= '3.6' and python_version <= '3.10'
-wrapt>=1.14; python_version >= '3.11'
+wrapt>=1.17.0; python_version >= '3.11'
 # platformdirs is used by pylint starting with its 2.10
 platformdirs>=2.2.0; python_version == '3.6'
 platformdirs>=2.5.0; python_version >= '3.7' and python_version <= '3.11'
@@ -330,8 +331,8 @@ pyinstrument>=4.7.2; python_version >= '3.12'    # pyinstrument-cext integrated
 #   see https://github.com/giampaolo/psutil/issues/1659.
 # psutil on macos 11.6 needs to be >=5.8.0 to have support for the compiler.
 # psutil on windows needs to be >=5.9.0 to have support for the MSVC++ 14.0 compiler.
-psutil>=5.9.0; sys_platform != 'cygwin' and platform_python_implementation != 'PyPy'
-psutil>=5.6.0,<=5.6.3; sys_platform != 'cygwin' and platform_python_implementation == 'PyPy'
+# psutil 6.0.0 is required to install on Windows with Python 3.13
+psutil>=6.0.0; sys_platform != 'cygwin'
 
 # Package dependency management tools
 pipdeptree>=2.2.0
