@@ -77,8 +77,10 @@ backports.statistics>=0.1.0; python_version == '2.7'
 # FormEncode is used for xml comparisons in unit test
 # FormEncode 1.3.1 has no python_requires and fails install on Python 3.10 due to incorrect version checking
 # FormEncode 1.3.1 uses the use_2to3 directive, so attempting to install FormEncode<2 on setuptools>=58 breaks
+# FormEncode 2.1.1 added support for Python 3.13
 FormEncode>=1.3.1; python_version == '2.7'
-FormEncode>=2.0.0; python_version >= '3.6'
+FormEncode>=2.0.0; python_version == '3.6'
+FormEncode>=2.1.1; python_version >= '3.7'
 
 # Lxml
 # lxml 4.4.3 added Python 3.8 support and exposed it correctly
