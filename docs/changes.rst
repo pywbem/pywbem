@@ -55,6 +55,10 @@ Released: 2025-03-02
   runs a small subset of the unit tests with TEST_INSTALLED=1. Added
   'make testinstalled' to the test workflow.
 
+* Development&Test: Added Python 3.13 to the test environments on GitHub Actions.
+  Needed to increase the minimum versions of several Python packages used for
+  development & test.
+
 **Cleanup:**
 
 * Test: Changed tests on Github Actions on Python 3.7 on Ubuntu to use the
