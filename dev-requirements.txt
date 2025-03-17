@@ -66,7 +66,7 @@ pylint>=3.3.3; python_version >= '3.9'
 astroid>=3.0.1; python_version == '3.8'
 astroid>=3.3.8; python_version >= '3.9'
 lazy-object-proxy>=1.4.3
-wrapt>=1.14
+wrapt>=1.17.0
 # platformdirs is also used by tox
 platformdirs>=4.1.0
 # isort 4.3.8 fixes an issue with py310 and works on py310 (Note that isort 5.10.0 has official support for py310)
@@ -153,8 +153,8 @@ pyinstrument>=4.7.2; python_version >= '3.12'    # pyinstrument-cext integrated
 #   see https://github.com/giampaolo/psutil/issues/1659.
 # psutil on macos 11.6 needs to be >=5.8.0 to have support for the compiler.
 # psutil on windows needs to be >=5.9.0 to have support for the MSVC++ 14.0 compiler.
-psutil>=5.9.0; sys_platform != 'cygwin' and platform_python_implementation != 'PyPy'
-psutil>=5.6.0,<=5.6.3; sys_platform != 'cygwin' and platform_python_implementation == 'PyPy'
+# psutil 6.0.0 is required to install on Windows with Python 3.13
+psutil>=6.0.0; sys_platform != 'cygwin'
 
 # Package dependency management tools
 pipdeptree>=2.2.0
