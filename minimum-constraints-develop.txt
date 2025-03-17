@@ -25,8 +25,7 @@ pytest==6.2.5; python_version >= '3.10'
 testfixtures==6.9.0
 colorama==0.4.5
 # FormEncode is used for xml comparisons in unit test
-# TODO: Re-enable FormEncode once the fix for https://github.com/formencode/formencode/issues/181 has been released.
-# FormEncode==2.x.x
+FormEncode==2.1.1
 
 # Easy-server packages
 easy-vault==0.7.0
