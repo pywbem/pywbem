@@ -31,92 +31,35 @@ jobs:
       # This technique documented in:
       #    https://stackoverflow.com/questions/65384420/how-to-make-a-github-action-matrix-element-conditional
       # TODO: Find a way to define this with fewer escapes.
-      # TODO: Python 3.13 was pinned to 3.13.0 to work around a pylint issue
+      # TODO: Python 3.13 was pinned to 3.13 to work around a pylint issue
       #       https://github.com/pylint-dev/pylint/issues/10112 on Python 3.13.1.
       #       Remove that pinning again when it is fixed.
       run: |
         if [[ "${{ github.event_name }}" == "schedule" || "${{ github.head_ref }}" =~ ^release_ ]]; then \
           echo "matrix={ \
             \"os\": [ \"ubuntu-latest\", \"macos-latest\", \"windows-latest\" ], \
-            \"python-version\": [ \"3.8\", \"3.9\", \"3.10\", \"3.11\", \"3.12\", \"3.13.0\" ], \
-            \"package_level\": [ \"minimum\", \"latest\" ], \
-            \"exclude\": [ \
-              { \
-                \"os\": \"windows-latest\", \
-                \"python-version\": \"3.13.0\", \
-                \"package_level\": \"minimum\" \
-              }, \
-              { \
-                \"os\": \"windows-latest\", \
-                \"python-version\": \"3.13.0\", \
-                \"package_level\": \"latest\" \
-              } \
-            ] \
+            \"python-version\": [ \"3.8\", \"3.9\", \"3.10\", \"3.11\", \"3.12\", \"3.13\" ], \
+            \"package_level\": [ \"minimum\", \"latest\" ] \
           }" >> $GITHUB_OUTPUT; \
         else \
           echo "matrix={ \
-            \"os\": [ \"ubuntu-latest\" ], \
-            \"python-version\": [ \"3.13.0\" ], \
+            \"os\": [ \"ubuntu-latest\", \"macos-latest\", \"windows-latest\" ], \
+            \"python-version\": [ \"3.13\" ], \
             \"package_level\": [ \"minimum\", \"latest\" ], \
             \"include\": [ \
               { \
                 \"os\": \"ubuntu-latest\", \
                 \"python-version\": \"3.8\", \
-                \"package_level\": \"minimum\" \
-              }, \
-              { \
-                \"os\": \"ubuntu-latest\", \
-                \"python-version\": \"3.8\", \
-                \"package_level\": \"latest\" \
-              }, \
-              { \
-                \"os\": \"ubuntu-latest\", \
-                \"python-version\": \"3.10\", \
-                \"package_level\": \"minimum\" \
-              }, \
-              { \
-                \"os\": \"ubuntu-latest\", \
-                \"python-version\": \"3.10\", \
                 \"package_level\": \"latest\" \
               }, \
               { \
                 \"os\": \"macos-latest\", \
                 \"python-version\": \"3.8\", \
-                \"package_level\": \"minimum\" \
-              }, \
-              { \
-                \"os\": \"macos-latest\", \
-                \"python-version\": \"3.8\", \
                 \"package_level\": \"latest\" \
-              }, \
-              { \
-                \"os\": \"macos-latest\", \
-                \"python-version\": \"3.11\", \
-                \"package_level\": \"latest\" \
-              }, \
-              { \
-                \"os\": \"macos-latest\", \
-                \"python-version\": \"3.13.0\", \
-                \"package_level\": \"minimum\" \
               }, \
               { \
                 \"os\": \"windows-latest\", \
                 \"python-version\": \"3.8\", \
-                \"package_level\": \"latest\" \
-              }, \
-              { \
-                \"os\": \"windows-latest\", \
-                \"python-version\": \"3.10\", \
-                \"package_level\": \"minimum\" \
-              }, \
-              { \
-                \"os\": \"windows-latest\", \
-                \"python-version\": \"3.11\", \
-                \"package_level\": \"minimum\" \
-              }, \
-              { \
-                \"os\": \"windows-latest\", \
-                \"python-version\": \"3.13.0\", \
                 \"package_level\": \"latest\" \
               } \
             ] \
