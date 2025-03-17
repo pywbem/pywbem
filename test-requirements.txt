@@ -63,6 +63,7 @@ decorator>=4.0.11
 # lxml>=5.0 fails installing on macOS 14 with Python 3.8, see https://bugs.launchpad.net/lxml/+bug/2063945
 # lxml 4.9.2 addresses changes in Python 3.11
 # lxml 4.9.3 added support for Python 3.12
+# lxml 5.3.0 added support for Python 3.13
 lxml>=4.6.2,<5.0; python_version == '3.8' and sys_platform == 'darwin'
 lxml>=4.6.2; python_version == '3.8' and sys_platform != 'darwin'
 lxml>=4.6.2; python_version == '3.9'
