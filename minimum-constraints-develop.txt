@@ -184,7 +184,7 @@ tabulate==0.8.3
 # Performance profiling tools
 pyinstrument==3.0.1; python_version <= '3.11'
 pyinstrument-cext==0.2.2; python_version <= '3.11'  # from pyinstrument
-pyinstrument==4.5.3; python_version >= '3.12'  # pyinstrument-cext integrated
+pyinstrument==4.7.2; python_version >= '3.12'  # pyinstrument-cext integrated
 
 psutil==5.9.0; sys_platform != 'cygwin' and platform_python_implementation != 'PyPy'
 psutil==5.6.0; sys_platform != 'cygwin' and platform_python_implementation == 'PyPy'
