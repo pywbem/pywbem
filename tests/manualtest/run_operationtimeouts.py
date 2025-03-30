@@ -77,7 +77,7 @@ class ClientTest(unittest.TestCase):
         """Create a connection."""
 
         # pylint: disable=global-variable-not-assigned,global-statement
-        global args  # pylint: disable=invalid-name
+        global args  # noqa: F824 pylint: disable=invalid-name
 
         # pylint: disable=used-before-assignment
         # pylint: disable=possibly-used-before-assignment
