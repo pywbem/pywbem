@@ -331,8 +331,9 @@ anyio==4.4.0; python_version >= '3.8'
 distlib==0.3.4; python_version <= '3.11'
 distlib==0.3.7; python_version >= '3.12'
 # previous version filelock==3.0.0
-filelock==3.2.0; python_version <= "3.11"
-filelock==3.12.2; python_version >= "3.12"
+filelock==3.2.0; python_version <= '3.7'
+# safety 3.4.0 requires filelock~=3.16.1
+filelock==3.16.1; python_version >= '3.8'
 # gitdb2 is a mirror Pypi name for certain gitdb versions.
 gitdb2==2.0.6; python_version == '2.7'
 gitdb2==2.0.6; python_version == '3.6'
@@ -381,6 +382,7 @@ enum34==1.1.10; python_version == '2.7'
 future==0.18.3
 futures==3.3.0; python_version == '2.7'
 html5lib==0.999999999
+httpx==0.28.1; python_version >= '3.8'  # used by safety 3.4.0
 id==1.5.0
 imagesize==1.3.0
 # importlib-resources is used by virtualenv 20.0, jsonschema 4.17
@@ -399,7 +401,7 @@ Jinja2==2.8.1; python_version == '2.7'
 # Safety issue #39525 affects <2.11.3 and #54679 affects <2.10.1
 Jinja2==3.0.3; python_version == '3.6'
 # Safety issue #64227: Jinga2 >= ver 3.1.3. fixes vulnerability. Python >= 3.7
-Jinja2==3.1.4; python_version >= '3.7'
+Jinja2==3.1.6; python_version >= '3.7'
 linecache2==1.0.0
 # MarkupSafe version depends on nbconvert min version 6.5.1 requirement
 # Jinja2 3.0.0 depends on MarkupSafe>=2.0.0rc2
@@ -449,6 +451,7 @@ smmap==5.0.0; python_version >= '3.7'
 snowballstemmer==2.0.0
 soupsieve==2.3.1; python_version >= '3.6'
 stack-data==0.2.0; python_version >= '3.6'
+tenacity==8.5.0; python_version >= '3.8'  # used by safety 3.4.0
 testpath==0.3
 toml==0.10.0
 tomli==1.1.0; python_version == '3.6'

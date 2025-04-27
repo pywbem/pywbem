@@ -386,8 +386,9 @@ anyio>=3.7.1; python_version == '3.7'
 anyio>=4.4.0; python_version >= '3.8'
 distlib>=0.3.4; python_version <= '3.11'
 distlib>=0.3.7; python_version >= '3.12'
-filelock>=3.2.0; python_version <= "3.11"
-filelock>=3.12.2; python_version >= "3.12"
+filelock>=3.2.0; python_version <= '3.7'
+# safety 3.4.0 requires filelock~=3.16.1
+filelock~=3.16.1; python_version >= '3.8'
 # gitdb2 4.0.2 requires gitdb>=4.0.1 for installation, see https://github.com/gitpython-developers/gitdb/issues/86
 gitdb2>=2.0.6,<4.0; python_version == '2.7'
 gitdb2>=2.0.6,<4.0; python_version == '3.6'
