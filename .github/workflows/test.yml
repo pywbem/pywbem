@@ -30,8 +30,6 @@ jobs:
       # otherwise. The matrix is defined as a JSON string.
       # This technique documented in:
       #    https://stackoverflow.com/questions/65384420/how-to-make-a-github-action-matrix-element-conditional
-      # NOTE: Ubuntu 20.04 used because in some tests Ubuntu:latest fails with
-      # Python 3.6. See pywbemtools issue 1245 for explanation.
       # TODO: Find a way to define this with fewer escapes.
       run: |
         if [[ "${{ github.event_name }}" == "schedule" || "${{ github.head_ref }}" =~ ^release_ ]]; then \
@@ -83,38 +81,6 @@ jobs:
             ], \
             \"include\": [ \
               { \
-                \"os\": \"ubuntu-20.04\", \
-                \"python-version\": \"2.7\", \
-                \"package_level\": \"minimum\", \
-                \"container\": {\"image\": \"python:2.7.18-buster\"} \
-              }, \
-              { \
-                \"os\": \"ubuntu-20.04\", \
-                \"python-version\": \"2.7\", \
-                \"package_level\": \"latest\", \
-                \"container\": {\"image\": \"python:2.7.18-buster\"} \
-              }, \
-              { \
-                \"os\": \"ubuntu-20.04\", \
-                \"python-version\": \"3.6\", \
-                \"package_level\": \"minimum\" \
-              }, \
-              { \
-                \"os\": \"ubuntu-20.04\", \
-                \"python-version\": \"3.6\", \
-                \"package_level\": \"latest\" \
-              }, \
-              { \
-                \"os\": \"ubuntu-20.04\", \
-                \"python-version\": \"3.7\", \
-                \"package_level\": \"minimum\" \
-              }, \
-              { \
-                \"os\": \"ubuntu-20.04\", \
-                \"python-version\": \"3.7\", \
-                \"package_level\": \"latest\" \
-              }, \
-              { \
                 \"os\": \"macos-13\", \
                 \"python-version\": \"3.6\", \
                 \"package_level\": \"minimum\" \
@@ -142,38 +108,6 @@ jobs:
             \"python-version\": [ \"3.13\" ], \
             \"package_level\": [ \"minimum\", \"latest\" ], \
             \"include\": [ \
-              { \
-                \"os\": \"ubuntu-20.04\", \
-                \"python-version\": \"2.7\", \
-                \"package_level\": \"minimum\", \
-                \"container\": {\"image\": \"python:2.7.18-buster\"} \
-              }, \
-              { \
-                \"os\": \"ubuntu-20.04\", \
-                \"python-version\": \"2.7\", \
-                \"package_level\": \"latest\", \
-                \"container\": {\"image\": \"python:2.7.18-buster\"} \
-              }, \
-              { \
-                \"os\": \"ubuntu-20.04\", \
-                \"python-version\": \"3.6\", \
-                \"package_level\": \"minimum\" \
-              }, \
-              { \
-                \"os\": \"ubuntu-20.04\", \
-                \"python-version\": \"3.6\", \
-                \"package_level\": \"latest\" \
-              }, \
-              { \
-                \"os\": \"ubuntu-20.04\", \
-                \"python-version\": \"3.7\", \
-                \"package_level\": \"minimum\" \
-              }, \
-              { \
-                \"os\": \"ubuntu-20.04\", \
-                \"python-version\": \"3.7\", \
-                \"package_level\": \"latest\" \
-              }, \
               { \
                 \"os\": \"ubuntu-latest\", \
                 \"python-version\": \"3.8\", \
