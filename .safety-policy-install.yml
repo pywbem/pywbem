@@ -63,6 +63,8 @@ security:
             reason: Fixed setuptools version 70.0.0 requires Python>=3.8 and is used there
         75180:
             reason: Fixed pip version 25.0 requires Python>=3.8 and is used there
+        76752:
+            reason: Fixed setuptools version 78.1.1 requires Python>=3.9 and pyproject.toml does not support python_version markers
 
     # Continue with exit code 0 when vulnerabilities are found.
     continue-on-vulnerability-error: False

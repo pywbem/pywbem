@@ -315,7 +315,8 @@ pywin32>=307; sys_platform == 'win32' and python_version >= '3.13'
 tornado>=4.4.2,<5.0; python_version == '2.7'
 tornado>=6.1; python_version == '3.6'
 tornado>=6.2; python_version == '3.7'
-tornado>=6.4.2; python_version >= '3.8'
+tornado>=6.4.2; python_version == '3.8'
+tornado>=6.5; python_version >= '3.9'
 
 # Table output formatter used by the manual performance tests to display
 # timing results
