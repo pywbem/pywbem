@@ -52,6 +52,8 @@ security:
             reason: Disputed issue in pip version 23.3 - No known fix
         67895:
             reason: Fixed idna version 3.7 requires requests>=2.26.0 which requires Python>=3.6 and is used there
+        76752:
+            reason: Fixed setuptools version 78.1.1 requires Python>=3.9 and pyproject.toml does not support python_version markers
 
     # Continue with exit code 0 when vulnerabilities are found.
     continue-on-vulnerability-error: False

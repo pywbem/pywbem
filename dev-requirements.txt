@@ -148,7 +148,8 @@ pywin32>=306; sys_platform == 'win32' and python_version >= '3.10' and python_ve
 pywin32>=307; sys_platform == 'win32' and python_version >= '3.13'
 
 # The tornado package is used by ipykernel which is used by jupyter.
-tornado>=6.4.2
+tornado>=6.4.2; python_version <= '3.8'
+tornado>=6.5; python_version >= '3.9'
 
 # Table output formatter used by the manual performance tests to display timing results
 tabulate>=0.8.3
@@ -191,7 +192,7 @@ terminado>=0.8.3,<0.10.0
 # jupyter-server 1.24.0 depends on anyio>=3.1.0,<4
 anyio>=3.1.0
 distlib>=0.3.7
-filelock>=3.13.1
+filelock>=3.16.1
 gitdb>=4.0.8
 # nbconvert 6.5.1 depends on traitlets>=5.0
 # jupyter-server 1.17.0 depends on traitlets>=5.1

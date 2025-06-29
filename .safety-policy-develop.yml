@@ -154,6 +154,8 @@ security:
             reason: Fixed virtualenv version 20.21.0 requires Python>=3.7 and is used there
         70612:
             reason: Safety issue and CVE do not list a fixed version of Jinja2
+        77319:
+            reason: Fixed tornado version 6.5.0 requires Python>=3.9 and is used there
 
     # Continue with exit code 0 when vulnerabilities are found.
     continue-on-vulnerability-error: False
