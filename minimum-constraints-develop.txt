@@ -96,6 +96,7 @@ typer==0.12.1
 typer-cli==0.12.1
 typer-slim==0.12.1
 psutil==6.1.0
+filelock==3.16.1
 
 # The following used by safety and Sphinx
 Levenshtein==0.25.1
@@ -211,8 +212,6 @@ terminado==0.8.3
 
 anyio==4.4.0
 distlib==0.3.7
-# safety 3.4.0 requires filelock~=3.16.1
-filelock==3.16.1
 gitdb==4.0.8
 traitlets==5.6.0
 
