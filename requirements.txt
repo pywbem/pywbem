@@ -16,7 +16,7 @@ PyYAML>=6.0.2
 # requests 2.22.0 removed the pinning of urllib3 to <1.25.0
 # requests 2.25.0 tolerates urllib3 1.26.5 which is needed on Python 3.10 to remove ImportWarning in six
 # requests 2.32.2 safety issue 71064 requires requests ver >=2.32.0 (2.32.0, 2.32.1 yanked)
-requests>=2.32.2
+requests>=2.32.4
 yamlloader>=0.5.5
 
 # typing-extensions
@@ -35,7 +35,8 @@ typing-extensions>=4.12.2; python_version <= '3.9'
 # setuptools 61.0.0 breaks "setup.py install", see https://github.com/pypa/setuptools/issues/3198
 setuptools!=61.0.0
 
-urllib3>=1.26.19
+urllib3>=2.2.3; python_version == '3.8'
+urllib3>=2.5.0; python_version >= '3.9'
 
 certifi>=2024.07.04
 idna>=3.7

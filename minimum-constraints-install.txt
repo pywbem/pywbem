@@ -21,7 +21,7 @@ wheel==0.41.3
 ply==3.10
 PyYAML==6.0.2
 # requests version 2.32.0 required by safety issue 71064 (2.32.0, 2.32.1 yanked)
-requests==2.32.2
+requests==2.32.4
 yamlloader==0.5.5
 
 # typing-extensions
@@ -34,7 +34,8 @@ typing-extensions==4.12.2; python_version <= '3.9'
 
 # Indirect dependencies for install that are needed for some reason (must be consistent with requirements.txt)
 
-urllib3==1.26.19
+urllib3==2.2.3; python_version == '3.8'
+urllib3==2.5.0; python_version >= '3.9'
 certifi==2024.07.04
 
 # requests 2.31 requires idna>=2.5,<4
