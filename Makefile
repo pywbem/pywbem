@@ -711,9 +711,9 @@ AUTHORS.md: _always
 	echo "" >>AUTHORS.md.tmp
 	echo "Sorted list of authors derived from git commit history:" >>AUTHORS.md.tmp
 	echo '```' >>AUTHORS.md.tmp
-	sh -c "git shortlog --summary --email HEAD | cut -f 2 | sort >>AUTHORS.md.tmp"
+	bash -c "git shortlog --summary --email HEAD | cut -f 2 | sort >>AUTHORS.md.tmp"
 	echo '```' >>AUTHORS.md.tmp
-	sh -c "if ! diff -q AUTHORS.md.tmp AUTHORS.md; then echo 'Updating AUTHORS.md as follows:'; diff AUTHORS.md.tmp AUTHORS.md; mv AUTHORS.md.tmp AUTHORS.md; else echo 'AUTHORS.md was already up to date'; rm AUTHORS.md.tmp; fi"
+	bash -c "if ! diff -q AUTHORS.md.tmp AUTHORS.md; then echo 'Updating AUTHORS.md as follows:'; diff AUTHORS.md.tmp AUTHORS.md; mv AUTHORS.md.tmp AUTHORS.md; else echo 'AUTHORS.md was already up to date'; rm AUTHORS.md.tmp; fi"
 
 .PHONY: clobber
 clobber: clean
@@ -877,13 +877,15 @@ $(sdist_file): pyproject.toml MANIFEST.in $(dist_dependent_files) $(moftab_files
 	@echo "Makefile: Creating the source distribution archive: $(sdist_file)"
 	-$(call RM_FUNC,MANIFEST)
 	-$(call RMDIR_FUNC,build $(package_name).egg-info-INFO .eggs)
-	$(PYTHON_CMD) -m build --sdist --outdir $(dist_dir) .
+	$(PYTHON_CMD) -m build --no-isolation --sdist --outdir $(dist_dir) .
+	bash -c "ls -l $(sdist_file) || ls -l $(dist_dir) && echo package_level=$(package_level) && $(PYTHON_CMD) -m setuptools_scm"
 	@echo "Makefile: Done creating the source distribution archive: $(sdist_file)"
 
 $(bdist_file) $(version_file): pyproject.toml $(dist_dependent_files) $(moftab_files) $(done_dir)/vendor_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Creating the normal wheel distribution archive: $(bdist_file)"
 	-$(call RMDIR_FUNC,build $(package_name).egg-info-INFO .eggs)
-	$(PYTHON_CMD) -m build --wheel --outdir $(dist_dir) -C--universal .
+	$(PYTHON_CMD) -m build --no-isolation --wheel --outdir $(dist_dir) -C--universal .
+	bash -c "ls -l $(bdist_file) $(version_file) || ls -l $(dist_dir) && echo package_level=$(package_level) && $(PYTHON_CMD) -m setuptools_scm"
 	@echo "Makefile: Done creating the normal wheel distribution archive: $(bdist_file)"
 
 $(bdistc_file): setup.py pyproject.toml $(dist_dependent_files) $(moftab_files) $(done_dir)/vendor_$(pymn)_$(PACKAGE_LEVEL).done

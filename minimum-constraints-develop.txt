@@ -19,7 +19,7 @@ incremental==22.10.0
 click-default-group==1.2.4
 
 # Unit test (imports into testcases):
-packaging==22.0
+packaging==24.1
 pytest==4.6.0; python_version <= '3.9'
 pytest==6.2.5; python_version >= '3.10'
 testfixtures==6.9.0
@@ -190,7 +190,7 @@ pyinstrument-cext==0.2.2; python_version <= '3.11'  # from pyinstrument
 pyinstrument==4.7.2; python_version >= '3.12'  # pyinstrument-cext integrated
 
 # Package dependency management tools
-pipdeptree==2.2.0
+pipdeptree==2.24.0
 pip-check-reqs==2.4.3; python_version <= '3.11'
 pip-check-reqs==2.5.1; python_version >= '3.12'
 
