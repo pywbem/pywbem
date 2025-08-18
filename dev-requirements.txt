@@ -163,7 +163,7 @@ pyinstrument-cext>=0.2.2; python_version <= '3.11'  # from pyinstrument
 pyinstrument>=4.7.2; python_version >= '3.12'    # pyinstrument-cext integrated
 
 # Package dependency management tools
-pipdeptree>=2.2.0
+pipdeptree>=2.24.0
 # pip-check-reqs 2.3.2 is needed to have proper support for pip>=21.3 and below.
 # pip-check-reqs 2.4.3 fixes a speed issue on Python 3.11.
 # pip-check-reqs 2.5.0 has issue https://github.com/r1chardj0n3s/pip-check-reqs/issues/143
