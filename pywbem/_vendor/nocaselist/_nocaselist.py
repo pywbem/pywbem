@@ -9,11 +9,12 @@ import os
 
 __all__ = ['NocaseList']
 
-if sys.version_info[0] == 2:
-    # pylint: disable=undefined-variable
-    _INTEGER_TYPES = (long, int)  # noqa: F821
-else:
+if sys.version_info[0] == 3:
     _INTEGER_TYPES = (int,)
+    # Make Cython happy by defining long
+    long = int  # pylint: disable=invalid-name
+else:
+    _INTEGER_TYPES = (long, int)
 
 # This env var is set when building the docs. It causes the methods
 # that are supposed to exist only in a particular Python version, not to be
