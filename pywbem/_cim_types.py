@@ -86,12 +86,12 @@ from ._utils import _ensure_unicode, _hash_item, _format, _to_unicode, \
 if six.PY3:
     from datetime import timezone
 
-if six.PY2:
-    # pylint: disable=invalid-name,undefined-variable
-    _Longint = long  # noqa: F821
+if six.PY3:
+    _Longint = int  # pylint: disable=invalid-name
+    # Make Cython happy by defining long
+    long = int  # pylint: disable=invalid-name
 else:
-    # pylint: disable=invalid-name
-    _Longint = int
+    _Longint = long  # pylint: disable=invalid-name
 
 
 __all__ = ['cimtype', 'type_from_name', 'MinutesFromUTC', 'CIMType',
