@@ -25,7 +25,7 @@ Released: not yet
 
 **Bug fixes:**
 
-* Fixed safety issues up to 2025-08-02.
+* Fixed safety issues up to 2025-09-28.
 
 * Test: Fixed testing of installed version of pywbem. Added a new make target
   'testinstalled' that installs pywbem into a virtual environment and then
