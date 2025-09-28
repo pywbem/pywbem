@@ -17,6 +17,7 @@ relative_files = True
 omit =
     pywbem/mofparsetab.py
     pywbem/moflextab.py
+    pywbem/_vendor/*
 
 [report]
 
