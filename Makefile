@@ -301,7 +301,7 @@ endif
 
 # Versions of the vendorized packages:
 nocasedict_version := 1.1.2
-nocaselist_version := 1.1.1
+nocaselist_version := 1.1.3
 
 # Dist info directories of the vendorized packages:
 nocasedict_dist_dir := nocasedict-$(nocasedict_version).dist-info

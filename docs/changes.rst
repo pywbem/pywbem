@@ -36,6 +36,11 @@ Released: not yet
 
 * Removed Ubuntu 20.04 from test workflow because retired on Actions.
 
+* Addressed issues with cythonizing.
+
+* Increased vendored version of nocaselist to 1.1.3 to address issues with
+  cythonizing.
+
 **Enhancements:**
 
 * Development&Test: Added Python 3.13 to the test environments on GitHub Actions.
