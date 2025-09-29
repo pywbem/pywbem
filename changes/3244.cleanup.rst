@@ -1,3 +1,0 @@
-Docs: Integrated the descriptions on how to release and start a new version
-into the online documentation and reduced DEVELOP.md to contain a link to the
-corresponding chapter of the online documentation.

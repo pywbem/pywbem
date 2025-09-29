@@ -1,3 +1,0 @@
-Test: Removed the PIP_NO_PYTHON_VERSION_WARNING env var from the test
-workflow, because pip is showing a deprecation warning now, stating that
-it has no effect anymore.
