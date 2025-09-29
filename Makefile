@@ -587,8 +587,8 @@ $(done_dir)/vendor_$(pymn)_$(PACKAGE_LEVEL).done: vendorize.toml Makefile
 	@echo "Makefile: Vendoring nocasedict and nocaselist"
 	bash -c "cd $(vendor_dir); rm -rf *"
 	python-vendorize
-	bash -c "cd $(vendor_dir); cp $(nocasedict_dist_dir)/LICENSE nocasedict/; rm -rf $(nocasedict_dist_dir)"
-	bash -c "cd $(vendor_dir); cp $(nocaselist_dist_dir)/LICENSE nocaselist/; rm -rf $(nocaselist_dist_dir)"
+	bash -c "cd $(vendor_dir) && cp $(nocasedict_dist_dir)/LICENSE nocasedict/ && rm -rf $(nocasedict_dist_dir)"
+	bash -c "cd $(vendor_dir) && cp $(nocaselist_dist_dir)/licenses/LICENSE nocaselist/ && rm -rf $(nocaselist_dist_dir)"
 	@echo "Makefile: Done vendoring nocasedict and nocaselist"
 	echo "done" >$@
 
