@@ -90,7 +90,8 @@ virtualenv==20.26.6; python_version >= '3.12'
 build==0.5.1
 
 # Cythonize
-Cython==3.0.0
+Cython==3.0.0; python_version <= '3.12'
+Cython==3.1.0; python_version >= '3.13'
 
 # Vendorize
 vendorize==0.2.2; python_version == '2.7'
