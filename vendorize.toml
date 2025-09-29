@@ -2,5 +2,5 @@
 target = 'pywbem/_vendor'
 packages = [
     'nocasedict==1.1.2',
-    'nocaselist==1.1.1',
+    'nocaselist==1.1.3',
 ]
