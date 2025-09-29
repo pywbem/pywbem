@@ -44,6 +44,9 @@ Released: not yet
 * Dev: Circumvented safety issue with import of typer module by pinning typer
   to <0.17.0.
 
+* Dev: Increased minimum version of Cython to 3.1.0 on Python >=3.13 to pick
+  up support for Python 3.13.
+
 **Enhancements:**
 
 * Development&Test: Added Python 3.13 to the test environments on GitHub Actions.
