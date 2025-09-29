@@ -20,6 +20,193 @@ Change log
 .. ============================================================================
 
 .. towncrier start
+pywbem 1.8.0
+^^^^^^^^^^^^
+
+Released: 2025-09-29
+
+**Incompatible changes:**
+
+* Removed setup.py and therefore the possibility to run setup.py as a command,
+  for example to install or test pywbem. Running setup.py as a command has been
+  deprecated by Python.
+
+* Removed the support for building, installing and testing a cythonized
+  distribution of pywbem, because of the transition from setup.py to
+  pyproject.toml.
+
+* Removed support for Python 2.7, 3.6, and 3.7. pywbem now requires Python >= 3.8. (`#3145 <https://github.com/pywbem/pywbem/issues/3145>`_)
+
+**Bug fixes:**
+
+* Fixed safety issues up to 2025-08-02.
+
+* Test: Fixed that .coveragerc was omitted from git.
+
+* Development: Fixed new issues reported by Pylint 3.2 and 3.3.
+
+* Development: Excluded Pylint 3.3.0 due to false positive 'no-member on f-string'.
+
+* Test: In test_recorder.py, changed code to avoid a new AssertionError raised
+  by testfixtures 8.3.0.
+
+* Test: Fixed the issue that coveralls was not found in the test workflow on MacOS
+  with Python 3.9-3.11, by running it without login shell.
+
+* Development: Pinned Sphinx to <8.0.0 in order to circumvent autodocsumm error
+  TypeError: "cannot unpack non-iterable ObjectMember object".
+
+* Development: Fixed pydantic install issue on Python 3.13 by excluding
+  safety-schemas version 0.0.7.
+
+* Development: Python 3.13 was pinned to 3.13.0 to work around a pylint issue on
+  Python 3.13.1.
+
+* Development: Circumvented an issue when installing certain versions of pywinpty
+  with latest version of maturin on certain Python versions.
+
+* Development: Removed 'upload' target from Makefile, and dependency to 'twine'
+  package and some of its dependent packages. It is no longer needed since the
+  introduction of the publish.yml GitHub Actions workflow.
+
+* Development: Fix issues with minimum-constraints-develop.txt that were causing
+  failure of make check_reqs because the package Levenshtein required by
+  safety and Sphinx. See PR 3253 for details.
+
+* Development&Test: Added Python 3.13 to the test environments on GitHub Actions.
+  Needed to increase the minimum versions of several Python packages used for
+  development & test.
+
+* Dev: Fixed issue where the package version used for distribution archive file
+  names were generated inconsistently between setuptools_scm (used in Makefile)
+  and the 'build' module, by using no build isolation ('--no-isolation' option
+  of the 'build' module) and increasing the minimum version of 'setuptools-scm'
+  to 9.2.0, which fixes a number of version related issues.
+
+* Dev: Circumvented safety issue with import of typer module by pinning typer
+  to <0.17.0.
+
+* Dev: Made order of names in AUTHORS.md reliable.
+
+* Dev: Fixed error detection when preparing LICENSE files for vendorized packages.
+
+* Dev: Increased version of safety to 3.6.2 to simplify its dependencies.
+
+* Fixed flake8 issues.
+
+* Fixed issue where pywbemlistener that fails startup can cause thread exception. (`#3157 <https://github.com/pywbem/pywbem/issues/3157>`_)
+
+* Development: Increased minimum version of PyYAML to 6.0.2, to fix an install
+  error for Python 3.13 on Windows. (`#3225 <https://github.com/pywbem/pywbem/issues/3225>`_)
+
+* Test: Fixed testing of installed version of pywbem. Added a new make target
+  'testinstalled' that installs pywbem into a virtual environment and then
+  runs a small subset of the unit tests with TEST_INSTALLED=1. Added
+  'make testinstalled' to the test workflow. (`#3265 <https://github.com/pywbem/pywbem/issues/3265>`_)
+
+**Enhancements:**
+
+* Added check for incorrectly named towncrier change fragment files.
+
+* Development: Migrated from setup.py to pyproject.toml since that is the
+  recommended direction for Python packages. The make targets have not changed
+  (with the exception of the make targets 'buildc', 'installc', and 'testc'
+  for a cythonized distribution archive).
+  The content of the wheel and source distribution archives has not changed.
+
+  Some files have been renamed:
+  - minimum-constraints.txt to minimum-constraints-develop.txt
+  - .safety-policy-all.yml to .safety-policy-develop.yml
+
+  The version is now maintained automatically in 'pywbem/_version_scm.py'
+  which is not tracked in git and is created/updated when building the
+  distribution archives.
+
+* Development: The pywbem version during development now uses an automatically
+  calculated dev number and the git commit hash, e.g. '1.8.0a1.dev9+gad875911'.
+  Note that the pywbem version numbers for packages released to Pypi is
+  unchanged: 'M.N.U'.
+  Updated the release description in DEVELOP.md to no longer edit the version
+  file, but to set tags.
+
+* Development: Changed release process to use a GitHub Actions workflow. (`#3128 <https://github.com/pywbem/pywbem/issues/3128>`_)
+
+* Added argument to set maximum limit on WBEMListener indication queue. (`#3168 <https://github.com/pywbem/pywbem/issues/3168>`_)
+
+* Added support for Python 3.13. (`#3225 <https://github.com/pywbem/pywbem/issues/3225>`_)
+
+* Test: Added testing on Python 3.13. Testing on Windows needed to be excluded
+  for that Python version due to an install issue with pywin32. That install
+  issue affects only development and test of pywbem, but not its installation
+  by users. (`#3230 <https://github.com/pywbem/pywbem/issues/3230>`_)
+
+* Development: Migrated to use towncrier for change logs.
+  See docs/development.rst for details and usage. (`#3235 <https://github.com/pywbem/pywbem/issues/3235>`_)
+
+* Test: The files that were in the source archive were not sufficient to build,
+  check and test the project using "make". To enable using "make", the following
+  files have been added to the source distribution archive:
+
+    * done/ directory
+    * tools/ directory
+    * config files for tools (.flake8, etc)
+    * requirements and constraints files
+    * Makefile
+    * tox.ini
+
+  The new set of files in the source distribution archive now allows building,
+  checking and testing the project using "make" from only that archive. (`#3258 <https://github.com/pywbem/pywbem/issues/3258>`_)
+
+* Docs: Added description for installation using "uv". (`#3272 <https://github.com/pywbem/pywbem/issues/3272>`_)
+
+**Cleanup:**
+
+* Test: Added retries for sending coverage data to the coveralls.io site to
+  address issues with the site.
+
+* Test: Omitted pywbem/_vendor subtree from coverage.
+
+* Eliminated a warning about about ambiguity of the package list when building
+  the wheel distribution archive.
+
+* Added '.pytest_cache' and '.ruff_cache' directories to be removed in
+  'make clean'.
+
+* Document the input parameters for the integer cim types (Uint8, etc.)
+  including the use of 'x' as either a keyword or positional input parameter.
+
+* Change the version of OpenPegasus docker image used in end-end tests to
+  match the version in pywbemclitools repository.  This makes some changes
+  to the structure of the docker definitions and results in smaller image.
+
+* Change the startup mode of the listener threads from daemon=True
+  to daemon=False.  This insures that the threads are stopped when the listener
+  is closed or fails. (`#3135 <https://github.com/pywbem/pywbem/issues/3135>`_)
+
+* Increased the minimum versions of the vendored 'nocasedict' and 'nocaselist'
+  packages to 2.0.x in order to get rid of the dependency on the 'six' package.
+  This added a dependency on the 'typing-extensions' package on Python<=3.9. (`#3155 <https://github.com/pywbem/pywbem/issues/3155>`_)
+
+* Excluded 'tests/schema' from the source distribution archive. This is where
+  users can download MOF schema files for testing, and they should not become
+  part of the source distribution archive. Note that the source distribution
+  archives on Pypi never had that directory, but a locally produced
+  source distribution archives had that directory. (`#3177 <https://github.com/pywbem/pywbem/issues/3177>`_)
+
+* Test: Migrated from 'pytz' to 'zoneinfo'/'tzdata' for the tests that use it. (`#3191 <https://github.com/pywbem/pywbem/issues/3191>`_)
+
+* Docs: Reduced INSTALL.md to contain a link to the
+  corresponding chapter of the online documentation. (`#3244 <https://github.com/pywbem/pywbem/issues/3244>`_)
+
+* Docs: Integrated the descriptions on how to release and start a new version
+  into the online documentation and reduced DEVELOP.md to contain a link to the
+  corresponding chapter of the online documentation. (`#3244 <https://github.com/pywbem/pywbem/issues/3244>`_)
+
+* Test: Removed the PIP_NO_PYTHON_VERSION_WARNING env var from the test
+  workflow, because pip is showing a deprecation warning now, stating that
+  it has no effect anymore. (`#3274 <https://github.com/pywbem/pywbem/issues/3274>`_)
+
+
 pywbem 1.7.0
 ------------
 

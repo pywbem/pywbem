@@ -1,1 +1,0 @@
-Docs: Added description for installation using "uv".

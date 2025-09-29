@@ -1,1 +1,0 @@
-Removed support for Python 2.7, 3.6, and 3.7. pywbem now requires Python >= 3.8.
