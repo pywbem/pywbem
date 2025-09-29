@@ -41,6 +41,9 @@ Released: not yet
 * Increased vendored version of nocaselist to 1.1.3 to address issues with
   cythonizing.
 
+* Dev: Circumvented safety issue with import of typer module by pinning typer
+  to <0.17.0.
+
 **Enhancements:**
 
 * Development&Test: Added Python 3.13 to the test environments on GitHub Actions.
