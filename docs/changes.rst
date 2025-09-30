@@ -5,19 +5,15 @@
 Change log
 ==========
 
-.. ifconfig:: '.dev' in version
-
-   This version of the documentation is development version |version| and
-   contains the `master` branch up to this commit:
-
-   .. git_changelog::
-      :revisions: 1
-
 .. ============================================================================
 ..
 .. Do not add change records here directly, but create fragment files instead!
 ..
 .. ============================================================================
+
+.. only:: dev
+
+   .. include:: tmp_changes.rst
 
 .. towncrier start
 pywbem 1.8.0
