@@ -2,10 +2,6 @@
 # For more information see:
 # https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 # https://packaging.python.org/en/latest/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/
-#
-# This workflow uses the following Github secrets:
-# - GITHUB_TOKEN - Your personal Github API token - set automatically - create at https://github.com/settings/tokens
-# - PYPI_API_TOKEN - Your personal Pypi API token - set as repo secret - create at https://pypi.org/manage/account
 
 name: publish
 
@@ -13,19 +9,27 @@ on:
   push:  # When pushing a tag
     tags:
     - "*"
-    - "!*a0"  # Exclude initial tag for a new release stream, see DEVELOP.md
+    - "!*a0"  # Exclude initial tag for a new version
 
 jobs:
   publish:
     name: Build and publish to PyPI
     if: startsWith(github.ref, 'refs/tags')
     runs-on: ubuntu-latest
+    # This workflow uses Pypi trusted publishing, see https://docs.pypi.org/trusted-publishers/
+    # Requirements:
+    # - On the Pypi project, the GitHub repo must be defined as a trusted publisher
+    # - On the GitHub repo, an environment 'pypi' must exist
+    environment: pypi  # For Pypi trusted publishing
+    permissions:
+      id-token: write  # For Pypi trusted publishing
+      contents: write  # For creating GitHub release
     steps:
 
     #-------- Info gathering and checks
     - name: Set pushed tag
       id: set-tag
-      uses: actions/github-script@v6
+      uses: actions/github-script@v8
       with:
         result-encoding: string
         script: |
@@ -42,7 +46,7 @@ jobs:
         fi
     - name: Determine whether releasing the master branch
       id: set-is-master-branch
-      uses: actions/github-script@v6
+      uses: actions/github-script@v8
       with:
         result-encoding: string
         script: |
@@ -58,7 +62,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Determine name of stable branch for pushed tag
       id: set-stable-branch
-      uses: actions/github-script@v6
+      uses: actions/github-script@v8
       with:
         result-encoding: string
         script: |
@@ -67,7 +71,7 @@ jobs:
           return result
     - name: Determine whether releasing stable branch for pushed tag
       id: set-is-stable-branch
-      uses: actions/github-script@v6
+      uses: actions/github-script@v8
       with:
         result-encoding: string
         script: |
@@ -96,7 +100,7 @@ jobs:
         fi
     - name: Set update version
       id: set-update-version
-      uses: actions/github-script@v6
+      uses: actions/github-script@v8
       with:
         result-encoding: string
         script: |
@@ -120,16 +124,21 @@ jobs:
 
     #-------- Setup of work environment
     - name: Checkout repo
-      uses: actions/checkout@v2
+      uses: actions/checkout@v5
       with:
+        # fetch-depth 0 checks out all history for all branches and tags.
+        # This is needed to get the authors from git.
         fetch-depth: 0
-    - name: Set up Python 3.12
-      uses: actions/setup-python@v3
+    - name: Set up Python
+      uses: actions/setup-python@v6
       with:
-        python-version: "3.12"
+        python-version: "3.13"
     - name: Development setup
       run: |
         make develop
+    - name: Display Python packages
+      run: |
+        pip list
 
     #-------- Publishing of package
     - name: Build the distribution
@@ -138,18 +147,12 @@ jobs:
     - name: Display the distribution directory
       run: |
         ls -l dist
-    # - name: Publish distribution to TestPyPI
-    #   uses: pypa/gh-action-pypi-publish@release/v1
-    #   with:
-    #     packages_dir: dist
-    #     password: ${{ secrets.TEST_PYPI_API_TOKEN }}
-    #     repository_url: https://test.pypi.org/legacy/
     - name: Publish distribution to PyPI
       if: startsWith(github.ref, 'refs/tags')
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         packages_dir: dist
-        password: ${{ secrets.PYPI_API_TOKEN }}
+        # Pypi trusted publishing requires to have no password
 
     #-------- Creation of Github release
     - name: Determine whether release on Github exists for the pushed tag
@@ -172,12 +175,13 @@ jobs:
         INPUT_BODY: "Change log https://pywbem.readthedocs.io/en/${{ steps.set-tag.outputs.result }}/changes.html"
 
     #-------- Creation of stable branch
-    # Note: This requires that in the branch protection rules for stable_*,
-    #       the "Restrict pushes that create matching branches" checkmark is
-    #       not set.
+    # Note: This does not seem to depend on the disablement of the "Restrict pushes
+    # that create matching branches" setting in the branch protection rules for stable_*.
+    # It is possible that this fails with HTTP 422, for unknown reasons.
     - name: Create new stable branch when releasing master branch
       if: steps.set-is-master-branch.outputs.result == 'true'
-      uses: actions/github-script@v6
+      id: create-stable-branch
+      uses: actions/github-script@v8
       with:
         script: |
           github.rest.git.createRef({
@@ -188,3 +192,32 @@ jobs:
           })
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      continue-on-error: true
+    - name: Wait some time if HTTP error 422
+      if: steps.set-is-master-branch.outputs.result == 'true' && steps.create-stable-branch.outputs.status == 422
+      run: |
+        sleep 10
+    - name: Retry create new stable branch when releasing master branch if HTTP error 422
+      if: steps.set-is-master-branch.outputs.result == 'true' && steps.create-stable-branch.outputs.status == 422
+      id: create-stable-branch-2
+      uses: actions/github-script@v8
+      with:
+        script: |
+          github.rest.git.createRef({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            ref: "refs/heads/${{ steps.set-stable-branch.outputs.result }}",
+            sha: "${{ github.sha }}",
+          })
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      continue-on-error: true
+    - name: Handle HTTP error 422 from creating the new stable branch
+      if: steps.set-is-master-branch.outputs.result == 'true' && steps.create-stable-branch-2.outputs.status == 422
+      run: |
+        echo "Error: Creating the new stable branch ${{ steps.set-stable-branch.outputs.result }} failed twice, but the publish still succeeded. Create the new stable branch manually:"
+        echo "git checkout master"
+        echo "git pull"
+        echo "git checkout -b ${{ steps.set-stable-branch.outputs.result }}"
+        echo "git push --set-upstream origin ${{ steps.set-stable-branch.outputs.result }}"
+        false
