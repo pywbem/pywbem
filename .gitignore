@@ -11,6 +11,7 @@
 *.log
 *.tmp
 tmp.*
+tmp_*
 *~
 .*~
 pywbem.egg-info
