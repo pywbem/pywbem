@@ -590,6 +590,8 @@ nitpick_ignore = [
     ("py:obj", r'pywbem.ModelError.conn_str'),
     ("py:obj", r'pywbem.Error.add_note'),
     ("py:obj", r'pywbem.Error.with_traceback'),
+    ("py:obj", r'pywbem.ListenerQueueFullError.add_note'),
+    ("py:obj", r'pywbem.ListenerQueueFullError.with_traceback'),
     ("py:obj", r'pywbem._logging.DEFAULT_LOG_FILENAME'),
     ("py:func", r'nocasedict.KeyableByMixin'),
     ("py:obj", r'pywbem.CIMInstanceName.__ne__'),
