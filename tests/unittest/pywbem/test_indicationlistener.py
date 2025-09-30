@@ -628,7 +628,7 @@ def create_indication_data(msg_id, sequence_number, delta_time, protocol_ver):
 
 # Verbosity in test_WBEMListener_send_indications(). If True show summary
 # information for each test
-VERBOSE_SUMMARY = True
+VERBOSE_SUMMARY = False
 
 # Global variables used to communicate between the test case function and
 # the process_indication_callback() function running in context of the listener
@@ -919,24 +919,28 @@ def test_WBEMListener_send_indications(
         queue_empty_retries = max((send_count * 5), 30)
 
         # Wait loop to allow receive queue to empty.
+        empty = False
         for i in range(queue_empty_retries):
             sleep(0.2)   # sleep 200 ms to allow callbacks to execute
+            if listener.ind_queue_exists():
+                qsize = listener.queue_size()
+                empty = listener.ind_delivery_queue_empty()
+            else:
+                qsize = None
+                empty = None
             LOGGER.debug(
-                "Waiting for empty queue. qsize=%s empty=%s retries=%s",
-                listener.ind_delivery_queue.qsize(),
-                listener.ind_delivery_queue_empty(),
-                i)
-            if listener.ind_delivery_queue_empty():
+                "Waiting for empty or deinitialized queue: qsize=%s empty=%s "
+                "retries=%s", qsize, empty, i)
+            if empty is None or empty is True:
                 LOGGER.debug("Break from wait loop.")
                 break
 
             LOGGER.debug("Waiting, %s still in queue.",
                          listener.ind_delivery_queue.qsize())
 
-        assert listener.ind_delivery_queue_empty(), \
+        assert empty is None or empty is True, \
             f"Test failed in wait for indications loop. rcv_count=" \
-            f"{RCV_COUNT} still in queue=" \
-            f"{listener.ind_delivery_queue()}"
+            f"{RCV_COUNT} still in queue={qsize}"
 
         # Test for receive error, and correct receive count
         # Ignore rcvd count asserts if exp_success is False.
@@ -1532,6 +1536,7 @@ THREAD_INIT_TESTCASES = [
         ),
         dict(
             name=(str, 'foo'),
+            exception=(NoneType, None),
             stop_event=(threading.Event, NOCHECK_VALUE),
         )
     ),
@@ -1681,6 +1686,7 @@ class ExcHdlThreadFuncHolder:
     [
         ExceptionHandlingThread,
         ServerThread,  # derived from ExceptionHandlingThread
+        CallbackThread,  # derived from ExceptionHandlingThread
     ]
 )
 def test_thread_exchdl(thread_class, exc):

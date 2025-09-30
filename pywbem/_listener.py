@@ -830,7 +830,7 @@ class ServerThread(ExceptionHandlingThread):
     pass
 
 
-class CallbackThread(StoppableThread):
+class CallbackThread(StoppableThread, ExceptionHandlingThread):
     """
     Thread class to be used for the indication callback thread.
     """
@@ -1149,6 +1149,13 @@ class WBEMListener:
         """
         return self._max_ind_queue_size
 
+    def ind_queue_exists(self):
+        """
+        Return boolean True if the indication queue exists. Otherwise return
+        False.
+        """
+        return self.ind_delivery_queue is not None
+
     def ind_delivery_queue_empty(self):
         """
         Return boolean True if the indication queue is empty. Otherwise return
@@ -1195,6 +1202,9 @@ class WBEMListener:
         is invalid, or if the private key file or certificate file are invalid,
         :exc:`pywbem.ListenerCertificateError` is raised.
 
+        If an exception is raised after the callback thread has been started,
+        the callback thread is cleaned up again.
+
         Raises:
 
           :exc:`pywbem.ListenerCertificateError`: Error with the certificate
@@ -1228,139 +1238,157 @@ class WBEMListener:
         self.logger.info("Callback thread started max_queue=%s",
                          self._max_ind_queue_size)
 
-        if self._http_port:
-            if not self._http_server:
-                self.logger.info("Starting threaded HTTP server on port %s",
-                                 self._http_port)
-                try:
-                    server = ThreadedHTTPServer((self._host, self._http_port),
-                                                ListenerRequestHandler)
-                except OSError as exc:
-                    self.stop_indication_delivery()
-                    # Linux/macOS on py2: socket.error (derived from IOError);
-                    # Linux/macOS on py3: OSError;
-                    # Windows does not raise any exception if port is used
-                    if getattr(exc, 'errno', None) == errno.EADDRINUSE:
-                        new_exc = ListenerPortError(
-                            f"WBEM listener port {self._http_port} is already "
-                            "in use")
-                        new_exc.__cause__ = None
-                        raise new_exc  # ListenerPortError
-                    raise
-
-                # pylint: disable=attribute-defined-outside-init
-                server.listener = self
-                thread = ServerThread(target=server.serve_forever,
-                                      name='http',
-                                      daemon=False)
-                # Insure thread is stopped on main thread exit
-                self._http_server = server
-                self._http_thread = thread
-                thread.start()
-
-                self.logger.info("Started threaded HTTP server on port %s",
-                                 self._http_port)
-
-        else:
-            # Just in case someone changed self._http_port after init...
-            self._http_server = None
-            self._http_thread = None
-
-        if self._https_port:
-            if not self._https_server:
-
-                self.logger.info("Starting threaded HTTPS server on port %s",
-                                 self._https_port)
-
-                try:
-                    server = ThreadedHTTPServer((self._host, self._https_port),
-                                                ListenerRequestHandler)
-                except OSError as exc:
-                    self.stop_indication_delivery()
-                    # Linux/macOS on py2: socket.error (derived from IOError);
-                    # Linux/macOS on py3: OSError;
-                    # Windows does not raise any exception if port is used
-                    if getattr(exc, 'errno', None) == errno.EADDRINUSE:
-                        new_exc = ListenerPortError(
-                            f"WBEM listener port {self._https_port} is "
-                            "already in use")
-                        new_exc.__cause__ = None
-                        raise new_exc  # ListenerPortError
-                    raise
-
-                # pylint: disable=attribute-defined-outside-init
-                server.listener = self
-
-                try:
+        try:
+            if self._http_port:
+                if not self._http_server:
+                    self.logger.info("Creating threaded HTTP server on port %s",
+                                     self._http_port)
                     try:
-                        # PROTOCOL_TLS was introduced in Py 2.7.13
-                        ssl_protocol = ssl.PROTOCOL_TLS
-                    except AttributeError:
-                        # Alias for PROTOCOL_TLS and deprecated in Py 2.7.13
-                        ssl_protocol = ssl.PROTOCOL_SSLv23
-                    # SSLContext was introduced in Python 2.7.9
-                    ctx = ssl.SSLContext(ssl_protocol)
-                    ctx.options |= ssl.OP_NO_SSLv2
-                    ctx.options |= ssl.OP_NO_SSLv3
+                        server = ThreadedHTTPServer(
+                            (self._host, self._http_port),
+                            ListenerRequestHandler)
+                    except OSError as exc:
+                        self.logger.error(
+                            "Creation of threaded HTTP server failed: %s: %s",
+                            exc.__class__.__name__, exc)
+                        self.stop_indication_delivery()
+                        # Linux/macOS on py2: socket.error (derived from
+                        # IOError);
+                        # Linux/macOS on py3: OSError;
+                        # Windows does not raise any exception if port is used
+                        if getattr(exc, 'errno', None) == errno.EADDRINUSE:
+                            new_exc = ListenerPortError(
+                                f"WBEM listener port {self._http_port} is "
+                                "already in use")
+                            new_exc.__cause__ = None
+                            raise new_exc  # ListenerPortError
+                        raise
 
-                    def password_prompt():
-                        return keyfile_password_prompt(self._keyfile)
+                    # pylint: disable=attribute-defined-outside-init
+                    server.listener = self
+                    thread = ServerThread(target=server.serve_forever,
+                                          name='http',
+                                          daemon=False)
+                    # Insure thread is stopped on main thread exit
+                    self._http_server = server
+                    self._http_thread = thread
+                    thread.start()
+
+                    self.logger.info("Started threaded HTTP server on port %s",
+                                     self._http_port)
+
+            else:
+                # Just in case someone changed self._http_port after init...
+                self._http_server = None
+                self._http_thread = None
+
+            if self._https_port:
+                if not self._https_server:
+
+                    self.logger.info("Creating threaded HTTPS server on "
+                                     "port %s", self._https_port)
+                    try:
+                        server = ThreadedHTTPServer(
+                            (self._host, self._https_port),
+                            ListenerRequestHandler)
+                    except OSError as exc:
+                        self.logger.error(
+                            "Creation of threaded HTTPS server failed: %s: %s",
+                            exc.__class__.__name__, exc)
+                        self.stop_indication_delivery()
+                        # Linux/macOS on py2: socket.error (derived from
+                        # IOError);
+                        # Linux/macOS on py3: OSError;
+                        # Windows does not raise any exception if port is used
+                        if getattr(exc, 'errno', None) == errno.EADDRINUSE:
+                            new_exc = ListenerPortError(
+                                f"WBEM listener port {self._https_port} is "
+                                "already in use")
+                            new_exc.__cause__ = None
+                            raise new_exc  # ListenerPortError
+                        raise
+
+                    # pylint: disable=attribute-defined-outside-init
+                    server.listener = self
 
                     try:
-                        ctx.load_cert_chain(
-                            certfile=self._certfile,
-                            keyfile=self._keyfile,
-                            password=password_prompt)
-                    except ssl.SSLError as exc:
-                        # On Python 3, exc.errno is EBADF, but on Python 2 it
-                        # is a number 336265225 that seems to occur for other
-                        # people too but is not understood. Therefore, we do
-                        # not check for errno here.
-                        if exc.library == 'SSL' and 'PEM lib' in str(exc):
+                        try:
+                            # PROTOCOL_TLS was introduced in Py 2.7.13
+                            ssl_protocol = ssl.PROTOCOL_TLS
+                        except AttributeError:
+                            # Alias for PROTOCOL_TLS and deprecated in Py 2.7.13
+                            ssl_protocol = ssl.PROTOCOL_SSLv23
+                        # SSLContext was introduced in Python 2.7.9
+                        ctx = ssl.SSLContext(ssl_protocol)
+                        ctx.options |= ssl.OP_NO_SSLv2
+                        ctx.options |= ssl.OP_NO_SSLv3
+
+                        def password_prompt():
+                            return keyfile_password_prompt(self._keyfile)
+
+                        try:
+                            ctx.load_cert_chain(
+                                certfile=self._certfile,
+                                keyfile=self._keyfile,
+                                password=password_prompt)
+                        except ssl.SSLError as exc:
+                            # On Python 3, exc.errno is EBADF, but on Python 2
+                            # it is a number 336265225 that seems to occur for
+                            # other people too but is not understood. Therefore,
+                            # we do not check for errno here.
+                            if exc.library == 'SSL' and 'PEM lib' in str(exc):
+                                new_exc = ListenerCertificateError(
+                                    "Invalid password for key file, bad key "
+                                    "file, or bad certificate file. Original "
+                                    f"error: {exc}")
+                                new_exc.__cause__ = None
+                                raise new_exc  # ListenerCertificateError
                             new_exc = ListenerCertificateError(
-                                "Invalid password for key file, bad key file, "
-                                "or bad certificate file. Original error: "
+                                "SSL error when loading the certificate chain: "
+                                f"errno={exc.errno}, library={exc.library}: "
                                 f"{exc}")
                             new_exc.__cause__ = None
                             raise new_exc  # ListenerCertificateError
-                        new_exc = ListenerCertificateError(
-                            "SSL error when loading the certificate chain: "
-                            f"errno={exc.errno}, library={exc.library}: {exc}")
-                        new_exc.__cause__ = None
-                        raise new_exc  # ListenerCertificateError
-                    except OSError as exc:
-                        fn = _cert_key_file(self._certfile, self._keyfile)
-                        new_exc = ListenerCertificateError(
-                            f"Issue opening {fn}: {exc}")
-                        new_exc.__cause__ = None
-                        raise new_exc  # ListenerCertificateError
-                    server.socket = ctx.wrap_socket(
-                        server.socket,
-                        server_side=True)
-                except AttributeError:
-                    # Fall back to deprecated ssl.wrap_socket() before Py 2.7.9
-                    # pylint: disable=deprecated-method
-                    server.socket = ssl.wrap_socket(
-                        server.socket,
-                        certfile=self._certfile,
-                        keyfile=self._keyfile,
-                        server_side=True)
+                        except OSError as exc:
+                            fn = _cert_key_file(self._certfile, self._keyfile)
+                            new_exc = ListenerCertificateError(
+                                f"Issue opening {fn}: {exc}")
+                            new_exc.__cause__ = None
+                            raise new_exc  # ListenerCertificateError
+                        server.socket = ctx.wrap_socket(
+                            server.socket,
+                            server_side=True)
+                    except AttributeError:
+                        # Fall back to deprecated ssl.wrap_socket() before
+                        # Py 2.7.9
+                        # pylint: disable=deprecated-method
+                        server.socket = ssl.wrap_socket(
+                            server.socket,
+                            certfile=self._certfile,
+                            keyfile=self._keyfile,
+                            server_side=True)
 
-                thread = ServerThread(target=server.serve_forever,
-                                      name="https",
-                                      daemon=False)
+                    thread = ServerThread(target=server.serve_forever,
+                                          name="https",
+                                          daemon=False)
 
-                self._https_server = server
-                self._https_thread = thread
-                thread.start()
+                    self._https_server = server
+                    self._https_thread = thread
+                    thread.start()
 
-                self.logger.info("Started threaded HTTPS server on port %s",
-                                 self._https_port)
+                    self.logger.info("Started threaded HTTPS server on port %s",
+                                     self._https_port)
 
-        else:
-            # Just in case someone changed self._https_port after init...
-            self._https_server = None
-            self._https_thread = None
+            else:
+                # Just in case someone changed self._https_port after init...
+                self._https_server = None
+                self._https_thread = None
+
+        except Exception as exc:  # pylint: disable=broad-exception-caught
+            self.logger.error("Cleaning up callback thread due to exception "
+                              "%s: %s", exc.__class__.__name__, exc)
+            self.stop_indication_delivery(immediate=True)
+            raise
 
     def stop(self):
         """
@@ -1372,41 +1400,47 @@ class WBEMListener:
 
     def stop_indication_delivery(self, immediate=False):
         """
-        Stop the indication delivery thread and the queue and handle indications
-        in the queue.
+        Stop the indication delivery thread and clear the indication delivery
+        queue.
 
         If immediate is True, indications are cleared from the queue without
-        calling the callbacks.
+        waiting for the callback thread to get them.
 
-        If immdeiate is False, (default) indications are forwarded to the
+        If immediate is False (default), indications are forwarded to the
         callback until the queue is empty before stopping delivery.
         """
-        # Callback thread could already be stopped by FullQueue exception.
-        if not self.callback_thread:
-            return
-        assert self.ind_delivery_queue
-        if not immediate:
-            # Wait for queue to empty through callbacks
-            while not self.ind_delivery_queue.empty():
-                self.logger.debug("Wait for delivery queue to empty")
-                sleep(0.1)
-        else:
-            # clear the queue immediately
-            clr_count = 0
-            while not self.ind_delivery_queue.empty():
-                self.ind_delivery_queue.get(block=False, timeout=0)
-                clr_count += 1
-                self.ind_delivery_queue.task_done()
+        if self.ind_delivery_queue:
+            if not immediate:
+                # Wait for queue to empty through callbacks
+                qsize = self.ind_delivery_queue.qsize()
+                self.logger.info(
+                    "Waiting for indication delivery queue to be empty "
+                    "(currently %d items)", qsize)
+                while not self.ind_delivery_queue.empty():
+                    sleep(0.1)
+                self.logger.info(
+                    "Indication delivery queue is now empty")
+            else:
+                # Clear the queue immediately
+                self.logger.info(
+                    "Discarding indications from indication delivery queue")
+                clr_count = 0
+                while not self.ind_delivery_queue.empty():
+                    self.ind_delivery_queue.get(block=False, timeout=0)
+                    clr_count += 1
+                    self.ind_delivery_queue.task_done()
+                self.logger.info(
+                    "%s indications discarded from indication delivery queue",
+                    clr_count)
+            self.ind_delivery_queue = None
 
-            self.logger.debug(
-                "%s indications discarded from queue", clr_count)
-
-        self.logger.info("Stopping callback thread and queue")
-        self.callback_thread.stop()
-        self.callback_thread.join()
-        self.callback_thread = None
-        self.ind_delivery_queue = None
-        self.logger.info("Joined callback thread")
+        # Callback thread could already be stopped by ListenerQueueFullError.
+        if self.callback_thread:
+            self.logger.info("Stopping callback thread")
+            self.callback_thread.stop()
+            self.callback_thread.join()
+            self.logger.info("Callback thread is now stopped")
+            self.callback_thread = None
 
     def stop_servers(self):
         """
@@ -1486,6 +1520,12 @@ class WBEMListener:
         indication receive thread because this function does not return.
 
         """
+        if self.ind_delivery_queue is None:
+            self.logger.debug(
+                "handle_indication: Indication delivery queue not set up - "
+                "ignoring indication")
+            return
+
         try:
             self.logger.debug("handle_indication: Putting received indication "
                               "to indication delivery queue")
