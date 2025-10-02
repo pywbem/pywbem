@@ -148,15 +148,6 @@ There are multiple types of tests in pywbem:
    Test execution can be modified by a number of environment variables, as
    documented in the make help (execute `make help`).
 
-   An alternative that does not depend on the makefile and thus can be executed
-   from the source distribution archive, is:
-
-   .. code-block:: bash
-
-       $ ./setup.py test
-
-   Options for pytest can be passed using the ``--pytest-options`` option.
-
 2. End2end tests
 
    These tests are run against one or more WBEM servers, and the tests validate
@@ -176,14 +167,6 @@ There are multiple types of tests in pywbem:
 
    Again, test execution can be modified by a number of environment variables,
    as documented in the make help (execute `make help`).
-
-   An alternative that does not depend on the makefile, is:
-
-   .. code-block:: bash
-
-       $ ./setup.py end2endtest
-
-   Options for pytest can be passed using the ``--pytest-options`` option.
 
 3. Manual tests
 
@@ -253,27 +236,8 @@ particular version of pywbem into the current directory and unpack it:
 
 .. code-block:: bash
 
-    $ pip download --no-deps --no-binary :all: pywbem==1.0.0
-    $ tar -xf pywbem-1.0.0.tar.gz
-    $ cd pywbem-1.0.0
-    $ ls -1
-    -rw-r--r--   1 maiera  staff    468 Jun 29 22:31 INSTALL.md
-    -rw-r--r--   1 maiera  staff  26436 May 26 06:45 LICENSE.txt
-    -rw-r--r--   1 maiera  staff    367 Jul  3 07:54 MANIFEST.in
-    -rw-r--r--   1 maiera  staff   3451 Jul  3 07:55 PKG-INFO
-    -rw-r--r--   1 maiera  staff   7665 Jul  2 23:20 README.md
-    -rw-r--r--   1 maiera  staff   1624 Jul  2 23:20 README_PYPI.md
-    -rwxr-xr-x   1 maiera  staff   2881 Jun 29 22:31 build_moftab.py
-    -rwxr-xr-x   1 maiera  staff  13850 Jun 29 22:31 mof_compiler
-    -rw-r--r--   1 maiera  staff    105 May 26 06:45 mof_compiler.bat
-    drwxr-xr-x  29 maiera  staff    928 Jul  3 07:55 pywbem
-    drwxr-xr-x   8 maiera  staff    256 Jul  3 07:55 pywbem.egg-info
-    drwxr-xr-x  18 maiera  staff    576 Jul  3 07:55 pywbem_mock
-    -rw-r--r--   1 maiera  staff   1067 Jun 29 22:31 requirements.txt
-    -rw-r--r--   1 maiera  staff     38 Jul  3 07:55 setup.cfg
-    -rwxr-xr-x   1 maiera  staff   7555 Jul  3 07:24 setup.py
-    -rw-r--r--   1 maiera  staff   2337 Jul  2 23:20 test-requirements.txt
-    drwxr-xr-x  15 maiera  staff    480 Jul  3 07:55 tests
+    $ pip download --no-deps --no-binary :all: pywbem==1.8.0
+    $ tar -xf pywbem-1.8.0.tar.gz
 
 Pywbem, its dependent packages, and packages needed for testing pywbem can be
 installed with the package extra named "test":
@@ -286,45 +250,6 @@ When testing pywbem installations in Linux distributions that include pywbem as
 an OS-level package, the corresponding OS-level packages would instead be
 installed for these dependent Python packages. The ``test-requirements.txt``
 file shows which dependent Python packages are needed for testing pywbem.
-
-Finally, the tests can be run using the ``setup.py`` script:
-
-.. code-block:: bash
-
-    $ ./setup.py test
-    $ ./setup.py leaktest
-    $ ./setup.py end2endtest
-
-These commands are listed in the help of the ``setup.py`` script:
-
-.. code-block:: bash
-
-    $ ./setup.py --help-commands
-    . . .
-    Extra commands:
-      . . .
-      test              pywbem: Run unit and function tests using pytest
-      leaktest          pywbem: Run leak tests using pytest
-      end2endtest       pywbem: Run end2end tests using pytest
-      . . .
-
-The additional options supported by these commands are shown in their help:
-
-.. code-block:: bash
-
-    $ ./setup.py test --help
-    . . .
-    Options for 'test' command:
-      --pytest-options  additional options for pytest, as one argument
-    . . .
-
-Note: The ``test`` command of ``setup.py`` is not the deprecated built-in
-command (see `<https://github.com/pypa/setuptools/issues/1684>`_), but has been
-implemented in ``setup.py`` in such a way that it only runs the tests but
-does not install anything upfront. The ``leaktest`` and
-``end2endtest`` commands have been implemented in the same way. Therefore, this
-approach can be used for testing pywbem installations from OS-level packages
-in Linux distributions that include pywbem.
 
 
 .. _`Testing installed versions of pywbem`:
