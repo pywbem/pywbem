@@ -527,13 +527,15 @@ def test_WBEMListener_start_stop():
     assert listener.http_started is False
     assert listener.https_started is False
 
-    listener.start()
-    assert listener.http_started is True
-    assert listener.https_started is False
+    try:
+        listener.start()
+        assert listener.http_started is True
+        assert listener.https_started is False
 
-    listener.stop()
-    assert listener.http_started is False
-    assert listener.https_started is False
+    finally:
+        listener.stop()
+        assert listener.http_started is False
+        assert listener.https_started is False
 
 
 def test_WBEMListener_port_in_use():
@@ -550,29 +552,30 @@ def test_WBEMListener_port_in_use():
     exp_exc_type = ListenerPortError
 
     listener1 = WBEMListener(host, http_port)
-    listener1.start()
-    assert listener1.http_started is True
-
     listener2 = WBEMListener(host, http_port)
 
     try:
+        listener1.start()
+        assert listener1.http_started is True
 
-        # The code to be tested
-        listener2.start()
+        try:
+            # The code to be tested
+            listener2.start()
 
-    except Exception as exc:  # pylint: disable=broad-except
-        # e.g. on Linux
-        assert isinstance(exc, exp_exc_type)
-        assert listener2.http_started is False
-    else:
-        # e.g. on Windows
-        assert listener2.http_started is True
+        except Exception as exc:  # pylint: disable=broad-except
+            # e.g. on Linux
+            assert isinstance(exc, exp_exc_type)
+            assert listener2.http_started is False
+        else:
+            # e.g. on Windows
+            assert listener2.http_started is True
 
-    # Verify that in any case, listener1 is still started
-    assert listener1.http_started is True
+        # Verify that in any case, listener1 is still started
+        assert listener1.http_started is True
 
-    listener1.stop()  # cleanup
-    listener2.stop()  # cleanup (for cases where it started)
+    finally:
+        listener1.stop()
+        listener2.stop()
 
 
 def test_WBEMListener_context_mgr():
@@ -600,9 +603,11 @@ def test_WBEMListener_context_mgr():
 
     # Verify that the TCP/IP port can be used again
     listener2 = WBEMListener(host, http_port)
-    listener2.start()
-    assert listener2.http_started is True
-    listener2.stop()
+    try:
+        listener2.start()
+        assert listener2.http_started is True
+    finally:
+        listener2.stop()
 
 
 def create_indication_data(msg_id, sequence_number, delta_time, protocol_ver):
@@ -1031,10 +1036,10 @@ def test_WBEMListener_incorrect_method(method, exp_status):
     }
 
     listener = WBEMListener(host, http_port)
-    listener.add_callback(process_indication_callback)
-    listener.start()
 
     try:
+        listener.add_callback(process_indication_callback)
+        listener.start()
 
         # The code to be tested is running in listener thread
         response = requests.request(method, url, headers=headers, timeout=4)
@@ -1147,10 +1152,10 @@ def test_WBEMListener_incorrect_headers(desc, headers, exp_status, exp_headers):
     # headers = copy(headers)
 
     listener = WBEMListener(host, http_port)
-    listener.add_callback(process_indication_callback)
-    listener.start()
 
     try:
+        listener.add_callback(process_indication_callback)
+        listener.start()
 
         # The code to be tested is running in listener thread
         response = post_bsl(url, headers=headers, data=None)
@@ -1307,10 +1312,10 @@ def test_WBEMListener_incorrect_payload1(
     }
 
     listener = WBEMListener(host, http_port)
-    listener.add_callback(process_indication_callback)
-    listener.start()
 
     try:
+        listener.add_callback(process_indication_callback)
+        listener.start()
 
         # The code to be tested is running in listener thread
         response = post_bsl(url, headers=headers, data=payload)
@@ -1472,10 +1477,10 @@ def test_WBEMListener_incorrect_payload2(
     }
 
     listener = WBEMListener(host, http_port)
-    listener.add_callback(process_indication_callback)
-    listener.start()
 
     try:
+        listener.add_callback(process_indication_callback)
+        listener.start()
 
         # The code to be tested is running in listener thread
         response = post_bsl(url, headers=headers, data=payload)
