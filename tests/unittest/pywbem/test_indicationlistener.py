@@ -14,10 +14,12 @@ from random import randint
 import requests
 import pytest
 
-# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
-from ...utils import import_installed, post_bsl
+from ...utils import post_bsl
 from ...elapsed_timer import ElapsedTimer
 from ..utils.pytest_extensions import simplified_test_function
+
+# pylint: disable=wrong-import-position, wrong-import-order, invalid-name
+from ...utils import import_installed
 pywbem = import_installed('pywbem')
 from pywbem import WBEMListener, ListenerPortError, \
     ListenerQueueFullError   # noqa: E402
@@ -758,7 +760,7 @@ WBEMLISTENER_SEND_INDICATIONS_TESTCASES = [
         None, None, OK
     ),
     (
-        " Test queue full. Send 5 indications but fail at number 2",
+        "Test queue full. Send 5 indications but fail at number 2",
         {
             'send_count': 5,
             'max_queue': 2,
@@ -769,7 +771,7 @@ WBEMLISTENER_SEND_INDICATIONS_TESTCASES = [
         None, None, OK
     ),
     (
-        " Test queue full. Send 100 indications Full = 200, no fail",
+        "Test queue full. Send 100 indications Full = 200, no fail",
         {
             'send_count': 100,
             'max_queue': 190,
@@ -780,7 +782,7 @@ WBEMLISTENER_SEND_INDICATIONS_TESTCASES = [
         None, None, OK
     ),
     (
-        " Test queue full. Send 5 indications full=6. No fail",
+        "Test queue full. Send 5 indications full=6. No fail",
         {
             'send_count': 5,
             'max_queue': 6,
@@ -791,7 +793,7 @@ WBEMLISTENER_SEND_INDICATIONS_TESTCASES = [
         None, None, OK
     ),
     (
-        " Test queue full. Send 100 indications, full = 90 but fail at 90",
+        "Test queue full. Send 100 indications, full = 90 but fail at 90",
         {
             'send_count': 100,
             'max_queue': 90,
@@ -879,33 +881,31 @@ def test_WBEMListener_send_indications(testcase, send_count, max_queue,
 
         RCV_COUNT = 0
         RCV_ERRORS = False
-        LOGGER.debug(
-            "Testcase %s. Sending %s indications", testcase.desc, send_count)
+        LOGGER.debug("Sending %s indications", send_count)
         for i in range(send_count):
 
             if stop_indication_sender:
                 LOGGER.debug(
-                    "Testcase stop sending indications at number %s", i)
+                    "Will stop sending sending indications at number %s", i)
                 break
 
             msg_id = random_base + i
             payload = create_indication_data(msg_id, i, delta_time,
                                              cim_protocol_version)
 
-            LOGGER.debug("Testcase sending indication number %s", i)
+            LOGGER.debug("Sending indication number %s", i)
 
             try:
                 response = post_bsl(url, headers=headers, data=payload)
             except requests.exceptions.RequestException as exc:
-                msg = (f"Testcase sending indication {i} "
+                msg = (f"Sending indication {i} "
                        f"raised {exc.__class__.__name__}: {exc}")
                 LOGGER.error(msg)
                 # If testing for fail with max_queue, stop sending if
                 # exception from sender and do not execute AssertionError
                 if max_queue and i >= max_queue:
-                    LOGGER.debug("Stop msg sending. Send exception max_"
-                                 "max_queue_size = %s  indication number %s",
-                                 max_queue, i)
+                    LOGGER.debug("Stop sending indications at number %s: "
+                                 "max_queue_size=%s", i, max_queue)
                     break
 
                 new_exec = AssertionError(msg)
@@ -917,7 +917,7 @@ def test_WBEMListener_send_indications(testcase, send_count, max_queue,
                 "Received response from sending indication number %s", i)
 
             if response.status_code != 200:
-                msg = (f"Testcase sending indication {i} failed with HTTP "
+                msg = (f"Sending indication {i} failed with HTTP "
                        f"status {response.status_code}")
                 LOGGER.error(msg)
                 # Ignore error if testing for queue full error
@@ -939,7 +939,7 @@ def test_WBEMListener_send_indications(testcase, send_count, max_queue,
         for i in range(queue_empty_retries):
             sleep(0.2)   # sleep 200 ms to allow callbacks to execute
             LOGGER.debug(
-                "wait for empty queue. qsize=%s empty=%s retries=%s",
+                "Waiting for empty queue. qsize=%s empty=%s retries=%s",
                 listener.ind_delivery_queue.qsize(),
                 listener.ind_delivery_queue_empty(),
                 i)
