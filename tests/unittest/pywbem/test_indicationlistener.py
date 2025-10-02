@@ -10,7 +10,11 @@ import logging
 import threading
 from time import time, sleep
 from random import randint
-
+try:
+    from types import NoneType
+except ImportError:
+    # On Python <= 3.9
+    NoneType = type(None)
 import requests
 import pytest
 
@@ -20,7 +24,9 @@ from ...elapsed_timer import ElapsedTimer
 from ..utils.pytest_extensions import simplified_test_function
 pywbem = import_installed('pywbem')
 from pywbem import WBEMListener, ListenerPortError, \
-    ListenerQueueFullError   # noqa: E402
+    ListenerQueueFullError  # noqa: E402
+from pywbem._listener import ExceptionHandlingThread, StoppableThread, \
+    ServerThread, CallbackThread  # noqa: E402
 from pywbem._utils import _format  # noqa: E402
 # pylint: enable=wrong-import-position, wrong-import-order, invalid-name
 
@@ -1495,3 +1501,266 @@ def test_WBEMListener_incorrect_payload2(
 
     finally:
         listener.stop()
+
+
+# Attribute value in testcase definition indicating not to compare the value
+NOCHECK_VALUE = -999
+
+THREAD_INIT_TESTCASES = [
+    # Each list item is a testcase tuple with these items:
+    # * desc: Short testcase description.
+    # * thread_class: Thread class to be tested.
+    # * kwargs: Keyword arguments for the Thread class init.
+    # * exp_attrs: Expected attributes.
+    #   Key: Attribute name. Value: tuple(type, value). value can be
+    #   NOCHECK_VALUE to indicate not to check the value.
+
+    (
+        "ExceptionHandlingThread",
+        ExceptionHandlingThread,
+        dict(
+            target=None,
+            name='foo',
+        ),
+        dict(
+            name=(str, 'foo'),
+            exception=(NoneType, None),
+        )
+    ),
+    (
+        "StoppableThread",
+        StoppableThread,
+        dict(
+            target=None,
+            name='foo',
+        ),
+        dict(
+            name=(str, 'foo'),
+            stop_event=(threading.Event, NOCHECK_VALUE),
+        )
+    ),
+    (
+        "ServerThread",
+        ServerThread,
+        dict(
+            target=None,
+            name='foo',
+        ),
+        dict(
+            name=(str, 'foo'),
+            exception=(NoneType, None),
+        )
+    ),
+    (
+        "CallbackThread",
+        CallbackThread,
+        dict(
+            target=None,
+            name='foo',
+        ),
+        dict(
+            name=(str, 'foo'),
+            stop_event=(threading.Event, NOCHECK_VALUE),
+        )
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    "desc, thread_class, kwargs, exp_attrs",
+    THREAD_INIT_TESTCASES)
+def test_thread_init(
+        desc, thread_class, kwargs, exp_attrs):
+    # pylint: disable=unused-argument
+    """
+    Verify that the thread class shows the expected attributes after init.
+    """
+
+    # The code to be tested
+    thread = thread_class(**kwargs)
+
+    for name, exp_type_value in exp_attrs.items():
+        exp_type, exp_value = exp_type_value
+        assert hasattr(thread, name)
+        value = getattr(thread, name)
+        # pylint: disable=unidiomatic-typecheck)
+        assert type(value) == exp_type  # noqa: E721
+        if exp_value != NOCHECK_VALUE:
+            assert value == exp_value
+
+
+class StoppableThreadFuncHolder:
+    # pylint: disable=too-few-public-methods
+    """
+    Test support class providing the thread function, that solves the problem
+    for the thread function to access the thread to check for the stop
+    condition.
+    """
+
+    def __init__(self):
+        self.thread = None
+
+    def thread_func(self, interval):
+        """
+        Thread function that regularly checks the thread whether to stop.
+        """
+        LOGGER.debug("thread_func: Called with interval=%.2f", interval)
+        assert self.thread is not None
+        while True:
+            if self.thread.stopped():
+                break
+            LOGGER.debug("thread_func: Sleeping for %.2f s", interval)
+            sleep(interval)
+        LOGGER.debug("thread_func: Returning")
+
+
+@pytest.mark.parametrize(
+    "thread_class",
+    [
+        StoppableThread,
+        CallbackThread,  # derived from StoppableThread
+    ]
+)
+def test_thread_stoppable(thread_class):
+    """
+    Verify that a StoppableThread is stoppable.
+    """
+    assert issubclass(thread_class, StoppableThread)
+
+    LOGGER.debug("test_thread_stoppable: Test function called with "
+                 "thread_class=%r", thread_class)
+
+    func_holder = StoppableThreadFuncHolder()
+    thread_interval = 0.1
+
+    # Create a thread as a daemon thread. This will cause it to be cleaned up
+    # when the Python process running pytest terminates.
+    thread = thread_class(
+        target=func_holder.thread_func,
+        kwargs=dict(interval=thread_interval),
+        name='foo',
+        daemon=True)
+    func_holder.thread = thread
+
+    LOGGER.debug("test_thread_stoppable: Starting thread")
+    thread.start()
+
+    sleep_time = 3 * thread_interval
+    LOGGER.debug("test_thread_stoppable: Sleeping for %.2f s", sleep_time)
+    sleep(sleep_time)
+
+    LOGGER.debug("test_thread_stoppable: Stopping thread")
+    # The code to be tested
+    thread.stop()
+
+    # The code to be tested
+    stopped_result = thread.stopped()
+
+    # Verify that stop() has been attempted
+    assert stopped_result is True
+
+    # Wait for thread to end
+    join_timeout = 2 * sleep_time
+    LOGGER.debug("test_thread_stoppable: Waiting for thread to end within "
+                 "%.2f s", join_timeout)
+    thread.join(join_timeout)
+
+    # Verify that the thread no longer exists
+    assert not thread.is_alive()
+    LOGGER.debug("test_thread_stoppable: As expected, the thread ended")
+
+    LOGGER.debug("test_thread_stoppable: Test function finished")
+
+
+class ExcHdlThreadFuncHolder:
+    # pylint: disable=too-few-public-methods
+    """
+    Test support class providing the thread function, that solves the problem
+    for the thread function to access the thread to check for the stop
+    condition.
+    """
+
+    def __init__(self):
+        self.thread = None
+
+    def thread_func(self, exc):
+        """
+        Thread function that raises an exception.
+        """
+        LOGGER.debug("thread_func: Called with exc=%r", exc)
+        assert self.thread is not None
+
+        if exc:
+            LOGGER.debug("thread_func: Raising exception %r", exc)
+            raise exc
+
+        LOGGER.debug("thread_func: Returning without raising exception")
+
+
+@pytest.mark.parametrize(
+    "exc",
+    [
+        ValueError("foobar"),
+        None,
+    ]
+)
+@pytest.mark.parametrize(
+    "thread_class",
+    [
+        ExceptionHandlingThread,
+        ServerThread,  # derived from ExceptionHandlingThread
+    ]
+)
+def test_thread_exchdl(thread_class, exc):
+    """
+    Verify that a ExceptionHandlingThread handles exceptions.
+    """
+    assert issubclass(thread_class, ExceptionHandlingThread)
+
+    LOGGER.debug("test_thread_exchdl: Test function called with "
+                 "thread_class=%r, exc=%r", thread_class, exc)
+
+    func_holder = ExcHdlThreadFuncHolder()
+
+    # Create a thread as a daemon thread. This will cause it to be cleaned up
+    # when the Python process running pytest terminates.
+    thread = thread_class(
+        target=func_holder.thread_func,
+        kwargs=dict(exc=exc),
+        name='foo',
+        daemon=True)
+    func_holder.thread = thread
+
+    LOGGER.debug("test_thread_exchdl: Starting thread")
+    thread.start()
+
+    # Wait for thread to end
+    join_timeout = 5
+    LOGGER.debug("test_thread_exchdl: Waiting for thread to end within "
+                 "%.2f s", join_timeout)
+
+    if exc:
+
+        # Verify that join() raises the specified exception
+        with pytest.raises(type(exc)) as exc_info:
+            thread.join(join_timeout)
+        act_exc = exc_info.value
+        assert act_exc == exc
+        LOGGER.debug("test_thread_exchdl: As expected, thread.join() raised "
+                     "exception %r", exc)
+
+    else:
+
+        # Verify that join() does not raise any exception
+        thread.join(join_timeout)
+        LOGGER.debug("test_thread_exchdl: As expected, thread.join() did not "
+                     "raise an exception")
+
+    # Verify that the thread no longer exists
+    assert not thread.is_alive()
+    LOGGER.debug("test_thread_exchdl: As expected, the thread ended")
+
+    # Verify that the thread has stored the exception
+    assert thread.exception is exc
+
+    LOGGER.debug("test_thread_exchdl: Test function finished")
