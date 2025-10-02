@@ -760,7 +760,7 @@ class ListenerRequestHandler(BaseHTTPRequestHandler):
                        __version__, self.server_version, self.sys_version)
 
 
-class CallbackThread(threading.Thread):
+class StoppableThread(threading.Thread):
     """
     Thread subclass with a stop() method.
 
@@ -778,18 +778,22 @@ class CallbackThread(threading.Thread):
         self.stop_event = threading.Event()
 
     def stop(self):
-        """Set the thread stop_event. To tell thread to stop"""
+        """
+        Set the thread stop_event. To tell thread to stop
+        """
         self.stop_event.set()
 
     def stopped(self):
-        """Test for thread stop event set"""
+        """
+        Test for thread stop event set
+        """
         return self.stop_event.is_set()
 
 
-class ServerThread(threading.Thread):
+class ExceptionHandlingThread(threading.Thread):
     """
-    Thread subclass that passes exceptions from the thread back to the
-    calling thread when join executed.
+    Thread subclass that passes exceptions from the thread back to the calling
+    thread to be raised during join().
     """
 
     def __init__(self, *args, **kwargs):
@@ -797,25 +801,40 @@ class ServerThread(threading.Thread):
         Init with arguments for the thread
         """
         super().__init__(*args, **kwargs)
-        # Placeholder for possible exception.
-        self.exec = None
+
+        # Store a possible exception.
+        self.exception = None
 
     def run(self):
         """
-        Add try block to Thread run function
+        Catch any exception raised in the thread function and store it.
         """
         try:
             super().run()
-        except ListenerQueueFullError as e:
-            self.exec = e
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            self.exception = e
 
     def join(self, *args, **kwargs):
         """
-        Pass exception in self.exec to the calling thread.
+        Raise any exception that may have been stored.
         """
         super().join(*args, **kwargs)
-        if self.exec:
-            raise self.exec
+        if self.exception:
+            raise self.exception
+
+
+class ServerThread(ExceptionHandlingThread):
+    """
+    Thread class to be used for the WBEM listener thread.
+    """
+    pass
+
+
+class CallbackThread(StoppableThread):
+    """
+    Thread class to be used for the indication callback thread.
+    """
+    pass
 
 
 # pylint: disable=too-many-instance-attributes
