@@ -8,6 +8,8 @@ import re
 
 import pytest
 
+from ..utils.pytest_extensions import log_entry_exit
+
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
 pywbem = import_installed('pywbem')
@@ -485,6 +487,7 @@ class Test_xml_to_tupletree_sax:
         "encoding",
         ['unicode', 'bytes']
     )
+    @log_entry_exit
     def test_xml_to_tupletree_sax(
             self, encoding, desc, xml_string, exp_tupletree, exp_exc_type,
             exp_exc_msg_pattern, condition):
@@ -676,6 +679,7 @@ class Test_get_failing_line:
         "desc, xml_string, exc_msg, exp_result, exp_exc_type, condition",
         testcases
     )
+    @log_entry_exit
     def test_get_failing_line(
             self, desc, xml_string, exc_msg, exp_result, exp_exc_type,
             condition):
@@ -801,6 +805,7 @@ class Test_check_invalid_utf8_sequences:
         "desc, utf8_string, exp_exc_type, condition",
         testcases
     )
+    @log_entry_exit
     def test_check_invalid_utf8_sequences(
             self, desc, utf8_string, exp_exc_type, condition):
         # pylint: disable=no-self-use
@@ -915,6 +920,7 @@ class Test_check_invalid_xml_chars:
         "desc, xml_string, exp_exc_type, condition",
         testcases
     )
+    @log_entry_exit
     def test_check_invalid_xml_chars(
             self, desc, xml_string, exp_exc_type, condition):
         # pylint: disable=no-self-use

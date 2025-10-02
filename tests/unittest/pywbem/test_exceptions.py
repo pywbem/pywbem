@@ -6,6 +6,8 @@ Test _exceptions module.
 
 import pytest
 
+from ..utils.pytest_extensions import log_entry_exit
+
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 # pylint: disable=redefined-builtin
 from ...utils import import_installed
@@ -206,6 +208,7 @@ def response_data_info(request):
     return request.param
 
 
+@log_entry_exit
 def test_message_init(
         message_exception_info, message_arg, conn_info, request_data_info,
         response_data_info):
@@ -263,6 +266,7 @@ def httperror_args(request):
     return request.param
 
 
+@log_entry_exit
 def test_httperror(
         httperror_args, conn_info, request_data_info, response_data_info):
     # pylint: disable=redefined-outer-name
@@ -369,6 +373,7 @@ def error_instances(request):
     return request.param
 
 
+@log_entry_exit
 def test_cimerror_1(status_tuple, conn_info):
     # pylint: disable=redefined-outer-name
     """
@@ -400,6 +405,7 @@ def test_cimerror_1(status_tuple, conn_info):
     _assert_subscription(exc)
 
 
+@log_entry_exit
 def test_cimerror_2(status_tuple, conn_info):
     # pylint: disable=redefined-outer-name
     """
@@ -430,6 +436,7 @@ def test_cimerror_2(status_tuple, conn_info):
     _assert_subscription(exc)
 
 
+@log_entry_exit
 def test_cimerror_3(status_tuple, error_instances, conn_info):
     # pylint: disable=redefined-outer-name
     """
@@ -485,6 +492,7 @@ def parseerror_args(request):
     return request.param
 
 
+@log_entry_exit
 def test_parseerror(parseerror_class, parseerror_args, conn_info):
     # pylint: disable=redefined-outer-name
     """

@@ -4,7 +4,7 @@ Test functions in _units module
 
 import pytest
 
-from ..utils.pytest_extensions import simplified_test_function
+from ..utils.pytest_extensions import simplified_test_function, log_entry_exit
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
@@ -168,6 +168,7 @@ TESTCASES_SIUNIT_OBJ = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_SIUNIT_OBJ)
 @simplified_test_function
+@log_entry_exit
 def test_siunit_obj(testcase, in_kwargs, exp_result):
     """
     Test function for siunit_obj().
@@ -590,6 +591,7 @@ TESTCASES_SIUNIT_GENERAL = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_SIUNIT_GENERAL)
 @simplified_test_function
+@log_entry_exit
 def test_siunit_general(testcase, in_kwargs, exp_result):
     """
     Test function for siunit(), that test general behavior.
@@ -752,6 +754,7 @@ TESTCASES_SIUNIT_PUNIT = [
 @pytest.mark.parametrize(
     "punit, exp_result",
     TESTCASES_SIUNIT_PUNIT)
+@log_entry_exit
 def test_siunit_punit(punit, exp_result):
     """
     Test function for siunit(), that test only good cases with PUnit values.
@@ -934,6 +937,7 @@ TESTCASES_SIUNIT_UNITS = [
 @pytest.mark.parametrize(
     "units, exp_result",
     TESTCASES_SIUNIT_UNITS)
+@log_entry_exit
 def test_siunit_units(units, exp_result):
     """
     Test function for siunit(), that test only good cases with Units values.

@@ -13,7 +13,7 @@ except ImportError:
     from backports import zoneinfo
 import pytest
 
-from ..utils.pytest_extensions import simplified_test_function
+from ..utils.pytest_extensions import simplified_test_function, log_entry_exit
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
@@ -71,17 +71,20 @@ def char16_init_tuple(request):
     return request.param
 
 
+@log_entry_exit
 def test_char16_class_attrs_class():  # pylint: disable=invalid-name
     """Test class attrs via class level"""
     assert Char16.cimtype == 'char16'
 
 
+@log_entry_exit
 def test_char16_class_attrs_inst():
     """Test class attrs via instance level"""
     obj = Char16('foo')
     assert obj.cimtype == 'char16'
 
 
+@log_entry_exit
 def test_char16_inheritance():
     """Test inheritance"""
     obj = Char16('foo')
@@ -89,6 +92,7 @@ def test_char16_inheritance():
     assert isinstance(obj, CIMType)
 
 
+@log_entry_exit
 def test_char16_init(char16_init_tuple):
     """Test initialization from all input types using
        char16_init_tuple pytest.fixture.
@@ -106,6 +110,7 @@ def test_char16_init(char16_init_tuple):
         assert obj is not in_str
 
 
+@log_entry_exit
 def test_char16_repr(char16_init_tuple):
     """
     Test repr(CIMDateTime) from all input types using
@@ -124,6 +129,7 @@ def test_char16_repr(char16_init_tuple):
     repr(obj)
 
 
+@log_entry_exit
 def test_char16_str(char16_init_tuple):
     """
     Test str(CIMDateTime) from all input types using
@@ -173,6 +179,7 @@ def integer_tuple(request):
     return request.param
 
 
+@log_entry_exit
 def test_integer_class_attrs_class(integer_tuple):
     """Test class attrs via class level"""
     # pylint: disable=redefined-outer-name
@@ -182,6 +189,7 @@ def test_integer_class_attrs_class(integer_tuple):
     assert obj_type.maxvalue == exp_maxvalue
 
 
+@log_entry_exit
 def test_integer_class_attrs_inst(integer_tuple):
     """Test class attrs via instance level"""
     # pylint: disable=redefined-outer-name
@@ -192,6 +200,7 @@ def test_integer_class_attrs_inst(integer_tuple):
     assert obj.maxvalue == exp_maxvalue
 
 
+@log_entry_exit
 def test_integer_inheritance(integer_tuple):
     """Test inheritance"""
     # pylint: disable=redefined-outer-name
@@ -203,6 +212,7 @@ def test_integer_inheritance(integer_tuple):
     assert not isinstance(obj, CIMFloat)
 
 
+@log_entry_exit
 def test_integer_init_int(integer_tuple):
     """Test initialization from integer value"""
     # pylint: disable=redefined-outer-name
@@ -211,6 +221,7 @@ def test_integer_init_int(integer_tuple):
     assert obj == 42
 
 
+@log_entry_exit
 def test_integer_init_str(integer_tuple):
     """Test initialization from string value"""
     # pylint: disable=redefined-outer-name
@@ -219,6 +230,7 @@ def test_integer_init_str(integer_tuple):
     assert obj == 42
 
 
+@log_entry_exit
 def test_integer_init_str_base10(integer_tuple):
     """Test initialization from string value with base 10"""
     # pylint: disable=redefined-outer-name
@@ -227,6 +239,7 @@ def test_integer_init_str_base10(integer_tuple):
     assert obj == 42
 
 
+@log_entry_exit
 def test_integer_init_str_base16(integer_tuple):
     """Test initialization from string value with base 16"""
     # pylint: disable=redefined-outer-name
@@ -235,6 +248,7 @@ def test_integer_init_str_base16(integer_tuple):
     assert obj == 42
 
 
+@log_entry_exit
 def test_integer_init_minimum(integer_tuple):
     """Test initialization from integer value at minimum"""
     # pylint: disable=redefined-outer-name
@@ -244,6 +258,7 @@ def test_integer_init_minimum(integer_tuple):
     assert obj == exp_minvalue
 
 
+@log_entry_exit
 def test_integer_init_maximum(integer_tuple):
     """Test initialization from integer value at maximum"""
     # pylint: disable=redefined-outer-name
@@ -253,6 +268,7 @@ def test_integer_init_maximum(integer_tuple):
     assert obj == exp_maxvalue
 
 
+@log_entry_exit
 def test_integer_init_too_low(integer_tuple):
     """Test initialization from integer value below minimum"""
     # pylint: disable=redefined-outer-name
@@ -266,6 +282,7 @@ def test_integer_init_too_low(integer_tuple):
         raise AssertionError("ValueError was not raised.")
 
 
+@log_entry_exit
 def test_integer_init_too_high(integer_tuple):
     """Test initialization from integer value above maximum"""
     # pylint: disable=redefined-outer-name
@@ -300,6 +317,7 @@ def real_tuple(request):
     return request.param
 
 
+@log_entry_exit
 def test_real_class_attrs_class(real_tuple):
     """Test class attrs via class level using real_tuple fixture"""
     # pylint: disable=redefined-outer-name
@@ -307,6 +325,7 @@ def test_real_class_attrs_class(real_tuple):
     assert obj_type.cimtype == exp_cimtype
 
 
+@log_entry_exit
 def test_real_class_attrs_inst(real_tuple):
     """Test class attrs via instance level using real_tuple fixture"""
     # pylint: disable=redefined-outer-name
@@ -315,6 +334,7 @@ def test_real_class_attrs_inst(real_tuple):
     assert obj.cimtype == exp_cimtype
 
 
+@log_entry_exit
 def test_real_inheritance(real_tuple):
     """Test inheritance  using real_tuple fixture"""
     # pylint: disable=redefined-outer-name
@@ -326,6 +346,7 @@ def test_real_inheritance(real_tuple):
     assert not isinstance(obj, CIMInt)
 
 
+@log_entry_exit
 def test_real_init_float(real_tuple):
     """Test initialization from floating point value"""
     # pylint: disable=redefined-outer-name
@@ -334,6 +355,7 @@ def test_real_init_float(real_tuple):
     assert obj == 42.0
 
 
+@log_entry_exit
 def test_real_init_str(real_tuple):
     """Test initialization from string value using real_tuple fixture"""
     # pylint: disable=redefined-outer-name
@@ -366,6 +388,7 @@ def number_str_repr_tuple(request):
     return request.param
 
 
+@log_entry_exit
 def test_number_str(number_str_repr_tuple):
     # pylint: disable=redefined-outer-name
     """Test __str__() for a number"""
@@ -378,6 +401,7 @@ def test_number_str(number_str_repr_tuple):
     assert act_str == exp_str
 
 
+@log_entry_exit
 def test_number_repr(number_str_repr_tuple):
     # pylint: disable=redefined-outer-name
     """Test __repr__() for a number"""
@@ -824,17 +848,20 @@ def datetime_init_tuple(request):
     return request.param
 
 
+@log_entry_exit
 def test_datetime_class_attrs_class():  # pylint: disable=invalid-name
     """Test class attrs via class level"""
     assert CIMDateTime.cimtype == 'datetime'
 
 
+@log_entry_exit
 def test_datetime_class_attrs_inst():
     """Test class attrs via instance level"""
     obj = CIMDateTime('00000000000000.000000:000')
     assert obj.cimtype == 'datetime'
 
 
+@log_entry_exit
 def test_datetime_inheritance():
     """Test inheritance"""
     obj = CIMDateTime('00000000000000.000000:000')
@@ -844,6 +871,7 @@ def test_datetime_inheritance():
     assert not isinstance(obj, CIMInt)
 
 
+@log_entry_exit
 def test_datetime_init(datetime_init_tuple):
     """Test initialization from all input types using
        datetime_init_tuple pytest.fixture.
@@ -871,6 +899,7 @@ def test_datetime_init(datetime_init_tuple):
         assert str(obj) == exp_str
 
 
+@log_entry_exit
 def test_datetime_repr(datetime_init_tuple):
     """
     Test repr(CIMDateTime) from all input types using
@@ -889,6 +918,7 @@ def test_datetime_repr(datetime_init_tuple):
     repr(obj)
 
 
+@log_entry_exit
 def test_datetime_str(datetime_init_tuple):
     """
     Test str(CIMDateTime) from all input types using
@@ -971,6 +1001,7 @@ TESTCASES_MINUTESFROMUTC_INIT = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_MINUTESFROMUTC_INIT)
 @simplified_test_function
+@log_entry_exit
 def test_MinutesFromUTC_init(testcase, args, kwargs, exp_offset):
     """
     Test function for MinutesFromUTC.__init__().
@@ -1039,6 +1070,7 @@ TESTCASES_MINUTESFROMUTC_UTCOFFSET = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_MINUTESFROMUTC_UTCOFFSET)
 @simplified_test_function
+@log_entry_exit
 def test_MinutesFromUTC_utcoffset(testcase, offset, dt, exp_utc_offset):
     """
     Test function for MinutesFromUTC.utcoffset().
@@ -1105,6 +1137,7 @@ TESTCASES_MINUTESFROMUTC_DST = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_MINUTESFROMUTC_DST)
 @simplified_test_function
+@log_entry_exit
 def test_MinutesFromUTC_dst(testcase, offset, dt, exp_dst_offset):
     """
     Test function for MinutesFromUTC.dst().
@@ -1241,6 +1274,7 @@ TESTCASES_MINUTESFROMUTC_TZNAME = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_MINUTESFROMUTC_TZNAME)
 @simplified_test_function
+@log_entry_exit
 def test_MinutesFromUTC_tzname(testcase, offset, dt, exp_tzname):
     """
     Test function for MinutesFromUTC.tzname().
@@ -1479,6 +1513,7 @@ TESTCASES_CIMTYPE = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMTYPE)
 @simplified_test_function
+@log_entry_exit
 def test_cimtype(testcase, obj, exp_type_name):
     """
     Test function for cimtype().
@@ -1659,6 +1694,7 @@ TESTCASES_TYPE_FROM_NAME = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_TYPE_FROM_NAME)
 @simplified_test_function
+@log_entry_exit
 def test_type_from_name(testcase, type_name, exp_type_obj):
     """
     Test function for type_from_name().

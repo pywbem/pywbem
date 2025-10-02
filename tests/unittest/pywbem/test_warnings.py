@@ -6,6 +6,8 @@ Test _warnings module.
 
 import pytest
 
+from ..utils.pytest_extensions import log_entry_exit
+
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 # pylint: disable=redefined-builtin
 from ...utils import import_installed
@@ -112,6 +114,7 @@ def conn_info(request):
     return request.param
 
 
+@log_entry_exit
 def test_simple(simple_class, simple_args, conn_info):
     # pylint: disable=redefined-outer-name
     """
