@@ -8,7 +8,7 @@ import requests
 import urllib3
 import pytest
 
-from ..utils.pytest_extensions import simplified_test_function
+from ..utils.pytest_extensions import simplified_test_function, log_entry_exit
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
@@ -590,6 +590,7 @@ TESTCASES_PARSE_URL = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_PARSE_URL)
 @simplified_test_function
+@log_entry_exit
 def test_parse_url(
         testcase, func_kwargs, exp_scheme, exp_hostport, exp_url):
     """
@@ -856,6 +857,7 @@ TESTCASES_PYWBEM_REQUESTS_EXCEPTION = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_PYWBEM_REQUESTS_EXCEPTION)
 @simplified_test_function
+@log_entry_exit
 def test_pywbem_requests_exception(
         testcase, func_kwargs, exp_exc_type, exp_pattern):
     """
@@ -967,6 +969,7 @@ TESTCASES_MAX_REPR = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_MAX_REPR)
 @simplified_test_function
+@log_entry_exit
 def test_max_repr(testcase, func_kwargs, exp_repr):
     """
     Test function for _cim_http.max_repr()
@@ -1078,6 +1081,7 @@ TESTCASES_GET_CIMOBJECT_HEADER = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_GET_CIMOBJECT_HEADER)
 @simplified_test_function
+@log_entry_exit
 def test_get_cimobject_header(testcase, obj, exp_result):
     """
     Test function for _cim_http.get_cimobject_header()

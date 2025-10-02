@@ -5,7 +5,7 @@ Test CIM-XML parsing routines in _tupleparse.py.
 import pytest
 from packaging.version import parse as parse_version
 
-from ..utils.pytest_extensions import simplified_test_function
+from ..utils.pytest_extensions import simplified_test_function, log_entry_exit
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
@@ -586,6 +586,7 @@ TESTCASES_TUPLEPARSE_ROUNDTRIP = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_TUPLEPARSE_ROUNDTRIP)
 @simplified_test_function
+@log_entry_exit
 def test_tupleparse_roundtrip(testcase, obj):
     """
     Test tupleparse parsing based upon roundtrip between CIM objects and their
@@ -15288,6 +15289,7 @@ TESTCASES_TUPLEPARSE_XML = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_TUPLEPARSE_XML)
 @simplified_test_function
+@log_entry_exit
 def test_tupleparse_xml(testcase, xml_str, exp_result):
     """
     Test tupleparse parsing, based upon a CIM-XML string as input.

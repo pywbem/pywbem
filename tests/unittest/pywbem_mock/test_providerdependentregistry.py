@@ -19,7 +19,7 @@ import pickle
 
 import pytest
 
-from ..utils.pytest_extensions import simplified_test_function
+from ..utils.pytest_extensions import simplified_test_function, log_entry_exit
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
@@ -152,6 +152,7 @@ TESTCASES_REGISTRY_REPR = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_REGISTRY_REPR)
 @simplified_test_function
+@log_entry_exit
 def test_ProviderDependentRegistry_repr(testcase, reg_dict):
     """
     Test function for ProviderDependentRegistry.__repr__().
@@ -258,6 +259,7 @@ TESTCASES_REGISTRY_ADD_ITER_DEPENDENTS = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_REGISTRY_ADD_ITER_DEPENDENTS)
 @simplified_test_function
+@log_entry_exit
 def test_ProviderDependentRegistry_add_dependents(
         testcase, mock_script, dependents, exp_dependents):
     """
@@ -357,6 +359,7 @@ TESTCASES_REGISTRY_LOAD = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_REGISTRY_LOAD)
 @simplified_test_function
+@log_entry_exit
 def test_ProviderDependentRegistry_load(testcase, reg_dict1, reg_dict2):
     """
     Test function for ProviderDependentRegistry.load().
@@ -427,6 +430,7 @@ TESTCASES_REGISTRY_PICKLE = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_REGISTRY_PICKLE)
 @simplified_test_function
+@log_entry_exit
 def test_ProviderDependentRegistry_pickle(testcase, reg_dict):
     """
     Test function for pickling and unpickling ProviderDependentRegistry objects.

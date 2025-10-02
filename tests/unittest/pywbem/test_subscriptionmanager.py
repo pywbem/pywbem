@@ -30,7 +30,7 @@ import pytest
 from ...utils import skip_if_moftab_regenerated
 from ..utils.dmtf_mof_schema_def import DMTF_TEST_SCHEMA_VER
 from ..utils.wbemserver_mock import WbemServerMock
-from ..utils.pytest_extensions import simplified_test_function
+from ..utils.pytest_extensions import simplified_test_function, log_entry_exit
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
@@ -313,6 +313,7 @@ class BaseMethodsForTests:
 class TestSubMgrClass(BaseMethodsForTests):
     """Test of subscription manager"""
 
+    @log_entry_exit
     def test_create_owned_subscription(self):
         """
         Test Basic Creation of sub mgr, creation of owned subscription
@@ -403,6 +404,7 @@ class TestSubMgrClass(BaseMethodsForTests):
         # confirm no owned filters, destinations, subscriptions in server
         assert self.get_owned_inst_counts() == (0, 0, 0)
 
+    @log_entry_exit
     def test_create_permanent_subscription(self):
         """
         Test creating permanent filter, destination and filter and determining
@@ -453,6 +455,7 @@ class TestSubMgrClass(BaseMethodsForTests):
                 sub_mgr.remove_filter(server_id, filter_.path)
             assert self.get_submgr_inst_counts(sub_mgr, server_id) == (0, 0, 0)
 
+    @log_entry_exit
     def test_recovery_of_owned_subscriptions(self):
         """
         Test the ability to recover owned subscriptions from the server. Tests
@@ -1495,6 +1498,7 @@ TESTCASES_SUBMGR = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_SUBMGR)
 @simplified_test_function
+@log_entry_exit
 def test_subscriptionmanager(testcase, submgr_id, connection_attrs,
                              filter_attrs, dest_attrs, subscription_attrs,
                              remove_destinations, remove_filters,
@@ -1885,6 +1889,7 @@ TESTCASES_SUBMGR_MODIFY = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_SUBMGR_MODIFY)
 @simplified_test_function
+@log_entry_exit
 def test_submgr_modify(testcase, submgr_id, connection_attrs,
                        filter_attrs, dest_attrs, subscription_attrs,
                        modify_filter_attrs, modify_dest_attrs,

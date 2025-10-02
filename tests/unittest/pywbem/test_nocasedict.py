@@ -4,7 +4,7 @@ Test the _nocasedict module.
 
 import pytest
 
-from ..utils.pytest_extensions import simplified_test_function
+from ..utils.pytest_extensions import simplified_test_function, log_entry_exit
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
@@ -68,6 +68,7 @@ TESTCASES_NOCASEDICT_UNNAMEDKEYS = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_NOCASEDICT_UNNAMEDKEYS)
 @simplified_test_function
+@log_entry_exit
 def test_NocaseDict_unnamedkeys_getitem(testcase, allow, key):
     """
     Test function for NocaseDict.__getitem__() for unnamed keys
@@ -92,6 +93,7 @@ def test_NocaseDict_unnamedkeys_getitem(testcase, allow, key):
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_NOCASEDICT_UNNAMEDKEYS)
 @simplified_test_function
+@log_entry_exit
 def test_NocaseDict_unnamedkeys_setitem(testcase, allow, key):
     """
     Test function for NocaseDict.__setitem__() for unnamed keys
@@ -114,6 +116,7 @@ def test_NocaseDict_unnamedkeys_setitem(testcase, allow, key):
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_NOCASEDICT_UNNAMEDKEYS)
 @simplified_test_function
+@log_entry_exit
 def test_NocaseDict_unnamedkeys_delitem(testcase, allow, key):
     """
     Test function for NocaseDict.__delitem__() for unnamed keys
@@ -140,6 +143,7 @@ def test_NocaseDict_unnamedkeys_delitem(testcase, allow, key):
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_NOCASEDICT_UNNAMEDKEYS)
 @simplified_test_function
+@log_entry_exit
 def test_NocaseDict_unnamedkeys_contains(testcase, allow, key):
     """
     Test function for NocaseDict.__contains__() for unnamed keys
@@ -164,6 +168,7 @@ def test_NocaseDict_unnamedkeys_contains(testcase, allow, key):
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_NOCASEDICT_UNNAMEDKEYS)
 @simplified_test_function
+@log_entry_exit
 def test_NocaseDict_unnamedkeys_pop(testcase, allow, key):
     """
     Test function for NocaseDict.pop() for unnamed keys

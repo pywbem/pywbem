@@ -30,6 +30,7 @@ import os
 import pytest
 
 from ...utils import skip_if_moftab_regenerated
+from ..utils.pytest_extensions import log_entry_exit
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
@@ -315,6 +316,7 @@ instance of TST_A3Sub as $A3Sub511 {
          OK],
     ]
 )
+@log_entry_exit
 def test_complexref_classnames(conn, ns, target, ro, rc, mof, exp_rslt,
                                complex_assoc_mof, cond):
     # pylint: disable=redefined-outer-name,invalid-name
@@ -468,6 +470,7 @@ def test_complexref_classnames(conn, ns, target, ro, rc, mof, exp_rslt,
         ),
     ]
 )
+@log_entry_exit
 def test_complexref_instnames(conn, ns, target, ro, rc, mof, exp_rslt,
                               complex_assoc_mof, cond):
     # pylint: disable=redefined-outer-name,invalid-name
@@ -599,6 +602,7 @@ def test_complexref_instnames(conn, ns, target, ro, rc, mof, exp_rslt,
 
     ]
 )
+@log_entry_exit
 def test_complexassoc_classnames(conn, ns, target, ro, rr, ac,
                                  rc, mof, exp_rslt, complex_assoc_mof, cond):
     # pylint: disable=redefined-outer-name,invalid-name
@@ -1131,6 +1135,7 @@ def test_complexassoc_classnames(conn, ns, target, ro, rr, ac,
         ],
     ]
 )
+@log_entry_exit
 def test_complexassoc_instnames(conn, ns, target, ro, rr, ac,
                                 rc, mof, exp_rslt, complex_assoc_mof, cond):
     # pylint: disable=redefined-outer-name,invalid-name

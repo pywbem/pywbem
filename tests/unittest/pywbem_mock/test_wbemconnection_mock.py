@@ -42,7 +42,7 @@ from testfixtures import OutputCapture
 from ...utils import skip_if_moftab_regenerated
 from ..utils.dmtf_mof_schema_def import TOTAL_QUALIFIERS, TOTAL_CLASSES, \
     install_test_dmtf_schema, DMTF_TEST_SCHEMA_VER
-from ..utils.pytest_extensions import simplified_test_function
+from ..utils.pytest_extensions import simplified_test_function, log_entry_exit
 from ..utils.unittest_extensions import assert_copy
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
@@ -955,6 +955,7 @@ class TestFakedWBEMConnection:
         "set_on_init", [False, True])
     @pytest.mark.parametrize(
         "delay", [.5, 1])
+    @log_entry_exit
     def test_response_delay(self, tst_qualifiers, tst_class, set_on_init,
                             delay):
         # pylint: disable=no-self-use
@@ -991,6 +992,7 @@ class TestFakedWBEMConnection:
                               [None, None],
                               [True, None],
                               [1, ValueError]])
+    @log_entry_exit
     def test_disable_pull(self, tst_classeswqualifiers, tst_instances,
                           set_on_init, disable, exp_exec):
         # pylint: disable=no-self-use
@@ -1076,6 +1078,7 @@ class TestFakedWBEMConnection:
                 conn.OpenAssociatorInstancePaths(path)
                 conn.OpenQueryInstances('DMTF:FQL', "SELECT * FROM CIM_Foo")
 
+    @log_entry_exit
     def test_repr(self):
         # pylint: disable=no-self-use
         """ Test output of repr"""
@@ -1085,6 +1088,7 @@ class TestFakedWBEMConnection:
         repr_ = f'{conn!r}'
         assert repr_.startswith('FakedWBEMConnection(response_delay=3,')
 
+    @log_entry_exit
     def test_attr(self):
         # pylint: disable=no-self-use
         """
@@ -1101,6 +1105,7 @@ class TestFakedWBEMConnection:
         assert conn.default_namespace == DEFAULT_NAMESPACE
         assert conn.operation_recorder_enabled is False
 
+    @log_entry_exit
     def test_userdefined_url(self):
         # pylint: disable=no-self-use
         """
@@ -1117,6 +1122,7 @@ class TestFakedWBEMConnection:
         assert conn.default_namespace == DEFAULT_NAMESPACE
         assert conn.operation_recorder_enabled is False
 
+    @log_entry_exit
     def test_multiple_urls(self):
         # pylint: disable=no-self-use
         """
@@ -1159,6 +1165,7 @@ class TestRepoMethods:
             ['CIM_FooX', False],
         ]
     )
+    @log_entry_exit
     def test_class_exists(self, conn, tst_classeswqualifiers, tst_classes_mof,
                           ns, mof, cln, exp_rslt):
         # pylint: disable=no-self-use
@@ -1198,6 +1205,7 @@ class TestRepoMethods:
             ['CIM_Foo_sub', False, ['CIM_Foo_sub_sub']],
         ]
     )
+    @log_entry_exit
     def test_get_subclassnames(self, conn, tst_classeswqualifiers,
                                tst_classes_mof, ns, mof, cln, di, exp_clns):
         # pylint: disable=no-self-use
@@ -1234,6 +1242,7 @@ class TestRepoMethods:
             ['CIM_Foo_sub_sub', ['CIM_Foo', 'CIM_Foo_sub']],
         ]
     )
+    @log_entry_exit
     def test_get_superclass_names(self, conn, tst_classeswqualifiers,
                                   tst_classes_mof, ns, mof, cln, exp_cln):
         # pylint: disable=no-self-use
@@ -1283,6 +1292,7 @@ class TestRepoMethods:
             ['cim_foo_sub', True, True, False, ['cimfoo_sub'], ['cimfoo_sub']],
         ]
     )
+    @log_entry_exit
     def test_get_class(self, conn, tst_classeswqualifiers, tst_classes_mof,
                        ns, mof, cln, lo, iq, ico, pl, exp_pl):
         # pylint: disable=no-self-use
@@ -1410,6 +1420,7 @@ class TestRepoMethods:
              CIMError(CIM_ERR_NOT_FOUND)],
         ]
     )
+    @log_entry_exit
     def test_get_instance_internal(self, conn, tst_classeswqualifiers,
                                    tst_instances, tst_instances_mof, ns, mof,
                                    cln, key, lo, iq, ico, pl, exp_pl, exp_exc):
@@ -1526,6 +1537,7 @@ class TestRepoMethods:
             ['CIM_Foo_sub', 'CIM_Foo_sub99', False],
         ]
     )
+    @log_entry_exit
     def test_get_bare_instance(self, conn, tst_classeswqualifiersandinsts,
                                tst_instances_mof, ns, mof, cln, inst_id,
                                exp_ok):
@@ -1557,6 +1569,7 @@ class TestRepoMethods:
             assert inst is None
 
     @pytest.mark.skip(reason="Used only to display repo so not real test.")
+    @log_entry_exit
     def test_disp_repo_tostdout(self, conn, tst_instances_mof):
         # pylint: disable=no-self-use
         """
@@ -1594,6 +1607,7 @@ class TestRepoMethods:
         tst_file = os.path.join(TEST_DIR, tst_file_name)
         conn.display_repository(dest=tst_file)
 
+    @log_entry_exit
     def test_display_repository(self, conn, tst_instances_mof, capsys):
         # pylint: disable=no-self-use
         """
@@ -1661,6 +1675,7 @@ class TestRepoMethods:
         assert "Namespace 'root/cimv2': contains 5 Classes" in result
         assert "Namespace 'root/cimv2': contains 12 Instances" in result
 
+    @log_entry_exit
     def test_display_repo_tofile(self, conn, tst_instances_mof):
         # pylint: disable=no-self-use
         """
@@ -1700,6 +1715,7 @@ class TestRepoMethods:
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
+    @log_entry_exit
     def test_addcimobject(self, conn, tst_classeswqualifiers, tst_instances,
                           tst_insts_big, tst_classes, ns):
         # pylint: disable=no-self-use
@@ -1739,6 +1755,7 @@ class TestRepoMethods:
             ],
         ]
     )
+    @log_entry_exit
     def test_addcimobject_err(self, conn, tst_classeswqualifiers, tst_instances,
                               ns,
                               tst_objs, exp_exec, condition):
@@ -1764,6 +1781,7 @@ class TestRepoMethods:
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
+    @log_entry_exit
     def test_addcimobject_duperr(self, conn, tst_classeswqualifiers,
                                  tst_instances, ns):
         # pylint: disable=no-self-use
@@ -1777,6 +1795,7 @@ class TestRepoMethods:
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
+    @log_entry_exit
     def test_addcimobject_err1(self, conn, tst_classeswqualifiers, ns):
         # pylint: disable=no-self-use
         """Test error if class with no superclass"""
@@ -1789,6 +1808,7 @@ class TestRepoMethods:
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
+    @log_entry_exit
     def test_compile_qualifiers(self, conn, tst_qualifiers_mof, ns):
         # pylint: disable=no-self-use
         """
@@ -1827,6 +1847,7 @@ class TestRepoMethods:
             ('root/def', [], None, None, ValueError()),
         ]
     )
+    @log_entry_exit
     def test_add_namespace(self, default_ns, additional_ns, in_ns, exp_ns,
                            exp_exc):
         # pylint: disable=no-self-use
@@ -1872,6 +1893,7 @@ class TestRepoMethods:
             ('root/def', [], None, None, ValueError()),
         ]
     )
+    @log_entry_exit
     def test_remove_namespace(self, default_ns, additional_ns, in_ns, exp_ns,
                               exp_exc):
         # pylint: disable=no-self-use
@@ -1899,6 +1921,7 @@ class TestRepoMethods:
             if isinstance(exp_exc, CIMError):
                 assert exc.status_code == exp_exc.status_code
 
+    @log_entry_exit
     def test_unicode(self, conn):
         # pylint: disable=no-self-use
         """
@@ -1940,6 +1963,7 @@ class TestRepoMethods:
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
+    @log_entry_exit
     def test_compile_mult(self, conn, ns):
         # pylint: disable=no-self-use
         """
@@ -2038,6 +2062,7 @@ class TestRepoMethods:
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
+    @log_entry_exit
     def test_compile_classes(self, conn, tst_classes_mof, ns):
         # pylint: disable=no-self-use
         """
@@ -2064,6 +2089,7 @@ class TestRepoMethods:
         assert len(cls) == 5
         assert set(clns) == {cl_.classname for cl_ in cls}
 
+    @log_entry_exit
     def test_compile_classes_multiple_ns(self, conn, tst_classes_mof):
         # pylint: disable=no-self-use
         """
@@ -2103,6 +2129,7 @@ class TestRepoMethods:
         assert clns == conn.EnumerateClassNames(namespace=ns,
                                                 DeepInheritance=True)
 
+    @log_entry_exit
     def test_compile_classes_nspragma(self, conn, tst_classes_mof):
         # pylint: disable=no-self-use
         """
@@ -2144,6 +2171,7 @@ class TestRepoMethods:
         assert clns == conn.EnumerateClassNames(namespace=ns,
                                                 DeepInheritance=True)
 
+    @log_entry_exit
     def test_compile_classes_nspragma_2(self, conn, tst_classes_mof):
         # pylint: disable=no-self-use
         """
@@ -2188,6 +2216,7 @@ class TestRepoMethods:
         assert clns == conn.EnumerateClassNames(namespace=ns,
                                                 DeepInheritance=True)
 
+    @log_entry_exit
     def test_compile_classes_nspragma_err1(self, conn, tst_classes_mof):
         # pylint: disable=no-self-use
         """
@@ -2212,6 +2241,7 @@ class TestRepoMethods:
         except MOFParseError:
             return
 
+    @log_entry_exit
     def test_compile_classes_nspragma_err2(self, conn, tst_classes_mof):
         # pylint: disable=no-self-use
         """
@@ -2237,6 +2267,7 @@ class TestRepoMethods:
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
+    @log_entry_exit
     def test_compile_instances(self, conn, tst_classes_mof, ns):
         # pylint: disable=no-self-use
         """
@@ -2277,6 +2308,7 @@ class TestRepoMethods:
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
+    @log_entry_exit
     def test_compile_assoc_mof(self, conn, tst_assoc_mof,
                                tst_person_instance_names, ns):
         # pylint: disable=no-self-use
@@ -2331,6 +2363,7 @@ class TestRepoMethods:
             inst = conn.GetInstance(inst_name)
             assert inst == insts_dict[inst.path]
 
+    @log_entry_exit
     def test_compile_complete_dmtf_schema(self, conn):
         # pylint: disable=no-self-use
         """
@@ -2519,6 +2552,7 @@ class TestRepoMethods:
              OK],
         ]
     )
+    @log_entry_exit
     def test_compile_schema_classes(self, conn, desc, classnames,
                                     extra_exp_classnames, exp_class, condition):
         # pylint: disable=no-self-use,unused-argument
@@ -2558,6 +2592,7 @@ class TestRepoMethods:
                                    LocalOnly=False)
             assert get_cl == exp_class
 
+    @log_entry_exit
     def test_compile_part_schema_multiple_ns(self, conn):
         # pylint: disable=no-self-use
         """
@@ -2612,6 +2647,7 @@ class TestRepoMethods:
         cls_rtn3.path = None
         assert cls_rtn3 == cls_rtn1
 
+    @log_entry_exit
     def test_compile_err(self, conn):
         # pylint: disable=no-self-use
         """
@@ -2635,6 +2671,7 @@ class TestRepoMethods:
     @pytest.mark.skip(reason="Fails because does not allow dup")
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
+    @log_entry_exit
     def test_compile_instances_dup(self, conn, tst_classes_mof, ns):
         # pylint: disable=no-self-use
         """
@@ -2797,6 +2834,7 @@ class TestUserDefinedProviders:
              ValueError(), OK],
         ]
     )
+    @log_entry_exit
     def test_register_provider(self, conn, tst_classeswqualifiersandinsts,
                                ns, desc, inputs, exp_exc, condition):
         # pylint: disable=no-self-use,unused-argument
@@ -2942,6 +2980,7 @@ class TestUserDefinedProviders:
              True, OK],
         ]
     )
+    @log_entry_exit
     def test_get_registered_provider(
             self, conn, tst_classeswqualifiers, tst_instances, ns, desc, inputs,
             get_ns, get_cln, get_pt, exp_rslt, condition):
@@ -3068,6 +3107,7 @@ class TestUserDefinedProviders:
 
         ]
     )
+    @log_entry_exit
     def test_display_registered_providers(
             self, conn, tst_classeswqualifiersandinsts, capsys,
             desc, inputs, output, condition):
@@ -3116,6 +3156,7 @@ class TestUserDefinedProviders:
             for ns in nss:
                 assert f"namespace: {ns}" in result
 
+    @log_entry_exit
     def test_user_provider1(self, conn, tst_classeswqualifiers, tst_instances):
         """
         Test execution with a user provider and CreateInstance.
@@ -3187,6 +3228,7 @@ class TestUserDefinedProviders:
         except CIMError as ce:
             assert ce.status_code == CIM_ERR_NOT_FOUND
 
+    @log_entry_exit
     def test_user_provider2(self, conn, tst_classeswqualifiers, tst_instances):
         """
         Test with a single user defined provider using CIM_Foo_sub as the
@@ -3258,6 +3300,7 @@ class TestUserDefinedProviders:
         except CIMError as ce:
             assert ce.status_code == CIM_ERR_NOT_FOUND
 
+    @log_entry_exit
     def test_user_provider3(self, conn, tst_classeswqualifiers, tst_instances):
         """
         Test execution with a user provider that handles all  of the
@@ -3417,6 +3460,7 @@ class TestClassOperations:
             [NOT_DEFAULT_NS, 'CIM_Foo', NOT_DEFAULT_NS, None],
         ]
     )
+    @log_entry_exit
     def test_getclass(self, conn, tst_qualifiers, tst_class, tst_ns, cln,
                       ns, exp_exc):
         # pylint: disable=no-self-use
@@ -3462,6 +3506,7 @@ class TestClassOperations:
             ['CIM_Foo_sub', True, True],
         ]
     )
+    @log_entry_exit
     def test_getclass_iqico(self, conn, tst_classes, tst_classeswqualifiers,
                             ns, cln, iq, ico):
         # pylint: disable=no-self-use
@@ -3531,6 +3576,7 @@ class TestClassOperations:
                                         'InstanceID']],
         ]
     )
+    @log_entry_exit
     def test_getclass_lo(self, conn, tst_qualifiers, tst_classes, ns, cln,
                          lo, exp_pl):
         # pylint: disable=no-self-use
@@ -3586,6 +3632,7 @@ class TestClassOperations:
             [['InstanceID', 'cimfoo_sub'], ['InstanceID', 'cimfoo_sub']]
         ]
     )
+    @log_entry_exit
     def test_getclass_pl(self, conn, tst_classeswqualifiers, ns, pl, exp_pl):
         # pylint: disable=no-self-use
         """
@@ -3633,6 +3680,7 @@ class TestClassOperations:
             ['CIM_Foo_sub', 42, TypeError()],
         ]
     )
+    @log_entry_exit
     def test_enumerateclassnames(self, conn, tst_classeswqualifiers, ns, cln,
                                  di, exp_rslt):
         # pylint: disable=no-self-use
@@ -3740,6 +3788,7 @@ class TestClassOperations:
             ['CIM_Foo_sub', False, 42, [], TypeError()],
         ]
     )
+    @log_entry_exit
     def test_enumerateclasses(self, conn, tst_classes, tst_qualifiers, ns, iq,
                               ico, cln, lo, di, exp_pl, exp_rslt):
         # pylint: disable=no-self-use
@@ -4421,6 +4470,7 @@ class TestClassOperations:
             # namespace if one does not exist
         ],
     )
+    @log_entry_exit
     def test_createclass(self, conn, tst_qualifiers_mof, tst_classes, ns, desc,
                          pre_tst_classes, tst_cls, exp_rslt, exp_exc,
                          condition):
@@ -4684,6 +4734,7 @@ class TestClassOperations:
 
         ],
     )
+    @log_entry_exit
     def test_createclass_mof_er(self, conn, tst_qualifiers_mof,
                                 ns, desc, pre_tst_mof, tst_cls_mof, exp_rslt,
                                 exp_exc, condition):
@@ -5036,6 +5087,7 @@ class TestClassOperations:
              CIMError(CIM_ERR_CLASS_HAS_INSTANCES), OK],  # expect err response
         ],
     )
+    @log_entry_exit
     def test_modifyclass(self, conn, tst_qualifiers_mof, tst_classes,
                          tst_instances, ns, desc, pre_tst_classes, has_insts,
                          tst_cls, exp_rslt, exp_exc, condition):
@@ -5253,6 +5305,7 @@ class TestClassOperations:
             [None, TypeError()],
         ]
     )
+    @log_entry_exit
     def test_deleteclass(self, conn, tst_qualifiers, tst_classes, ns, cln,
                          exp_exc):
         # pylint: disable=no-self-use
@@ -5364,6 +5417,7 @@ class TestInstanceOperations:
 
         ]
     )
+    @log_entry_exit
     def test_getinstance(self, conn, tst_classeswqualifiers, tst_instances,
                          tst_ns, iq, ico, pl, inst_cln, inst_id, inst_ns,
                          exp_exc):
@@ -5472,6 +5526,7 @@ class TestInstanceOperations:
             [None, True, True],
         ]
     )
+    @log_entry_exit
     def test_getinstance_opts(self, conn, tst_classeswqualifiers,
                               tst_instances, ns, inst_id, lo, iq, ico):
         # pylint: disable=no-self-use
@@ -5555,6 +5610,7 @@ class TestInstanceOperations:
              ['InstanceID', 'cimfoo_sub']],
         ]
     )
+    @log_entry_exit
     def test_getinstance_pl(self, conn, tst_classeswqualifiers, tst_instances,
                             ns, inst_cln, inst_id, pl, exp_pl):
         # pylint: disable=no-self-use
@@ -5582,6 +5638,7 @@ class TestInstanceOperations:
         "ns", EXPANDED_NAMESPACES + [None])
     @pytest.mark.parametrize(
         "cln", ['cim_foo', 'CIM_Foo', 'cim_foo_sub'])
+    @log_entry_exit
     def test_enumerateinstancenames(self, conn, tst_classeswqualifiers,
                                     tst_instances, ns, cln):
         # pylint: disable=no-self-use
@@ -5648,6 +5705,7 @@ class TestInstanceOperations:
             [DEFAULT_NAMESPACE, 'CIM_Foo', 42, None, TypeError()],
         ]
     )
+    @log_entry_exit
     def test_enumerateinstancenames_ns_er(self, conn, tst_classeswqualifiers,
                                           tst_instances, tst_ns, cln, in_ns,
                                           exp_clns, exp_exc):
@@ -5712,6 +5770,7 @@ class TestInstanceOperations:
              ['InstanceID']],
         ]
     )
+    @log_entry_exit
     def test_enumerateinstances(self, conn, tst_classeswqualifiers,
                                 tst_instances, ns, cln, di, exp_clns, exp_pl):
         # pylint: disable=no-self-use
@@ -5819,6 +5878,7 @@ class TestInstanceOperations:
              ['InstanceID', 'cimfoo_sub']],
         ]
     )
+    @log_entry_exit
     def test_enumerateinstances_pl_di(self, conn, tst_classeswqualifiers,
                                       tst_instances, ns, operation, cln, di,
                                       pl, exp_pls):
@@ -5903,6 +5963,7 @@ class TestInstanceOperations:
             ['CIM_Foo', True, ['InstanceID'], ['InstanceID'], 12],
         ]
     )
+    @log_entry_exit
     def test_enumerateinstances_di(self, conn, tst_classeswqualifiers,
                                    tst_instances, ns, operation, cln, di, pl,
                                    exp_pl, exp_num_insts):
@@ -6002,6 +6063,7 @@ class TestInstanceOperations:
             [DEFAULT_NAMESPACE, 'CIM_Foo', 42, TypeError()],
         ]
     )
+    @log_entry_exit
     def test_enumerateinstances_er(self, conn, tst_classeswqualifiers,
                                    tst_instances, tst_ns, cln, in_ns, exp_exc):
         # pylint: disable=no-self-use
@@ -6109,6 +6171,7 @@ class TestInstanceOperations:
             [0, CIMClass('CIM_Foo_sub'), TypeError()],
         ]
     )
+    @log_entry_exit
     def test_createinstance(self, conn, tst_classeswqualifiers, tst_instances,
                             ns, test, new_inst, exp_rslt):
         # pylint: disable=no-self-use
@@ -6190,6 +6253,7 @@ class TestInstanceOperations:
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
+    @log_entry_exit
     def test_createinstance_dup(self, conn, tst_classeswqualifiers,
                                 tst_instances, ns):
         # pylint: disable=no-self-use
@@ -6218,6 +6282,7 @@ class TestInstanceOperations:
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
+    @log_entry_exit
     def test_addinstance_abstract(self, conn, ns):
         # pylint: disable=no-self-use
         """
@@ -6275,6 +6340,7 @@ class TestInstanceOperations:
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
+    @log_entry_exit
     def test_createinstance_abstract(self, conn, ns):
         # pylint: disable=no-self-use
         """
@@ -6329,6 +6395,7 @@ class TestInstanceOperations:
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
+    @log_entry_exit
     def test_compile_inst_abstract(self, conn, ns):
         # pylint: disable=no-self-use
         """
@@ -6397,6 +6464,7 @@ class TestInstanceOperations:
             ),
         ]
     )
+    @log_entry_exit
     def test_createinstance_namespace(self, conn, tst_pg_namespace_class,
                                       desc, interop_ns, additional_ns, new_ns,
                                       exp_ns, exp_exc):
@@ -6517,6 +6585,7 @@ class TestInstanceOperations:
                  CIMError(CIM_ERR_INVALID_PARAMETER))],
         ]
     )
+    @log_entry_exit
     def test_compile_instances_path(self, conn, tst_assoc_class_mof, ns,
                                     tst_mof, exp_rslt, exp_exc):
         # pylint: disable=no-self-use
@@ -6656,6 +6725,7 @@ class TestInstanceOperations:
              7, [], None, TypeError(), OK],
         ]
     )
+    @log_entry_exit
     def test_modifyinstance(self, conn, tst_classeswqualifiers, tst_instances,
                             desc, ns, sp, nv, pl, exp_rslt, condition):
         # pylint: disable=no-self-use
@@ -6777,6 +6847,7 @@ class TestInstanceOperations:
             [None, 'blah', TypeError()],  # Invalid ClassName
         ]
     )
+    @log_entry_exit
     def test_deleteinstance(self, conn, tst_classeswqualifiers, tst_instances,
                             ns, cln, inst_id, exp_exc):
         # pylint: disable=no-self-use
@@ -6906,6 +6977,7 @@ class TestInstanceOperations:
             ),
         ]
     )
+    @log_entry_exit
     def test_deleteinstance_namespace(
             self, conn, tst_pg_namespace_class, tst_qualifiers,
             desc, interop_ns, additional_objs, new_inst, delete, exp_ns,
@@ -6983,6 +7055,7 @@ class TestPullOperations:
             ['TST_Person', 2, False, None, "Select from *", CIMError],
         ]
     )
+    @log_entry_exit
     def test_openenumerateinstancepaths(self, conn, tst_assoc_mof, ns,
                                         src_class, maxobj, exp_open_eos,
                                         fql, fq, exp_exec):
@@ -7039,6 +7112,7 @@ class TestPullOperations:
             ['TST_Person', 2, False],
         ]
     )
+    @log_entry_exit
     def test_openenumerateinstances(self, conn, tst_assoc_mof, ns,
                                     src_class, maxobj, exp_open_eos):
         # pylint: disable=no-self-use,invalid-name
@@ -7098,6 +7172,7 @@ class TestPullOperations:
             [None, None, None, TypeError()],
         ]
     )
+    @log_entry_exit
     def test_openreferenceinstancepaths(self, conn, tst_assoc_mof, ns,
                                         src_inst, ro, rc, exp_rslt):
         # pylint: disable=no-self-use,invalid-name
@@ -7198,6 +7273,7 @@ class TestPullOperations:
             [None, None, None, None, None, TypeError()],
         ]
     )
+    @log_entry_exit
     def test_openassociatorinstancepaths(self, conn, tst_assoc_mof, ns,
                                          src_inst, ro, ac, rc, rr, exp_rslt):
         # pylint: disable=no-self-use,invalid-name
@@ -7302,6 +7378,7 @@ class TestPullOperations:
             [None, None, None, None, None, TypeError()],
         ]
     )
+    @log_entry_exit
     def test_openassociatorinstances(self, conn, tst_assoc_mof, ns, src_inst,
                                      ro, ac, rc, rr, exp_rslt):
         # pylint: disable=no-self-use,invalid-name
@@ -7422,6 +7499,7 @@ class TestPullOperations:
              TypeError()],
         ]
     )
+    @log_entry_exit
     def test_openqueryinstances(self, conn, tst_assoc_mof, ns,
                                 fql, fq, rqrc, exp_rslt):
         # pylint: disable=no-self-use
@@ -7501,6 +7579,7 @@ class TestPullOperations:
              CIMError(CIM_ERR_INVALID_ENUMERATION_CONTEXT)],
         ]
     )
+    @log_entry_exit
     def test_closeenumeration(self, conn, tst_classeswqualifiers, tst_instances,
                               ns, test, cln, omoc, pmoc, exp_exc):
         # pylint: disable=no-self-use
@@ -7590,6 +7669,7 @@ class TestQualifierOperations:
             [None, TypeError()],
         ]
     )
+    @log_entry_exit
     def test_getqualifier(self, conn, ns, qname, exp_exc):
         """
         Test adding a qualifierdecl to the repository and doing a
@@ -7633,6 +7713,7 @@ class TestQualifierOperations:
             CIMError(CIM_ERR_INVALID_NAMESPACE)
         ]
     )
+    @log_entry_exit
     def test_enumeratequalifiers(self, conn, ns, exp_exc):
         """
         Test adding qualifier declarations to the repository and using
@@ -7681,6 +7762,7 @@ class TestQualifierOperations:
             [None, TypeError()],
         ]
     )
+    @log_entry_exit
     def test_setqualifier(self, conn, ns, qual, exp_exc):
         # pylint: disable=no-self-use
         """
@@ -7749,6 +7831,7 @@ class TestQualifierOperations:
 
         ]
     )
+    @log_entry_exit
     def test_deletequalifier(self, conn, ns, qname, mof, exp_exc):
         """
         Test  fake DeleteQualifier declaration method. Adds qualifier
@@ -7824,6 +7907,7 @@ class TestReferenceOperations:
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
+    @log_entry_exit
     def test_compile_assoc_mof(self, conn, tst_assoc_mof, ns):
         # pylint: disable=no-self-use
         """
@@ -7884,6 +7968,7 @@ class TestReferenceOperations:
             [None, 42, TypeError()],
         ]
     )
+    @log_entry_exit
     def test_referencenames_classes(self, conn, tst_assoc_mof, ns, cln, rc, ro,
                                     exp_rslt):
         # pylint: disable=no-self-use
@@ -8017,6 +8102,7 @@ class TestReferenceOperations:
             [None, 42, None, None, None, TypeError()],
         ]
     )
+    @log_entry_exit
     def test_references_classes(self, conn, tst_assoc_mof, ns, cln, rc, ro,
                                 iq, ico, pl, exp_rslt):
         # pylint: disable=no-self-use
@@ -8119,6 +8205,7 @@ class TestReferenceOperations:
             if isinstance(exp_exc, CIMError):
                 assert exc.status_code == exp_exc.status_code
 
+    @log_entry_exit
     def test_reference_instnames_min(self, conn, tst_assoc_mof):
         # pylint: disable=no-self-use
         """
@@ -8199,6 +8286,7 @@ class TestReferenceOperations:
             ['TST_Lineage', None, CIMError(CIM_ERR_INVALID_NAMESPACE, "blah")]
         ]
     )
+    @log_entry_exit
     def test_reference_instnames(self, conn, tst_assoc_mof, ns, targ_iname, rc,
                                  ro, exp_rslt):
         # pylint: disable=no-self-use
@@ -8267,6 +8355,7 @@ class TestReferenceOperations:
 
     @pytest.mark.parametrize(
         "ns", INITIAL_NAMESPACES + [None])
+    @log_entry_exit
     def test_reference_instances_min(self, conn, tst_assoc_mof, ns):
         # pylint: disable=no-self-use
         """
@@ -8352,6 +8441,7 @@ class TestReferenceOperations:
 
         ]
     )
+    @log_entry_exit
     def test_reference_instances_opts(self, conn, tst_assoc_mof, ns,
                                       desc, rc, role, iq, ico, pl, exp_rslt):
         # pylint: disable=no-self-use
@@ -8413,6 +8503,7 @@ class TestReferenceOperations:
             CIMInstanceName('XXX_Blah', keybindings={'InstanceID': 3}),
         ]
     )
+    @log_entry_exit
     def test_reference_source_err(self, conn, tst_assoc_mof, ns, targ_obj):
         # pylint: disable=no-self-use
         """
@@ -8472,6 +8563,7 @@ class TestAssociatorOperations:
             [None, None, None, 42, TypeError()],
         ]
     )
+    @log_entry_exit
     def test_associator_classnames(self, conn, tst_assoc_mof, ns, target_cln,
                                    role, rr, ac, rc, exp_rslt):
         # pylint: disable=no-self-use
@@ -8580,6 +8672,7 @@ class TestAssociatorOperations:
              CIMError(CIM_ERR_INVALID_NAMESPACE, "blah")],
         ]
     )
+    @log_entry_exit
     def test_associator_instnames(self, conn, tst_assoc_mof, ns, targ_iname,
                                   role, rr, ac, rc, exp_rslt):
         # pylint: disable=no-self-use
@@ -8757,6 +8850,7 @@ class TestAssociatorOperations:
         "desc, inst_name, role, ac, rr, rc, iq, ico, pl, exp_rslt",
         TESTCASES_ASSOCIATOR_INSTANCES
     )
+    @log_entry_exit
     def test_associator_instances(
             self, conn, tst_assoc_mof, tst_ns, cln, name_key,
             desc, inst_name, role, rr, ac, rc, iq, ico, pl, exp_rslt):
@@ -8941,6 +9035,7 @@ class TestAssociatorOperations:
              []],
         ]
     )
+    @log_entry_exit
     def test_associator_classes(self, conn, tst_assoc_mof, ns, cln,
                                 desc, role, rr, ac, rc,
                                 iq, ico, pl, exp_rslt):
@@ -9038,6 +9133,7 @@ class TestAssociatorOperations:
             CIMInstanceName('XXX_Blah', keybindings={'InstanceID': 3}),
         ]
     )
+    @log_entry_exit
     def test_associator_target_err(self, conn, tst_assoc_mof, ns, targ_obj):
         # pylint: disable=no-self-use
         """
@@ -9776,6 +9872,7 @@ class TestInvokeMethod:
     @pytest.mark.parametrize(
         "desc, inputs, exp_result, exp_exc, condition",
         INVOKEMETHOD_TESTCASES)
+    @log_entry_exit
     def test_invokemethod(self, conn, tst_instances_mof, ns, desc, inputs,
                           exp_result, exp_exc, condition):
         # pylint: disable=no-self-use,unused-argument
@@ -10022,6 +10119,7 @@ class TestBaseProvider:
     @pytest.mark.parametrize(
         "desc, inputs, exp_result, exp_exc, condition",
         IS_SUBCLASS_TESTCASES)
+    @log_entry_exit
     def test_is_subclass(self, conn, tst_classeswqualifiers, ns, desc, inputs,
                          exp_result, exp_exc, condition):
         # pylint: disable=no-self-use,unused-argument
@@ -10061,7 +10159,7 @@ class TestBaseProvider:
 
 
 @pytest.fixture()
-def test_schema_root_dir():
+def tst_schema_root_dir():
     """
     Fixture defines the test_schema root directory for the schema and also
     removes the directory if it exists at the end of each test.
@@ -10083,6 +10181,7 @@ class TestDMTFCIMSchema:
     first test.
     """
 
+    @log_entry_exit
     def test_current_schema(self):
         # pylint: disable=no-self-use
         """
@@ -10127,7 +10226,8 @@ class TestDMTFCIMSchema:
 
         assert schema_mof == exp_mof
 
-    def test_schema_final_load(self, test_schema_root_dir):
+    @log_entry_exit
+    def test_schema_final_load(self, tst_schema_root_dir):
         # pylint: disable=no-self-use
         """
         Test the DMTFCIMSchema class and its methods to get a schema from the
@@ -10138,11 +10238,11 @@ class TestDMTFCIMSchema:
         if not os.environ.get('TEST_SCHEMA_DOWNLOAD', False):
             pytest.skip("Test run only if TEST_SCHEMA_DOWNLOAD is non-empty.")
 
-        schema = DMTFCIMSchema(DMTF_TEST_SCHEMA_VER, test_schema_root_dir,
+        schema = DMTFCIMSchema(DMTF_TEST_SCHEMA_VER, tst_schema_root_dir,
                                verbose=False)
 
         assert schema.schema_version == DMTF_TEST_SCHEMA_VER
-        assert schema.schema_root_dir == test_schema_root_dir
+        assert schema.schema_root_dir == tst_schema_root_dir
         assert schema.schema_version_str == \
             '{}.{}.{}'.format(*DMTF_TEST_SCHEMA_VER)
         assert os.path.isdir(schema.schema_root_dir)
@@ -10151,7 +10251,7 @@ class TestDMTFCIMSchema:
         assert os.path.isfile(schema.schema_zip_file)
 
         mof_dir = f'mofFinal{schema.schema_version_str}'
-        test_schema_mof_dir = os.path.join(test_schema_root_dir, mof_dir)
+        test_schema_mof_dir = os.path.join(tst_schema_root_dir, mof_dir)
         assert schema.schema_mof_dir == test_schema_mof_dir
 
         assert schema.schema_pragma_file == \
@@ -10160,7 +10260,7 @@ class TestDMTFCIMSchema:
 
         assert repr(schema) == (
             f'DMTFCIMSchema(schema_version={DMTF_TEST_SCHEMA_VER}, '
-            f'schema_root_dir={test_schema_root_dir}, '
+            f'schema_root_dir={tst_schema_root_dir}, '
             f'schema_zip_file={schema.schema_zip_file}, '
             f'schema_mof_dir={schema.schema_mof_dir}, '
             f'schema_pragma_file={schema.schema_pragma_file}, '
@@ -10174,6 +10274,7 @@ class TestDMTFCIMSchema:
 
         assert schema_mof == exp_mof
 
+    @log_entry_exit
     def test_schema_experimental_load(self):
         # pylint: disable=no-self-use
         """
@@ -10209,6 +10310,7 @@ class TestDMTFCIMSchema:
         assert not os.path.isfile(schema.schema_pragma_file)
         assert os.path.isdir(schema.schema_root_dir)
 
+    @log_entry_exit
     def test_second_schema_load(self):
         # pylint: disable=no-self-use
         """
@@ -10265,7 +10367,8 @@ class TestDMTFCIMSchema:
             [(1, 205, 0), ValueError()]
         ]
     )
-    def test_schema_invalid_version(self, test_schema_root_dir, schema_version,
+    @log_entry_exit
+    def test_schema_invalid_version(self, tst_schema_root_dir, schema_version,
                                     exp_exc):
         # pylint: disable=no-self-use
         """
@@ -10276,7 +10379,7 @@ class TestDMTFCIMSchema:
         with pytest.raises(type(exp_exc)):
 
             # The code to be tested
-            DMTFCIMSchema(schema_version, test_schema_root_dir, verbose=VERBOSE)
+            DMTFCIMSchema(schema_version, tst_schema_root_dir, verbose=VERBOSE)
 
     @pytest.mark.parametrize(
         "clns, exp_rslt",
@@ -10305,6 +10408,7 @@ class TestDMTFCIMSchema:
 
         ]
     )
+    @log_entry_exit
     def test_schema_build(self, clns, exp_rslt):
         # pylint: disable=no-self-use
         """
@@ -10371,6 +10475,7 @@ TESTCASES_COPY_FAKEDWBEMCONNECTION = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_COPY_FAKEDWBEMCONNECTION)
 @simplified_test_function
+@log_entry_exit
 def test_copy_fakedconn(
         testcase, init_kwargs, perform_operation):
     """Test FakedWBEMConnection.copy()"""

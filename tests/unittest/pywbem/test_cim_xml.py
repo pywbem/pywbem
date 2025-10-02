@@ -8,7 +8,7 @@ import pytest
 
 from ..utils.validate import validate_cim_xml, CIMXMLValidationError, \
     assert_xml_equal, DTD_VERSION
-from ..utils.pytest_extensions import simplified_test_function
+from ..utils.pytest_extensions import simplified_test_function, log_entry_exit
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
@@ -4237,6 +4237,7 @@ TESTCASES_CIM_XML_NODE = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIM_XML_NODE)
 @simplified_test_function
+@log_entry_exit
 def test_cim_xml_node(testcase, xml_node, exp_xml_str_list, **kwargs):
     # pylint: disable=unused-argument
     """

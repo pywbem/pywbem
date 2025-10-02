@@ -20,7 +20,7 @@ import pickle
 
 import pytest
 
-from ..utils.pytest_extensions import simplified_test_function
+from ..utils.pytest_extensions import simplified_test_function, log_entry_exit
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
@@ -179,6 +179,7 @@ TESTCASES_OBJSTORE = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_OBJSTORE)
 @simplified_test_function
+@log_entry_exit
 def test_objectstore(testcase, init_args, cls_kwargs, inst_kwargs, qual_kwargs):
     # pylint: disable=unused-argument
     """
@@ -334,6 +335,7 @@ def test_objectstore(testcase, init_args, cls_kwargs, inst_kwargs, qual_kwargs):
         ('root/def', [], None, None, ValueError()),
     ]
 )
+@log_entry_exit
 def test_add_namespace(default_ns, additional_ns, test_ns, exp_ns, exp_exc):
     # pylint: disable=no-self-use
     """
@@ -372,6 +374,7 @@ def test_add_namespace(default_ns, additional_ns, test_ns, exp_ns, exp_exc):
         ('root/def', [], None, None, ValueError()),
     ]
 )
+@log_entry_exit
 def test_remove_namespace(default_ns, additional_ns, test_ns, exp_ns, exp_exc):
     # pylint: disable=no-self-use
     """
@@ -438,6 +441,7 @@ TEST_OBJECTS2 = [
         ),
     ],
 )
+@log_entry_exit
 def test_repository_valid_methods(desc, args, condition, capsys):
     """
     This is a test of the various methods of the repository that return
@@ -589,6 +593,7 @@ def test_repository_valid_methods(desc, args, condition, capsys):
         ),
     ],
 )
+@log_entry_exit
 def test_repository_method_errs(desc, args, condition, capsys):
     # pylint: disable=unused-argument
     """
@@ -710,6 +715,7 @@ TESTCASES_REPO_PICKLE = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_REPO_PICKLE)
 @simplified_test_function
+@log_entry_exit
 def test_InMemoryRepository_pickle(testcase, init_namespace, init_objects):
     """
     Test function for pickling and unpickling InMemoryRepository objects
@@ -854,6 +860,7 @@ TESTCASES_REPO_LOAD = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_REPO_LOAD)
 @simplified_test_function
+@log_entry_exit
 def test_InMemoryRepository_load(testcase,
                                  init_namespace1, init_objects1,
                                  init_namespace2, init_objects2):

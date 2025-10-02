@@ -11,7 +11,7 @@ import random
 import pytest
 
 from ..utils.unichr2 import unichr2
-from ..utils.pytest_extensions import simplified_test_function
+from ..utils.pytest_extensions import simplified_test_function, log_entry_exit
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
@@ -223,6 +223,7 @@ TESTCASES_ASCII2 = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_ASCII2)
 @simplified_test_function
+@log_entry_exit
 def test_ascii2(testcase, value, exp_result):
     """
     Test function for _ascii2().
@@ -531,6 +532,7 @@ TESTCASES_FORMAT_FIXED = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_FORMAT_FIXED)
 @simplified_test_function
+@log_entry_exit
 def test_format_fixed(testcase, format_str, format_args, format_kwargs,
                       exp_result):
     """
@@ -567,6 +569,7 @@ def unicode_cp(request):
     return request.param
 
 
+@log_entry_exit
 def test_format_random(unicode_cp):
     # pylint: disable=redefined-outer-name
     """
@@ -849,6 +852,7 @@ TESTCASES_INTEGER_VALUE_TO_INT = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_INTEGER_VALUE_TO_INT)
 @simplified_test_function
+@log_entry_exit
 def test_integerValue_to_int(testcase, value, exp_result):
     """
     Test function for _integerValue_to_int().
