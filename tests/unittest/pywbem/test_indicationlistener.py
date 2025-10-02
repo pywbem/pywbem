@@ -20,7 +20,8 @@ import pytest
 
 from ...utils import post_bsl
 from ...elapsed_timer import ElapsedTimer
-from ..utils.pytest_extensions import simplified_test_function
+from ..utils.pytest_extensions import simplified_test_function, \
+    log_entry_exit, get_logger
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
@@ -35,44 +36,12 @@ from pywbem._utils import _format  # noqa: E402
 # Literal form {"blah: 0} faster than dict(blah=0) but same functionality
 # pylint: disable=use-dict-literal
 
-# Log level to be used. To enable logging, change this constant to the desired
-# log level, and add code to set or unset the log level of the root logger
-# globally or specifically in each test case.
-LOGLEVEL = logging.NOTSET  # NOTSET disables logging
-# LOGLEVEL = logging.INFO    # Enable to generate logs at info level
-# LOGLEVEL = logging.DEBUG   # Enable to generate logs at debug level
-
-# Set name of the log file
-LOG_NAME = 'test_indicationlistener'
-LOGFILE = LOG_NAME + '.log'
-
 # test variables to allow selectively executing tests.
 OK = True
 RUN = True
 FAIL = False
 
-
-def configure_root_logger(logfile):
-    """
-    Configure the root logger, except for log level. Add or configure
-    a single file handler for the log with our formatter and logfile name
-    """
-    root_logger = logging.getLogger('')
-    for hdlr in root_logger.handlers:
-        if isinstance(hdlr, logging.FileHandler):
-            root_logger.removeHandler(hdlr)
-    # add Filehandler with logfile name and our formatter
-    hdlr = logging.FileHandler(logfile)
-    hdlr.setFormatter(
-        logging.Formatter(
-            "%(asctime)s %(thread)s %(name)s %(levelname)s %(message)s"))
-    root_logger.addHandler(hdlr)
-
-
-LOGGER = logging.getLogger(LOG_NAME)
-if LOGLEVEL > logging.NOTSET:
-    configure_root_logger(LOGFILE)
-
+LOGGER = get_logger(__name__)
 
 TESTCASES_WBEMLISTENER_INIT = [
 
@@ -404,6 +373,7 @@ TESTCASES_WBEMLISTENER_INIT = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_WBEMLISTENER_INIT)
 @simplified_test_function
+@log_entry_exit
 def test_WBEMListener_init(testcase, init_args, init_kwargs, exp_attrs):
     """
     Test function for WBEMListener.__init__()
@@ -453,6 +423,7 @@ TESTCASES_WBEMLISTENER_STR = [
 @pytest.mark.parametrize(
     "obj",
     TESTCASES_WBEMLISTENER_STR)
+@log_entry_exit
 def test_WBEMListener_str(obj):
     """
     Test function for WBEMListener.__str__() / str()
@@ -494,6 +465,7 @@ TESTCASES_WBEMLISTENER_REPR = [
 @pytest.mark.parametrize(
     "obj",
     TESTCASES_WBEMLISTENER_REPR)
+@log_entry_exit
 def test_WBEMListener_repr(obj):
     """
     Test function for WBEMListener.__repr__() / repr()
@@ -523,6 +495,7 @@ def test_WBEMListener_repr(obj):
     assert exp_logger_str in result
 
 
+@log_entry_exit
 def test_WBEMListener_start_stop():
     """
     Test starting and stopping of the listener.
@@ -546,6 +519,7 @@ def test_WBEMListener_start_stop():
         assert listener.https_started is False
 
 
+@log_entry_exit
 def test_WBEMListener_port_in_use():
     """
     Test starting the listener when port is in use by another listener.
@@ -586,6 +560,7 @@ def test_WBEMListener_port_in_use():
         listener2.stop()
 
 
+@log_entry_exit
 def test_WBEMListener_context_mgr():
     """
     Test starting the listener and automatic closing in a context manager.
@@ -821,8 +796,9 @@ WBEMLISTENER_SEND_INDICATIONS_TESTCASES = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     WBEMLISTENER_SEND_INDICATIONS_TESTCASES)
 @simplified_test_function
-def test_WBEMListener_send_indications(testcase, send_count, max_queue,
-                                       exp_success, callback_delay):
+@log_entry_exit
+def test_WBEMListener_send_indications(
+        testcase, send_count, max_queue, exp_success, callback_delay):
     """
     Test WBEMListener with an indication generator.
 
@@ -853,10 +829,6 @@ def test_WBEMListener_send_indications(testcase, send_count, max_queue,
     global CALLBACK_DELAY  # pylint: disable=global-statement
 
     CALLBACK_DELAY = callback_delay
-
-    # Enable logging for this test function
-    if LOGLEVEL > logging.NOTSET:
-        logging.getLogger('').setLevel(LOGLEVEL)
 
     # Fixes issue #528 where on Windows, localhost adds multisecond delay
     # probably due to hosts table or DNS misconfiguration.
@@ -1008,10 +980,6 @@ def test_WBEMListener_send_indications(testcase, send_count, max_queue,
         # Test that only the main thread exists.
         assert threading.active_count() == 1
 
-        # Disable logging for this test function
-        if LOGLEVEL > logging.NOTSET:
-            logging.getLogger('').setLevel(logging.NOTSET)
-
 
 @pytest.mark.parametrize(
     "method, exp_status", [
@@ -1025,6 +993,7 @@ def test_WBEMListener_send_indications(testcase, send_count, max_queue,
         ('CONNECT', 405),
         ('M_POST', 405),
     ])
+@log_entry_exit
 def test_WBEMListener_incorrect_method(method, exp_status):
     """
     Verify that WBEMListener send fails when an incorrect HTTP method is used.
@@ -1145,6 +1114,7 @@ WBEMLISTENER_INCORRECT_HEADERS_TESTCASES = [
 @pytest.mark.parametrize(
     "desc, headers, exp_status, exp_headers",
     WBEMLISTENER_INCORRECT_HEADERS_TESTCASES)
+@log_entry_exit
 def test_WBEMListener_incorrect_headers(desc, headers, exp_status, exp_headers):
     # pylint: disable=unused-argument
     """
@@ -1298,6 +1268,7 @@ WBEMLISTENER_INCORRECT_PAYLOAD1_TESTCASES = [
 @pytest.mark.parametrize(
     "desc, payload, exp_status, exp_headers",
     WBEMLISTENER_INCORRECT_PAYLOAD1_TESTCASES)
+@log_entry_exit
 def test_WBEMListener_incorrect_payload1(
         desc, payload, exp_status, exp_headers):
     # pylint: disable=unused-argument
@@ -1463,6 +1434,7 @@ WBEMLISTENER_INCORRECT_PAYLOAD2_TESTCASES = [
 @pytest.mark.parametrize(
     "desc, payload, exp_status, exp_headers, exp_payload",
     WBEMLISTENER_INCORRECT_PAYLOAD2_TESTCASES)
+@log_entry_exit
 def test_WBEMListener_incorrect_payload2(
         desc, payload, exp_status, exp_headers, exp_payload):
     # pylint: disable=unused-argument

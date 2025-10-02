@@ -7,6 +7,7 @@ import functools
 import warnings
 from collections import namedtuple
 from inspect import signature
+import logging
 
 import pytest
 
@@ -170,6 +171,70 @@ def simplified_test_function(test_func):
     wrapper_func.__signature__ = signature(wrapper_func)
 
     return functools.update_wrapper(wrapper_func, test_func)
+
+
+def logger_name(test_mod_name):
+    """
+    Return the logger name to be used for the specified test module.
+
+    Parameters:
+        test_mod_name (str): Test module name, qualified with the module path.
+    """
+    return test_mod_name.rsplit('.', maxsplit=1)[-1]
+
+
+def get_logger(test_mod_name):
+    """
+    Get the Python logger for the test module.
+
+    Parameters:
+        test_mod_name (str): Test module name, optionally qualified with the
+          module path.
+
+    Returns:
+        logging.Logger: Python logger for the test module.
+    """
+    _logger_name = logger_name(test_mod_name)
+    _logger = logging.getLogger(_logger_name)
+    return _logger
+
+
+def log_entry_exit(func):
+    """
+    A decorator for test functions that logs entry and exit of the test
+    function.
+    """
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        test_mod_name = func.__module__  # qualified with module path
+        test_func_name = func.__qualname__
+        _logger = get_logger(test_mod_name)
+
+        # Set the following to True when there is a need to see the test
+        # function arguments in the log:
+        with_args = False
+
+        if with_args:
+            args_str = f" with args: {args!r}; kwargs: {kwargs!r}"
+        else:
+            args_str = ""
+        _logger.debug("Entering test function %s%s", test_func_name, args_str)
+        try:
+            result = func(*args, **kwargs)
+            return result
+        finally:
+            _logger.debug("Leaving test function %s", test_func_name)
+
+    return wrapper
+
+
+@pytest.fixture
+def logger(request):
+    """
+    Pytest fixture that resolves to the Python logger for the test module.
+    """
+    test_mod_name = request.node.module.name  # qualified with module path
+    return get_logger(test_mod_name)
 
 
 class ignore_warnings(warnings.catch_warnings):

@@ -26,7 +26,7 @@ import os
 
 import pytest
 
-from ..utils.pytest_extensions import simplified_test_function
+from ..utils.pytest_extensions import simplified_test_function, log_entry_exit
 from ..utils.dmtf_mof_schema_def import DMTF_TEST_SCHEMA_VER
 from ...utils import skip_if_moftab_regenerated
 
@@ -90,6 +90,7 @@ def inst_from_classname(conn, class_name, namespace=None,
         include_path=include_path)
 
 
+@log_entry_exit
 def test_interop_namespace_names():
     """
     Test the method interop_namespace_names. This is a single test
@@ -127,6 +128,7 @@ TESTCASES_IS_INTEROP_NAMESPACE = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_IS_INTEROP_NAMESPACE)
 @simplified_test_function
+@log_entry_exit
 def test_is_interop_namespace(testcase, ns, exp_rtn):
     # pylint: disable=unused-argument
     """
@@ -182,6 +184,7 @@ TESTCASES_FIND_INTEROP_NAMESPACE = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_FIND_INTEROP_NAMESPACE)
 @simplified_test_function
+@log_entry_exit
 def test_find_interop_namespace(testcase, deflt, nss, exp_ns):
     # pylint: disable=unused-argument
     """
@@ -253,6 +256,7 @@ TESTCASES_INSTALL_NAMESPACE_PROVIDER = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_INSTALL_NAMESPACE_PROVIDER)
 @simplified_test_function
+@log_entry_exit
 def test_install_namespace_provider(testcase, default_ns, ns):
     """
     Test installation of the namespace provider
@@ -374,6 +378,7 @@ TESTCASES_ADD_NAMESPACE_NAMESPACE_PROVIDER = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_ADD_NAMESPACE_NAMESPACE_PROVIDER)
 @simplified_test_function
+@log_entry_exit
 def test_add_namespace_namespace_provider(testcase, initial_ns, interop_ns,
                                           final_ns, total_exp_ns):
     """
@@ -498,6 +503,7 @@ TESTCASES_ADD_CIMNAMESPACE_WITH_CREATENAMESPACE = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_ADD_CIMNAMESPACE_WITH_CREATENAMESPACE)
 @simplified_test_function
+@log_entry_exit
 def test_add_cimnamespace_with_createnamespace(testcase, initial_ns, final_ns,
                                                total_exp_ns):
     """

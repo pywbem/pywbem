@@ -28,7 +28,7 @@ provide a test of the logic of processing these associations.
 import pytest
 
 from ...utils import skip_if_moftab_regenerated
-from ..utils.pytest_extensions import simplified_test_function
+from ..utils.pytest_extensions import simplified_test_function, log_entry_exit
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from pywbem._utils import _format  # noqa: E402
@@ -666,6 +666,7 @@ TESTCASES_MULTI_NAMESPACES = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_MULTI_NAMESPACES)
 @simplified_test_function
+@log_entry_exit
 def test_multiple_namespace_assoc(testcase, namespaces, class_mof, inst_mof,
                                   assoc_inst_mof, source_clns, assoc_clns,
                                   delete_ns, exp_rtn):
@@ -895,6 +896,7 @@ TESTCASES_MULTI_NAMESPACES_ERRORS = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_MULTI_NAMESPACES_ERRORS)
 @simplified_test_function
+@log_entry_exit
 def test_multiple_namespace_assoc_errs(testcase, namespaces, class_mof,
                                        remove_classes, inst_mof,
                                        assoc_inst_mof, assoc_inst_obj,
@@ -1534,6 +1536,7 @@ TESTCASES_MULTI_NAMESPACES_MODIFY_INSTANCE = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_MULTI_NAMESPACES_MODIFY_INSTANCE)
 @simplified_test_function
+@log_entry_exit
 def test_multiple_namespace_assoc_modify(testcase, namespaces, class_mof,
                                          inst_mof, assoc_inst_mof, source_clns,
                                          assoc_clns, property_mods, prop_list,

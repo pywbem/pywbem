@@ -29,7 +29,7 @@ import os
 import pytest
 
 from ..utils.wbemserver_mock import WbemServerMock
-from ..utils.pytest_extensions import simplified_test_function
+from ..utils.pytest_extensions import simplified_test_function, log_entry_exit
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
@@ -65,6 +65,7 @@ class TestServerClass(BaseMethodsForTests):
     @pytest.mark.parametrize(
         "tst_namespace",
         ['interop', 'root/interop', 'root/PG_Interop'])
+    @log_entry_exit
     def test_wbemserver_basic(self, tst_namespace):
         # pylint: disable=no-self-use
         """
@@ -219,6 +220,7 @@ TESTCASES_CREATE_NAMESPACE = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CREATE_NAMESPACE)
 @simplified_test_function
+@log_entry_exit
 def test_create_namespace(testcase, new_namespace, exp_namespace):
     """
     Test creation of a namespace using approach 2.
@@ -345,6 +347,7 @@ TESTCASES_DELETE_NAMESPACE = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_DELETE_NAMESPACE)
 @simplified_test_function
+@log_entry_exit
 def test_delete_namespace(testcase,
                           namespace, namespace_content, exp_namespace):
     """
@@ -433,6 +436,7 @@ TESTCASES_GET_CENTRAL_INSTANCES = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_GET_CENTRAL_INSTANCES)
 @simplified_test_function
+@log_entry_exit
 def test_get_central_instances(testcase, profile_name, central_class,
                                scoping_class, scoping_path, direction,
                                exp_paths):

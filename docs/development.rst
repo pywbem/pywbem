@@ -210,6 +210,38 @@ active, as long as the Python `tox` package is installed in it:
     $ tox -e py27                      # Run tests on Python 2.7
 
 
+
+.. _`Logging during tests`:
+
+Logging during tests
+--------------------
+
+Most unit tests perform entry and exit logging for the test functions at the DEBUG
+log level. Some unit tests perform additional logging during the test function,
+typically also at the DEBUG level. The Python logger used for this is named after
+the test module.
+
+Most functions of pywbem perform logging as well, to the pywbem-specific Python
+loggers. See :ref:`Pywbem logging overview` for details.
+
+The tests that are driven by pytest (e.g. ``make test``, ``make end2end``)
+can use pytest file logging to control the log level for all these loggers and
+the destination to a log file.
+
+The defaults for pytest file logging are defined in the file ``pytest.ini``.
+These defaults can be overridden in the command line using pytest options as
+documented in the ``pytest.ini`` file:
+
+.. literalinclude:: ../pytest.ini
+   :language: ini
+
+For example:
+
+.. code-block:: bash
+
+    $ TESTOPTS='--log-file-level=DEBUG --log-file=myfile.log' make test
+
+
 .. _`Testing from the source archives on Pypi or GitHub`:
 
 Testing from the source archives on Pypi or GitHub
