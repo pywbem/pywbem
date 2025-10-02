@@ -1152,7 +1152,7 @@ class WBEMListener:
     def ind_delivery_queue_empty(self):
         """
         Return boolean True if the indication queue is empty. Otherwise return
-        False. This is available becasue the queue_size attribute only returns
+        False. This is available because the queue_size attribute only returns
         an approximation.
         """
         return self.ind_delivery_queue.empty()
@@ -1487,21 +1487,21 @@ class WBEMListener:
 
         """
         try:
-            self.logger.debug("handle_indication rcvd indication queue put.")
+            self.logger.debug("handle_indication: Putting received indication "
+                              "to indication delivery queue")
 
             # Do not block put to queue. It puts or raises the Full exception
             self.ind_delivery_queue.put((indication, host), block=False)
             self.logger.debug(
-                "Rcvd indication queue put done. queue_size %s",
+                "handle_indication: Success putting received indication "
+                "to indication delivery queue (queue size: %s)",
                 self.queue_size())
 
         except queue.Full:
-            self.logger.debug(
-                "Rcvd indication queue full. ListenerQueueFullError Exception, "
-                "queue_size = %s", self.queue_size)
-            new_exc = ListenerQueueFullError(
-                "Listener indication delivery queue full, "
-                f"queue_size = {self.queue_size}. Closing listener.")
+            msg = ("Indication delivery queue is full "
+                   f"(queue size: {self.queue_size()})")
+            self.logger.debug("handle_indication: %s", msg)
+            new_exc = ListenerQueueFullError(msg)
             new_exc.__cause__ = None
             raise new_exc  # ListenerQueueFullError
 
