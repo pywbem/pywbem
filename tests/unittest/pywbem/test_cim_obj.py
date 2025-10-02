@@ -14,7 +14,7 @@ import pytest
 from packaging.version import parse as parse_version
 
 from ..utils.validate import validate_cim_xml_obj
-from ..utils.pytest_extensions import simplified_test_function
+from ..utils.pytest_extensions import simplified_test_function, log_entry_exit
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
@@ -237,6 +237,7 @@ TESTCASES_DICT = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_DICT)
 @simplified_test_function
+@log_entry_exit
 def test_dict(testcase, obj, exp_dict):
     # pylint: disable=unused-argument
     """
@@ -457,6 +458,7 @@ def test_dict(testcase, obj, exp_dict):
          CIMQualifierDeclaration('Bar', 'string')),
     ]
 )
+@log_entry_exit
 def test_object_comparison(objects, func_name):
     """
     Test function for comparison operators of CIM objects.
@@ -1093,6 +1095,7 @@ TESTCASES_CIMINSTANCENAME_INIT = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCENAME_INIT)
 @simplified_test_function
+@log_entry_exit
 def test_CIMInstanceName_init(testcase, init_args, init_kwargs, exp_attrs):
     """
     Test function for CIMInstanceName.__init__()
@@ -1174,6 +1177,7 @@ TESTCASES_KEYBINDING_CONFIG = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_KEYBINDING_CONFIG)
 @simplified_test_function
+@log_entry_exit
 def test_keybinding_config_option(
         testcase, init_args, ignore_flag, init_kwargs, exp_attrs):
     """
@@ -1266,6 +1270,7 @@ TESTCASES_CIMINSTANCENAME_COPY = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCENAME_COPY)
 @simplified_test_function
+@log_entry_exit
 def test_CIMInstanceName_copy(testcase, obj_kwargs):
     """
     Test function for CIMInstanceName.copy()
@@ -1705,6 +1710,7 @@ TESTCASES_CIMINSTANCENAME_SETATTR = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCENAME_SETATTR)
 @simplified_test_function
+@log_entry_exit
 def test_CIMInstanceName_setattr(
         testcase, obj_kwargs, item, new_value, exp_attrs):
     """
@@ -1736,6 +1742,7 @@ def test_CIMInstanceName_setattr(
         assert value == exp_value
 
 
+@log_entry_exit
 def test_CIMInstanceName_eq_keybindings_order():
     """
     Test that two CIMInstanceName objects compare equal if their key
@@ -2144,6 +2151,7 @@ TESTCASES_CIMINSTANCENAME_EQ = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCENAME_HASH_EQ)
 @simplified_test_function
+@log_entry_exit
 def test_CIMInstanceName_hash(testcase, obj1, obj2, exp_equal):
     """
     Test function for CIMInstanceName.__hash__().
@@ -2170,6 +2178,7 @@ def test_CIMInstanceName_hash(testcase, obj1, obj2, exp_equal):
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCENAME_HASH_EQ + TESTCASES_CIMINSTANCENAME_EQ)
 @simplified_test_function
+@log_entry_exit
 def test_CIMInstanceName_eq(testcase, obj1, obj2, exp_equal):
     """
     Test function for CIMInstanceName.__eq__().
@@ -2242,6 +2251,7 @@ TESTCASES_CIMINSTANCENAME_REPR = [
 @pytest.mark.parametrize(
     "obj",
     TESTCASES_CIMINSTANCENAME_REPR)
+@log_entry_exit
 def test_CIMInstanceName_repr(obj):
     """
     Test function for CIMInstanceName.__repr__() / repr()
@@ -3422,6 +3432,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCENAME_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMInstanceName_tocimxml(testcase, obj, kwargs, exp_xml_str):
     """
     Test function for CIMInstanceName.tocimxml().
@@ -3443,6 +3454,7 @@ def test_CIMInstanceName_tocimxml(testcase, obj, kwargs, exp_xml_str):
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCENAME_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMInstanceName_tocimxmlstr(testcase, obj, kwargs, exp_xml_str):
     """
     Test function for CIMInstanceName.tocimxmlstr().
@@ -3465,6 +3477,7 @@ def test_CIMInstanceName_tocimxmlstr(testcase, obj, kwargs, exp_xml_str):
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCENAME_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMInstanceName_tocimxmlstr_indent_int(
         testcase, obj, kwargs, exp_xml_str):
     """
@@ -3493,6 +3506,7 @@ def test_CIMInstanceName_tocimxmlstr_indent_int(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCENAME_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMInstanceName_tocimxmlstr_indent_str(
         testcase, obj, kwargs, exp_xml_str):
     """
@@ -3571,6 +3585,7 @@ TESTCASES_CIMINSTANCENAME_TOCIMXML_SPECIAL_KB = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCENAME_TOCIMXML_SPECIAL_KB)
 @simplified_test_function
+@log_entry_exit
 def test_CIMInstanceName_tocimxml_special_kb(
         testcase, obj, kb_name, kb_value, exp_xml_str):
     """
@@ -4494,6 +4509,7 @@ TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCENAME_FROM_WBEM_URI)
 @simplified_test_function
+@log_entry_exit
 def test_CIMInstanceName_from_wbem_uri(testcase, uri, exp_attrs):
     """
     Test function for CIMInstanceName.from_wbem_uri()
@@ -4778,6 +4794,7 @@ TESTCASES_CIMINSTANCENAME_FROM_INSTANCE = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCENAME_FROM_INSTANCE)
 @simplified_test_function
+@log_entry_exit
 def test_CIMInstanceName_from_instance(
         testcase, cls_kwargs, inst_kwargs, exp_attrs, namespace, host, strict):
     # pylint: disable=unused-argument
@@ -5564,6 +5581,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCENAME_TO_WBEM_URI)
 @simplified_test_function
+@log_entry_exit
 def test_CIMInstanceName_to_wbem_uri(testcase, obj, kwargs, exp_uri):
     """
     Test function for CIMInstanceName.to_wbem_uri()
@@ -5628,6 +5646,7 @@ TESTCASES_CIMINSTANCENAME_TO_WBEM_URI_SPECIAL_KB = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCENAME_TO_WBEM_URI_SPECIAL_KB)
 @simplified_test_function
+@log_entry_exit
 def test_CIMInstanceName_to_wbem_uri_special_kb(
         testcase, obj, kb_name, kb_value, exp_uri):
     """
@@ -5708,6 +5727,7 @@ TESTCASES_CIMINSTANCENAME_STR = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCENAME_STR)
 @simplified_test_function
+@log_entry_exit
 def test_CIMInstanceName_str(testcase, obj, exp_uri):
     """
     Test function for CIMInstanceName.__str__()
@@ -6487,6 +6507,7 @@ TESTCASES_CIMINSTANCE_INIT = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCE_INIT)
 @simplified_test_function
+@log_entry_exit
 def test_CIMInstance_init(testcase, init_args, init_kwargs, exp_attrs):
     """
     Test function for CIMInstance.__init__()
@@ -6597,6 +6618,7 @@ TESTCASES_CIMINSTANCE_COPY = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCE_COPY)
 @simplified_test_function
+@log_entry_exit
 def test_CIMInstance_copy(testcase, obj_kwargs):
     """
     Test function for CIMInstance.copy()
@@ -6997,6 +7019,7 @@ TESTCASES_CIMINSTANCE_SETATTR = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCE_SETATTR)
 @simplified_test_function
+@log_entry_exit
 def test_CIMInstance_setattr(
         testcase, obj_kwargs, item, new_value, exp_attrs):
     """
@@ -7129,6 +7152,7 @@ TESTCASES_CIMINSTANCE_UPDATE_PROPERTY = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCE_UPDATE_PROPERTY)
 @simplified_test_function
+@log_entry_exit
 def test_CIMInstance_update_property(
         testcase, obj_kwargs, prop_name, new_value, exp_attrs):
     """
@@ -7406,6 +7430,7 @@ TESTCASES_CIMINSTANCE_UPDATE_EXISTING = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCE_UPDATE_EXISTING)
 @simplified_test_function
+@log_entry_exit
 def test_CIMInstance_update_existing(
         testcase, obj_kwargs, func_args, func_kwargs, exp_attrs):
     """
@@ -7918,6 +7943,7 @@ TESTCASES_CIMINSTANCE_EQ = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCE_HASH_EQ)
 @simplified_test_function
+@log_entry_exit
 def test_CIMInstance_hash(testcase, obj1, obj2, exp_equal):
     """
     Test function for CIMInstance.__hash__().
@@ -7944,6 +7970,7 @@ def test_CIMInstance_hash(testcase, obj1, obj2, exp_equal):
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCE_HASH_EQ + TESTCASES_CIMINSTANCE_EQ)
 @simplified_test_function
+@log_entry_exit
 def test_CIMInstance_eq(testcase, obj1, obj2, exp_equal):
     """
     Test function for CIMInstance.__eq__().
@@ -7996,6 +8023,7 @@ TESTCASES_CIMINSTANCE_STR_REPR = [
 @pytest.mark.parametrize(
     "obj",
     TESTCASES_CIMINSTANCE_STR_REPR)
+@log_entry_exit
 def test_CIMInstance_str(obj):
     """
     Test function for CIMInstance.__str__() / str()
@@ -8016,6 +8044,7 @@ def test_CIMInstance_str(obj):
 @pytest.mark.parametrize(
     "obj",
     TESTCASES_CIMINSTANCE_STR_REPR)
+@log_entry_exit
 def test_CIMInstance_repr(obj):
     """
     Test function for CIMInstance.__repr__() / repr()
@@ -8405,6 +8434,7 @@ TESTCASES_CIMINSTANCE_TOCIMXML = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCE_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMInstance_tocimxml(testcase, obj, kwargs, exp_xml_str):
     """
     Test function for CIMInstance.tocimxml().
@@ -8426,6 +8456,7 @@ def test_CIMInstance_tocimxml(testcase, obj, kwargs, exp_xml_str):
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCE_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMInstance_tocimxmlstr(testcase, obj, kwargs, exp_xml_str):
     """
     Test function for CIMInstance.tocimxmlstr().
@@ -8448,6 +8479,7 @@ def test_CIMInstance_tocimxmlstr(testcase, obj, kwargs, exp_xml_str):
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCE_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMInstance_tocimxmlstr_indent_int(
         testcase, obj, kwargs, exp_xml_str):
     """
@@ -8476,6 +8508,7 @@ def test_CIMInstance_tocimxmlstr_indent_int(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCE_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMInstance_tocimxmlstr_indent_str(
         testcase, obj, kwargs, exp_xml_str):
     """
@@ -8804,6 +8837,7 @@ instance of C1 {
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCE_TOMOF)
 @simplified_test_function
+@log_entry_exit
 def test_CIMInstance_tomof(testcase, obj, kwargs, exp_mof):
     """
     Test function for CIMInstance.tomof().
@@ -9211,6 +9245,7 @@ TESTCASES_CIMINSTANCE_FROMCLASS = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMINSTANCE_FROMCLASS)
 @simplified_test_function
+@log_entry_exit
 def test_CIMInstance_from_class(testcase, cls_props, inst_prop_vals, kwargs,
                                 exp_props):
     """
@@ -11592,6 +11627,7 @@ TESTCASES_CIMPROPERTY_INIT = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMPROPERTY_INIT)
 @simplified_test_function
+@log_entry_exit
 def test_CIMProperty_init(testcase, init_args, init_kwargs, exp_attrs):
     """
     Test function for CIMProperty.__init__()
@@ -11859,6 +11895,7 @@ TESTCASES_CIMPROPERTY_COPY = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMPROPERTY_COPY)
 @simplified_test_function
+@log_entry_exit
 def test_CIMProperty_copy(testcase, obj_kwargs):
     """
     Test function for CIMProperty.copy()
@@ -14168,6 +14205,7 @@ TESTCASES_CIMPROPERTY_SETATTR = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMPROPERTY_SETATTR)
 @simplified_test_function
+@log_entry_exit
 def test_CIMProperty_setattr(
         testcase, obj_kwargs, item, new_value, exp_attrs):
     """
@@ -14762,6 +14800,7 @@ TESTCASES_CIMPROPERTY_EQ = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMPROPERTY_HASH_EQ)
 @simplified_test_function
+@log_entry_exit
 def test_CIMProperty_hash(testcase, obj1, obj2, exp_equal):
     """
     Test function for CIMProperty.__hash__().
@@ -14788,6 +14827,7 @@ def test_CIMProperty_hash(testcase, obj1, obj2, exp_equal):
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMPROPERTY_HASH_EQ + TESTCASES_CIMPROPERTY_EQ)
 @simplified_test_function
+@log_entry_exit
 def test_CIMProperty_eq(testcase, obj1, obj2, exp_equal):
     """
     Test function for CIMProperty.__eq__().
@@ -14864,6 +14904,7 @@ TESTCASES_CIMPROPERTY_STR_REPR = [
 @pytest.mark.parametrize(
     "obj",
     TESTCASES_CIMPROPERTY_STR_REPR)
+@log_entry_exit
 def test_CIMProperty_str(obj):
     """
     Test function for CIMProperty.__str__() / str()
@@ -14896,6 +14937,7 @@ def test_CIMProperty_str(obj):
 @pytest.mark.parametrize(
     "obj",
     TESTCASES_CIMPROPERTY_STR_REPR)
+@log_entry_exit
 def test_CIMProperty_repr(obj):
     """
     Test function for CIMProperty.__repr__() / repr()
@@ -17455,6 +17497,7 @@ TESTCASES_CIMPROPERTY_TOCIMXML = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMPROPERTY_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMProperty_tocimxml(testcase, obj, kwargs, exp_xml_str):
     """
     Test function for CIMProperty.tocimxml().
@@ -17476,6 +17519,7 @@ def test_CIMProperty_tocimxml(testcase, obj, kwargs, exp_xml_str):
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMPROPERTY_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMProperty_tocimxmlstr(testcase, obj, kwargs, exp_xml_str):
     """
     Test function for CIMProperty.tocimxmlstr().
@@ -17498,6 +17542,7 @@ def test_CIMProperty_tocimxmlstr(testcase, obj, kwargs, exp_xml_str):
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMPROPERTY_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMProperty_tocimxmlstr_indent_int(
         testcase, obj, kwargs, exp_xml_str):
     """
@@ -17526,6 +17571,7 @@ def test_CIMProperty_tocimxmlstr_indent_int(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMPROPERTY_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMProperty_tocimxmlstr_indent_str(
         testcase, obj, kwargs, exp_xml_str):
     """
@@ -18145,6 +18191,7 @@ TESTCASES_CIMPROPERTY_TOMOF = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMPROPERTY_TOMOF)
 @simplified_test_function
+@log_entry_exit
 def test_CIMProperty_tomof(testcase, obj, kwargs, exp_mof):
     """
     Test function for CIMProperty.tomof().
@@ -18161,6 +18208,7 @@ def test_CIMProperty_tomof(testcase, obj, kwargs, exp_mof):
     assert mof == exp_mof
 
 
+@log_entry_exit
 def test_CIMProperty_tomof_special1():
     """
     Special test CIMProperty.tomof(): Datetime value with string type
@@ -18181,6 +18229,7 @@ def test_CIMProperty_tomof_special1():
         obj.tomof(is_instance=False)
 
 
+@log_entry_exit
 def test_CIMProperty_tomof_special2():
     """
     Special test CIMProperty.tomof(): Plain float value
@@ -18640,6 +18689,7 @@ TESTCASES_CIMQUALIFIER_INIT = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMQUALIFIER_INIT)
 @simplified_test_function
+@log_entry_exit
 def test_CIMQualifier_init(testcase, init_args, init_kwargs, exp_attrs):
     """
     Test function for CIMQualifier.__init__()
@@ -18738,6 +18788,7 @@ TESTCASES_CIMQUALIFIER_COPY = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMQUALIFIER_COPY)
 @simplified_test_function
+@log_entry_exit
 def test_CIMQualifier_copy(testcase, obj_kwargs):
     """
     Test function for CIMQualifier.copy()
@@ -19794,6 +19845,7 @@ TESTCASES_CIMQUALIFIER_SETATTR = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMQUALIFIER_SETATTR)
 @simplified_test_function
+@log_entry_exit
 def test_CIMQualifier_setattr(
         testcase, obj_kwargs, item, new_value, exp_attrs):
     """
@@ -20087,6 +20139,7 @@ TESTCASES_CIMQUALIFIER_EQ = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMQUALIFIER_HASH_EQ)
 @simplified_test_function
+@log_entry_exit
 def test_CIMQualifier_hash(testcase, obj1, obj2, exp_equal):
     """
     Test function for CIMQualifier.__hash__().
@@ -20113,6 +20166,7 @@ def test_CIMQualifier_hash(testcase, obj1, obj2, exp_equal):
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMQUALIFIER_HASH_EQ + TESTCASES_CIMQUALIFIER_EQ)
 @simplified_test_function
+@log_entry_exit
 def test_CIMQualifier_eq(testcase, obj1, obj2, exp_equal):
     """
     Test function for CIMQualifier.__eq__().
@@ -20154,6 +20208,7 @@ TESTCASES_CIMQUALIFIER_STR_REPR = [
 @pytest.mark.parametrize(
     "obj",
     TESTCASES_CIMQUALIFIER_STR_REPR)
+@log_entry_exit
 def test_CIMQualifier_str(obj):
     """
     Test function for CIMQualifier.__str__() / str()
@@ -20177,6 +20232,7 @@ def test_CIMQualifier_str(obj):
 @pytest.mark.parametrize(
     "obj",
     TESTCASES_CIMQUALIFIER_STR_REPR)
+@log_entry_exit
 def test_CIMQualifier_repr(obj):
     """
     Test function for CIMQualifier.__repr__() / repr()
@@ -22572,6 +22628,7 @@ TESTCASES_CIMQUALIFIER_TOCIMXML = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMQUALIFIER_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMQualifier_tocimxml(testcase, obj, kwargs, exp_xml_str):
     """
     Test function for CIMQualifier.tocimxml().
@@ -22593,6 +22650,7 @@ def test_CIMQualifier_tocimxml(testcase, obj, kwargs, exp_xml_str):
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMQUALIFIER_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMQualifier_tocimxmlstr(testcase, obj, kwargs, exp_xml_str):
     """
     Test function for CIMQualifier.tocimxmlstr().
@@ -22615,6 +22673,7 @@ def test_CIMQualifier_tocimxmlstr(testcase, obj, kwargs, exp_xml_str):
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMQUALIFIER_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMQualifier_tocimxmlstr_indent_int(
         testcase, obj, kwargs, exp_xml_str):
     """
@@ -22643,6 +22702,7 @@ def test_CIMQualifier_tocimxmlstr_indent_int(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMQUALIFIER_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMQualifier_tocimxmlstr_indent_str(
         testcase, obj, kwargs, exp_xml_str):
     """
@@ -23068,6 +23128,7 @@ TESTCASES_CIMQUALIFIER_TOMOF = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMQUALIFIER_TOMOF)
 @simplified_test_function
+@log_entry_exit
 def test_CIMQualifier_tomof(testcase, obj, kwargs, exp_mof):
     """
     Test function for CIMQualifier.tomof().
@@ -23255,6 +23316,7 @@ TESTCASES_CIMCLASSNAME_INIT = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMCLASSNAME_INIT)
 @simplified_test_function
+@log_entry_exit
 def test_CIMClassName_init(testcase, init_args, init_kwargs, exp_attrs):
     """
     Test function for CIMClassName.__init__()
@@ -23334,6 +23396,7 @@ TESTCASES_CIMCLASSNAME_COPY = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMCLASSNAME_COPY)
 @simplified_test_function
+@log_entry_exit
 def test_CIMClassName_copy(testcase, obj_kwargs):
     """
     Test function for CIMClassName.copy()
@@ -23478,6 +23541,7 @@ TESTCASES_CIMCLASSNAME_SETATTR = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMCLASSNAME_SETATTR)
 @simplified_test_function
+@log_entry_exit
 def test_CIMClassName_setattr(
         testcase, obj_kwargs, item, new_value, exp_attrs):
     """
@@ -23705,6 +23769,7 @@ TESTCASES_CIMCLASSNAME_EQ = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMCLASSNAME_HASH_EQ)
 @simplified_test_function
+@log_entry_exit
 def test_CIMClassName_hash(testcase, obj1, obj2, exp_equal):
     """
     Test function for CIMClassName.__hash__().
@@ -23731,6 +23796,7 @@ def test_CIMClassName_hash(testcase, obj1, obj2, exp_equal):
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMCLASSNAME_HASH_EQ + TESTCASES_CIMCLASSNAME_EQ)
 @simplified_test_function
+@log_entry_exit
 def test_CIMClassName_eq(testcase, obj1, obj2, exp_equal):
     """
     Test function for CIMClassName.__eq__().
@@ -23796,6 +23862,7 @@ TESTCASES_CIMCLASSNAME_REPR = [
 @pytest.mark.parametrize(
     "obj",
     TESTCASES_CIMCLASSNAME_REPR)
+@log_entry_exit
 def test_CIMClassName_repr(obj):
     """
     Test function for CIMClassName.__repr__() / repr()
@@ -24067,6 +24134,7 @@ TESTCASES_CIMCLASSNAME_TOCIMXML = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMCLASSNAME_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMClassName_tocimxml(testcase, obj, kwargs, exp_xml_str):
     """
     Test function for CIMClassName.tocimxml().
@@ -24088,6 +24156,7 @@ def test_CIMClassName_tocimxml(testcase, obj, kwargs, exp_xml_str):
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMCLASSNAME_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMClassName_tocimxmlstr(testcase, obj, kwargs, exp_xml_str):
     """
     Test function for CIMClassName.tocimxmlstr().
@@ -24110,6 +24179,7 @@ def test_CIMClassName_tocimxmlstr(testcase, obj, kwargs, exp_xml_str):
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMCLASSNAME_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMClassName_tocimxmlstr_indent_int(
         testcase, obj, kwargs, exp_xml_str):
     """
@@ -24138,6 +24208,7 @@ def test_CIMClassName_tocimxmlstr_indent_int(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMCLASSNAME_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMClassName_tocimxmlstr_indent_str(
         testcase, obj, kwargs, exp_xml_str):
     """
@@ -24469,6 +24540,7 @@ TESTCASES_CIMCLASSNAME_FROM_WBEM_URI = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMCLASSNAME_FROM_WBEM_URI)
 @simplified_test_function
+@log_entry_exit
 def test_CIMClassName_from_wbem_uri(testcase, uri, exp_attrs):
     """
     Test function for CIMClassName.from_wbem_uri()
@@ -24785,6 +24857,7 @@ TESTCASES_CIMCLASSNAME_TO_WBEM_URI = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMCLASSNAME_TO_WBEM_URI)
 @simplified_test_function
+@log_entry_exit
 def test_CIMClassName_to_wbem_uri(testcase, obj, kwargs, exp_uri):
     """
     Test function for CIMClassName.to_wbem_uri()
@@ -24854,6 +24927,7 @@ TESTCASES_CIMCLASSNAME_STR = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMCLASSNAME_STR)
 @simplified_test_function
+@log_entry_exit
 def test_CIMClassName_str(testcase, obj, exp_uri):
     """
     Test function for CIMClassName.__str__()
@@ -25424,6 +25498,7 @@ TESTCASES_CIMCLASS_INIT = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMCLASS_INIT)
 @simplified_test_function
+@log_entry_exit
 def test_CIMClass_init(testcase, init_args, init_kwargs, exp_attrs):
     """
     Test function for CIMClass.__init__()
@@ -25596,6 +25671,7 @@ TESTCASES_CIMCLASS_COPY = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMCLASS_COPY)
 @simplified_test_function
+@log_entry_exit
 def test_CIMClass_copy(testcase, obj_kwargs):
     """
     Test function for CIMClass.copy()
@@ -26173,6 +26249,7 @@ TESTCASES_CIMCLASS_SETATTR = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMCLASS_SETATTR)
 @simplified_test_function
+@log_entry_exit
 def test_CIMClass_setattr(
         testcase, obj_kwargs, item, new_value, exp_attrs):
     """
@@ -26682,6 +26759,7 @@ TESTCASES_CIMCLASS_EQ = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMCLASS_HASH_EQ)
 @simplified_test_function
+@log_entry_exit
 def test_CIMClass_hash(testcase, obj1, obj2, exp_equal):
     """
     Test function for CIMClass.__hash__().
@@ -26708,6 +26786,7 @@ def test_CIMClass_hash(testcase, obj1, obj2, exp_equal):
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMCLASS_HASH_EQ + TESTCASES_CIMCLASS_EQ)
 @simplified_test_function
+@log_entry_exit
 def test_CIMClass_eq(testcase, obj1, obj2, exp_equal):
     """
     Test function for CIMClass.__eq__().
@@ -26760,6 +26839,7 @@ TESTCASES_CIMCLASS_STR_REPR = [
 @pytest.mark.parametrize(
     "obj",
     TESTCASES_CIMCLASS_STR_REPR)
+@log_entry_exit
 def test_CIMClass_str(obj):
     """
     Test function for CIMClass.__str__() / str()
@@ -26777,6 +26857,7 @@ def test_CIMClass_str(obj):
 @pytest.mark.parametrize(
     "obj",
     TESTCASES_CIMCLASS_STR_REPR)
+@log_entry_exit
 def test_CIMClass_repr(obj):
     """
     Test function for CIMClass.__repr__() / repr()
@@ -27004,6 +27085,7 @@ TESTCASES_CIMCLASS_TOCIMXML = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMCLASS_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMClass_tocimxml(testcase, obj, kwargs, exp_xml_str):
     """
     Test function for CIMClass.tocimxml().
@@ -27025,6 +27107,7 @@ def test_CIMClass_tocimxml(testcase, obj, kwargs, exp_xml_str):
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMCLASS_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMClass_tocimxmlstr(testcase, obj, kwargs, exp_xml_str):
     """
     Test function for CIMClass.tocimxmlstr().
@@ -27047,6 +27130,7 @@ def test_CIMClass_tocimxmlstr(testcase, obj, kwargs, exp_xml_str):
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMCLASS_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMClass_tocimxmlstr_indent_int(
         testcase, obj, kwargs, exp_xml_str):
     """
@@ -27075,6 +27159,7 @@ def test_CIMClass_tocimxmlstr_indent_int(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMCLASS_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMClass_tocimxmlstr_indent_str(
         testcase, obj, kwargs, exp_xml_str):
     """
@@ -27299,6 +27384,7 @@ class C1 {
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMCLASS_TOMOF)
 @simplified_test_function
+@log_entry_exit
 def test_CIMClass_tomof(testcase, obj, kwargs, exp_mof):
     """
     Test function for CIMClass.tomof().
@@ -27807,6 +27893,7 @@ TESTCASES_CIMMETHOD_INIT = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMMETHOD_INIT)
 @simplified_test_function
+@log_entry_exit
 def test_CIMMethod_init(testcase, init_args, init_kwargs, exp_attrs):
     """
     Test function for CIMMethod.__init__()
@@ -27911,6 +27998,7 @@ TESTCASES_CIMMETHOD_COPY = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMMETHOD_COPY)
 @simplified_test_function
+@log_entry_exit
 def test_CIMMethod_copy(testcase, obj_kwargs):
     """
     Test function for CIMMethod.copy()
@@ -28514,6 +28602,7 @@ TESTCASES_CIMMETHOD_SETATTR = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMMETHOD_SETATTR)
 @simplified_test_function
+@log_entry_exit
 def test_CIMMethod_setattr(
         testcase, obj_kwargs, item, new_value, exp_attrs):
     """
@@ -28881,6 +28970,7 @@ TESTCASES_CIMMETHOD_EQ = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMMETHOD_HASH_EQ)
 @simplified_test_function
+@log_entry_exit
 def test_CIMMethod_hash(testcase, obj1, obj2, exp_equal):
     """
     Test function for CIMMethod.__hash__().
@@ -28907,6 +28997,7 @@ def test_CIMMethod_hash(testcase, obj1, obj2, exp_equal):
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMMETHOD_HASH_EQ + TESTCASES_CIMMETHOD_EQ)
 @simplified_test_function
+@log_entry_exit
 def test_CIMMethod_eq(testcase, obj1, obj2, exp_equal):
     """
     Test function for CIMMethod.__eq__().
@@ -28952,6 +29043,7 @@ TESTCASES_CIMMETHOD_STR_REPR = [
 @pytest.mark.parametrize(
     "obj",
     TESTCASES_CIMMETHOD_STR_REPR)
+@log_entry_exit
 def test_CIMMethod_str(obj):
     """
     Test function for CIMMethod.__str__() / str()
@@ -28972,6 +29064,7 @@ def test_CIMMethod_str(obj):
 @pytest.mark.parametrize(
     "obj",
     TESTCASES_CIMMETHOD_STR_REPR)
+@log_entry_exit
 def test_CIMMethod_repr(obj):
     """
     Test function for CIMMethod.__repr__() / repr()
@@ -29246,6 +29339,7 @@ TESTCASES_CIMMETHOD_TOCIMXML = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMMETHOD_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMMethod_tocimxml(testcase, obj, kwargs, exp_xml_str):
     """
     Test function for CIMMethod.tocimxml().
@@ -29267,6 +29361,7 @@ def test_CIMMethod_tocimxml(testcase, obj, kwargs, exp_xml_str):
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMMETHOD_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMMethod_tocimxmlstr(testcase, obj, kwargs, exp_xml_str):
     """
     Test function for CIMMethod.tocimxmlstr().
@@ -29289,6 +29384,7 @@ def test_CIMMethod_tocimxmlstr(testcase, obj, kwargs, exp_xml_str):
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMMETHOD_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMMethod_tocimxmlstr_indent_int(testcase, obj, kwargs, exp_xml_str):
     """
     Test function for CIMMethod.tocimxmlstr() with indent as integer.
@@ -29316,6 +29412,7 @@ def test_CIMMethod_tocimxmlstr_indent_int(testcase, obj, kwargs, exp_xml_str):
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMMETHOD_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMMethod_tocimxmlstr_indent_str(testcase, obj, kwargs, exp_xml_str):
     """
     Test function for CIMMethod.tocimxmlstr() with indent as string.
@@ -29623,6 +29720,7 @@ TESTCASES_CIMMETHOD_TOMOF = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMMETHOD_TOMOF)
 @simplified_test_function
+@log_entry_exit
 def test_CIMMethod_tomof(testcase, obj, kwargs, exp_mof):
     """
     Test function for CIMMethod.tomof().
@@ -30427,6 +30525,7 @@ TESTCASES_CIMPARAMETER_INIT = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMPARAMETER_INIT)
 @simplified_test_function
+@log_entry_exit
 def test_CIMParameter_init(testcase, init_args, init_kwargs, exp_attrs):
     """
     Test function for CIMParameter.__init__()
@@ -30658,6 +30757,7 @@ TESTCASES_CIMPARAMETER_COPY = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMPARAMETER_COPY)
 @simplified_test_function
+@log_entry_exit
 def test_CIMParameter_copy(testcase, obj_kwargs):
     """
     Test function for CIMParameter.copy()
@@ -32901,6 +33001,7 @@ TESTCASES_CIMPARAMETER_SETATTR = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMPARAMETER_SETATTR)
 @simplified_test_function
+@log_entry_exit
 def test_CIMParameter_setattr(
         testcase, obj_kwargs, item, new_value, exp_attrs):
     """
@@ -33223,6 +33324,7 @@ TESTCASES_CIMPARAMETER_EQ = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMPARAMETER_HASH_EQ)
 @simplified_test_function
+@log_entry_exit
 def test_CIMParameter_hash(testcase, obj1, obj2, exp_equal):
     """
     Test function for CIMParameter.__hash__().
@@ -33249,6 +33351,7 @@ def test_CIMParameter_hash(testcase, obj1, obj2, exp_equal):
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMPARAMETER_HASH_EQ + TESTCASES_CIMPARAMETER_EQ)
 @simplified_test_function
+@log_entry_exit
 def test_CIMParameter_eq(testcase, obj1, obj2, exp_equal):
     """
     Test function for CIMParameter.__eq__().
@@ -33295,6 +33398,7 @@ TESTCASES_CIMPARAMETER_STR_REPR = [
 @pytest.mark.parametrize(
     "obj",
     TESTCASES_CIMPARAMETER_STR_REPR)
+@log_entry_exit
 def test_CIMParameter_str(obj):
     """
     Test function for CIMParameter.__str__() / str()
@@ -33321,6 +33425,7 @@ def test_CIMParameter_str(obj):
 @pytest.mark.parametrize(
     "obj",
     TESTCASES_CIMPARAMETER_STR_REPR)
+@log_entry_exit
 def test_CIMParameter_repr(obj):
     """
     Test function for CIMParameter.__repr__() / repr()
@@ -36484,6 +36589,7 @@ TESTCASES_CIMPARAMETER_TOCIMXML = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMPARAMETER_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMParameter_tocimxml(testcase, obj, kwargs, exp_xml_str):
     """
     Test function for CIMParameter.tocimxml().
@@ -36505,6 +36611,7 @@ def test_CIMParameter_tocimxml(testcase, obj, kwargs, exp_xml_str):
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMPARAMETER_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMParameter_tocimxmlstr(testcase, obj, kwargs, exp_xml_str):
     """
     Test function for CIMParameter.tocimxmlstr().
@@ -36527,6 +36634,7 @@ def test_CIMParameter_tocimxmlstr(testcase, obj, kwargs, exp_xml_str):
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMPARAMETER_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMParameter_tocimxmlstr_indent_int(
         testcase, obj, kwargs, exp_xml_str):
     """
@@ -36555,6 +36663,7 @@ def test_CIMParameter_tocimxmlstr_indent_int(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMPARAMETER_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMParameter_tocimxmlstr_indent_str(
         testcase, obj, kwargs, exp_xml_str):
     """
@@ -36960,6 +37069,7 @@ TESTCASES_CIMPARAMETER_TOMOF = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMPARAMETER_TOMOF)
 @simplified_test_function
+@log_entry_exit
 def test_CIMParameter_tomof(testcase, obj, kwargs, exp_mof):
     """
     Test function for CIMParameter.tomof().
@@ -37610,6 +37720,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_INIT = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMQUALIFIERDECLARATION_INIT)
 @simplified_test_function
+@log_entry_exit
 def test_CIMQualifierDeclaration_init(
         testcase, init_args, init_kwargs, exp_attrs):
     """
@@ -37746,6 +37857,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_COPY = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMQUALIFIERDECLARATION_COPY)
 @simplified_test_function
+@log_entry_exit
 def test_CIMQualifierDeclaration_copy(testcase, obj_kwargs):
     """
     Test function for CIMQualifierDeclaration.copy()
@@ -40035,6 +40147,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_SETATTR = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMQUALIFIERDECLARATION_SETATTR)
 @simplified_test_function
+@log_entry_exit
 def test_CIMQualifierDeclaration_setattr(
         testcase, obj_kwargs, item, new_value, exp_attrs):
     """
@@ -40424,6 +40537,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_EQ = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMQUALIFIERDECLARATION_HASH_EQ)
 @simplified_test_function
+@log_entry_exit
 def test_CIMQualifierDeclaration_hash(testcase, obj1, obj2, exp_equal):
     """
     Test function for CIMQualifierDeclaration.__hash__().
@@ -40451,6 +40565,7 @@ def test_CIMQualifierDeclaration_hash(testcase, obj1, obj2, exp_equal):
     TESTCASES_CIMQUALIFIERDECLARATION_HASH_EQ +
     TESTCASES_CIMQUALIFIERDECLARATION_EQ)
 @simplified_test_function
+@log_entry_exit
 def test_CIMQualifierDeclaration_eq(testcase, obj1, obj2, exp_equal):
     """
     Test function for CIMQualifierDeclaration.__eq__().
@@ -40500,6 +40615,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_STR_REPR = [
 @pytest.mark.parametrize(
     "obj",
     TESTCASES_CIMQUALIFIERDECLARATION_STR_REPR)
+@log_entry_exit
 def test_CIMQualifierDeclaration_str(obj):
     """
     Test function for CIMQualifierDeclaration.__str__() / str()
@@ -40526,6 +40642,7 @@ def test_CIMQualifierDeclaration_str(obj):
 @pytest.mark.parametrize(
     "obj",
     TESTCASES_CIMQUALIFIERDECLARATION_STR_REPR)
+@log_entry_exit
 def test_CIMQualifierDeclaration_repr(obj):
     """
     Test function for CIMQualifierDeclaration.__repr__() / repr()
@@ -43247,6 +43364,7 @@ TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMQualifierDeclaration_tocimxml(testcase, obj, kwargs, exp_xml_str):
     """
     Test function for CIMQualifierDeclaration.tocimxml().
@@ -43268,6 +43386,7 @@ def test_CIMQualifierDeclaration_tocimxml(testcase, obj, kwargs, exp_xml_str):
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMQualifierDeclaration_tocimxmlstr(
         testcase, obj, kwargs, exp_xml_str):
     """
@@ -43291,6 +43410,7 @@ def test_CIMQualifierDeclaration_tocimxmlstr(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMQualifierDeclaration_tocimxmlstr_indent_int(
         testcase, obj, kwargs, exp_xml_str):
     """
@@ -43320,6 +43440,7 @@ def test_CIMQualifierDeclaration_tocimxmlstr_indent_int(
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMQUALIFIERDECLARATION_TOCIMXML)
 @simplified_test_function
+@log_entry_exit
 def test_CIMQualifierDeclaration_tocimxmlstr_indent_str(
         testcase, obj, kwargs, exp_xml_str):
     """
@@ -43795,6 +43916,7 @@ Qualifier Q1 : string,
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMQUALIFIERDECLARATION_TOMOF)
 @simplified_test_function
+@log_entry_exit
 def test_CIMQualifierDeclaration_tomof(testcase, obj, kwargs, exp_mof):
     """
     Test function for CIMQualifierDeclaration.tomof().
@@ -44843,6 +44965,7 @@ TESTCASES_CIMVALUE = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_CIMVALUE)
 @simplified_test_function
+@log_entry_exit
 def test_cimvalue(testcase, args, kwargs, exp_obj):
     """
     Test function for cimvalue()
@@ -45907,6 +46030,7 @@ TESTCASES_MOFSTR = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_MOFSTR)
 @simplified_test_function
+@log_entry_exit
 def test_mofstr(testcase, args, kwargs, exp_result):
     """
     Test function for mofstr()

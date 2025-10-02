@@ -9,7 +9,7 @@ import time
 
 import pytest
 
-from ..utils.pytest_extensions import simplified_test_function
+from ..utils.pytest_extensions import simplified_test_function, log_entry_exit
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
@@ -107,6 +107,7 @@ TESTCASES_STATISTICS_INIT = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_STATISTICS_INIT)
 @simplified_test_function
+@log_entry_exit
 def test_Statistics_init(testcase, init_args, init_kwargs, exp_attrs):
     """
     Test function for Statistics.__init__()
@@ -124,6 +125,7 @@ def test_Statistics_init(testcase, init_args, init_kwargs, exp_attrs):
     assert isinstance(statistics.enabled, type(exp_enabled))
 
 
+@log_entry_exit
 def test_Statistics_enable(statistics_enable):
     # pylint: disable=redefined-outer-name
     """
@@ -138,6 +140,7 @@ def test_Statistics_enable(statistics_enable):
     assert statistics.enabled is True
 
 
+@log_entry_exit
 def test_Statistics_disable(statistics_enable):
     # pylint: disable=redefined-outer-name
     """
@@ -211,6 +214,7 @@ TESTCASES_STATISTICS_GET_OP_STATISTIC = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_STATISTICS_GET_OP_STATISTIC)
 @simplified_test_function
+@log_entry_exit
 def test_Statistics_get_op_statistic(
         testcase, init_enable, method_name, exp_snapshot_len,
         exp_op_stats_attrs):
@@ -234,6 +238,7 @@ def test_Statistics_get_op_statistic(
             f"Unexpected op_stats attribute '{attr_name}'"
 
 
+@log_entry_exit
 def test_Statistics_measure_enabled():
     """
     Test measuring time with enabled statistics.
@@ -267,6 +272,7 @@ def test_Statistics_measure_enabled():
     assert stats.max_time == 0
 
 
+@log_entry_exit
 def test_Statistics_measure_disabled_cm():
     """
     Test measuring time with disabled statistics, via context manager.
@@ -283,6 +289,7 @@ def test_Statistics_measure_disabled_cm():
     assert len(stats_list) == 0
 
 
+@log_entry_exit
 def test_Statistics_measure_enabled_cm():
     """
     Test measuring time with enabled statistics, via context manager.
@@ -304,6 +311,7 @@ def test_Statistics_measure_enabled_cm():
     assert stats.count == 1
 
 
+@log_entry_exit
 def test_Statistics_measure_enabled_nested_cm():
     """
     Test measuring time with enabled statistics, via nested context managers.
@@ -332,6 +340,7 @@ def test_Statistics_measure_enabled_nested_cm():
     assert stats.count == inner_count
 
 
+@log_entry_exit
 def test_Statistics_measure_enabled_with_servertime():
     # pylint: disable=invalid-name
     """
@@ -369,6 +378,7 @@ def test_Statistics_measure_enabled_with_servertime():
     assert stats.max_time == 0
 
 
+@log_entry_exit
 def test_Statistics_measure_disabled():
     """
     Test measuring time with disabled statistics.
@@ -392,6 +402,7 @@ def test_Statistics_measure_disabled():
         assert stats.max_time == 0
 
 
+@log_entry_exit
 def test_Statistics_measure_avg():
     """
     Test measuring time with enabled statistics.
@@ -423,6 +434,7 @@ def test_Statistics_measure_avg():
         assert stats.avg_reply_len == 300
 
 
+@log_entry_exit
 def test_Statistics_measure_exception():
     """
     Test measuring time with enabled statistics.
@@ -454,6 +466,7 @@ def test_Statistics_measure_exception():
         assert stats.avg_reply_len == 300
 
 
+@log_entry_exit
 def test_Statistics_snapshot():
     """
     Test that snapshot() takes a stable snapshot.
@@ -484,6 +497,7 @@ def test_Statistics_snapshot():
         assert_time_range(stats.max_time, duration)
 
 
+@log_entry_exit
 def test_Statistics_reset():
     """
     Test resetting statistics.
@@ -517,6 +531,7 @@ def test_Statistics_reset():
     assert not snapshot
 
 
+@log_entry_exit
 def test_Statistics_server_time_suspension():
     """
     Test suspending server time and resetting.
@@ -600,6 +615,7 @@ def test_Statistics_server_time_suspension():
         assert_time_range(stats.max_server_time, server_resp_time)
 
 
+@log_entry_exit
 def test_Statistics_print_statistics():
     """
     Test repr() and formatted() for a small statistics.
@@ -677,6 +693,7 @@ def test_Statistics_print_statistics():
         report)
 
 
+@log_entry_exit
 def test_Statistics_print_stats_svrtime():
     """
     Test repr() and formatted() for a small statistics.

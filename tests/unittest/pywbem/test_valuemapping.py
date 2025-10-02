@@ -8,6 +8,8 @@ from unittest.mock import Mock
 
 import pytest
 
+from ..utils.pytest_extensions import log_entry_exit
+
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
 pywbem = import_installed('pywbem')
@@ -192,6 +194,7 @@ class Test_ValueMapping:
         assert re.match(".*outside of the set defined by its Values "
                         "qualifier.*", exc_msg) is not None
 
+    @log_entry_exit
     def test_empty(self, element_kind, server_arg, integer_type, is_array):
         # pylint: disable=redefined-outer-name
         """Test empty ValueMapping"""
@@ -204,6 +207,7 @@ class Test_ValueMapping:
         self.assertOutsideValueMap(vm, 0)
         self.assertOutsideValues(vm, 'x')
 
+    @log_entry_exit
     def test_attrs_property(self, server_arg, integer_type, is_array):
         # pylint: disable=redefined-outer-name
         """Test attributes of ValueMapping for a CIM property"""
@@ -226,6 +230,7 @@ class Test_ValueMapping:
         assert prop.name == PROPNAME
         assert prop.type == integer_type
 
+    @log_entry_exit
     def test_attrs_method(self, server_arg, integer_type, is_array):
         # pylint: disable=redefined-outer-name
         """Test attributes of ValueMapping for a CIM method"""
@@ -248,6 +253,7 @@ class Test_ValueMapping:
         assert meth.name == METHNAME
         assert meth.return_type == integer_type
 
+    @log_entry_exit
     def test_attrs_parameter(self, server_arg, integer_type, is_array):
         # pylint: disable=redefined-outer-name
         """Test attributes of ValueMapping for a CIM parameter"""
@@ -270,6 +276,7 @@ class Test_ValueMapping:
         assert parm.name == PARMNAME
         assert parm.type == integer_type
 
+    @log_entry_exit
     def test_repr(self, element_kind, server_arg, integer_type, is_array):
         # pylint: disable=redefined-outer-name
         """Test ValueMapping.__repr__()"""
@@ -308,6 +315,7 @@ class Test_ValueMapping:
 
         # We don't check the internal data attributes.
 
+    @log_entry_exit
     def test_invalid_valuemap_format(self, element_kind, server_arg,
                                      integer_type, is_array):
         # pylint: disable=redefined-outer-name
@@ -325,6 +333,7 @@ class Test_ValueMapping:
                         "ValueMap entry.*",
                         exc_msg) is not None
 
+    @log_entry_exit
     def test_invalid_element_type(self, element_kind, server_arg, is_array):
         # pylint: disable=redefined-outer-name
         """Test invalid type for the element"""
@@ -340,6 +349,7 @@ class Test_ValueMapping:
         assert re.match(".*is not integer-typed.*",
                         exc_msg) is not None
 
+    @log_entry_exit
     def test_invalid_tovalues_type(self, element_kind, server_arg,
                                    integer_type, is_array):
         # pylint: disable=redefined-outer-name
@@ -358,6 +368,7 @@ class Test_ValueMapping:
         assert re.match(".*is not integer-typed.*",
                         exc_msg) is not None
 
+    @log_entry_exit
     def test_invalid_tobinary_type(self, element_kind, server_arg,
                                    integer_type, is_array):
         # pylint: disable=redefined-outer-name
@@ -376,6 +387,7 @@ class Test_ValueMapping:
         assert re.match(".*is not string-typed.*",
                         exc_msg) is not None
 
+    @log_entry_exit
     def test_no_values_qualifier(self, element_kind, server_arg, integer_type,
                                  is_array):
         # pylint: disable=redefined-outer-name
@@ -392,6 +404,7 @@ class Test_ValueMapping:
         assert re.match(".*has no Values qualifier defined.*",
                         exc_msg) is not None
 
+    @log_entry_exit
     def test_valuemap_default(self, element_kind, server_arg, integer_type,
                               is_array):
         # pylint: disable=redefined-outer-name
@@ -420,6 +433,7 @@ class Test_ValueMapping:
             items.append(item)
         assert items == exp_items
 
+    @log_entry_exit
     def test_zero(self, element_kind, server_arg, integer_type, is_array):
         # pylint: disable=redefined-outer-name
         """Test valuemap with value 0"""
@@ -442,6 +456,7 @@ class Test_ValueMapping:
             items.append(item)
         assert items == exp_items
 
+    @log_entry_exit
     def test_one(self, element_kind, server_arg, integer_type, is_array):
         # pylint: disable=redefined-outer-name
         """Test valuemap with value 1"""
@@ -465,6 +480,7 @@ class Test_ValueMapping:
             items.append(item)
         assert items == exp_items
 
+    @log_entry_exit
     def test_tovalues_with_cimtype(self, element_kind, server_arg,
                                    integer_type, is_array):
         # pylint: disable=redefined-outer-name
@@ -478,6 +494,7 @@ class Test_ValueMapping:
         cimtype = type_from_name(integer_type)
         assert vm.tovalues(cimtype(1)) == 'one'
 
+    @log_entry_exit
     def test_tobinary_with_unicode(self, element_kind, server_arg,
                                    integer_type, is_array):
         # pylint: disable=redefined-outer-name
@@ -490,6 +507,7 @@ class Test_ValueMapping:
 
         assert vm.tobinary('one') == 1
 
+    @log_entry_exit
     def test_singles(self, element_kind, server_arg, integer_type,
                      is_array):
         # pylint: disable=redefined-outer-name
@@ -519,6 +537,7 @@ class Test_ValueMapping:
             items.append(item)
         assert items == exp_items
 
+    @log_entry_exit
     def test_singles_ranges(self, element_kind, server_arg, integer_type,
                             is_array):
         # pylint: disable=redefined-outer-name
@@ -556,6 +575,7 @@ class Test_ValueMapping:
             items.append(item)
         assert items == exp_items
 
+    @log_entry_exit
     def test_unclaimed(self, element_kind, server_arg, integer_type,
                        is_array):
         # pylint: disable=redefined-outer-name
@@ -579,6 +599,7 @@ class Test_ValueMapping:
             items.append(item)
         assert items == exp_items
 
+    @log_entry_exit
     def test_singles_ranges_unclaimed(self, element_kind, server_arg,
                                       integer_type, is_array):
         # pylint: disable=redefined-outer-name
@@ -618,6 +639,7 @@ class Test_ValueMapping:
             items.append(item)
         assert items == exp_items
 
+    @log_entry_exit
     def test_singles_ranges_unclaimed2(self, element_kind, server_arg,
                                        integer_type, is_array):
         # pylint: disable=redefined-outer-name
@@ -656,6 +678,7 @@ class Test_ValueMapping:
             items.append(item)
         assert items == exp_items
 
+    @log_entry_exit
     def test_min_max_single(self, element_kind, server_arg, integer_type,
                             is_array):
         # pylint: disable=redefined-outer-name
@@ -695,6 +718,7 @@ class Test_ValueMapping:
             items.append(item)
         assert items == exp_items
 
+    @log_entry_exit
     def test_min_max_closed_ranges(self, element_kind, server_arg,
                                    integer_type, is_array):
         # pylint: disable=redefined-outer-name
@@ -738,6 +762,7 @@ class Test_ValueMapping:
             items.append(item)
         assert items == exp_items
 
+    @log_entry_exit
     def test_min_max_open_range1(self, element_kind, server_arg, integer_type,
                                  is_array):
         # pylint: disable=redefined-outer-name
@@ -786,6 +811,7 @@ class Test_ValueMapping:
             items.append(item)
         assert items == exp_items
 
+    @log_entry_exit
     def test_min_max_open_range2(self, element_kind, server_arg, integer_type,
                                  is_array):
         # pylint: disable=redefined-outer-name
@@ -897,6 +923,7 @@ class Test_ValueMapping:
         "exp_valuemap_list, exp_exc_type, exp_exc_msg_pattern, condition",
         testcases_integer_representations
     )
+    @log_entry_exit
     def test_integer_representations(
             self, desc, integer_type, is_array, values_str_list,
             valuemap_str_list, exp_valuemap_list, exp_exc_type,
@@ -934,6 +961,7 @@ class Test_ValueMapping:
             (1, 2),
         ]
     )
+    @log_entry_exit
     def test_tovalues_multiple_values(
             self, element_value, element_kind, server_arg, integer_type,
             is_array):
@@ -947,6 +975,7 @@ class Test_ValueMapping:
         result = vm.tovalues(element_value)
         assert result == ['one', 'two']
 
+    @log_entry_exit
     def test_tovalues_none(
             self, element_kind, server_arg, integer_type, is_array):
         # pylint: disable=redefined-outer-name
@@ -1020,6 +1049,7 @@ class Test_ValueMapping:
             ),
         ]
     )
+    @log_entry_exit
     def test_tovalues_different_sizes(
             self, valuemap, values, values_default, exp_exc, exp_values,
             element_kind, server_arg, integer_type, is_array):

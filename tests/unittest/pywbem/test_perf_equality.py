@@ -9,6 +9,8 @@ from time import process_time, get_clock_info
 
 import pytest
 
+from ..utils.pytest_extensions import log_entry_exit
+
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from tests.utils import import_installed
 pywbem = import_installed('pywbem')
@@ -83,6 +85,7 @@ TESTCASES_PERF_EQ = [
 @pytest.mark.parametrize(
     "desc, obj1, obj2",
     TESTCASES_PERF_EQ)
+@log_entry_exit
 def test_perf_eq(desc, obj1, obj2):
     """
     Measure performance of equality tests.

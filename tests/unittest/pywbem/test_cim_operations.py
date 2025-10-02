@@ -12,7 +12,7 @@ import pytest
 
 from ...utils import skip_if_moftab_regenerated
 from ..utils.dmtf_mof_schema_def import install_test_dmtf_schema
-from ..utils.pytest_extensions import simplified_test_function
+from ..utils.pytest_extensions import simplified_test_function, log_entry_exit
 from ..utils.unittest_extensions import assert_copy
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
@@ -284,6 +284,7 @@ class TestCreateConnection:
     @pytest.mark.parametrize(
         'desc, files, init_kwargs, exp_attrs, exp_exc, exp_exc_regex',
         TESTCASES_INIT_WBEMCONNECTION)
+    @log_entry_exit
     def test_init(self, desc, files, init_kwargs, exp_attrs, exp_exc,
                   exp_exc_regex):
         # pylint: disable=no-self-use,unused-argument
@@ -335,6 +336,7 @@ class TestCreateConnection:
             ('last_request_len', 7),
             ('last_reply_len', 7),
         ])
+    @log_entry_exit
     def test_attrs_readonly(self, attr_name, value):
         # pylint: disable=no-self-use
         """
@@ -359,12 +361,14 @@ class TestCreateConnection:
             (dict(default_namespace=DEFAULT_NAMESPACE), DEFAULT_NAMESPACE),
             (dict(default_namespace='blah'), 'blah'),
         ])
+    @log_entry_exit
     def test_init_default_namespace(self, kwargs, exp_default_namespace):
         # pylint: disable=no-self-use
         """Test creation of wbem connection with default_namespace values"""
         conn = WBEMConnection('http://localhost', ('name', 'pw'), **kwargs)
         assert conn.default_namespace == exp_default_namespace
 
+    @log_entry_exit
     def test_namespace_slashes_init(self):  # pylint: disable=no-self-use
         """Test stripping of leading and trailing slashes in default namespace
         of wbem connection when initializing"""
@@ -372,6 +376,7 @@ class TestCreateConnection:
                               default_namespace='//root/blah//')
         assert conn.default_namespace == 'root/blah'
 
+    @log_entry_exit
     def test_namespace_slashes_set(self):  # pylint: disable=no-self-use
         """Test stripping of leading and trailing slashes in default namespace
         of wbem connection when setting the attribute"""
@@ -380,6 +385,7 @@ class TestCreateConnection:
         conn.default_namespace = '//root/blah//'
         assert conn.default_namespace == 'root/blah'
 
+    @log_entry_exit
     def test_add_operation_recorder(self):  # pylint: disable=no-self-use
         """Test addition of an operation recorder"""
         conn = WBEMConnection('http://localhost')
@@ -387,6 +393,7 @@ class TestCreateConnection:
         # pylint: disable=protected-access
         assert len(conn._operation_recorders) == 1
 
+    @log_entry_exit
     def test_add_operation_recorders(self):  # pylint: disable=no-self-use
         """Test addition of multiple operation recorders"""
         conn = WBEMConnection('http://localhost')
@@ -399,6 +406,7 @@ class TestCreateConnection:
         tcr_file.close()
         os.remove(tcr_fn)
 
+    @log_entry_exit
     def test_add_same_twice(self):  # pylint: disable=no-self-use
         """
         Test addition of same recorder twice. This not allowed so
@@ -412,6 +420,7 @@ class TestCreateConnection:
         with pytest.raises(ValueError):
             conn.add_operation_recorder(LogOperationRecorder('fake_conn_id'))
 
+    @log_entry_exit
     def test_stats_enabled(self):  # pylint: disable=no-self-use
         """
         Test the property stats_enabled setter
@@ -423,6 +432,7 @@ class TestCreateConnection:
         conn.stats_enabled = False
         assert conn.stats_enabled is False
 
+    @log_entry_exit
     def test_operation_recorder_enabled(self):  # pylint: disable=no-self-use
         """
         Test the property operation_recorder enabled setter
@@ -435,6 +445,7 @@ class TestCreateConnection:
         conn.operation_recorder_enabled = True
         assert conn.operation_recorder_enabled is True
 
+    @log_entry_exit
     def test_close(self):  # pylint: disable=no-self-use
         """
         Test closing a connection once.
@@ -444,6 +455,7 @@ class TestCreateConnection:
         conn.close()
         assert conn.session is None
 
+    @log_entry_exit
     def test_close_twice(self):  # pylint: disable=no-self-use
         """
         Test closing a connection twice.
@@ -456,6 +468,7 @@ class TestCreateConnection:
             exc = exc_info.value
             assert re.match(r'is closed', str(exc))
 
+    @log_entry_exit
     def test_close_imethod(self):  # pylint: disable=no-self-use
         """
         Test closing a connection and invoking an intrinsic operation.
@@ -468,6 +481,7 @@ class TestCreateConnection:
             exc = exc_info.value
             assert re.match(r'is closed', str(exc))
 
+    @log_entry_exit
     def test_close_method(self):  # pylint: disable=no-self-use
         """
         Test closing a connection and invoking a CIM method.
@@ -480,6 +494,7 @@ class TestCreateConnection:
             exc = exc_info.value
             assert re.match(r'is closed', str(exc))
 
+    @log_entry_exit
     def test_close_export(self):  # pylint: disable=no-self-use
         """
         Test closing a connection and invoking an export operation.
@@ -493,6 +508,7 @@ class TestCreateConnection:
             exc = exc_info.value
             assert re.match(r'is closed', str(exc))
 
+    @log_entry_exit
     def test_context_manager(self):  # pylint: disable=no-self-use
         """
         Test the use of WBEMConnection as a context manager.
@@ -504,6 +520,7 @@ class TestCreateConnection:
         assert conn.session is None
 
 
+@log_entry_exit
 def test_conn_set_timeout():
     """
     Test setting the 'timeout' property of WBEMConnection.
@@ -532,6 +549,7 @@ class TestGetRsltParams:
             [None, 'False', None, ParseError],  # no value in ec and eos False
         ]
     )
+    @log_entry_exit
     def test_with_params(self, irval, ec, eos, eos_exp, exctype_exp):
         # pylint: disable=no-self-use,protected-access
         """
@@ -560,6 +578,7 @@ class TestGetRsltParams:
             ecs = None if eos_exp is True else (ec, 'root/blah')
             assert result == (irval, eos_exp, ecs)
 
+    @log_entry_exit
     def test_missing(self):
         # pylint: disable=no-self-use
         """
@@ -694,6 +713,7 @@ TESTCASES_IS_SUBCLASS = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_IS_SUBCLASS)
 @simplified_test_function
+@log_entry_exit
 def test_is_subclass(testcase, init_args, exp_attrs):
     # pylint: disable=unused-argument
     """
@@ -1002,6 +1022,7 @@ TESTCASES_REQUEST_INVALID_PARAMS = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_REQUEST_INVALID_PARAMS)
 @simplified_test_function
+@log_entry_exit
 def test_request_invalid_params(testcase, init_kwargs, method, args, kwargs):
     """Execute the defined method expecting exception"""
 
@@ -1044,6 +1065,7 @@ def test_request_invalid_params(testcase, init_kwargs, method, args, kwargs):
     assert testcase.exp_exc_types is None
 
 
+@log_entry_exit
 def test_close():
     """
     Test WBEMConnection.close().
@@ -1217,6 +1239,7 @@ TESTCASES_COPY_WBEMCONNECTION = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_COPY_WBEMCONNECTION)
 @simplified_test_function
+@log_entry_exit
 def test_copy_conn(
         testcase, files, init_kwargs, set_debug, add_recorder, enable_recorder,
         enable_statistics, perform_operation):
@@ -1400,6 +1423,7 @@ class TestConnectionError:  # pylint: disable=too-few-public-methods
     @pytest.mark.parametrize(
         'desc, init_kwargs, exp_exc, exp_exc_regex',
         TESTCASES_WBEMCONNECTION_ERROR)
+    @log_entry_exit
     def test_init(self, desc, init_kwargs, exp_exc, exp_exc_regex):
         # pylint: disable=no-self-use,unused-argument
         """

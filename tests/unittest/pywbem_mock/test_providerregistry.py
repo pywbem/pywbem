@@ -17,7 +17,7 @@ import pickle
 
 import pytest
 
-from ..utils.pytest_extensions import simplified_test_function
+from ..utils.pytest_extensions import simplified_test_function, log_entry_exit
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
@@ -240,6 +240,7 @@ TESTCASES_PROVREG_ITERITEMS = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_PROVREG_ITERITEMS)
 @simplified_test_function
+@log_entry_exit
 def test_ProviderRegistry_iteritems(testcase, providers):
     """
     Test function for ProviderRegistry.iteritems().
@@ -328,6 +329,7 @@ TESTCASES_PROVREG_LOAD = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_PROVREG_LOAD)
 @simplified_test_function
+@log_entry_exit
 def test_ProviderRegistry_load(testcase, providers1, providers2):
     """
     Test function for ProviderRegistry.load().
@@ -397,6 +399,7 @@ TESTCASES_PROVREG_PICKLE = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_PROVREG_PICKLE)
 @simplified_test_function
+@log_entry_exit
 def test_ProviderRegistry_pickle(testcase, providers):
     """
     Test function for pickling and unpickling ProviderRegistry objects.

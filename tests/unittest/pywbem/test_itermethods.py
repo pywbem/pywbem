@@ -23,6 +23,8 @@ from unittest.mock import Mock
 
 import pytest
 
+from ..utils.pytest_extensions import log_entry_exit
+
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
 pywbem = import_installed('pywbem')
@@ -130,6 +132,7 @@ class TestIterEnumerateInstances:
     @pytest.mark.parametrize(
         "pl", [None, 'pl1', ['pl1', 'pl2']]
     )
+    @log_entry_exit
     def test_trad_operation_success(
             self, use_pull_param, pull_status, tst_insts, ns,
             cim_classname, result_no_host_ns, di, iq, lo, ico, pl):
@@ -199,6 +202,7 @@ class TestIterEnumerateInstances:
     @pytest.mark.parametrize(
         "pull_status", [CIM_ERR_NOT_SUPPORTED, CIM_ERR_FAILED]
     )
+    @log_entry_exit
     def test_operation_fail(self, pull_status, tst_insts):
         # pylint: disable=no-self-use,redefined-outer-name
         """
@@ -247,6 +251,7 @@ class TestIterEnumerateInstances:
         "ot, coe, moc", [[None, None, 100],
                          [10, False, 100]]
     )
+    @log_entry_exit
     def test_open_operation_success(self, use_pull_param, tst_insts, ns,
                                     lo, di, iq, ico, pl,
                                     fl, fq, ot, coe, moc):
@@ -313,6 +318,7 @@ class TestIterEnumerateInstances:
     @pytest.mark.parametrize(
         "use_pull_param", [None, True]
     )
+    @log_entry_exit
     def test_pull_operation_success(self, tst_insts, use_pull_param):
         # pylint: disable=no-self-use,redefined-outer-name
         """
@@ -360,6 +366,7 @@ class TestIterEnumerateInstances:
     @pytest.mark.parametrize(
         "close_after", [0, 1, 2]
     )
+    @log_entry_exit
     def test_closed_operation_success(self, tst_insts, use_pull_param,
                                       max_obj_count, close_after):
         # pylint: disable=no-self-use,redefined-outer-name
@@ -430,6 +437,7 @@ class TestIterEnumerateInstances:
             [dict(MaxObjectCount='bla'), TypeError()],
         ]
     )
+    @log_entry_exit
     def test_open_invalid_params(self, tst_insts, kwargs, exp_exc):
         # pylint: disable=no-self-use,redefined-outer-name
         """
@@ -456,6 +464,7 @@ class TestIterEnumerateInstances:
             [dict(ContinueOnError=True), ValueError()],
         ]
     )
+    @log_entry_exit
     def test_trad_invalid_params(self, tst_insts, kwargs, exp_exc):
         # pylint: disable=no-self-use,redefined-outer-name
         """
@@ -500,6 +509,7 @@ class TestIterEnumerateInstancePaths:
     @pytest.mark.parametrize(
         "result_no_host_ns", [False, True]
     )
+    @log_entry_exit
     def test_trad_operation_success(
             self, use_pull_param, pull_status, tst_paths, ns,
             cim_classname, result_no_host_ns):
@@ -559,6 +569,7 @@ class TestIterEnumerateInstancePaths:
     @pytest.mark.parametrize(
         "pull_status", [CIM_ERR_NOT_SUPPORTED, CIM_ERR_FAILED]
     )
+    @log_entry_exit
     def test_operation_fail(self, pull_status, tst_insts):
         # pylint: disable=no-self-use,redefined-outer-name
         """
@@ -599,6 +610,7 @@ class TestIterEnumerateInstancePaths:
         "ot, coe, moc", [[None, None, 100],
                          [10, False, 100]]
     )
+    @log_entry_exit
     def test_open_operation_success(self, tst_paths, ns, fl, fq, ot,
                                     coe, moc, use_pull_param):
         # pylint: disable=no-self-use,redefined-outer-name
@@ -656,6 +668,7 @@ class TestIterEnumerateInstancePaths:
     @pytest.mark.parametrize(
         "use_pull_param", [None, True]
     )
+    @log_entry_exit
     def test_pull_operation_success(self, tst_paths, use_pull_param):
         # pylint: disable=no-self-use,redefined-outer-name
         """
@@ -705,6 +718,7 @@ class TestIterEnumerateInstancePaths:
     @pytest.mark.parametrize(
         "close_after", [0, 1, 2]
     )
+    @log_entry_exit
     def test_closed_operation_success(self, tst_paths, use_pull_param,
                                       max_obj_count, close_after):
         # pylint: disable=no-self-use,redefined-outer-name
@@ -775,6 +789,7 @@ class TestIterEnumerateInstancePaths:
             [dict(MaxObjectCount='bla'), TypeError()],
         ]
     )
+    @log_entry_exit
     def test_open_invalid_params(self, tst_paths, kwargs, exp_exc):
         # pylint: disable=no-self-use,redefined-outer-name
         """
@@ -801,6 +816,7 @@ class TestIterEnumerateInstancePaths:
             [dict(ContinueOnError=True), ValueError()],
         ]
     )
+    @log_entry_exit
     def test_trad_invalid_params(self, tst_paths, kwargs, exp_exc):
         # pylint: disable=no-self-use,redefined-outer-name
         """
@@ -864,6 +880,7 @@ class TestIterReferenceInstances:
     @pytest.mark.parametrize(
         "pl", [None, 'pl1', ['pl1', 'pl2']]
     )
+    @log_entry_exit
     def test_trad_operation_success(
             self, use_pull_param, pull_status, tst_insts, ns,
             rc, ro, iq, ico, pl,):
@@ -914,6 +931,7 @@ class TestIterReferenceInstances:
     @pytest.mark.parametrize(
         "pull_status", [CIM_ERR_NOT_SUPPORTED, CIM_ERR_FAILED]
     )
+    @log_entry_exit
     def test_operation_fail(self, pull_status, tst_insts):
         # pylint: disable=no-self-use,redefined-outer-name
         """
@@ -970,6 +988,7 @@ class TestIterReferenceInstances:
         "ot, coe, moc", [[None, None, 100],
                          [10, False, 100]]
     )
+    @log_entry_exit
     def test_open_operation_success(self, use_pull_param, tst_insts, ns,
                                     rc, ro, iq, ico, pl, fl, fq, ot, coe,
                                     moc):
@@ -1035,6 +1054,7 @@ class TestIterReferenceInstances:
     @pytest.mark.parametrize(
         "use_pull_param", [None, True]
     )
+    @log_entry_exit
     def test_pull_operation_success(self, tst_insts, use_pull_param):
         # pylint: disable=no-self-use,redefined-outer-name
         """
@@ -1083,6 +1103,7 @@ class TestIterReferenceInstances:
     @pytest.mark.parametrize(
         "close_after", [0, 1, 2]
     )
+    @log_entry_exit
     def test_closed_operation_success(self, tst_insts, use_pull_param,
                                       max_obj_count, close_after):
         # pylint: disable=no-self-use,redefined-outer-name
@@ -1153,6 +1174,7 @@ class TestIterReferenceInstances:
             [dict(MaxObjectCount='bla'), TypeError()],
         ]
     )
+    @log_entry_exit
     def test_open_invalid_params(self, tst_insts, kwargs, exp_exc):
         # pylint: disable=no-self-use,redefined-outer-name
         """
@@ -1179,6 +1201,7 @@ class TestIterReferenceInstances:
             [dict(ContinueOnError=True), ValueError()],
         ]
     )
+    @log_entry_exit
     def test_trad_invalid_params(self, tst_insts, kwargs, exp_exc):
         # pylint: disable=no-self-use,redefined-outer-name
         """
@@ -1234,6 +1257,7 @@ class TestIterReferenceInstancePaths:
                    ['RRole', None],
                    ['RRole', 'CIM_Blah']]
     )
+    @log_entry_exit
     def test_trad_operation_success(
             self, use_pull_param, pull_status, tst_insts, ns, rc, ro):
         # pylint: disable=no-self-use,redefined-outer-name
@@ -1277,6 +1301,7 @@ class TestIterReferenceInstancePaths:
     @pytest.mark.parametrize(
         "pull_status", [CIM_ERR_NOT_SUPPORTED, CIM_ERR_FAILED]
     )
+    @log_entry_exit
     def test_operation_fail(self, pull_status, tst_insts):
         # pylint: disable=no-self-use,redefined-outer-name
         """
@@ -1325,6 +1350,7 @@ class TestIterReferenceInstancePaths:
         "ot, coe, moc", [[None, None, 100],
                          [10, False, 100]]
     )
+    @log_entry_exit
     def test_open_operation_success(self, use_pull_param, tst_paths, ns,
                                     rc, ro, fl, fq, ot, coe, moc):
         # pylint: disable=no-self-use,redefined-outer-name
@@ -1384,6 +1410,7 @@ class TestIterReferenceInstancePaths:
     @pytest.mark.parametrize(
         "use_pull_param", [None, True]
     )
+    @log_entry_exit
     def test_pull_operation_success(self, tst_paths, use_pull_param):
         # pylint: disable=no-self-use,redefined-outer-name
         """
@@ -1432,6 +1459,7 @@ class TestIterReferenceInstancePaths:
     @pytest.mark.parametrize(
         "close_after", [0, 1, 2]
     )
+    @log_entry_exit
     def test_closed_operation_success(self, tst_paths, use_pull_param,
                                       max_obj_count, close_after):
         # pylint: disable=no-self-use,redefined-outer-name
@@ -1502,6 +1530,7 @@ class TestIterReferenceInstancePaths:
             [dict(MaxObjectCount='bla'), TypeError()],
         ]
     )
+    @log_entry_exit
     def test_open_invalid_params(self, tst_insts, kwargs, exp_exc):
         # pylint: disable=no-self-use,redefined-outer-name
         """
@@ -1528,6 +1557,7 @@ class TestIterReferenceInstancePaths:
             [dict(ContinueOnError=True), ValueError()],
         ]
     )
+    @log_entry_exit
     def test_trad_invalid_params(self, tst_insts, kwargs, exp_exc):
         # pylint: disable=no-self-use,redefined-outer-name
         """
@@ -1591,6 +1621,7 @@ class TestIterAssociatorInstances:
     @pytest.mark.parametrize(
         "pl", [None, 'pl1', ['pl1', 'pl2']]
     )
+    @log_entry_exit
     def test_trad_operation_success(
             self, use_pull_param, pull_status, tst_insts, ns,
             rc, ro, ac, rr, iq, ico, pl):
@@ -1645,6 +1676,7 @@ class TestIterAssociatorInstances:
     @pytest.mark.parametrize(
         "pull_status", [CIM_ERR_NOT_SUPPORTED, CIM_ERR_FAILED]
     )
+    @log_entry_exit
     def test_operation_fail(self, pull_status, tst_insts):
         # pylint: disable=no-self-use,redefined-outer-name
         """
@@ -1701,6 +1733,7 @@ class TestIterAssociatorInstances:
         "ot, coe, moc", [[None, None, 100],
                          [10, False, 100]]
     )
+    @log_entry_exit
     def test_open_operation_success(self, use_pull_param, tst_insts, ns,
                                     rc, ro, rr, ac, iq, ico, pl, fl, fq, ot,
                                     coe, moc):
@@ -1770,6 +1803,7 @@ class TestIterAssociatorInstances:
     @pytest.mark.parametrize(
         "use_pull_param", [None, True]
     )
+    @log_entry_exit
     def test_pull_operation_success(self, tst_insts, use_pull_param):
         # pylint: disable=no-self-use,redefined-outer-name
         """
@@ -1818,6 +1852,7 @@ class TestIterAssociatorInstances:
     @pytest.mark.parametrize(
         "close_after", [0, 1, 2]
     )
+    @log_entry_exit
     def test_closed_operation_success(self, tst_insts, use_pull_param,
                                       max_obj_count, close_after):
         # pylint: disable=no-self-use,redefined-outer-name
@@ -1888,6 +1923,7 @@ class TestIterAssociatorInstances:
             [dict(MaxObjectCount='bla'), TypeError()],
         ]
     )
+    @log_entry_exit
     def test_open_invalid_params(self, tst_insts, kwargs, exp_exc):
         # pylint: disable=no-self-use,redefined-outer-name
         """
@@ -1914,6 +1950,7 @@ class TestIterAssociatorInstances:
             [dict(ContinueOnError=True), ValueError()],
         ]
     )
+    @log_entry_exit
     def test_trad_invalid_params(self, tst_insts, kwargs, exp_exc):
         # pylint: disable=no-self-use,redefined-outer-name
         """
@@ -1969,6 +2006,7 @@ class TestIterAssociatorInstancePaths:
                            ['RRole', None, 'ARole', None],
                            ['RRole', 'CIM_Blah', 'ARole', 'AssocClass']]
     )
+    @log_entry_exit
     def test_trad_operation_success(
             self, use_pull_param, pull_status, tst_paths, ns, rc, ro, rr, ac):
         # pylint: disable=no-self-use,redefined-outer-name
@@ -2016,6 +2054,7 @@ class TestIterAssociatorInstancePaths:
     @pytest.mark.parametrize(
         "pull_status", [CIM_ERR_NOT_SUPPORTED, CIM_ERR_FAILED]
     )
+    @log_entry_exit
     def test_operation_fail(self, pull_status, tst_paths):
         # pylint: disable=no-self-use,redefined-outer-name
         """
@@ -2064,6 +2103,7 @@ class TestIterAssociatorInstancePaths:
         "ot, coe, moc", [[None, None, 100],
                          [10, False, 100]]
     )
+    @log_entry_exit
     def test_open_operation_success(self, use_pull_param, tst_paths, ns,
                                     rc, ro, rr, ac, fl, fq, ot, coe, moc):
         # pylint: disable=no-self-use,redefined-outer-name
@@ -2127,6 +2167,7 @@ class TestIterAssociatorInstancePaths:
     @pytest.mark.parametrize(
         "use_pull_param", [None, True]
     )
+    @log_entry_exit
     def test_pull_operation_success(self, tst_paths, use_pull_param):
         # pylint: disable=no-self-use,redefined-outer-name
         """
@@ -2175,6 +2216,7 @@ class TestIterAssociatorInstancePaths:
     @pytest.mark.parametrize(
         "close_after", [0, 1, 2]
     )
+    @log_entry_exit
     def test_closed_operation_success(self, tst_paths, use_pull_param,
                                       max_obj_count, close_after):
         # pylint: disable=no-self-use,redefined-outer-name
@@ -2245,6 +2287,7 @@ class TestIterAssociatorInstancePaths:
             [dict(MaxObjectCount='bla'), TypeError()],
         ]
     )
+    @log_entry_exit
     def test_open_invalid_params(self, tst_paths, kwargs, exp_exc):
         # pylint: disable=no-self-use,redefined-outer-name
         """
@@ -2271,6 +2314,7 @@ class TestIterAssociatorInstancePaths:
             [dict(ContinueOnError=True), ValueError()],
         ]
     )
+    @log_entry_exit
     def test_trad_invalid_params(self, tst_paths, kwargs, exp_exc):
         # pylint: disable=no-self-use,redefined-outer-name
         """
@@ -2312,6 +2356,7 @@ class TestIterQueryInstances:
     @pytest.mark.parametrize(
         "ql, query", [(None, None), ('CQL', 'SELECT from *')]
     )
+    @log_entry_exit
     def test_trad_operation_success(
             self, use_pull_param, pull_status, tst_insts, ns, ql, query):
         # pylint: disable=no-self-use,redefined-outer-name
@@ -2351,6 +2396,7 @@ class TestIterQueryInstances:
     @pytest.mark.parametrize(
         "pull_status", [CIM_ERR_NOT_SUPPORTED, CIM_ERR_FAILED]
     )
+    @log_entry_exit
     def test_operation_fail(self, pull_status, tst_insts):
         # pylint: disable=no-self-use,redefined-outer-name
         """
@@ -2395,6 +2441,7 @@ class TestIterQueryInstances:
     @pytest.mark.parametrize(
         "rqrc_param", [None, True]
     )
+    @log_entry_exit
     def test_open_operation_success(self, use_pull_param, tst_insts, ns,
                                     ql, query, ot, coe, moc, rqrc_param,
                                     tst_class):
@@ -2463,6 +2510,7 @@ class TestIterQueryInstances:
     @pytest.mark.parametrize(
         "rqrc_param", [None, True]
     )
+    @log_entry_exit
     def test_pull_operation_success(self, tst_insts, use_pull_param,
                                     rqrc_param):
         # pylint: disable=no-self-use,redefined-outer-name
@@ -2538,6 +2586,7 @@ class TestIterQueryInstances:
     @pytest.mark.parametrize(
         "close_after", [0, 1, 2]
     )
+    @log_entry_exit
     def test_closed_operation_success(self, tst_insts, use_pull_param,
                                       max_obj_count, close_after):
         # pylint: disable=no-self-use,redefined-outer-name
@@ -2606,6 +2655,7 @@ class TestIterQueryInstances:
             [dict(MaxObjectCount='bla'), TypeError()],
         ]
     )
+    @log_entry_exit
     def test_open_invalid_params(self, tst_insts, kwargs, exp_exc):
         # pylint: disable=no-self-use,redefined-outer-name
         """
@@ -2634,6 +2684,7 @@ class TestIterQueryInstances:
             [dict(ReturnQueryResultClass=True), ValueError()],
         ]
     )
+    @log_entry_exit
     def test_trad_invalid_params(self, tst_insts, kwargs, exp_exc):
         # pylint: disable=no-self-use,redefined-outer-name
         """

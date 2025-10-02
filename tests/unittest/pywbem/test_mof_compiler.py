@@ -14,7 +14,7 @@ from ...utils import skip_if_moftab_regenerated
 from ..utils.unittest_extensions import CIMObjectMixin
 from ..utils.dmtf_mof_schema_def import install_test_dmtf_schema, \
     TOTAL_QUALIFIERS, TOTAL_CLASSES
-from ..utils.pytest_extensions import simplified_test_function
+from ..utils.pytest_extensions import simplified_test_function, log_entry_exit
 
 # pylint: disable=wrong-import-position, wrong-import-order, invalid-name
 from ...utils import import_installed
@@ -118,6 +118,7 @@ class MOFTest(unittest.TestCase):
 class Test_MOFCompiler_init(unittest.TestCase):
     """Test the MOFCompiler initialization"""
 
+    @log_entry_exit
     def test_handle_repo_connection(self):
         """Test init with a handle that is a MOFWBEMConnection"""
 
@@ -127,6 +128,7 @@ class Test_MOFCompiler_init(unittest.TestCase):
 
         self.assertIs(mofcomp.handle, handle)
 
+    @log_entry_exit
     def test_handle_wbem_connection(self):
         """Test init with a handle that is a WBEMConnection"""
 
@@ -136,6 +138,7 @@ class Test_MOFCompiler_init(unittest.TestCase):
 
         self.assertIsInstance(mofcomp.handle, FakedWBEMConnection)
 
+    @log_entry_exit
     def test_handle_invalid(self):
         """Test init with a handle that is an invalid type"""
 
@@ -150,6 +153,7 @@ class TestInstancesUnicode(MOFTest):
     Test compile of an instance with Unicode characters in string properties
     """
 
+    @log_entry_exit
     def test_instance_unicode_literal(self):
         """
         Test compile of string property with literal Unicode characters
@@ -186,6 +190,7 @@ class TestInstancesUnicode(MOFTest):
 
         self.assertEqual(uprop, exp_uprop)
 
+    @log_entry_exit
     def test_instance_unicode_escape(self):
         """
         Test compile of string property with MOF escaped Unicode characters
@@ -222,6 +227,7 @@ class TestInstancesUnicode(MOFTest):
 
         self.assertEqual(uprop, exp_uprop)
 
+    @log_entry_exit
     def test_instance_unicode_escape_fail1(self):
         """
         Test compile of string property with Unicode escape with no hex chars
@@ -247,6 +253,7 @@ class TestInstancesUnicode(MOFTest):
 class TestFlavors(MOFTest):
     """Test for the various combinations of valid and invalid flavors"""
 
+    @log_entry_exit
     def test_valid_flavors(self):
         """Valid flavor combinations compile"""
 
@@ -267,6 +274,7 @@ class TestFlavors(MOFTest):
             "Flavor(EnableOverride, Restricted, Translatable);\n"
         self.mofcomp.compile_string(mof_str, NAME_SPACE)
 
+    @log_entry_exit
     def test_valid_flavor2(self):
         """Test for case independence of flavor keywords"""
 
@@ -280,6 +288,7 @@ class TestFlavors(MOFTest):
         except MOFParseError:
             pass
 
+    @log_entry_exit
     def test_conflicting_flavors1(self):
         """Conflicting flavors should cause exception"""
 
@@ -293,6 +302,7 @@ class TestFlavors(MOFTest):
         except MOFParseError:
             pass
 
+    @log_entry_exit
     def test_conflicting_flavors2(self):
         """Conflicting flavors should cause exception"""
 
@@ -306,6 +316,7 @@ class TestFlavors(MOFTest):
         except MOFParseError:
             pass
 
+    @log_entry_exit
     def test_invalid_flavor1(self):
         """Invalid flavor should cause exception"""
 
@@ -319,6 +330,7 @@ class TestFlavors(MOFTest):
         except MOFParseError:
             pass
 
+    @log_entry_exit
     def test_invalid_flavor2(self):
         """Invalid flavor should cause exception"""
 
@@ -336,6 +348,7 @@ class TestFlavors(MOFTest):
 class TestRemove(MOFTest):
     """Test rollback using test.mof"""
 
+    @log_entry_exit
     def test_remove(self):
         """
         Test create mof and rollback using mocker as remote repository
@@ -397,6 +410,7 @@ class TestRemove(MOFTest):
 class TestAliases(MOFTest):
     """Test of a mof file that contains aliases"""
 
+    @log_entry_exit
     def test_testmof(self):
         """
         Execute test using test.mof file. This compiles the test.mof file
@@ -466,6 +480,7 @@ class TestAliases(MOFTest):
                      inst['Collection'] == collection_path]
         self.assertEqual(len(my_member), 1)
 
+    @log_entry_exit
     def test_ref_alias(self):
         """
         Test for aliases for association classes with reference properties
@@ -551,6 +566,7 @@ class TestAliases(MOFTest):
 class TestSchemaError(MOFTest):
     """Test with errors in the schema"""
 
+    @log_entry_exit
     def test_all(self):
         """Test multiple errors. Each test tries to compile a
            specific mof and should result in a specific error
@@ -608,6 +624,7 @@ class TestSchemaSearch(MOFTest):
        by search attribute. Searches the TEST_DMTF_CIMSCHEMA_MOF_DIR
     """
 
+    @log_entry_exit
     def test_compile_one(self):
         """Test against schema single mof file that is dependent
            on other files in the schema directory
@@ -633,6 +650,7 @@ class TestSchemaSearch(MOFTest):
                              LocalOnly=False, IncludeQualifiers=True)
         self.assertEqual(cele.properties['RequestedState'].type, 'uint16')
 
+    @log_entry_exit
     def test_search_single_string(self):
         """
         Test search_paths with single string as path definition.  Compiles
@@ -661,6 +679,7 @@ class TestSchemaSearch(MOFTest):
         repo.GetClass('CIM_ComputerSystem', namespace=NAME_SPACE,
                       LocalOnly=False, IncludeQualifiers=True)
 
+    @log_entry_exit
     def test_search_None(self):
         """
         Test search_paths with single string as path definition.  Compiles
@@ -696,6 +715,7 @@ class TestParseError(MOFTest):
        a defined error.
     """
 
+    @log_entry_exit
     def test_error01(self):
         """Test missing statement end comment"""
 
@@ -715,6 +735,7 @@ class TestParseError(MOFTest):
             self.assertEqual(pe.context[5][1:5], '^^^^')
             self.assertEqual(pe.context[4][1:5], 'size')
 
+    @log_entry_exit
     def test_error02(self):
         """Test invalid instance def TODO what is error? ks 6/16"""
 
@@ -733,6 +754,7 @@ class TestParseError(MOFTest):
             self.assertEqual(pe.context[5][7:13], '^^^^^^')
             self.assertEqual(pe.context[4][7:13], 'weight')
 
+    @log_entry_exit
     def test_error03(self):
         """Test invalid mof, extra } character"""
 
@@ -751,6 +773,7 @@ class TestParseError(MOFTest):
             self.assertEqual(pe.context[5][53], '^')
             self.assertEqual(pe.context[4][53], '}')
 
+    @log_entry_exit
     def test_error04(self):
         """Test invalid mof, Pragmas with invalid file definitions."""
 
@@ -767,6 +790,7 @@ class TestParseError(MOFTest):
         except MOFParseError as pe:
             self.assertEqual(pe.msg, 'Unexpected end of MOF')
 
+    @log_entry_exit
     def test_invalid_scope(self):
         """
         Test for qualifier declaration scope with invalid keyword
@@ -785,6 +809,7 @@ class TestParseError(MOFTest):
         except MOFParseError:
             pass
 
+    @log_entry_exit
     def test_invalid_scope2(self):
         """
         Test for qualifier declaration scope with invalid keyword "qualifier".
@@ -805,6 +830,7 @@ class TestParseError(MOFTest):
         except MOFParseError:
             pass
 
+    @log_entry_exit
     def test_missing_alias(self):
         """
         Test for alias not defined
@@ -853,6 +879,7 @@ class TestParseError(MOFTest):
                 r".* not previously defined",
                 pe.msg, re.IGNORECASE)
 
+    @log_entry_exit
     def test_missing_superclass(self):
         """
         Test for missing superclass
@@ -872,6 +899,7 @@ class TestParseError(MOFTest):
                 r"Cannot compile class .* superclass",
                 pe.msg, re.IGNORECASE)
 
+    @log_entry_exit
     def test_dup_instance(self):
         """Test Current behavior where dup instance gets put into repo"""
         mof_str = """
@@ -901,6 +929,7 @@ class TestParseError(MOFTest):
 
         self.mofcomp.compile_string(mof_str, NAME_SPACE)
 
+    @log_entry_exit
     def test_instance_wo_class(self):
         """Test Current behavior for instance without class"""
         mof_str = """
@@ -922,6 +951,7 @@ class TestParseError(MOFTest):
                 r"Cannot compile instance .* class .* not exist",
                 pe.msg, re.IGNORECASE)
 
+    @log_entry_exit
     def test_dup_qualifiers(self):
         """Test Current behavior where set qualifierbehavior overrides."""
         mof_str = """
@@ -937,6 +967,7 @@ class TestParseError(MOFTest):
 
         self.mofcomp.compile_string(mof_str, NAME_SPACE)
 
+    @log_entry_exit
     def test_missing_namespace_pragma_value_name(self):
         """Test Current behavior where #pragma namespace contains no
            namespace name."""
@@ -954,6 +985,7 @@ class TestParseError(MOFTest):
         except MOFParseError as pe:
             self.assertEqual(pe.msg, 'MOF grammar error')
 
+    @log_entry_exit
     def test_missing_namespace_pragma_value(self):
         """Test Current behavior where spragma namespace contains no
            namespace."""
@@ -971,6 +1003,7 @@ class TestParseError(MOFTest):
         except MOFParseError as pe:
             self.assertEqual(pe.msg, 'MOF grammar error')
 
+    @log_entry_exit
     def test_invalid_namespace_pragma_ns(self):
         """Test Current behavior where spragma namespace contains no
            namespace."""
@@ -994,6 +1027,7 @@ class TestPropertyAlternatives(MOFTest):
         Test compile of a class with individual property alternatives
     """
 
+    @log_entry_exit
     def test_array_type(self):
         """ Test compile of class with array property"""
 
@@ -1010,6 +1044,7 @@ class TestPropertyAlternatives(MOFTest):
         self.assertEqual(cl.properties['arrayprop'].is_array, True)
         self.assertEqual(cl.properties['arrayprop'].array_size, None)
 
+    @log_entry_exit
     def test_array_type_w_size(self):
         """ Test compile of class with array property with size"""
 
@@ -1033,6 +1068,7 @@ class TestPropertyAlternatives(MOFTest):
 class TestRefs(MOFTest):
     """Test for valid References in mof"""
 
+    @log_entry_exit
     def test_all(self):
         """Execute test"""
 
@@ -1047,6 +1083,7 @@ class TestRefs(MOFTest):
 class TestInstCompile(CIMObjectMixin, MOFTest):
     """ Test the compile of instances defined with a class"""
 
+    @log_entry_exit
     def test_good_compile(self):
         """Execute test with file containing class and two instances."""
 
@@ -1152,6 +1189,7 @@ class TestInstCompile(CIMObjectMixin, MOFTest):
                 self.fail("Cannot find required instance k1=%s, k2=%s" %
                           (i['k1'], i['k2']))
 
+    @log_entry_exit
     def test_invalid_property(self):
         """Test compile of instance with undeclared property fails"""
 
@@ -1181,6 +1219,7 @@ class TestInstCompile(CIMObjectMixin, MOFTest):
                 r"Cannot compile instance .* property .* not declared",
                 pe.msg, re.IGNORECASE)
 
+    @log_entry_exit
     def test_dup_property(self):
         """Test compile of instance with duplicated property fails"""
 
@@ -1210,6 +1249,7 @@ class TestInstCompile(CIMObjectMixin, MOFTest):
                 r"Cannot compile instance .* property .* more than once",
                 pe.msg, re.IGNORECASE)
 
+    @log_entry_exit
     def test_mismatch_property(self):
         """Test compile of instance with duplicated property fails"""
 
@@ -1245,6 +1285,7 @@ class TestInstCompile(CIMObjectMixin, MOFTest):
 class TestTypes(CIMObjectMixin, MOFTest):
     """Test for all CIM data types in a class mof"""
 
+    @log_entry_exit
     def test_all(self):
         """Execute test"""
 
@@ -1359,6 +1400,7 @@ def _build_scope(set_true=None):
 class TestToInstanceFlavor(CIMObjectMixin, MOFTest):
     """ Test variations on use of ToInstance Flavor"""
 
+    @log_entry_exit
     def test_no_toinstance_flavor(self):
         """ Test that this is not attached to tosubclass flavor by
             compiler in qualifier decl or in class creation from that
@@ -1394,6 +1436,7 @@ class TestToInstanceFlavor(CIMObjectMixin, MOFTest):
                                                           tosubclass=True)})
         self.assertEqual(cl, cmp_cl)
 
+    @log_entry_exit
     def test_no_toinstance_flavor2(self):
         """ Test that this is not attached to tosubclass flavor by
             compiler in qualifier decl or in class creation from that
@@ -1450,6 +1493,7 @@ class BaseTestLexer(unittest.TestCase):
         self.lexer = self.mofcomp.lexer
         self.last_error_t = None  # saves 't' arg of t_error()
 
+        @log_entry_exit
         def test_t_error(t):  # pylint: disable=invalid-name
             """Our replacement for t_error() when testing."""
             self.last_error_t = t
@@ -1560,11 +1604,13 @@ class BaseTestLexer(unittest.TestCase):
 class TestLexerSimple(BaseTestLexer):
     """Simple testcases for the lexical analyzer."""
 
+    @log_entry_exit
     def test_empty(self):
         """Test an empty input."""
         skip_if_moftab_regenerated()
         self.run_assert_lexer("", [])
 
+    @log_entry_exit
     def test_simple(self):
         """Test a simple list of tokens."""
         skip_if_moftab_regenerated()
@@ -1575,6 +1621,7 @@ class TestLexerSimple(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_no_ws_delimiter(self):
         """Test that no whitespace is needed to delimit tokens."""
         skip_if_moftab_regenerated()
@@ -1585,6 +1632,7 @@ class TestLexerSimple(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_ignore_space(self):
         """Test that space is ignored, but triggers new token."""
         skip_if_moftab_regenerated()
@@ -1595,6 +1643,7 @@ class TestLexerSimple(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_ignore_cr(self):
         """Test that CR is ignored, but triggers new token."""
         skip_if_moftab_regenerated()
@@ -1605,6 +1654,7 @@ class TestLexerSimple(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_ignore_tab(self):
         """Test that TAB is ignored, but triggers new token."""
         skip_if_moftab_regenerated()
@@ -1615,6 +1665,7 @@ class TestLexerSimple(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_invalid_token(self):
         """Test that an invalid token is recognized as error."""
         skip_if_moftab_regenerated()
@@ -1633,6 +1684,7 @@ class TestLexerNumber(BaseTestLexer):
 
     # Decimal numbers
 
+    @log_entry_exit
     def test_decimal_0(self):
         """Test a decimal number 0."""
         skip_if_moftab_regenerated()
@@ -1643,6 +1695,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_decimal_plus_0(self):
         """Test a decimal number +0."""
         skip_if_moftab_regenerated()
@@ -1653,6 +1706,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_decimal_minus_0(self):
         """Test a decimal number -0."""
         skip_if_moftab_regenerated()
@@ -1663,6 +1717,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_decimal_small(self):
         """Test a small decimal number."""
         skip_if_moftab_regenerated()
@@ -1673,6 +1728,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_decimal_small_plus(self):
         """Test a small decimal number with +."""
         skip_if_moftab_regenerated()
@@ -1683,6 +1739,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_decimal_small_minus(self):
         """Test a small decimal number with -."""
         skip_if_moftab_regenerated()
@@ -1693,6 +1750,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_decimal_long(self):
         """Test a decimal number that is long."""
         skip_if_moftab_regenerated()
@@ -1705,6 +1763,7 @@ class TestLexerNumber(BaseTestLexer):
 
     # Binary numbers
 
+    @log_entry_exit
     def test_binary_0b(self):
         """Test a binary number 0b."""
         skip_if_moftab_regenerated()
@@ -1715,6 +1774,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_binary_0B(self):
         # pylint: disable=invalid-name
         """Test a binary number 0B (upper case B)."""
@@ -1726,6 +1786,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_binary_small(self):
         """Test a small binary number."""
         skip_if_moftab_regenerated()
@@ -1736,6 +1797,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_binary_small_plus(self):
         """Test a small binary number with +."""
         skip_if_moftab_regenerated()
@@ -1746,6 +1808,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_binary_small_minus(self):
         """Test a small binary number with -."""
         skip_if_moftab_regenerated()
@@ -1756,6 +1819,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_binary_long(self):
         """Test a binary number that is long."""
         skip_if_moftab_regenerated()
@@ -1766,6 +1830,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_binary_leadingzero(self):
         """Test a binary number with a leading zero."""
         skip_if_moftab_regenerated()
@@ -1776,6 +1841,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_binary_leadingzeros(self):
         """Test a binary number with two leading zeros."""
         skip_if_moftab_regenerated()
@@ -1788,6 +1854,7 @@ class TestLexerNumber(BaseTestLexer):
 
     # Octal numbers
 
+    @log_entry_exit
     def test_octal_00(self):
         """Test octal number 00."""
         skip_if_moftab_regenerated()
@@ -1798,6 +1865,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_octal_01(self):
         """Test octal number 01."""
         skip_if_moftab_regenerated()
@@ -1808,6 +1876,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_octal_small(self):
         """Test a small octal number."""
         skip_if_moftab_regenerated()
@@ -1818,6 +1887,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_octal_small_plus(self):
         """Test a small octal number with +."""
         skip_if_moftab_regenerated()
@@ -1828,6 +1898,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_octal_small_minus(self):
         """Test a small octal number with -."""
         skip_if_moftab_regenerated()
@@ -1838,6 +1909,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_octal_long(self):
         """Test an octal number that is long."""
         skip_if_moftab_regenerated()
@@ -1848,6 +1920,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_octal_leadingzeros(self):
         """Test an octal number with two leading zeros."""
         skip_if_moftab_regenerated()
@@ -1860,6 +1933,7 @@ class TestLexerNumber(BaseTestLexer):
 
     # Hex numbers
 
+    @log_entry_exit
     def test_hex_0x0(self):
         """Test hex number 0x0."""
         skip_if_moftab_regenerated()
@@ -1870,6 +1944,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_hex_0X0(self):
         # pylint: disable=invalid-name
         """Test hex number 0X0."""
@@ -1881,6 +1956,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_hex_0x1(self):
         """Test hex number 0x1."""
         skip_if_moftab_regenerated()
@@ -1891,6 +1967,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_hex_0x01(self):
         """Test hex number 0x01."""
         skip_if_moftab_regenerated()
@@ -1901,6 +1978,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_hex_small(self):
         """Test a small hex number."""
         skip_if_moftab_regenerated()
@@ -1911,6 +1989,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_hex_small_plus(self):
         """Test a small hex number with +."""
         skip_if_moftab_regenerated()
@@ -1921,6 +2000,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_hex_small_minus(self):
         """Test a small hex number with -."""
         skip_if_moftab_regenerated()
@@ -1931,6 +2011,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_hex_long(self):
         """Test a hex number that is long."""
         skip_if_moftab_regenerated()
@@ -1941,6 +2022,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_hex_leadingzeros(self):
         """Test a hex number with two leading zeros."""
         skip_if_moftab_regenerated()
@@ -1953,6 +2035,7 @@ class TestLexerNumber(BaseTestLexer):
 
     # Floating point numbers
 
+    @log_entry_exit
     def test_float_dot0(self):
         """Test a float number '.0'."""
         skip_if_moftab_regenerated()
@@ -1963,6 +2046,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_float_0dot0(self):
         """Test a float number '0.0'."""
         skip_if_moftab_regenerated()
@@ -1973,6 +2057,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_float_plus_0dot0(self):
         """Test a float number '+0.0'."""
         skip_if_moftab_regenerated()
@@ -1983,6 +2068,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_float_minus_0dot0(self):
         """Test a float number '-0.0'."""
         skip_if_moftab_regenerated()
@@ -1993,6 +2079,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_float_small(self):
         """Test a small float number."""
         skip_if_moftab_regenerated()
@@ -2003,6 +2090,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_float_small_plus(self):
         """Test a small float number with +."""
         skip_if_moftab_regenerated()
@@ -2013,6 +2101,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_float_small_minus(self):
         """Test a small float number with -."""
         skip_if_moftab_regenerated()
@@ -2023,6 +2112,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_float_long(self):
         """Test a float number that is long."""
         skip_if_moftab_regenerated()
@@ -2035,6 +2125,7 @@ class TestLexerNumber(BaseTestLexer):
 
     # Errors
 
+    @log_entry_exit
     def test_error_09(self):
         """Test '09' (decimal: no leading zeros; octal: digit out of range)."""
         skip_if_moftab_regenerated()
@@ -2045,6 +2136,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_error_008(self):
         """Test '008' (decimal: no leading zeros; octal: digit out of range)."""
         skip_if_moftab_regenerated()
@@ -2055,6 +2147,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_error_2b(self):
         """Test '2b' (decimal: b means binary; binary: digit out of range)."""
         skip_if_moftab_regenerated()
@@ -2065,6 +2158,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_error_9b(self):
         """Test '9b' (decimal: b means binary; binary: digit out of range)."""
         skip_if_moftab_regenerated()
@@ -2075,6 +2169,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_error_02B(self):
         # pylint: disable=invalid-name
         """Test '02B' (decimal: B means binary; binary: digit out of range;
@@ -2087,6 +2182,7 @@ class TestLexerNumber(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_error_0dot(self):
         """Test '0.' (not a valid float, is parsed as a decimal '0' followed by
         an illegal character '.' which is skipped in t_error()."""
@@ -2103,6 +2199,7 @@ class TestLexerNumber(BaseTestLexer):
 class TestLexerString(BaseTestLexer):
     """Lexer testcases for CIM datatype string."""
 
+    @log_entry_exit
     def test_string_empty(self):
         """Test an empty string."""
         skip_if_moftab_regenerated()
@@ -2112,6 +2209,7 @@ class TestLexerString(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_string_onechar(self):
         """Test a string with one character."""
         skip_if_moftab_regenerated()
@@ -2121,6 +2219,7 @@ class TestLexerString(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_string_long(self):
         """Test a long string with ASCII chars (no backslash or quotes)."""
         skip_if_moftab_regenerated()
@@ -2130,6 +2229,7 @@ class TestLexerString(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_string_one_sq(self):
         """Test a string with a single quote."""
         skip_if_moftab_regenerated()
@@ -2139,6 +2239,7 @@ class TestLexerString(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_string_two_sq(self):
         """Test a string with two single quotes."""
         skip_if_moftab_regenerated()
@@ -2148,6 +2249,7 @@ class TestLexerString(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_string_two_sq_char(self):
         """Test a string with two single quotes and a char."""
         skip_if_moftab_regenerated()
@@ -2157,6 +2259,7 @@ class TestLexerString(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_string_one_dq(self):
         """Test a string with an escaped double quote."""
         skip_if_moftab_regenerated()
@@ -2166,6 +2269,7 @@ class TestLexerString(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_string_two_dq_char(self):
         """Test a string with two escaped double quotes and a char."""
         skip_if_moftab_regenerated()
@@ -2179,6 +2283,7 @@ class TestLexerString(BaseTestLexer):
 class TestLexerChar(BaseTestLexer):
     """Lexer testcases for CIM datatype char16."""
 
+    @log_entry_exit
     def test_char_char(self):
         """Test a char16 with one character."""
         skip_if_moftab_regenerated()
@@ -2188,6 +2293,7 @@ class TestLexerChar(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_char_space(self):
         """Test a char16 with one space."""
         skip_if_moftab_regenerated()
@@ -2197,6 +2303,7 @@ class TestLexerChar(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_char_dquote(self):
         """Test a char16 with a double quote."""
         skip_if_moftab_regenerated()
@@ -2206,6 +2313,7 @@ class TestLexerChar(BaseTestLexer):
         ]
         self.run_assert_lexer(input_data, exp_tokens)
 
+    @log_entry_exit
     def test_char_esquote(self):
         """Test a char16 with an escaped single quote."""
         skip_if_moftab_regenerated()
@@ -2222,6 +2330,7 @@ class TestFullSchema(MOFTest):
         mof file. Tests have numbers to control ordering.
     """
 
+    @log_entry_exit
     def test_mof_schema_roundtrip(self):
         """ Test compile, of the schema, write of a new mof output file
             and recompile of that file
@@ -2327,6 +2436,7 @@ class TestPartialSchema(MOFTest):
         return ('CIM_ManagedElement', 'CIM_WBEMService', 'CIM_Service',
                 'CIM_RegisteredSpecification')
 
+    @log_entry_exit
     def test_build_from_partial_schema(self):
         """
         Build the schema qualifier and class objects in the repository.
@@ -2365,6 +2475,7 @@ class TestPartialSchema(MOFTest):
         for cln in self.expected_dependent_classes():
             self.assertTrue(cln in clsrepo)
 
+    @log_entry_exit
     def test_build_from_schema_string(self):
         """
         Build the schema qualifier and class objects in the repository from
@@ -2393,6 +2504,7 @@ class TestPartialSchema(MOFTest):
         for cln in self.expected_dependent_classes():
             self.assertTrue(cln in clsrepo)
 
+    @log_entry_exit
     def test_compile_class_withref(self):
         """
         Test compile a single class with reference properties that are not
@@ -2416,6 +2528,7 @@ class TestPartialSchema(MOFTest):
         for cln in exp_classes:
             self.assertTrue(cln in clsrepo)
 
+    @log_entry_exit
     def test_compile_classmethod_ref(self):
         """
         Test compile a single class with reference properties that are not
@@ -2444,6 +2557,7 @@ class TestPartialSchema(MOFTest):
         for cln in exp_classes:
             self.assertTrue(cln in clsrepo)
 
+    @log_entry_exit
     def test_compile_class_ref_err(self):
         """
         Test compile a single class with reference properties where the
@@ -2470,6 +2584,7 @@ class TestPartialSchema(MOFTest):
                 r"Cannot compile class .* dependent class .* not exist",
                 pe.msg, re.IGNORECASE)
 
+    @log_entry_exit
     def test_compile_class_embinst(self):
         """
         Test compile a single class with property and method param containing
@@ -2504,6 +2619,7 @@ class TestPartialSchema(MOFTest):
         for cln in exp_classes:
             self.assertTrue(cln in clsrepo)
 
+    @log_entry_exit
     def test_compile_class_embinst_err(self):
         """
         Test finding class for EmbeddedInstance qualifier where
@@ -2533,6 +2649,7 @@ class TestPartialSchema(MOFTest):
                 r"Cannot compile class .* dependent class .* not exist",
                 pe.msg, re.IGNORECASE)
 
+    @log_entry_exit
     def test_compile_class_circular(self):
         """
         Test compile a class that itself contains a circular reference, in this
@@ -2585,6 +2702,7 @@ class TestFileErrors(MOFTest):
             verbose=False,
             log_func=moflog)
 
+    @log_entry_exit
     def test_file_not_found(self):
         """
             Test for case where compile file does not exist.
@@ -2596,6 +2714,7 @@ class TestFileErrors(MOFTest):
         except OSError:
             pass
 
+    @log_entry_exit
     def test_filedir_not_found(self):
         """
             Test for filename with dir component not found.
@@ -2606,6 +2725,7 @@ class TestFileErrors(MOFTest):
         except OSError:
             pass
 
+    @log_entry_exit
     def test_error_search(self):
         """
             Test for file not found in search path where search path is
@@ -2747,6 +2867,7 @@ class Test_CreateInstanceWithDups(unittest.TestCase):
             if os.path.exists(self.partial_schema_file):
                 os.remove(self.partial_schema_file)
 
+    @log_entry_exit
     def test_nopath(self):
         """
         Test no alias on instance. Result should include path in the repo
@@ -2781,6 +2902,7 @@ class Test_CreateInstanceWithDups(unittest.TestCase):
 class TestNamespacePragma(MOFTest):
     """Test use of the namespace pragma"""
 
+    @log_entry_exit
     def test_single_namespace(self):
         """
         Test that uses namespace pragma. NOTE: This only tests the use
@@ -2824,6 +2946,7 @@ class TestNamespacePragma(MOFTest):
 
         self.assertEqual(len(repo.instances[NAME_SPACE]), 2)
 
+    @log_entry_exit
     def test_invalid_namespace(self):
         """
         Test that uses namespace pragma. NOTE: This only tests the use
@@ -3174,6 +3297,7 @@ TESTCASES_EMBEDDED_OBJECT_PROP_COMPILE = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_EMBEDDED_OBJECT_PROP_COMPILE)
 @simplified_test_function
+@log_entry_exit
 def test_embedded_object_property_compile(testcase, iid, pname, pstr, exp_dict):
     # pylint: disable=unused-argument
     """
@@ -3310,6 +3434,7 @@ TESTCASES_ABSTRACT_MOF_INSTANCE_COMPILE = [
     "desc, kwargs, exp_exc_types, exp_warn_types, condition",
     TESTCASES_ABSTRACT_MOF_INSTANCE_COMPILE)
 @simplified_test_function
+@log_entry_exit
 def test_abstract_mof_instance_compile(testcase, instmof, result_inst):
     # pylint: disable=unused-argument
     """
