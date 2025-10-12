@@ -176,7 +176,7 @@ confidence=
 # Note: "useless-return" this only appears in Python 3 and since the return
 #       serves as a clear signal of the end of the method and does not cause
 #       any code issues we will ignore this warning.
-disable=I0011, bad-option-value,
+disable=I0011, bad-option-value, unrecognized-option,
         too-many-locals, too-many-branches, too-many-statements,
         too-many-lines, too-many-public-methods,
         too-many-nested-blocks, too-many-return-statements, too-many-arguments,
