@@ -1,0 +1,3 @@
+Listener: Changed methods :meth:`pywbem.WBEMListener.ind_delivery_queue_empty`
+and :meth:`pywbem.WBEMListener.queue_size` to check for existence of the
+indication queue and to return `None` if it does not exist.
