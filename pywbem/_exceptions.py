@@ -774,11 +774,11 @@ class ListenerPromptError(ListenerError):
 
 class ListenerQueueFullError(ListenerError):
     """
-    This exception indicates that the listener received indication queue has
-    reached the maximum count of indications defined in the listener
-    creation max_queue_size parameter.
+    Starting with pywbem 1.8.0, this exception indicated that the indication
+    delivery queue has reached its maximum size. Starting with pywbem 1.9.0,
+    this exception is no longer raised.
 
-    *New in pywbem 1.8.*
+    *New in pywbem 1.8; No longer used starting with pywbem 1.9.0*
 
     Derived from :exc:`~pywbem.ListenerError`.
     """
