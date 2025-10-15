@@ -121,21 +121,43 @@ errors logged at the ``ERROR`` logging level will be printed by default.
 Listener indication flood
 -------------------------
 
-A listener processes indications through an interprocess queue so a flood of
-indications from the indication sender where the callback processing was taking
-longer than indication reception could over time result in indications piling
-up in the received indication queue. While this is not normally an issue a
-flood of indications from the sender could result in more indications in the
-queue than the memory of the client can support. Effective with version 1.8.0,
-an optional argument was added to the listener initialization
-(max_ind_queue_size) that causes generation of an exception
-(ListenerQueueFullError) and stopping of sending indication reception. Since
-this effectively stops the listener, it should only be used if the number of
-indications in the queue is a threat to the memory in the client, not for
-temporary slowdown of the flow of indications from the indication sender.
+The pywbem listener processes indications through an interprocess queue
+(indication delivery queue) between the listener thread that receives the
+indication over the network and the callback thread in which the user-provided
+callback function runs.
 
-It closes the listener connections and  either discards indications in the queue
-or .
+If the callback processing takes longer, indications can pile up in the
+indication delivery queue. While this is not normally an issue, a
+flood of indications from the sender could result in more indications in the
+queue than the memory of the listener can support.
+
+The handling of this situation in pywbem has improved over time:
+
+* Before pywbem 1.8.0, the indication queue had no size limit, and grew
+  larger until memory limits were reached.
+
+* Starting with pywbem 1.8.0, the :class:`pywbem.WBEMListener` class added
+  an optional init parameter ``max_ind_queue_size`` to specify a size limit
+  for the indication delivery queue. When the size limit was reached, the
+  listener and callback threads terminated and the
+  :meth:`pywbem.WBEMListener.start` method raised
+  :exc:`pywbem.ListenerQueueFullError`. No CIM-XML error response was sent back
+  to the sender for the indication that caused the queue to become full.
+  This approach was meant to protect from memory full conditions but had the
+  drawback that the listener stopped and the sender got no information as to
+  why that happened.
+
+* Starting with pywbem 1.9.0, the behavior has been improved: When the size
+  limit of the indication delivery queue is reached, the indication is not
+  put into the queue, a CIM-XML error response with status
+  :data:`~pywbem._cim_constants.CIM_ERR_FAILED` is sent back to the sender and
+  the listener and callback threads continue to run. As a result, no exception
+  indicating that the queue is full is raised anymore from the
+  :meth:`pywbem.WBEMListener.start` method. For backwards compatibility
+  reasons, the :exc:`pywbem.ListenerQueueFullError` exception is still defined
+  (but is no longer raised). In addition, the default for the
+  ``max_ind_queue_size`` input parameter has been changed from 0 (unlimited) to
+  a reasonable limit.
 
 The following example creates and runs a listener::
 
@@ -162,26 +184,16 @@ The following example creates and runs a listener::
                                 http_port=5990,
                                 https_port=5991,
                                 certfile=certkeyfile,
-                                keyfile=certkeyfile,
-                                max_ind_queue_size=5000,
-                                )
+                                keyfile=certkeyfile)
         listener.add_callback(process_indication)
 
-        try:
-            listener.start()
+        listener.start()
 
-            # process_indication() will be called for each received indication
+        # process_indication() will be called for each received indication
 
-            . . .  # wait for some condition to end listening
+        . . .  # wait for some condition to end listening
 
-        except ListenerQueueFullError:
-            print("Indication listener failed. Indication queue full.")
-            listener.stop()
-
-
-        finally:
-            listener.stop()
-
+        listener.stop()
 
 
 .. _`WBEMListener class`:
@@ -216,12 +228,12 @@ from . import _cim_xml
 from ._version import __version__
 from ._cim_obj import CIMInstance
 from ._cim_constants import CIM_ERR_NOT_SUPPORTED, CIM_ERR_INVALID_PARAMETER, \
-    _statuscode2name
+    CIM_ERR_FAILED, _statuscode2name
 from ._tupleparse import TupleParser
 from ._tupletree import xml_to_tupletree_sax
 from ._exceptions import CIMXMLParseError, XMLParseError, CIMVersionError, \
     DTDVersionError, ProtocolVersionError, ListenerCertificateError, \
-    ListenerPortError, ListenerPromptError, ListenerQueueFullError
+    ListenerPortError, ListenerPromptError
 from ._utils import _format
 
 # CIM-XML protocol related versions implemented by the WBEM listener.
@@ -249,6 +261,9 @@ TOKEN_CHARSET_FINDALL_PATTERN = re.compile(
     r'([^;, ]+)'
     r'(?:; *charset="?([^";, ]*)"?)?'
     r'(?:, *)?')
+
+# Default maximum size of the indication delivery queue.
+DEFAULT_MAX_IND_QUEUE_SIZE = 5000
 
 __all__ = ['WBEMListener', 'callback_interface']
 
@@ -560,10 +575,18 @@ class ListenerRequestHandler(BaseHTTPRequestHandler):
                     _format("NewIndication parameter is not a CIM instance, "
                             "but {0!A}", indication_inst))
                 return
+
             # server.listener created in WBEMListener.start function
-            # This function may generate queue full exception.
-            self.server.listener.handle_indication(indication_inst,
-                                                   self.client_address[0])
+            listener = self.server.listener
+            try:
+                listener.handle_indication(
+                    indication_inst, self.client_address[0])
+            except queue.Full:
+                self.send_error_response(
+                    msgid, methodname, CIM_ERR_FAILED,
+                    _format("Indication delivery queue is full (size {0})",
+                            listener.max_ind_queue_size))
+                return
 
             self.send_success_response(msgid, methodname)
 
@@ -861,7 +884,8 @@ class WBEMListener:
     """
 
     def __init__(self, host, http_port=None, https_port=None,
-                 certfile=None, keyfile=None, max_ind_queue_size=0):
+                 certfile=None, keyfile=None,
+                 max_ind_queue_size=DEFAULT_MAX_IND_QUEUE_SIZE):
         """
         Parameters:
 
@@ -914,22 +938,21 @@ class WBEMListener:
             for HTTPS requires specifying a private key file.
 
           max_ind_queue_size (:term:`integer`):
-            A positive integer which defines the maximum number of the received
-            indications that can be in the received indication queue.  If the
-            queue of received indications reaches this size, the queue is
-            blocked and the :exc:`~pywbem.ConnectionError` is raised.
+            A positive integer which defines the maximum size of the indication
+            delivery queue. If an indication is received and the queue is full,
+            the indication is not put into the queue and a CIM-XML response
+            with status :data:`~pywbem._cim_constants.CIM_ERR_FAILED` is sent
+            back to the sender, indicating that the indication could not be
+            accepted. The listener and callback threads continue to run.
 
-            The default is 0 which disables the test for queue full.
+            A value of 0 indicates that the queue has no maximum size. In this
+            case, the queue size will grow as needed (until the listener
+            process is out of memory), and all indications will be accepted.
 
-            If set, this should be a large number since the goal is to stop
-            receiving indications on the connection and may result in an
-            indication receive failure on the WBEM server indication export
-            function.
+            For a reliable operation of the listener, it is recommended to
+            define a maximum queue size.
 
         Raises:
-
-          :exc:`pywbem.ListenerQueueFullError`: if number of
-            indications in the listener queue exceeds max_ind_queue_size.
 
           TypeError: port, max_ind_queue_size arguments invalid type.
 
@@ -999,6 +1022,10 @@ class WBEMListener:
         self.ind_delivery_queue = None
         self.callback_thread = None
 
+        # State of the indication delivery queue, as detected after the last
+        # attempt to put an indication into it.
+        self._queue_full = False
+
     def __str__(self):
         """
         Return a representation of the :class:`~pywbem.WBEMListener` object
@@ -1025,7 +1052,7 @@ class WBEMListener:
             "_certfile={s._certfile!A}, "
             "_keyfile={s._keyfile!A}, "
             "_logger={s._logger!A}, "
-            "_callbacks={s._callbacks!A})",
+            "_callbacks={s._callbacks!A}, "
             "_max_ind_queue_size={s._max_ind_queue_size!A})",
             s=self)
 
@@ -1161,14 +1188,23 @@ class WBEMListener:
         Return boolean True if the indication queue is empty. Otherwise return
         False. This is available because the queue_size attribute only returns
         an approximation.
+
+        If the indication queue does not exist, `None` is returned.
         """
+        if self.ind_delivery_queue is None:
+            return None
         return self.ind_delivery_queue.empty()
 
     def queue_size(self):
         """
         Return an integer with the approximate count of the number of
         indications currently in the received indication queue for this
-        listener. """
+        listener.
+
+        If the indication queue does not exist, `None` is returned.
+        """
+        if self.ind_delivery_queue is None:
+            return None
         return self.ind_delivery_queue.qsize()
 
     def start(self):
@@ -1202,8 +1238,11 @@ class WBEMListener:
         is invalid, or if the private key file or certificate file are invalid,
         :exc:`pywbem.ListenerCertificateError` is raised.
 
-        If an exception is raised after the callback thread has been started,
-        the callback thread is cleaned up again.
+        If this method raises an exception, the callback thread and listener
+        threads are cleaned up again.
+
+        Starting with pywbem 1.9.0, this method no longer raises the
+        :exc:`pywbem.ListenerQueueFullError` exception.
 
         Raises:
 
@@ -1434,7 +1473,7 @@ class WBEMListener:
                     clr_count)
             self.ind_delivery_queue = None
 
-        # Callback thread could already be stopped by ListenerQueueFullError.
+        # Tolerate that callback thread has already stopped, just in case.
         if self.callback_thread:
             self.logger.info("Stopping callback thread")
             self.callback_thread.stop()
@@ -1511,39 +1550,41 @@ class WBEMListener:
 
     def handle_indication(self, indication, host):
         """
-        Entry point from the listener server threads with a single indication.
-        Puts the indication in the received indication queue.
+        Method that is called from the listener HTTP server threads for a
+        single indication.
 
-        If the self.queue_full parameter is not 0, an exception will be
-        executed if the queue contains the number of indication defined by the
-        listener max_ind_queue_size parameter. This completely stops the
-        indication receive thread because this function does not return.
+        Puts the indication in the indication delivery queue.
 
+        If the listener was defined with a maximum queue size
+        (max_ind_queue_size > 0), the :exc:`queue.Full` exception will be
+        raised if the queue is full.
+
+        Raises:
+          queue.Full: Indication delivery queue is full
         """
         if self.ind_delivery_queue is None:
-            self.logger.debug(
+            self.logger.warning(
                 "handle_indication: Indication delivery queue not set up - "
                 "ignoring indication")
             return
 
         try:
-            self.logger.debug("handle_indication: Putting received indication "
-                              "to indication delivery queue")
-
-            # Do not block put to queue. It puts or raises the Full exception
+            # Non-blocking put is required to raise queue.Full exception if full
             self.ind_delivery_queue.put((indication, host), block=False)
-            self.logger.debug(
-                "handle_indication: Success putting received indication "
-                "to indication delivery queue (queue size: %s)",
-                self.queue_size())
+            if self._queue_full is True:
+                self.logger.info(
+                    "handle_indication: Indication delivery queue is no longer "
+                    "full (current size: %d, max size: %d)",
+                    self.queue_size(), self.max_ind_queue_size)
+                self._queue_full = False
 
         except queue.Full:
-            msg = ("Indication delivery queue is full "
-                   f"(queue size: {self.queue_size()})")
-            self.logger.debug("handle_indication: %s", msg)
-            new_exc = ListenerQueueFullError(msg)
-            new_exc.__cause__ = None
-            raise new_exc  # ListenerQueueFullError
+            if self._queue_full is False:
+                self.logger.info(
+                    "handle_indication: Indication delivery queue has become "
+                    "full (max size: %d)", self.max_ind_queue_size)
+                self._queue_full = True
+            raise
 
     def deliver_indication_to_callbacks(self, indication, host):
         """
