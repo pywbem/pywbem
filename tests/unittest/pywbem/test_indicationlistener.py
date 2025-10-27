@@ -923,8 +923,8 @@ def test_WBEMListener_send_indications(
         for i in range(queue_empty_retries):
             sleep(0.2)   # sleep 200 ms to allow callbacks to execute
             if listener.ind_queue_exists():
-                qsize = listener.queue_size()
-                empty = listener.ind_delivery_queue_empty()
+                qsize = listener.ind_queue_size()
+                empty = listener.ind_queue_empty()
             else:
                 qsize = None
                 empty = None
@@ -936,7 +936,7 @@ def test_WBEMListener_send_indications(
                 break
 
             LOGGER.debug("Waiting, %s still in queue.",
-                         listener.ind_delivery_queue.qsize())
+                         listener.ind_queue_size())
 
         assert empty is None or empty is True, \
             f"Test failed in wait for indications loop. rcv_count=" \

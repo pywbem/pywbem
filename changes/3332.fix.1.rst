@@ -1,0 +1,6 @@
+Aligned the names of two :class:`pywbem.WBEMListener` methods for more
+consistency. These methods were added in pywbem version 1.8.0, and we consider
+this a fix:
+
+  * Renamed ``ind_delivery_queue_empty()`` to :meth:`pywbem.WBEMListener.ind_queue_empty`.
+  * Renamed ``queue_size()`` to :meth:`pywbem.WBEMListener.ind_queue_size`.
