@@ -1,0 +1,10 @@
+Listener: Made the following internal attributes and methods of the
+:class:`pywbem.WBEMListener` class private in order to ensure that they are not
+accessed or called by users:
+
+  * ``ind_delivery_queue`` attribute
+  * ``stop_indication_delivery()``
+  * ``stop_servers()``
+  * ``deliver_indications_forever()``
+  * ``handle_indication()``
+  * ``deliver_indication_to_callbacks()``
