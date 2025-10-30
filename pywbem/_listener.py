@@ -219,6 +219,7 @@ except ImportError:
     # termios is only supported on some operating systems
     termios = None
 import socketserver
+import socket
 import http.client
 from http.server import HTTPStatus, HTTPServer, BaseHTTPRequestHandler
 
@@ -362,8 +363,32 @@ def keyfile_password_prompt(keyfile):
 
 
 class ThreadedHTTPServer(socketserver.ThreadingMixIn, HTTPServer):
-    """Defines an HTTPServer class for indication reception"""
-    pass
+    """
+    Defines an HTTPServer class for indication reception.
+    """
+    # Enable the SO_REUSEADDR flag, to reuse the IP address if it still happens
+    # to be known by the OS from a previous run.
+    allow_reuse_address = True
+
+
+def make_server(host, port, handler):
+    """
+    Create and return a ThreadedHTTPServer with the correct addressing family.
+    """
+    infos = socket.getaddrinfo(host, port)
+
+    # Pick the first result (usually fine for binding)
+    info = infos[0]
+
+    family = info[0]
+    sockaddr = info[4]  # (host, port) for IPv4, more for IPv6
+
+    class AFServer(ThreadedHTTPServer):
+        "Class for setting address_family - it must be a class attribute"
+        address_family = family
+
+    server = AFServer(sockaddr, handler)
+    return server
 
 
 class ListenerRequestHandler(BaseHTTPRequestHandler):
@@ -896,10 +921,10 @@ class WBEMListener:
             Network wildcard addressing enables receiving indications from
             all IP addresses on the system by binding the listener to certain
             special addresses. The IPV4 wildcard IP address is "0.0.0.0"
-            and the IPV6 wild card IP address is "::".
-
+            and the IPV6 wildcard IP address is "::".
             Setting the host parameter to an empty string (i.e. "") is
-            equivalent to using at least the IPV4 wildcard address.
+            equivalent to using the wildcard address with the default
+            IP addressing family.
 
           http_port (:term:`string` or :term:`integer`):
             HTTP port at which this listener can be reached. At
@@ -1290,8 +1315,8 @@ class WBEMListener:
                     self.logger.info("Creating threaded HTTP server on port %s",
                                      self._http_port)
                     try:
-                        server = ThreadedHTTPServer(
-                            (self._host, self._http_port),
+                        server = make_server(
+                            self._host, self._http_port,
                             ListenerRequestHandler)
                     except OSError as exc:
                         self.logger.error(
@@ -1334,8 +1359,8 @@ class WBEMListener:
                         "Creating threaded HTTPS server on port %s",
                         self._https_port)
                     try:
-                        server = ThreadedHTTPServer(
-                            (self._host, self._https_port),
+                        server = make_server(
+                            self._host, self._https_port,
                             ListenerRequestHandler)
                     except OSError as exc:
                         self.logger.error(
