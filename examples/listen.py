@@ -112,9 +112,9 @@ def process_indication(indication, host):
     print("process_indication: Processing CIM indication "
           f"(counters: {RECEIVED_INDICATION_DICT}):\n"
           f"host={host}\n"
-          f"{indication.tomof()}")
+          f"{indication.tomof()}", flush=True)
     if sleep > 0:
-        print(f"process_indication: Sleeping for {sleep} s")
+        print(f"process_indication: Sleeping for {sleep} s", flush=True)
         time.sleep(sleep)
 
 
@@ -143,8 +143,9 @@ def main():
     args = parse_args(sys.argv[0])
 
     log_level = DEFAULT_LOG_LEVEL
-    logging.basicConfig(stream=sys.stderr, level=log_level,
-                        format="%(asctime)s %(levelname)s: %(message)s")
+    logging.basicConfig(
+        stream=sys.stderr, level=log_level,
+        format="%(asctime)s %(levelname)s %(threadName)s: %(message)s")
 
     host = args.host
     http_port = args.http_port
