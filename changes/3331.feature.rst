@@ -1,0 +1,4 @@
+Listener: Improved the log messages of the WBEMListener class. There are no more
+log messages when the listener is idle, and the log records for processing
+indications are now all emitted at the DEBUG level. Other log messages have been
+streamlined and their information improved.
