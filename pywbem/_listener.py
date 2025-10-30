@@ -581,7 +581,7 @@ class ListenerRequestHandler(BaseHTTPRequestHandler):
             try:
                 # pylint: disable=protected-access
                 listener._handle_indication(
-                    indication_inst, self.client_address[0])
+                    indication_inst, self.client_address[0], msgid)
             except queue.Full:
                 self.send_error_response(
                     msgid, methodname, CIM_ERR_FAILED,
@@ -589,7 +589,7 @@ class ListenerRequestHandler(BaseHTTPRequestHandler):
                             listener.max_ind_queue_size))
                 return
 
-            self.send_success_response(msgid, methodname)
+            self.send_success_response(msgid, methodname, indication_inst)
 
         else:
             self.send_error_response(
@@ -619,13 +619,12 @@ class ListenerRequestHandler(BaseHTTPRequestHandler):
                 self.send_header(header, value)
         self.end_headers()
 
-        self.logger.warning(
-            "Sent HTTP error response with HTTP status %s", http_code)
-
     def send_error_response(self, msgid, methodname, status_code, status_desc,
                             error_insts=None):
-        """Send a CIM-XML response message back to the WBEM server that
-        indicates error."""
+        """
+        Send a CIM-XML response message back to the WBEM server that indicates
+        an error at the CIM-XML level.
+        """
 
         self.logger.warning(
             "Sending CIM-XML error response with CIM status %s: %s",
@@ -659,16 +658,15 @@ class ListenerRequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(resp_body)
 
-        self.logger.warning(
-            "Sent CIM-XML error response with CIM status %s",
-            _statuscode2name(status_code))
-
-    def send_success_response(self, msgid, methodname):
-        """Send a CIM-XML response message back to the WBEM server that
-        indicates success."""
+    def send_success_response(self, msgid, methodname, instance):
+        """
+        Send a CIM-XML response message back to the WBEM server that
+        indicates success.
+        """
 
         self.logger.debug(
-            "Sending CIM-XML successful response with msgid=%s", msgid)
+            "Sending CIM-XML success response for %s with msgid %s",
+            instance.classname, msgid)
 
         resp_xml = _cim_xml.CIM(
             _cim_xml.MESSAGE(
@@ -692,12 +690,10 @@ class ListenerRequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(resp_body)
 
-        self.logger.debug(
-            "Sent CIM-XML successful response with msgid=%s", msgid)
-
     @staticmethod
     def parse_export_request(request_str):
-        """Parse a CIM-XML export request message, and return
+        """
+        Parse a CIM-XML export request message, and return
         a tuple(msgid, methodname, params).
         """
 
@@ -746,13 +742,13 @@ class ListenerRequestHandler(BaseHTTPRequestHandler):
         :meth:`~py:http.server.BaseHTTPRequestHandler.send_response`.
 
         We override it to get a little more information logged in a somewhat
-        better format at the INFO level.
+        better format at the DEBUG level.
         """
         if isinstance(code, HTTPStatus):
             # On Python 3, it can be an HTTPStatus object
             code = code.value
-        self.log_message("Sending %s response with HTTP status %s",
-                         self.command, code)
+        self.logger.debug(
+            "Sending %s response with HTTP status %s", self.command, code)
 
     def log_error(self, format, *args):
         # pylint: disable=redefined-builtin
@@ -1273,19 +1269,20 @@ class WBEMListener:
         # Note: The value 0 creates the queue without a maximum size.
         # Uses Queue and not SimpleQueue because SimpleQueue does not support
         # a maximum queue size.
+        self.logger.info(
+            "Creating indication queue with max size: %d",
+            self._max_ind_queue_size)
         self._ind_queue = queue.Queue(
             maxsize=self._max_ind_queue_size)
 
         # Start callback thread
+        self.logger.info("Starting callback thread")
         self._callback_thread = CallbackThread(
             target=self._callback_run,
-            args=(self._ind_queue,),
-            name='Callback',
+            args=(),
+            name='CallbackThread',
             daemon=False)
-
         self._callback_thread.start()
-        self.logger.info("Callback thread started max_queue=%s",
-                         self._max_ind_queue_size)
 
         try:
             if self._http_port:
@@ -1314,17 +1311,16 @@ class WBEMListener:
                         raise
 
                     # pylint: disable=attribute-defined-outside-init
+                    self.logger.info(
+                        "Starting HTTP listener thread to run threaded "
+                        "HTTP server")
                     server.listener = self
                     thread = ServerThread(target=server.serve_forever,
                                           name='http',
                                           daemon=False)
-                    # Insure thread is stopped on main thread exit
                     self._http_server = server
                     self._http_thread = thread
                     thread.start()
-
-                    self.logger.info("Started threaded HTTP server on port %s",
-                                     self._http_port)
 
             else:
                 # Just in case someone changed self._http_port after init...
@@ -1334,8 +1330,9 @@ class WBEMListener:
             if self._https_port:
                 if not self._https_server:
 
-                    self.logger.info("Creating threaded HTTPS server on "
-                                     "port %s", self._https_port)
+                    self.logger.info(
+                        "Creating threaded HTTPS server on port %s",
+                        self._https_port)
                     try:
                         server = ThreadedHTTPServer(
                             (self._host, self._https_port),
@@ -1417,16 +1414,15 @@ class WBEMListener:
                             keyfile=self._keyfile,
                             server_side=True)
 
+                    self.logger.info(
+                        "Starting HTTPS listener thread to run threaded "
+                        "HTTPS server")
                     thread = ServerThread(target=server.serve_forever,
                                           name="https",
                                           daemon=False)
-
                     self._https_server = server
                     self._https_thread = thread
                     thread.start()
-
-                    self.logger.info("Started threaded HTTPS server on port %s",
-                                     self._https_port)
 
             else:
                 # Just in case someone changed self._https_port after init...
@@ -1495,7 +1491,7 @@ class WBEMListener:
             self.logger.info("Stopping callback thread")
             self._callback_thread.stop()
             self._callback_thread.join()
-            self.logger.info("Callback thread is now stopped")
+            self.logger.info("Stopped callback thread")
             self._callback_thread = None
 
     def _stop_listener_threads(self):
@@ -1504,22 +1500,26 @@ class WBEMListener:
         """
 
         if self._http_server:
-            self.logger.info("Stopping threaded HTTP server")
+            self.logger.info(
+                "Stopping threaded HTTP server (and its listener thread)")
             self._http_server.shutdown()
             self._http_server.server_close()
             self._http_server = None
             self._http_thread = None
-            self.logger.info("Stopped threaded HTTP server")
+            self.logger.info(
+                "Stopped threaded HTTP server (and its listener thread)")
 
         if self._https_server:
-            self.logger.info("Stopping threaded HTTPS server")
+            self.logger.info(
+                "Stopping threaded HTTPS server (and its listener thread)")
             self._https_server.shutdown()
             self._https_server.server_close()
             self._https_server = None
             self._https_thread = None
-            self.logger.info("Stopped threaded HTTPS server")
+            self.logger.info(
+                "Stopped threaded HTTP server (and its listener thread)")
 
-    def _callback_run(self, ind_queue):
+    def _callback_run(self):
         """
         Thread runner function for the callback thread that delivers indications
         to the registered callback functions.
@@ -1527,37 +1527,33 @@ class WBEMListener:
         This function runs a loop and only returns when the queue is emtpy and
         the callback thread's stop() method had been called.
         """
-        # Deliver queued indications until queue empty and stop event set.
-        self.logger.debug("Started callback thread.")
+        self.logger.info("Entering callback processing loop")
+
         while True:
             try:
-                self.logger.debug(
-                    "Get from queue. queue_size=%d", self.ind_queue_size())
 
                 # This raises queue.Empty when the timeout expires
-                indication_tuple = ind_queue.get(
+                queue_item = self._ind_queue.get(
                     block=True,
                     timeout=self.queue_get_timeout)
+                indication, host, msgid = queue_item
 
-                self._deliver_indication_to_callbacks(indication_tuple[0],
-                                                      indication_tuple[1])
+                self._deliver_indication_to_callbacks(indication, host, msgid)
+
                 # Marks this item done in queue.
                 # Really for delivering to multiple workers rather than
                 # this simple case of a single worker. However this
                 # keeps the queue clean.
-                ind_queue.task_done()
+                self._ind_queue.task_done()
 
             # If queue empty and stop event set break out of loop
             except queue.Empty:
-                self.logger.debug("Queue empty exception received")
-
                 if self._callback_thread.stopped():
-                    self.logger.debug("Queue empty exception. stop callback")
                     break
 
-        return
+        self.logger.info("Leaving callback processing loop")
 
-    def _handle_indication(self, indication, host):
+    def _handle_indication(self, indication, host, msgid):
         """
         Method that is called from the listener threads when receiving an
         indication.
@@ -1572,30 +1568,34 @@ class WBEMListener:
           queue.Full: Indication queue is full
         """
         if self._ind_queue is None:
-            self.logger.warning(
-                "_handle_indication: Indication queue not set up - "
-                "ignoring indication")
+            self.logger.error(
+                "Indication queue not set up - ignoring indication")
             return
 
         try:
             # Non-blocking put is required to raise queue.Full exception if full
-            self._ind_queue.put((indication, host), block=False)
+            queue_item = (indication, host, msgid)
+            self._ind_queue.put(queue_item, block=False)
+            # If we get here, the put worked so the queue was not full.
+            # We log a state change if it was previously full.
             if self._queue_full is True:
-                self.logger.info(
-                    "_handle_indication: Indication queue is no longer "
-                    "full (current size: %d, max size: %d)",
+                self.logger.warning(
+                    "Indication queue is no longer full "
+                    "(current size: %d, max size: %d)",
                     self.ind_queue_size(), self.max_ind_queue_size)
                 self._queue_full = False
 
         except queue.Full:
+            # If we get here, the put queue was full.
+            # We log a state change if it was previously not full.
             if self._queue_full is False:
-                self.logger.info(
-                    "_handle_indication: Indication queue has become "
-                    "full (max size: %d)", self.max_ind_queue_size)
+                self.logger.warning(
+                    "Indication queue is now full (max size: %d)",
+                    self.max_ind_queue_size)
                 self._queue_full = True
             raise
 
-    def _deliver_indication_to_callbacks(self, indication, host):
+    def _deliver_indication_to_callbacks(self, indication, host, msgid):
         """
         This function is called in the callback thread to deliver a single
         indication to all registered callback functions.
@@ -1611,21 +1611,25 @@ class WBEMListener:
 
           host (:term:`string`):
             Host name or IP address of WBEM server sending the indication.
+
+          msgid (:term:`string`):
+            Message ID of the indication from the export request.
         """
         for callback in self._callbacks:
 
-            self.logger.debug("Calling registered callback function "
-                              "%r to deliver %r indication",
-                              callback.__name__, indication.classname)
+            self.logger.debug(
+                "Calling callback function %r to deliver %s with msgid %s",
+                callback.__name__, indication.classname, msgid)
 
             try:
                 callback(indication, host)
             except Exception as exc:  # pylint: disable=broad-except
-                self.logger.error("Registered callback function "
-                                  "raised %s: %s", exc.__class__.__name__, exc)
+                self.logger.error(
+                    "Callback function %r raised %s: %s",
+                    callback.__name__, exc.__class__.__name__, exc)
 
-            self.logger.debug("Returned from registered callback "
-                              "function %r", callback.__name__)
+            self.logger.debug(
+                "Returned from callback function %r", callback.__name__)
 
     def add_callback(self, callback):
         """
@@ -1653,6 +1657,8 @@ class WBEMListener:
             received while the listener threads are running.
         """
         if callback not in self._callbacks:
+            self.logger.info(
+                "Adding callback function %r", callback.__name__)
             self._callbacks.append(callback)
 
 
