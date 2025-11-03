@@ -16,6 +16,87 @@ Change log
    .. include:: tmp_changes.rst
 
 .. towncrier start
+pywbem 1.8.1
+^^^^^^^^^^^^
+
+Released: 2025-11-03
+
+**Bug fixes:**
+
+* Addressed safety issues up to 2025-11-03.
+
+* Fixed that when errors happen in 'WBEMListener.start()', the callback thread
+  is cleaned up in all cases. This also fixes long wait times for certain
+  test cases in the listener unit test.
+
+* Docs: Fixed that the description in the 'Testing' section still described
+  how to use setup.py as a command to run the tests, even though setup.py
+  had been removed when migrating to pyproject.toml.
+
+* Test: Improved indication listener unit testcases to ensure that a listener
+  that is started, is always stopped again.
+
+* Fixed the size of the indication delivery queue shown in log and exception
+  messages. Improved some listener related log messages.
+
+* Test: Fixed new issues raised by pylint 4.0.0.
+
+* Listener: Changed WBEMListener methods ``ind_delivery_queue_empty()`` and
+  ``queue_size()`` to check for existence of the indication queue and to return
+  `None` if it does not exist. (`#3315 <https://github.com/pywbem/pywbem/issues/3315>`_)
+
+* Listener: Made the following internal attributes and methods of the
+  :class:`pywbem.WBEMListener` class private in order to ensure that they are not
+  accessed or called by users:
+
+    * ``ind_delivery_queue`` attribute
+    * ``stop_indication_delivery()``
+    * ``stop_servers()``
+    * ``deliver_indications_forever()``
+    * ``handle_indication()``
+    * ``deliver_indication_to_callbacks()`` (`#3332 <https://github.com/pywbem/pywbem/issues/3332>`_)
+
+* Aligned the names of two :class:`pywbem.WBEMListener` methods for more
+  consistency. These methods were added in pywbem version 1.8.0, and we consider
+  this a fix:
+
+    * Renamed ``ind_delivery_queue_empty()`` to :meth:`pywbem.WBEMListener.ind_queue_empty`.
+    * Renamed ``queue_size()`` to :meth:`pywbem.WBEMListener.ind_queue_size`. (`#3332 <https://github.com/pywbem/pywbem/issues/3332>`_)
+
+* Listener: Fixed the support for IPv6 IP addresses and hostnames, by looking up
+  and setting the IP address family accordingly. (`#3333 <https://github.com/pywbem/pywbem/issues/3333>`_)
+
+**Enhancements:**
+
+* Examples: Improved the ``examples/listen.py`` script: Improved argument parsing,
+  it now can set the maximum indication delivery queue size, the indication
+  processing callback now can sleep for some time to test queue full behavior,
+  stopped the listener when exiting the console.
+
+* Test: Migrated to using pytest log control for tests, as documented in
+  docs/development.rst.
+
+* Listener: Improved the handling of the listener queue full condition by
+  sending back an error response to the sender and continuing the listener
+  and callback threads. Changed default maximum size of indication queue from
+  0 to 5000. (`#3315 <https://github.com/pywbem/pywbem/issues/3315>`_)
+
+* Listener: Improved the log messages of the WBEMListener class. There are no more
+  log messages when the listener is idle, and the log records for processing
+  indications are now all emitted at the DEBUG level. Other log messages have been
+  streamlined and their information improved. (`#3331 <https://github.com/pywbem/pywbem/issues/3331>`_)
+
+**Cleanup:**
+
+* The stoppable thread functionality was moved from 'CallbackThread' into a new
+  'StoppableThread' class, and the exception handling functionality was moved
+  from 'ServerThread' into a new 'ExceptionHandlingThread' class, in order to
+  be able to use both in a derived class in the future.
+  The 'ServerThread' class now inherits from 'ExceptionHandlingThread', and
+  the 'CallbackThread' class now inherits from 'StoppableThread', and thus
+  they have no change in functionality.
+
+
 pywbem 1.8.0
 ^^^^^^^^^^^^
 

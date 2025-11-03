@@ -1,4 +1,0 @@
-Listener: Improved the handling of the listener queue full condition by
-sending back an error response to the sender and continuing the listener
-and callback threads. Changed default maximum size of indication queue from
-0 to 5000.
