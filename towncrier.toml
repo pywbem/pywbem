@@ -8,7 +8,7 @@ filename = "docs/changes.rst"
 template = "changes/changes.rst.j2"
 start_string = ".. towncrier start"
 title_format = "pywbem {version}"
-underlines = "^~"
+underlines = "-"
 issue_format = "`#{issue} <https://github.com/pywbem/pywbem/issues/{issue}>`_"
 
 # The following array defines the allowable change types, in order
