@@ -17,7 +17,7 @@ Change log
 
 .. towncrier start
 pywbem 1.8.0
-^^^^^^^^^^^^
+------------
 
 Released: 2025-09-29
 
