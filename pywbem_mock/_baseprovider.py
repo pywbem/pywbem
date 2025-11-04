@@ -103,7 +103,7 @@ class BaseProvider:
     @property
     def namespaces(self):
         """
-        :term:`NocaseList` of :term:`string`:
+        :term:`NocaseList` of :class:`py:str`:
         The names of the namespaces that exist in the CIM repository.
         """
         ns_list = self.cimrepository.namespaces
@@ -113,7 +113,7 @@ class BaseProvider:
     @property
     def interop_namespace_names(self):
         """
-        :term:`NocaseList` of :term:`string`:
+        :term:`NocaseList` of :class:`py:str`:
         The valid Interop namespace names.
 
         Only these names may be the Interop namespace and only one
@@ -138,7 +138,7 @@ class BaseProvider:
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Any leading or trailing
             slash characters are ignored.
@@ -168,12 +168,12 @@ class BaseProvider:
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository. Must not be
             `None`. Any leading or trailing slash characters are removed before
             the string is used to define the namespace name.
 
-          verbose (:class:`py:bool`):
+          verbose (bool):
             Verbose mode: Print a message about the namespace creation.
 
         Raises:
@@ -219,12 +219,12 @@ class BaseProvider:
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing
             slash characters are ignored.
 
-          verbose (:class:`py:bool`):
+          verbose (bool):
             Verbose mode: Print a message about the namespace deletion.
 
         Raises:
@@ -277,12 +277,12 @@ class BaseProvider:
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The namespace name that is to be tested.
 
         Returns:
 
-          :class:`py:bool`: Indicates whether the namespace name is a valid
+          bool: Indicates whether the namespace name is a valid
           Interop namespace name.
         """
         return namespace in self.interop_namespace_names
@@ -297,7 +297,7 @@ class BaseProvider:
 
         Returns:
 
-          :term:`string`: The name of the Interop namespace if one exists in
+          str: The name of the Interop namespace if one exists in
           the CIM repository or `None`.
         """
         for ns_name in self.cimrepository.namespaces:
@@ -379,33 +379,33 @@ class BaseProvider:
 
         Parameters:
 
-          classname (:term:`string`):
+          classname (str):
             Name of class to retrieve
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing slash
             characters are ignored.
 
-          local_only (:class:`py:bool`):
+          local_only (bool):
             If `True` or `None`, only properties and methods in this specific
             class are returned. `None` means not supplied by client and the
             normal server default is `True`.
             If `False`, properties and methods from the superclasses
             are included.
 
-          include_qualifiers (:class:`py:bool`):
+          include_qualifiers (bool):
             If `True` or `None`, include qualifiers.  `None` is the server
             default if the parameter is not provided by the client.
             If `False`, do not include qualifiers.
 
-          include_classorigin (:class:`py:bool`):
+          include_classorigin (bool):
             If `True`, return the class_origin attributes of properties and
             methods.
             If `False` or `None` (use server default), class_origin attributes
             of properties and methods are not returned
 
-          property_list (list of :term:`string`):
+          property_list (:class:`py:list` of :class:`py:str`):
             Properties to be included in returned class.  If None, all
             properties are returned.  If empty list, no properties are returned
 
@@ -479,10 +479,10 @@ class BaseProvider:
 
         Parameters:
 
-          classname (:term:`string`):
+          classname (str):
             Name of class for which instances will be retrieved.
 
-          namespace (:term:`string`):
+          namespace (str):
             Repository namespace to search.
 
         Returns:
@@ -507,7 +507,7 @@ class BaseProvider:
           obj (:class:`~pywbem.CIMClass` or :class:`~pywbem.CIMInstance`):
             The class or instance from which properties are to be filtered
 
-          property_list (list of :term:`string`):
+          property_list (:class:`py:list` of :class:`py:str`):
             List of properties which are to be included in the result. If
             None, remove nothing.  If empty list, remove everything. else
             remove properties that are not in property_list. Duplicated names
@@ -568,9 +568,9 @@ class BaseProvider:
 
         Parameters:
 
-          klass (:term:`string`): Class name of the class.
+          klass (str): Class name of the class.
 
-          superclass (:term:`string`): Class name of the superclass.
+          superclass (str): Class name of the superclass.
 
           class_store (:class:`~pywbem_mock.BaseObjectStore`):
             Class store of the CIM repository to search for the classes.

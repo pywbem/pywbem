@@ -230,7 +230,7 @@ class CIMXMLParser(object):
 
     def __init__(self, xml_string, conn_id=None):
         """
-        xml_string (:term:`string`): A unicode string (when called for embedded
+        xml_string (str): A unicode string (when called for embedded
           objects) or UTF-8 encoded byte string (when called for CIM-XML
           replies) containing the CIM-XML string to be parsed.
 

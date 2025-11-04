@@ -908,11 +908,11 @@ def add_objects_to_repo(conn, namespace, objects_list):
 
       conn (:class:`~pywbem.FakedWBEMConnection`):
 
-      namespace (:term:`string` or None):
+      namespace (:class:`py:str` or None):
         String defining the namespace for the additions to the repository
         or None if the default namespace is to be used
 
-      objects_list (list or tuple of :term:`string` or of pywbem objects):
+      objects_list (list or tuple of :class:`py:str` or of pywbem objects):
         List of the objects that will be inserted into the repository. The
         list may include both type as item in the list is inserted
         separately using the MOF compiler or add_cimobjects.
@@ -3910,7 +3910,7 @@ class TestClassOperations:
            Parameters:
              conn:
 
-             pre_tst_classes (list or string or CIMClass):
+             pre_tst_classes (list or str or CIMClass):
                 If list, it is a list of classnames from tst_classes to
                 be passed to CreateClass.
                 If string it is a single classname from tst_classes to be
@@ -3918,7 +3918,7 @@ class TestClassOperations:
                 If CIMClass, it is a CIMClass pywbem object to be passed
                 to CreateClass
 
-             ns (:term:`string`):
+             ns (str):
                String defining target namespace for adding classes
 
              tst_classes (list): list of classes availiable for test
@@ -9019,7 +9019,7 @@ class TestAssociatorOperations:
              None, None, None,
              CIMError(CIM_ERR_INVALID_NAMESPACE)],
 
-            # Invalid type (integer) for role, ac, rr, rc
+            # Invalid type (int) for role, ac, rr, rc
             ["14. Error, invalid role",
              42, None, None, None, None, None, None, TypeError()],
             ["15. Error, Invalid rr",

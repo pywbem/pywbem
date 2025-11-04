@@ -70,7 +70,7 @@ class CIMNamespaceProvider(InstanceWriteProvider):
 
     # This class level attribute must exist to define the CIM classname(es) .
     # for which this provider is responsible.
-    #: provider_classnames (:term:`string`):
+    #: provider_classnames (str):
     #:        The classname for this provider
     provider_classnames = NAMESPACE_CLASSNAME
 
@@ -113,7 +113,7 @@ class CIMNamespaceProvider(InstanceWriteProvider):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             Must be a valid Interop namespace.
 
           new_instance (:class:`~pywbem.CIMInstance`):
@@ -323,10 +323,10 @@ class CIMNamespaceProvider(InstanceWriteProvider):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             Namespace that this instance defines.
 
-          interop_namespace (:term:`string`):
+          interop_namespace (str):
             Interop namespace for this environment.
 
           klass (:class:`~pywbem.CIMClass`):

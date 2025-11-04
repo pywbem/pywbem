@@ -212,7 +212,7 @@ class WBEMServer:
     @property
     def url(self):
         """
-        :term:`string`: URL of the WBEM server.
+        str: URL of the WBEM server.
         """
         return self._conn.url
 
@@ -226,11 +226,11 @@ class WBEMServer:
     @property
     def interop_ns(self):
         """
-        :term:`string`: Name of the Interop namespace of the WBEM server.
+        str: Name of the Interop namespace of the WBEM server.
 
         Raises:
 
-            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            : Exceptions raised by :class:`~pywbem.WBEMConnection`.
             CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
               determined.
         """
@@ -241,12 +241,12 @@ class WBEMServer:
     @property
     def namespace_classname(self):
         """
-        :term:`string`: Name of the CIM class that was found to represent the
+        str: Name of the CIM class that was found to represent the
         CIM namespaces of the WBEM server.
 
         Raises:
 
-            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            : Exceptions raised by :class:`~pywbem.WBEMConnection`.
             ModelError: An error with the model implemented by the WBEM server.
         """
         if self._namespace_classname is None:
@@ -256,12 +256,12 @@ class WBEMServer:
     @property
     def namespaces(self):
         """
-        list of :term:`string`: Names of all namespaces of the
+        :class:`py:list` of :class:`py:str`: Names of all namespaces of the
         WBEM server.
 
         Raises:
 
-            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            : Exceptions raised by :class:`~pywbem.WBEMConnection`.
             ModelError: An error with the model implemented by the WBEM server.
         """
         if self._namespaces is None:
@@ -271,7 +271,7 @@ class WBEMServer:
     @property
     def namespace_paths(self):
         """
-        list of :class:`~pywbem.CIMInstanceName`: Instance paths
+        :class:`py:list` of :class:`~pywbem.CIMInstanceName`: Instance paths
         of the CIM instances in the Interop namespace that represent the
         namespaces of the WBEM server.
 
@@ -283,7 +283,7 @@ class WBEMServer:
 
         Raises:
 
-            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            : Exceptions raised by :class:`~pywbem.WBEMConnection`.
             ModelError: An error with the model implemented by the WBEM server.
         """
         if self._namespace_paths is None:
@@ -293,7 +293,7 @@ class WBEMServer:
     @property
     def brand(self):
         """
-        :term:`string`: Brand of the WBEM server.
+        str: Brand of the WBEM server.
 
         The brand is determined from the `CIM_ObjectManager` instance in
         the Interop namespace, by looking at its `ElementName` property.
@@ -313,7 +313,7 @@ class WBEMServer:
 
         Raises:
 
-            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            : Exceptions raised by :class:`~pywbem.WBEMConnection`.
             CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
               determined.
             CIMError: CIM_ERR_NOT_FOUND, Unexpected number of
@@ -326,7 +326,7 @@ class WBEMServer:
     @property
     def version(self):
         """
-        :term:`string`: Version of the WBEM server.
+        str: Version of the WBEM server.
 
         `None`, if the version cannot be determined.
 
@@ -337,7 +337,7 @@ class WBEMServer:
 
         Raises:
 
-            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            : Exceptions raised by :class:`~pywbem.WBEMConnection`.
             CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
               determined.
             CIMError: CIM_ERR_NOT_FOUND, Unexpected number of
@@ -355,7 +355,7 @@ class WBEMServer:
 
         Raises:
 
-            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            : Exceptions raised by :class:`~pywbem.WBEMConnection`.
             CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
               determined.
             CIMError: CIM_ERR_NOT_FOUND, Unexpected number of
@@ -368,13 +368,13 @@ class WBEMServer:
     @property
     def profiles(self):
         """
-        list of :class:`~pywbem.CIMInstance`: The
+        :class:`py:list` of :class:`~pywbem.CIMInstance`: The
         `CIM_RegisteredProfile` instances representing all management profiles
         advertised by the WBEM server.
 
         Raises:
 
-            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            : Exceptions raised by :class:`~pywbem.WBEMConnection`.
             CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
               determined.
         """
@@ -420,21 +420,21 @@ class WBEMServer:
 
         Parameters:
 
-            namespace (:term:`string`): CIM namespace name. Must not be `None`.
+            namespace (str): CIM namespace name. Must not be `None`.
               The namespace may contain leading and a trailing slash, both of
               which will be ignored.
 
-            verbose (:class:`py:bool`):
+            verbose (bool):
               Verbose mode: Print a message about the namespace creation.
 
         Returns:
 
-          :term:`unicode string`: The specified CIM namespace name in its
-          standard format (i.e. without leading or trailing slash characters).
+          str: The specified CIM namespace name in its standard format
+          (i.e. without leading or trailing slash characters).
 
         Raises:
 
-            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            : Exceptions raised by :class:`~pywbem.WBEMConnection`.
             ModelError: An error with the model implemented by the WBEM server.
         """
 
@@ -571,21 +571,21 @@ class WBEMServer:
 
         Parameters:
 
-            namespace (:term:`string`): CIM namespace name. Must not be `None`.
+            namespace (str): CIM namespace name. Must not be `None`.
               The namespace may contain leading and a trailing slash, both of
               which will be ignored.
 
-            verbose (:class:`py:bool`):
+            verbose (bool):
               Verbose mode: Print a message about the namespace creation.
 
         Returns:
 
-          :term:`unicode string`: The specified CIM namespace name in its
-          standard format (i.e. without leading or trailing slash characters).
+          str: The specified CIM namespace name in its standard format
+          (i.e. without leading or trailing slash characters).
 
         Raises:
 
-            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            : Exceptions raised by :class:`~pywbem.WBEMConnection`.
             ModelError: An error with the model implemented by the WBEM server.
             CIMError: CIM_ERR_NOT_FOUND, Specified namespace does not exist.
             CIMError: CIM_ERR_NAMESPACE_NOT_EMPTY, Specified namespace is not
@@ -652,19 +652,19 @@ class WBEMServer:
 
         Parameters:
 
-            registered_org (:term:`string`): A filter for the registered
+            registered_org (str): A filter for the registered
               organization of the profile, matching (case insensitively) the
               `RegisteredOrganization` property of the `CIM_RegisteredProfile`
               instance, via its `Values` qualifier.
               If `None`, this parameter is ignored for filtering.
 
-            registered_name (:term:`string`): A filter for the registered name
+            registered_name (str): A filter for the registered name
               of the profile, matching (case insensitively) the
               `RegisteredName` property of the `CIM_RegisteredProfile`
               instance.
               If `None`, this parameter is ignored for filtering.
 
-            registered_version (:term:`string`): A filter for the registered
+            registered_version (str): A filter for the registered
               version of the profile, matching (case insensitively) the
               `RegisteredVersion` property of the `CIM_RegisteredProfile`
               instance. Note that version strings may contain aplhabetic
@@ -673,13 +673,13 @@ class WBEMServer:
 
         Returns:
 
-          list of :class:`~pywbem.CIMInstance`: The
+          :class:`py:list` of :class:`~pywbem.CIMInstance`: The
           `CIM_RegisteredProfile` instances representing the filtered
           subset of the management profiles advertised by the WBEM server.
 
         Raises:
 
-            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            : Exceptions raised by :class:`~pywbem.WBEMConnection`.
             CIMError: CIM_ERR_NOT_FOUND, Interop namespace could not be
               determined.
             ModelError: If an instance in the list of profiles is incomplete
@@ -796,7 +796,7 @@ class WBEMServer:
             the management profile (or its use, if there are multiple uses
             in a WBEM server).
 
-          central_class (:term:`string`):
+          central_class (str):
             Class name of central class defined by the management profile.
 
             Will be ignored, unless the profile is a component profile and its
@@ -804,7 +804,7 @@ class WBEMServer:
             `None` will cause the scoping class methodology not to be
             attempted.
 
-          scoping_class (:term:`string`):
+          scoping_class (str):
             Class name of scoping class defined by the management profile.
 
             Will be ignored, unless the profile is a component profile and its
@@ -812,7 +812,7 @@ class WBEMServer:
             `None` will cause the scoping class methodology not to be
             attempted.
 
-          scoping_path (list of :term:`string`):
+          scoping_path (:class:`py:list` of :class:`py:str`):
             Scoping path defined by the management profile.
 
             Will be ignored, unless the profile is a component profile and its
@@ -820,7 +820,7 @@ class WBEMServer:
             `None` will cause the scoping class methodology not to be
             attempted.
 
-          reference_direction (:term:`string`):
+          reference_direction (str):
             Defines the navigation direction across the CIM_ReferencedProfile
             association when navigating from the current profile to its
             scoping (= referencing, autonomous) profile when using the scoping
@@ -859,7 +859,7 @@ class WBEMServer:
             * All profiles scoped by the DMTF SMASH wrapper specification
               should be assumed to implement the 'dmtf' reference direction.
 
-          try_gci_method (:class:`py:bool`):
+          try_gci_method (bool):
             Flag indicating that the GetCentralInstances methodology should be
             attempted. This methodology is not expected to be implemented by
             WBEM servers at this point, and causes undesirable behavior with
@@ -868,13 +868,13 @@ class WBEMServer:
 
         Returns:
 
-          list of :class:`~pywbem.CIMInstanceName`: The instance
+          :class:`py:list` of :class:`~pywbem.CIMInstanceName`: The instance
           paths of the central instances of the implementation of the
           management profile.
 
         Raises:
 
-            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            : Exceptions raised by :class:`~pywbem.WBEMConnection`.
             ModelError: An error with the model implemented by the WBEM server.
             ValueError: User errors regarding input parameter values.
             TypeError: User errors regarding input parameter types.
@@ -1052,15 +1052,19 @@ class WBEMServer:
         paths, and return the resulting list of instance paths.
 
         Parameters:
-          start_paths (list of CIMInstanceName): Instance paths to start
-            traversal from.
-          traversal_path (list of string): Traversal hops, where the list
-            contains pairs of items: association class name, far end class
-            name. Example: a 2-hop traversal is represented as
+
+          start_paths (:class:`py:list` of CIMInstanceName): Instance paths to
+            start traversal from.
+
+          traversal_path (:class:`py:list` of :class:`py:str`): Traversal hops,
+            where the list contains pairs of items: association class name, far
+            end class name. Example: a 2-hop traversal is represented as
             `['A1', 'C1', 'A2', 'C2']`.
 
         Returns:
-          List of CIMInstanceName: Instances at the far end of the traversal.
+
+          :class:`py:list` of CIMInstanceName: Instances at the far end of the
+          traversal.
         """
         assert len(traversal_path) >= 2
         assoc_class = traversal_path[0]
@@ -1091,7 +1095,7 @@ class WBEMServer:
 
         Raises:
 
-            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            : Exceptions raised by :class:`~pywbem.WBEMConnection`.
             ModelError: An error with the model implemented by the WBEM server.
         """
         test_classname = 'CIM_Namespace'
@@ -1141,12 +1145,12 @@ class WBEMServer:
 
         Parameters:
 
-          interop_ns (:term:`string`):
+          interop_ns (str):
             Name of the Interop namespace to be validated.
 
         Raises:
 
-            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            : Exceptions raised by :class:`~pywbem.WBEMConnection`.
         """
         test_classname = 'CIM_Namespace'
         try:
@@ -1186,7 +1190,7 @@ class WBEMServer:
 
         Raises:
 
-            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            : Exceptions raised by :class:`~pywbem.WBEMConnection`.
             ModelError: An error with the model implemented by the WBEM server.
         """
         ns_insts = None
@@ -1241,7 +1245,7 @@ class WBEMServer:
 
         Raises:
 
-            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            : Exceptions raised by :class:`~pywbem.WBEMConnection`.
             ModelError: An error with the model implemented by the WBEM server.
         """
         interop_ns = self.interop_ns  # Determines the Interop namespace
@@ -1317,7 +1321,7 @@ class WBEMServer:
 
         Raises:
 
-            Exceptions raised by :class:`~pywbem.WBEMConnection`.
+            : Exceptions raised by :class:`~pywbem.WBEMConnection`.
             ModelError: An error with the model implemented by the WBEM server.
         """
         interop_ns = self.interop_ns  # Determines the Interop namespace

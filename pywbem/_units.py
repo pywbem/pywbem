@@ -129,13 +129,13 @@ def siunit_obj(cim_obj, use_ascii=False):
       cim_obj (:class:`~pywbem.CIMProperty` or :class:`~pywbem.CIMMethod` or :class:`~pywbem.CIMParameter`):
         CIM object with qualifiers.
 
-      use_ascii (:class:`py:bool`): Replace any Unicode characters in the
+      use_ascii (bool): Replace any Unicode characters in the
         returned string with 7-bit ASCII replacements,
         as described :mod:`above <pywbem._units>`.
 
     Returns:
 
-      :term:`unicode string`: Human readable SI conformant unit string,
+      str: Human readable SI conformant unit string,
       or `None` if the CIM object has neither the ``PUnit`` nor the ``Units``
       qualifiers set.
 
@@ -180,19 +180,19 @@ def siunit(punit=None, units=None, use_ascii=False):
 
     Parameters:
 
-      punit (:term:`string`):
+      punit (str):
         Value of the ``PUnit`` qualifier, or `None`.
 
-      units (:term:`string`):
+      units (str):
         Value of the ``Units`` qualifier, or `None`.
 
-      use_ascii (:class:`py:bool`): Replace any Unicode characters in the
+      use_ascii (bool): Replace any Unicode characters in the
         returned string with 7-bit ASCII replacements,
         as described :mod:`above <pywbem._units>`.
 
     Returns:
 
-      :term:`unicode string`: Human readable SI conformant unit string,
+      str: Human readable SI conformant unit string,
       or `None` if both qualifier value input parameters were `None`.
 
     Raises:
@@ -601,11 +601,11 @@ def _siunit_from_punit(punit):
 
     Parameters:
 
-      punit (:term:`string`): Value of ``PUnit`` qualifier. Must not be `None`.
+      punit (str): Value of ``PUnit`` qualifier. Must not be `None`.
 
     Returns:
 
-      :term:`string`: Human readable SI conformant unit string.
+      str: Human readable SI conformant unit string.
 
     Raises:
 
@@ -797,11 +797,11 @@ def _siunit_from_units(units):
 
     Parameters:
 
-      units (:term:`string`): Value of ``Units`` qualifier. Must not be `None`.
+      units (str): Value of ``Units`` qualifier. Must not be `None`.
 
     Returns:
 
-      :term:`string`: Human readable SI conformant unit string.
+      str: Human readable SI conformant unit string.
 
     Raises:
 

@@ -34,9 +34,9 @@ types.
 CIM data type                             Python type
 ========================================  =====================================
 boolean                                   :class:`py:bool`
-char16                                    :term:`string`
+char16                                    :class:`py:str`
                                           or :class:`~pywbem.Char16`
-string                                    :term:`string`
+string                                    :class:`py:str`
 string (EmbeddedInstance)                 :class:`~pywbem.CIMInstance`
 string (EmbeddedObject)                   :class:`~pywbem.CIMInstance`
                                           or :class:`~pywbem.CIMClass`
@@ -63,7 +63,7 @@ may support Python types in addition to those shown above. For example, the
 :class:`~pywbem.CIMProperty` class represents property values of CIM datetime
 type internally as :class:`~pywbem.CIMDateTime` objects, but its init method
 accepts :class:`py:datetime.timedelta` objects, :class:`py:datetime.datetime`
-objects, :term:`string`, in addition to
+objects, :class:`py:str`, in addition to
 :class:`~pywbem.CIMDateTime` objects.
 """
 # pylint: enable=line-too-long
@@ -261,7 +261,7 @@ class MinutesFromUTC(SlottedPickleMixin, tzinfo):
         """
         Parameters:
 
-          offset (:term:`integer`):
+          offset (int):
             Timezone offset to be represented in the CIM datetime value in +/-
             minutes from UTC.
 
@@ -336,7 +336,7 @@ class CIMType(SlottedPickleMixin):  # pylint: disable=too-few-public-methods
 
     __slots__ = []
 
-    #: The name of the CIM datatype, as a :term:`string`. See
+    #: The name of the CIM datatype, as a :class:`py:str`. See
     #: :ref:`CIM data types` for details.
     cimtype = None
 
@@ -345,10 +345,10 @@ class Char16(CIMType, str):
     """
     A value of CIM data type char16.
 
-    This class is derived from :term:`unicode string`.
+    This class is derived from :class:`py:str`.
 
     Normally, values of CIM data type char16 are represented using
-    :term:`unicode string` objects. This class can be used to represent values
+    :class:`py:str` objects. This class can be used to represent values
     of CIM data type char16 when it matters to distinguish them from values of
     CIM data type string. The only situation where that matters is for
     keybindings, because that allows properly setting the TYPE attribute on
@@ -400,7 +400,7 @@ class CIMDateTime(_CIMComparisonMixin, CIMType):
             The value from which the object is initialized, as one of the
             following types:
 
-            * A :term:`string` object will be
+            * A :class:`py:str` object will be
               interpreted as CIM datetime format (see :term:`DSP0004`) and
               will result in a point in time or a time interval. The use
               of asterisk characters in the value is supported according to
@@ -570,8 +570,8 @@ class CIMDateTime(_CIMComparisonMixin, CIMType):
     @property
     def minutes_from_utc(self):
         """
-        The timezone offset of this point in time object as +/- minutes from
-        UTC.
+        int: The timezone offset of this point in time object as +/- minutes
+        from UTC.
 
         A positive value of the timezone offset indicates minutes east of UTC,
         and a negative value indicates minutes west of UTC.
@@ -589,8 +589,8 @@ class CIMDateTime(_CIMComparisonMixin, CIMType):
     @property
     def datetime(self):
         """
-        The point in time represented by this object, as a
-        :class:`py:datetime.datetime` object.
+        :class:`py:datetime.datetime`: The point in time represented by this
+        object.
 
         `None` if this object represents a time interval.
         """
@@ -599,8 +599,8 @@ class CIMDateTime(_CIMComparisonMixin, CIMType):
     @property
     def timedelta(self):
         """
-        The time interval represented by this object, as a
-        :class:`py:datetime.timedelta` object.
+        :class:`py:datetime.timedelta`: The time interval represented by this
+        object.
 
         `None` if this object represents a point in time.
         """
@@ -609,7 +609,7 @@ class CIMDateTime(_CIMComparisonMixin, CIMType):
     @property
     def precision(self):
         """
-        Precision of the time interval or point in time represented by this
+        int: Precision of the time interval or point in time represented by this
         object, if the datetime input string contained asterisk characters.
 
         The precision is the 0-based index of the first asterisk character in
@@ -622,8 +622,8 @@ class CIMDateTime(_CIMComparisonMixin, CIMType):
     @property
     def is_interval(self):
         """
-        A boolean indicating whether this object represents a time interval
-        (`True`) or a point in time (`False`).
+        bool: A boolean indicating whether this object represents a time
+        interval (`True`) or a point in time (`False`).
         """
         return self.__timedelta is not None
 
@@ -663,8 +663,8 @@ class CIMDateTime(_CIMComparisonMixin, CIMType):
 
         Returns:
 
-            A new :class:`~pywbem.CIMDateTime` object representing the current
-            date and time.
+            :class:`~pywbem.CIMDateTime`: A new :class:`~pywbem.CIMDateTime`
+            object representing the current date and time.
         """
         if tzi is None:
             tzi = MinutesFromUTC(cls.get_local_utcoffset())
@@ -689,7 +689,7 @@ class CIMDateTime(_CIMComparisonMixin, CIMType):
 
         Parameters:
 
-          ts (:term:`integer`):
+          ts (int):
             POSIX timestamp value.
 
           tzi (:class:`~pywbem.MinutesFromUTC`):
@@ -698,8 +698,8 @@ class CIMDateTime(_CIMComparisonMixin, CIMType):
 
         Returns:
 
-            A new :class:`~pywbem.CIMDateTime` object representing the
-            specified point in time.
+            :class:`~pywbem.CIMDateTime`: A new :class:`~pywbem.CIMDateTime`
+            object representing the specified point in time.
         """
         if tzi is None:
             tzi = MinutesFromUTC(cls.get_local_utcoffset())
@@ -838,17 +838,17 @@ class CIMInt(CIMType, int):
     :term:`hashable`, with the hash value being based on its numeric value.
 
     Parameters:
-          x (:term:`integer` or :term:`string`):
+          x (:class:`py:int` or :class:`py:str`):
             A number or a string that can be converted into an integer number.
             The parameter 'x' can be either a positional or keyword argument
             for compatibility with Python<=3.7. Default value: 0.
 
-          base (:term:`integer`):
+          base (int):
             A number representing the number base  (radix) of 'x'. Default
             value: 10. Allowed only if 'x' is a string.
 
     Instances of subclasses of this class can be initialized with the usual
-    input arguments supported by :term:`integer`, for example:
+    input arguments supported by :class:`py:int`, for example:
     ::
 
         >>> pywbem.Uint8(42)
@@ -937,10 +937,10 @@ class Uint8(CIMInt):
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
 
     Parameters:
-          x (:term:`integer` or :term:`string`):
+          x (:class:`py:int` or :class:`py:str`):
             A number or a string that can be converted into an integer number.
 
-          base (:term:`integer`):
+          base (int):
             A number representing the number format (radix). Default value: 10.
     """
 
@@ -961,10 +961,10 @@ class Sint8(CIMInt):
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
 
     Parameters:
-          x (:term:`integer` or :term:`string`):
+          x (:class:`py:int` or :class:`py:str`):
             A number or a string that can be converted into an integer number.
 
-          base (:term:`integer`):
+          base (int):
             A number representing the number format (radix). Default value: 10.
     """
 
@@ -985,11 +985,11 @@ class Uint16(CIMInt):
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
 
     Parameters:
-        x (:term:`integer` or :term:`string`):
+        x (:class:`py:int` or :class:`py:str`):
           A number or a string that can be converted into an integer number.
           'x' may be a position or keyword argument.
 
-        base (:term:`integer`):
+        base (int):
           A number representing the number format (radix). Default value: 10.
     """
 
@@ -1010,11 +1010,11 @@ class Sint16(CIMInt):
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
 
     Parameters:
-        x (:term:`integer` or :term:`string`):
+        x (:class:`py:int` or :class:`py:str`):
           A number or a string that can be converted into an integer number.
           'x' may be a position or keyword argument.
 
-        base (:term:`integer`):
+        base (int):
           A number representing the number format (radix). Default value: 10.
     """
 
@@ -1035,11 +1035,11 @@ class Uint32(CIMInt):
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
 
     Parameters:
-        x (:term:`integer` or :term:`string`):
+        x (:class:`py:int` or :class:`py:str`):
           A number or a string that can be converted into an integer number.
           x' may be a position or keyword argument.
 
-          base (:term:`integer`):
+          base (int):
             'x' may be a position or keyword argument.
     """
 
@@ -1060,11 +1060,11 @@ class Sint32(CIMInt):
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
 
     Parameters:
-        x (:term:`integer` or :term:`string`):
+        x (:class:`py:int` or :class:`py:str`):
           A number or a string that can be converted into an integer number.
           'x' may be a position or keyword argument.
 
-        base (:term:`integer`):
+        base (int):
           A number representing the number format (radix). Default value: 10.
     """
 
@@ -1085,11 +1085,11 @@ class Uint64(CIMInt):
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
 
     Parameters:
-        x (:term:`integer` or :term:`string`):
+        x (:class:`py:int` or :class:`py:str`):
           A number or a string that can be converted into an integer number.
           'x' may be a position or keyword argument.
 
-        base (:term:`integer`):
+        base (int):
           A number representing the number format (radix). Default value: 10.
     """
 
@@ -1110,11 +1110,11 @@ class Sint64(CIMInt):
     For details on CIM integer data types, see :class:`~pywbem.CIMInt`.
 
     Parameters:
-        x (:term:`integer` or :term:`string`):
+        x (:class:`py:int` or :class:`py:str`):
           A number or a string that can be converted into an integer number.
           'x' may be a position or keyword argument.
 
-        base (:term:`integer`):
+        base (int):
           A number representing the number format (radix). Default value: 10.
     """
 
@@ -1203,7 +1203,7 @@ class Real64(CIMFloat):
     cimtype = 'real64'
 
 
-# Python number types listed in :term:`number`.
+# Python number types
 number_types = (int, float)  # pylint: disable=invalid-name
 
 
@@ -1216,10 +1216,11 @@ def cimtype(obj):
     If the array is empty, that is not possible and
     :exc:`py:ValueError` is raised.
 
-    Note that Python :term:`numbers <number>` are not valid input objects
-    because determining their CIM data type (e.g. :class:`~pywbem.Uint8`,
-    :class:`~pywbem.Real32`) would require knowing the value range. Therefore,
-    :exc:`py:TypeError` is raised in this case.
+    Note that Python types :class:`py:int` and :class:`py:float` are not valid
+    input objects because determining their CIM data type
+    (e.g. :class:`~pywbem.Uint8`, :class:`~pywbem.Real32`) would require
+    knowing the value range. Therefore, :exc:`py:TypeError` is raised in this
+    case.
 
     Parameters:
 
@@ -1228,7 +1229,7 @@ def cimtype(obj):
 
     Returns:
 
-      :term:`string`: The CIM data type name of the object (e.g. ``"uint8"``).
+      str: The CIM data type name of the object (e.g. ``"uint8"``).
 
     Raises:
 
@@ -1308,7 +1309,7 @@ def type_from_name(type_name):
     :class:`~pywbem.Uint8`.
 
     For CIM data type names ``"string"`` and ``"char16"``, the
-    :term:`unicode string` type is returned (Unicode strings are the preferred
+    :class:`py:str` type is returned (Unicode strings are the preferred
     representation for these CIM data types).
 
     The returned type can be used as a constructor from a differently typed
@@ -1334,14 +1335,14 @@ def type_from_name(type_name):
 
     Parameters:
 
-      type_name (:term:`string`):
+      type_name (str):
         The simple (=non-array) CIM data type name (e.g. ``"uint8"`` or
         ``"reference"``).
 
     Returns:
 
-        The Python type object for the CIM data type (e.g.
-        :class:`~pywbem.Uint8` or :class:`~pywbem.CIMInstanceName`).
+        :term:`CIM data type`: The Python type object for the CIM data type
+        (e.g. :class:`~pywbem.Uint8` or :class:`~pywbem.CIMInstanceName`).
 
     Raises:
 
@@ -1361,6 +1362,7 @@ def type_from_name(type_name):
 
 
 def atomic_to_cim_xml(obj):
+    # pylint: disable=line-too-long
     """
     Convert an "atomic" scalar value to a CIM-XML string and return that
     string.
@@ -1370,20 +1372,20 @@ def atomic_to_cim_xml(obj):
 
     Parameters:
 
-      obj (:term:`CIM data type`, :term:`number`, :class:`py:datetime`):
+      obj (:term:`CIM data type`, :class:`py:int`, :class:`py:float` or :class:`py:datetime`):
         The "atomic" input value. May be `None`.
 
         Must not be an array/list/tuple. Must not be a :ref:`CIM object`.
 
     Returns:
 
-        A :term:`unicode string` object in CIM-XML value format representing
-        the input value. `None`, if the input value is `None`.
+        str: The input value in CIM-XML value format. `None`, if the input
+        value is `None`.
 
     Raises:
 
         TypeError
-    """
+    """  # noqa: E501
     if obj is None:  # pylint: disable=no-else-return
         return obj
     elif isinstance(obj, str):

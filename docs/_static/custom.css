@@ -1,0 +1,11 @@
+/* Make :class: etc. links look like normal links, not code blocks */
+a.reference.external > code.docutils.literal,
+a.reference.internal > code.docutils.literal {
+  font-family: inherit;          /* remove monospace */
+  font-size: inherit;            /* remove that it is smaller */
+  font-weight: inherit;          /* remove that it is bold */
+  background: none;              /* remove grey background (if any) */
+  border: none;                  /* remove border (if any) */
+  color: var(--link-color, #2980b9); /* make it look like normal links */
+  padding: 0;
+}

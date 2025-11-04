@@ -58,7 +58,7 @@ def server_from_docker(image_name, image_port, host_port, container_name,
 
     Parameters:
 
-      image_name (string):
+      image_name (str):
         Docker image name on DockerHub, e.g. org/name:1.2.3. If None, the
         context manager does nothing and returns None.
 
@@ -66,7 +66,7 @@ def server_from_docker(image_name, image_port, host_port, container_name,
 
       host_port (int): Port number on host (local) system
 
-      container_name (string): Docker container name to use locally
+      container_name (str): Docker container name to use locally
 
       verbose (bool): Print messages.
 
@@ -148,7 +148,7 @@ def docker_pull_with_cache(image_name, verbose=False):
 
     Parameters:
 
-      image_name (string): Docker image name on DockerHub, e.g. org/name:1.2.3
+      image_name (str): Docker image name on DockerHub, e.g. org/name:1.2.3
 
       verbose (bool): Print messages.
     """
@@ -325,7 +325,7 @@ def fixtureid_default_namespace(fixture_value):
     `default_namespace()`.
 
     Parameters:
-      * fixture_value (string): The default namespace for the test.
+      * fixture_value (str): The default namespace for the test.
     """
     ns = fixture_value
     return f"default_namespace={ns}"
@@ -352,7 +352,7 @@ def fixtureid_profile_definition(fixture_value):
     `profile_definition()`.
 
     Parameters:
-      * fixture_value (dict): The profile definition dictionary of the profile.
+      fixture_value (dict): The profile definition dictionary of the profile.
     """
     pd = fixture_value
     assert isinstance(pd, dict)

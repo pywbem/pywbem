@@ -123,7 +123,7 @@ class MethodProvider(BaseProvider):
     User method providers are defined by creating a subclass of this class and
     defining an InvokeMethod based on the method in this class.
     """
-    #:  provider_type (:term:`string`):
+    #:  provider_type (str):
     #:    Keyword defining the type of request the provider will service.
     #:    The type for this class is predefined as 'method'
     provider_type = 'method'
@@ -192,7 +192,7 @@ class MethodProvider(BaseProvider):
 
         Parameters:
 
-          methodname (:term:`string`):
+          methodname (str):
             Name of the CIM method to be invoked, in any lexical case.
 
           objectname: (:class:`~pywbem.CIMInstanceName` or :class:`~pywbem.CIMClassName`):
@@ -222,7 +222,7 @@ class MethodProvider(BaseProvider):
             :class:`pywbem.NocaseDict` object, with items as
             follows:
 
-            - key (:term:`string`): The parameter name, in any lexical case.
+            - key (str): The parameter name, in any lexical case.
             - value (:class:`~pywbem.CIMParameter`): The parameter value.
 
         Returns:
@@ -239,12 +239,12 @@ class MethodProvider(BaseProvider):
               If ``Sequence``, the items must be :class:`~pywbem.CIMParameter`
               in any order, with these attributes set:
 
-                * name (:term:`string`): Parameter name
+                * name (str): Parameter name
                 * value (:term:`CIM data type`): Parameter value
 
               If ``Mapping``, the items must be as follows:
 
-                * key (:term:`string`): Parameter name
+                * key (str): Parameter name
                 * value (:term:`CIM data type` or :class:`~pywbem.CIMParameter`): Parameter value
 
         Raises:

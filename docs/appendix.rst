@@ -17,33 +17,13 @@ This documentation uses a few special terms to refer to Python types:
 
 .. glossary::
 
-   string
-      a :term:`unicode string` or a :term:`byte string`
-
-   unicode string
-      a Unicode string type (:func:`unicode <py2:unicode>` in
-      Python 2, and :class:`py3:str` in Python 3)
-
-   byte string
-      a byte string type (:class:`py2:str` in Python 2, and
-      :class:`py3:bytes` in Python 3). Unless otherwise
-      indicated, byte strings in pywbem are always UTF-8 encoded.
-
    connection id
-      a string (:term:`string`) that uniquely identifies each
+      a string that uniquely identifies each
       :class:`pywbem.WBEMConnection` object created. The connection id is
       immutable and is accessible from
       :attr:`pywbem.WBEMConnection.conn_id`. It is included in of each log
       record created for pywbem log output and may be used to correlate pywbem
       log records for a single connection.
-
-   number
-      one of the number types :class:`py:int`, :class:`py2:long` (Python 2
-      only), or :class:`py:float`.
-
-   integer
-      one of the integer types :class:`py:int` or :class:`py2:long` (Python 2
-      only).
 
    callable
       a callable object; for example a function, a class (calling it returns a
@@ -122,7 +102,7 @@ This documentation uses a few special terms to refer to Python types:
 
       with the following definitions for key and value:
 
-      * key (:term:`string`):
+      * key (str):
         Keybinding name.
 
         Must not be `None`.
@@ -130,11 +110,12 @@ This documentation uses a few special terms to refer to Python types:
         The lexical case of the string is preserved. Object comparison
         and hash value calculation are performed case-insensitively.
 
-      * value (:term:`CIM data type` or :term:`number` or :class:`~pywbem.CIMProperty`):
+      * value (:term:`CIM data type`, :class:`py:int`, :class:`py:float` or :class:`~pywbem.CIMProperty`):
         Keybinding value.
 
-        If specified as :term:`CIM data type` or :term:`number`, the provided
-        object will be stored unchanged as the keybinding value.
+        If specified as :term:`CIM data type`, :class:`py:int` or
+        :class:`py:float`, the provided object will be stored unchanged as the
+        keybinding value.
 
         If specified as a :class:`~pywbem.CIMProperty` object, its `name`
         attribute must match the key (case insensitively), and a copy of its
@@ -172,7 +153,7 @@ This documentation uses a few special terms to refer to Python types:
 
       with the following definitions for key and value:
 
-      * key (:term:`string`):
+      * key (str):
         Method name.
 
         Must not be `None`.
@@ -217,7 +198,7 @@ This documentation uses a few special terms to refer to Python types:
 
       with the following definitions for key and value:
 
-      * key (:term:`string`):
+      * key (str):
         Parameter name.
 
         Must not be `None`.
@@ -266,7 +247,7 @@ This documentation uses a few special terms to refer to Python types:
 
       with the following definitions for key and value:
 
-      * key (:term:`string`):
+      * key (str):
         Property name.
 
         Must not be `None`.
@@ -336,7 +317,7 @@ This documentation uses a few special terms to refer to Python types:
 
       with the following definitions for key and value:
 
-      * key (:term:`string`):
+      * key (str):
         Qualifier name.
 
         Must not be `None`.

@@ -61,7 +61,7 @@ class _MockMOFWBEMConnection(ResolverMixin, BaseRepositoryConnection):
 
     def _getns(self):
         """
-        :term:`string`: Return the default repository namespace to be used.
+        str: Return the default repository namespace to be used.
 
         This method exists for compatibility. Use the :attr:`default_namespace`
         property instead.
@@ -82,7 +82,7 @@ class _MockMOFWBEMConnection(ResolverMixin, BaseRepositoryConnection):
     default_namespace = property(
         _getns, _setns, None,
         """
-        :term:`string`: The default repository namespace to be used.
+        str: The default repository namespace to be used.
 
         The default repository namespace is the default namespace of the
         underlying repository connection if there is such an underlying

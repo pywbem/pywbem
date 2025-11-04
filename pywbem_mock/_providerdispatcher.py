@@ -459,13 +459,13 @@ class ProviderDispatcher(BaseProvider):
 
         Parameters:
 
-          methodname (string): Method name
+          methodname (str): Method name
 
           localobject (CIMInstanceName or CIMClassName): Target object, with
             namespace set. Types are validated.
 
           params (NocaseDict): Input parameters, as follows:
-            * key (string): Parameter name.
+            * key (str): Parameter name.
             * value (CIMParameter): Parameter value.
             Types are validated.
 
@@ -476,7 +476,7 @@ class ProviderDispatcher(BaseProvider):
             * returnvalue (CIM data type): Return value.
 
             * outparams (NocaseDict): Output parameters, with:
-              * key (string): Parameter name
+              * key (str): Parameter name
               * value (CIM data type): Parameter value
         """
 

@@ -270,14 +270,14 @@ class YamlItem(pytest.Item):
         """
         Parameters:
 
-          name (string): Name of the testcase as recognized by py.test.
+          name (str): Name of the testcase as recognized by py.test.
 
           parent (YamlFile): Parent of this testcase as seen by py.test.
 
           testcase (dict): The dict representing the subset of the testclient
             .yaml file for a single test case.
 
-          filepath (string): Path name of the testclient .yaml file.
+          filepath (str): Path name of the testclient .yaml file.
         """
         super().__init__(name, parent)
         self.testcase = testcase
@@ -604,7 +604,7 @@ def xml_unembed(emb_str):
     their characters.
 
     Parameters:
-      emb_str (string):
+      emb_str (str):
         The embedded CIM-XML representation of the CIM object that is to be
         unembedded.
 
@@ -656,7 +656,7 @@ def assertXMLEqual(s_act, s_exp, entity):
         XML declaration (aka XML processing statement), e.g.:
             <?xml version="1.0" encoding="utf-8" ?>
 
-      * entity (string): A human readable identification for what is compared.
+      * entity (str): A human readable identification for what is compared.
     """
 
     # Make sure that None values are already excluded by the caller

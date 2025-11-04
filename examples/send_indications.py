@@ -96,7 +96,7 @@ def send_indication(url, headers, payload, verbose, verify=None, keyfile=None,
 
     Parameters:
 
-    url(:term:`string):
+    url (str):
       listener url including scheme, host name, port
 
     headers:

@@ -152,8 +152,10 @@ class TupleParser:
 
     def __init__(self, conn_id=None):
         """
-        conn_id (:term:`connection id`): Connection ID to be used in any
-          exceptions that may be raised.
+        Parameters:
+
+          conn_id (:term:`connection id`): Connection ID to be used in any
+            exceptions that may be raised.
         """
         self.conn_id = conn_id
 
@@ -568,7 +570,8 @@ class TupleParser:
             <!ELEMENT VALUE.NAMEDINSTANCE (INSTANCENAME, INSTANCE)>
 
         Returns:
-            CIMInstance object with path set (without host or namespace).
+            :class:`~pywbem.CIMInstance`: CIM instance object with `path` set
+            (without host or namespace).
         """
 
         self.check_node(tup_tree, 'VALUE.NAMEDINSTANCE')
@@ -900,7 +903,8 @@ class TupleParser:
                 %CIMName;>
 
         Returns:
-            CIMClassName object (without namespace or host)
+            :class:`~pywbem.CIMClassName`: CIM class path object (without
+            namespace or host)
         """
 
         self.check_node(tup_tree, 'CLASSNAME', ('NAME',), (), ())
@@ -2298,7 +2302,7 @@ class TupleParser:
 
         Parameters:
 
-          val (string):
+          val (str):
             The string value that contains the embedded object in CIM-XML
             format. One level of XML entity references have already been
             unescaped.
@@ -2395,11 +2399,13 @@ class TupleParser:
         except 'reference' and return it as a CIM data type object, or Python
         int/float, or None.
 
-        data (unicode string): CIM-XML string value, or None (in which case
-          None is returned).
+        Parameters:
 
-        cimtype (string): CIM data type name (e.g. 'datetime') except
-          'reference', or None (in which case a numeric value is assumed).
+          data (str): CIM-XML string value, or None (in which case
+            None is returned).
+
+          cimtype (str): CIM data type name (e.g. 'datetime') except
+            'reference', or None (in which case a numeric value is assumed).
         """
         if cimtype == 'string':
             return data
@@ -2426,7 +2432,9 @@ class TupleParser:
         Unpack a string value of CIM type 'boolean' and return True, False
         or None (for empty string value).
 
-        data (unicode string): CIM-XML string value. Must not be None.
+        Parameters:
+
+          data (str): CIM-XML string value. Must not be None.
         """
 
         assert data is not None
@@ -2458,10 +2466,12 @@ class TupleParser:
         Unpack a string value of a numeric CIM type and return its CIM data
         type object.
 
-        data (unicode string): CIM-XML string value. Must not be None.
+        Parameters:
 
-        cimtype (string): CIM data type name (e.g. 'uint8'), or None (in which
-          case the value is returned as a Python int or float).
+          data (str): CIM-XML string value. Must not be None.
+
+          cimtype (str): CIM data type name (e.g. 'uint8'), or None (in which
+            case the value is returned as a Python int or float).
         """
 
         assert data is not None
@@ -2516,7 +2526,9 @@ class TupleParser:
         Unpack a CIM-XML string value of CIM type 'datetime' and return it
         as a CIMDateTime object.
 
-        data (unicode string): CIM-XML string value. Must not be None.
+        Parameters:
+
+          data (str): CIM-XML string value. Must not be None.
         """
 
         assert data is not None
@@ -2536,7 +2548,9 @@ class TupleParser:
         Unpack a CIM-XML string value of CIM type 'char16' and return it
         as a unicode string object.
 
-        data (unicode string): CIM-XML string value. Must not be None.
+        Parameters:
+
+          data (str): CIM-XML string value. Must not be None.
         """
 
         assert data is not None

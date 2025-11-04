@@ -91,7 +91,7 @@ class WBEMJobsManager(object):
 
         Parameters:
 
-          server_id (:term:`string`):
+          server_id (str):
             The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMJobs.add_server`.
 
@@ -123,7 +123,7 @@ class WBEMJobsManager(object):
 
         Returns:
 
-            :term:`string`: An ID for the WBEM server, for use by other
+            str: An ID for the WBEM server, for use by other
             methods of this class.
 
         Raises:
@@ -155,7 +155,7 @@ class WBEMJobsManager(object):
 
         Parameters:
 
-          server_id (:term:`string`):
+          server_id (str):
             The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
@@ -188,7 +188,7 @@ class WBEMJobsManager(object):
 
         Parameters:
 
-          server_id (:term:`string`):
+          server_id (str):
             The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
@@ -277,5 +277,3 @@ class WBEMJobsManager(object):
 
         Returns:
         """
-
-

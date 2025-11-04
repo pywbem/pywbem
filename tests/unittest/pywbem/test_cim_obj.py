@@ -10549,7 +10549,7 @@ TESTCASES_CIMPROPERTY_INIT = [
         None, None, True
     ),
     (
-        "Verify that type string is implied from value list(string)",
+        "Verify that type string is implied from value list(str)",
         dict(
             init_args=[],
             init_kwargs=dict(
@@ -10565,7 +10565,7 @@ TESTCASES_CIMPROPERTY_INIT = [
     ),
     (
         "Verify that is_array is implied from type string and value "
-        "list(string)",
+        "list(str)",
         dict(
             init_args=[],
             init_kwargs=dict(
@@ -10580,7 +10580,7 @@ TESTCASES_CIMPROPERTY_INIT = [
     ),
     (
         "Verify that type string and is_array are implied from value "
-        "list(string)",
+        "list(str)",
         dict(
             init_args=[],
             init_kwargs=dict(

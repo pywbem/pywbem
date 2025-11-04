@@ -133,11 +133,11 @@ def xml_to_tupletree_sax(xml_string, meaning, conn_id=None):
 
     Parameters:
 
-      xml_string (:term:`string`): A unicode string (when called for embedded
+      xml_string (str): A unicode string (when called for embedded
         objects) or UTF-8 encoded byte string (when called for CIM-XML
         replies) containing the XML to be parsed.
 
-      meaning (:term:`string`):
+      meaning (str):
         Short text with meaning of the XML string, for messages in exceptions.
 
       conn_id (:term:`connection id`): Connection ID to be used in any
@@ -145,7 +145,7 @@ def xml_to_tupletree_sax(xml_string, meaning, conn_id=None):
 
     Returns:
 
-      tupletree tuple with parsed XML tree
+      tupletree: tuple with parsed XML tree
 
     Raises:
 
@@ -287,10 +287,10 @@ def check_invalid_utf8_sequences(utf8_string, meaning, conn_id=None):
 
     Parameters:
 
-      utf8_string (:term:`byte string`):
+      utf8_string (bytes):
         The UTF-8 encoded XML string to be examined.
 
-      meaning (:term:`string`):
+      meaning (str):
         Short text with meaning of the XML string, for messages in exceptions.
 
       conn_id (:term:`connection id`): Connection ID to be used in any
@@ -298,7 +298,7 @@ def check_invalid_utf8_sequences(utf8_string, meaning, conn_id=None):
 
     Returns:
 
-      :term:`unicode string`: The input string, converted to Unicode.
+      str: The input string, converted to Unicode.
 
     Raises:
 
@@ -450,10 +450,10 @@ def check_invalid_xml_chars(xml_string, meaning, conn_id=None):
 
     Parameters:
 
-      xml_string (:term:`unicode string`):
+      xml_string (str):
         The XML string to be examined.
 
-      meaning (:term:`string`):
+      meaning (str):
         Short text with meaning of the XML string, for messages in exceptions.
 
       conn_id (:term:`connection id`): Connection ID to be used in any

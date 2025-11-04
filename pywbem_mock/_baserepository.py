@@ -87,13 +87,12 @@ class BaseObjectStore:
 
         Parameters:
 
-          name(:term:`string` or :class:`~pywbem.CIMInstanceName`):
+          name (:class:`py:str` or :class:`~pywbem.CIMInstanceName`):
             Name by which the object is identified in the object store.
 
         Returns:
 
-            :class:`py:bool`: Indicates whether the CIM object exists in the
-            object store.
+            bool: Indicates whether the CIM object exists in the object store.
         """
         pass
 
@@ -105,10 +104,10 @@ class BaseObjectStore:
 
         Parameters:
 
-          name(:term:`string` or :class:`~pywbem.CIMInstanceName`):
+          name (:class:`py:str` or :class:`~pywbem.CIMInstanceName`):
             Name by which the object is identified in the object store
 
-          copy(:class:`py:bool`):
+          copy (bool):
             If True, returns a copy of the object to insure that modifying the
             returned object does not change the data store. The default
             behavior is True .  If copy is False, the object in the object
@@ -133,10 +132,10 @@ class BaseObjectStore:
 
         Parameters:
 
-          name(:term:`string` or :class:`~pywbem.CIMInstanceName`):
+          name (:class:`py:str` or :class:`~pywbem.CIMInstanceName`):
             Name by which the CIM object will be identified in the object store.
 
-          cim_object(:term:`CIM object`):
+          cim_object (:term:`CIM object`):
             The CIM object to be added to the object store. The
             object is copied into the object store so the user can safely
             modify the original object without affecting the store.
@@ -155,10 +154,10 @@ class BaseObjectStore:
 
         Parameters:
 
-          name(:term:`string` or :class:`~pywbem.CIMInstanceName`):
+          name (:class:`py:str` or :class:`~pywbem.CIMInstanceName`):
             Name by which the object is identified in the object store.
 
-          cim_object(:term:`CIM object`):
+          cim_object (:term:`CIM object`):
             The CIM object to replace the original CIM object in the data
             store. The object is copied into the object store so the user can
             safely modify the original object without affecting the store.
@@ -176,7 +175,7 @@ class BaseObjectStore:
 
         Parameters:
 
-          name(:term:`string` or :class:`~pywbem.CIMInstanceName`):
+          name (:class:`py:str` or :class:`~pywbem.CIMInstanceName`):
             Name by which the object to be deleted is identified in the object
             store.
 
@@ -212,7 +211,7 @@ class BaseObjectStore:
 
         Parameters:
 
-          copy (:class:`py:bool`):
+          copy (bool):
             Copy the objects before returning them.  This is the default
             behavior and also the mode that should be used unless the
             user is certain the object will NOT be modified after it is
@@ -261,7 +260,7 @@ class BaseRepository:
     @abstractmethod
     def namespaces(self):
         """
-        :term:`NocaseList` of :term:`string`:
+        :term:`NocaseList` of :class:`py:str`:
         The names of the namespaces that exist in this CIM repository.
 
         Note that if there were any leading or trailing slash ("/") characters
@@ -278,7 +277,7 @@ class BaseRepository:
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository. The name is
             treated case insensitively and it must not be `None`. Any leading
             and trailing slash characters in the namespace string are ignored
@@ -300,7 +299,7 @@ class BaseRepository:
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository. The name is
             treated case insensitively and it must not be `None`. Any leading
             and trailing slash characters in the namespace string are ignored
@@ -322,7 +321,7 @@ class BaseRepository:
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository. The name is
             treated case insensitively and it must not be `None`. Any leading
             and trailing slash characters in the namespace string are ignored
@@ -342,7 +341,7 @@ class BaseRepository:
         Return the CIM class object store for the namespace provided.
 
         Parameters:
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository. The name is
             treated case insensitively and it must not be `None`. Any leading
             and trailing slash characters in the namespace string are ignored
@@ -368,7 +367,7 @@ class BaseRepository:
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository. The name is
             treated case insensitively and it must not be `None`. Any leading
             and trailing slash characters in the namespace string are ignored
@@ -393,7 +392,7 @@ class BaseRepository:
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository. The name is
             treated case insensitively and it must not be `None`. Any leading
             and trailing slash characters in the namespace string are ignored

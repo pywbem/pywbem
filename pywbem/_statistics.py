@@ -179,7 +179,7 @@ class OperationStatistic:
             The statistics container that holds this operation statistic
             object.
 
-          name (:term:`string`):
+          name (str):
             Name of the operation.
         """
         self._container = container
@@ -210,7 +210,7 @@ class OperationStatistic:
     @property
     def stat_start_time(self):
         """
-        :class:`py:float`: Point in time when the first statistic was taken
+        float: Point in time when the first statistic was taken
         since this object was either created or reset, in seconds since the
         epoch (for details, see :func:`py:time.time`).
         """
@@ -219,7 +219,7 @@ class OperationStatistic:
     @property
     def name(self):
         """
-        :term:`string`: Name of the operation for which this statistics
+        str: Name of the operation for which this statistics
         object maintains data.
         """
         return self._name
@@ -235,14 +235,14 @@ class OperationStatistic:
     @property
     def count(self):
         """
-        :term:`integer`: The number of measured operations.
+        int: The number of measured operations.
         """
         return self._count
 
     @property
     def exception_count(self):
         """
-        :term:`integer`: The number of measured operations that resulted in an
+        int: The number of measured operations that resulted in an
         exception returned to the pywbem user (for example because a failure
         was indicated in the operation response of the WBEM server, or because
         pywbem itself detected a failure before sending the request or after
@@ -253,7 +253,7 @@ class OperationStatistic:
     @property
     def avg_time(self):
         """
-        :class:`py:float`: The average elapsed client time for execution of the
+        float: The average elapsed client time for execution of the
         measured operations, in seconds.
         """
         try:
@@ -264,7 +264,7 @@ class OperationStatistic:
     @property
     def min_time(self):
         """
-        :class:`py:float`: The minimum elapsed client time for execution of the
+        float: The minimum elapsed client time for execution of the
         measured operations, in seconds.
         """
         return self._time_min
@@ -272,7 +272,7 @@ class OperationStatistic:
     @property
     def max_time(self):
         """
-        :class:`py:float`: The maximum elapsed client time for execution of the
+        float: The maximum elapsed client time for execution of the
         measured operations, in seconds.
         """
         return self._time_max
@@ -280,7 +280,7 @@ class OperationStatistic:
     @property
     def avg_server_time(self):
         """
-        :class:`py:float`: The average elapsed server time for execution of the
+        float: The average elapsed server time for execution of the
         measured operations, in seconds.
 
         This time is 0 if the WBEM server did not return the WBEM server
@@ -294,7 +294,7 @@ class OperationStatistic:
     @property
     def min_server_time(self):
         """
-        :class:`py:float`: The minimum elapsed server time for execution of the
+        float: The minimum elapsed server time for execution of the
         measured operations, in seconds.
 
         This time is 0 if the WBEM server did not return the WBEM server
@@ -305,7 +305,7 @@ class OperationStatistic:
     @property
     def max_server_time(self):
         """
-        :class:`py:float`: The maximum elapsed server time for execution of the
+        float: The maximum elapsed server time for execution of the
         measured operations, in seconds.
 
         This time is 0 if the WBEM server did not return the WBEM server
@@ -316,7 +316,7 @@ class OperationStatistic:
     @property
     def avg_request_len(self):
         """
-        :class:`py:float`: The average size of the HTTP body in the CIM-XML
+        float: The average size of the HTTP body in the CIM-XML
         requests of the measured operations, in Bytes.
         """
         try:
@@ -327,7 +327,7 @@ class OperationStatistic:
     @property
     def min_request_len(self):
         """
-        :class:`py:float`: The minimum size of the HTTP body in the CIM-XML
+        float: The minimum size of the HTTP body in the CIM-XML
         requests of the measured operations, in Bytes.
         """
         return self._request_len_min
@@ -335,7 +335,7 @@ class OperationStatistic:
     @property
     def max_request_len(self):
         """
-        :class:`py:float`: The maximum size of the HTTP body in the CIM-XML
+        float: The maximum size of the HTTP body in the CIM-XML
         requests of the measured operations, in Bytes.
         """
         return self._request_len_max
@@ -343,7 +343,7 @@ class OperationStatistic:
     @property
     def avg_reply_len(self):
         """
-        :class:`py:float`: The average size of the HTTP body in the CIM-XML
+        float: The average size of the HTTP body in the CIM-XML
         responses of the measured operations, in Bytes.
         """
         try:
@@ -354,7 +354,7 @@ class OperationStatistic:
     @property
     def min_reply_len(self):
         """
-        :class:`py:float`: The minimum size of the HTTP body in the CIM-XML
+        float: The minimum size of the HTTP body in the CIM-XML
         responses of the measured operations, in Bytes.
         """
         return self._reply_len_min
@@ -362,7 +362,7 @@ class OperationStatistic:
     @property
     def max_reply_len(self):
         """
-        :class:`py:float`: The maximum size of the HTTP body in the CIM-XML
+        float: The maximum size of the HTTP body in the CIM-XML
         responses of the measured operations, in Bytes.
         """
         return self._reply_len_max
@@ -418,17 +418,17 @@ class OperationStatistic:
 
         Parameters:
 
-          request_len (:term:`integer`):
+          request_len (int):
             Size of the HTTP body of the CIM-XML request message, in Bytes.
 
-          reply_len (:term:`integer`):
+          reply_len (int):
             Size of the HTTP body of the CIM-XML response message, in Bytes.
 
-          exception (:class:`py:bool`):
+          exception (bool):
             Boolean that specifies whether an exception was raised while
             processing the operation.
 
-          server_time (:class:`py:bool`):
+          server_time (bool):
             Time in seconds that the server optionally returns to the
             client in the HTTP response defining the time from when the
             server received the request to when it started sending the
@@ -599,7 +599,7 @@ class Statistics:
         """
         Parameters:
 
-          enable (:class:`py:bool`):
+          enable (bool):
             Initial enablement status for this statistics container.
         """
         # We convert any non-boolean values to True/False:
@@ -658,7 +658,7 @@ class Statistics:
     @property
     def enabled(self):
         """
-        Indicates whether the statistics container is enabled.
+        bool: Indicates whether the statistics container is enabled.
         """
         return self._enabled
 
@@ -686,7 +686,7 @@ class Statistics:
 
         Parameters:
 
-          name (:term:`string`):
+          name (str):
             Name of the operation.
 
         Returns:
@@ -706,7 +706,7 @@ class Statistics:
 
         Parameters:
 
-          name (:term:`string`):
+          name (str):
             Name of the operation.
 
         Returns:
@@ -731,9 +731,10 @@ class Statistics:
 
         Returns:
 
-          : A list of tuples (name, stats) with:
+          list of tuple: A list of tuple (name, stats) with the following tuple
+          items:
 
-          - name (:term:`string`): Name of the operation
+          - name (str): Name of the operation
           - stats (:class:`~pywbem.OperationStatistic`): Time statistics for
             the operation
         """
@@ -807,7 +808,8 @@ class Statistics:
         Reset all statistics and clear any statistic names.
         All statistics must be inactive before a reset will execute
 
-        Returns: True if reset, False if not
+        Returns:
+            bool: True if reset, False if not.
         """
         # Test for any stats being currently timed.
         for stat in self._op_stats.values():

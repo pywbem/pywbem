@@ -214,7 +214,7 @@ class WBEMSubscriptionManager:
         """
         Parameters:
 
-          subscription_manager_id (:term:`string`):
+          subscription_manager_id (str):
             A subscription manager ID string that is used as a component in
             the value of the `Name` property of indication filter and listener
             destination instances and thus allows identifying these instances
@@ -305,7 +305,7 @@ class WBEMSubscriptionManager:
 
         Parameters:
 
-          server_id (:term:`string`):
+          server_id (str):
             The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
@@ -351,8 +351,8 @@ class WBEMSubscriptionManager:
 
         Returns:
 
-            :term:`string`: An ID for the WBEM server, for use by other
-            methods of this class.
+            str: An ID for the WBEM server, for use by other methods of this
+            class.
 
         Raises:
 
@@ -459,7 +459,7 @@ class WBEMSubscriptionManager:
 
         Parameters:
 
-          server_id (:term:`string`):
+          server_id (str):
             The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
@@ -566,11 +566,11 @@ class WBEMSubscriptionManager:
 
         Parameters:
 
-          server_id (:term:`string`):
+          server_id (str):
             The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
-          listener_url (:term:`string`):
+          listener_url (str):
             The URL of the WBEM listener that should receive the indications.
 
             The WBEM listener may be a :class:`~pywbem.WBEMListener` object or
@@ -599,13 +599,13 @@ class WBEMSubscriptionManager:
             See :class:`~pywbem.WBEMConnection` for examples of valid URLs,
             with the caveat that the port in server URLs is optional.
 
-          owned (:class:`py:bool`):
+          owned (bool):
             Defines the ownership type of the created listener destination
             instance: If `True`, it will be owned. Otherwise, it will be
             permanent. See :ref:`WBEMSubscriptionManager` for details about
             these ownership types.
 
-          destination_id (:term:`string`):
+          destination_id (str):
             A destination ID string that is used as a component in the value of
             the `Name` property of owned destination instances to help the user
             identify these instances in a WBEM server, or `None` if the `name`
@@ -618,7 +618,7 @@ class WBEMSubscriptionManager:
             This parameter is required for owned destinations and is rejected
             for permanent destinations.
 
-          name (:term:`string`):
+          name (str):
             The destination name to be used directly for the `Name` property of
             permanent destination instances, or `None` if the `destination_id`
             parameter is specified.
@@ -626,7 +626,7 @@ class WBEMSubscriptionManager:
             This parameter is required for permanent destinations and is
             rejected for owned destinations.
 
-          persistence_type (:term:`string`):
+          persistence_type (str):
             Optional string where the allowed strings are "transient" and
             "permanent" and the default is None.  The strings are used to
             set the `PersistenceType` property, an integer property with the
@@ -699,7 +699,7 @@ class WBEMSubscriptionManager:
 
         Parameters:
 
-          server_id (:term:`string`):
+          server_id (str):
             The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
@@ -725,7 +725,7 @@ class WBEMSubscriptionManager:
 
         Parameters:
 
-          server_id (:term:`string`):
+          server_id (str):
             The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
@@ -762,7 +762,7 @@ class WBEMSubscriptionManager:
 
         Parameters:
 
-          server_id (:term:`string`):
+          server_id (str):
             The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
@@ -853,32 +853,32 @@ class WBEMSubscriptionManager:
 
         Parameters:
 
-          server_id (:term:`string`):
+          server_id (str):
             The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
-          source_namespaces (:term:`string`, list of :term:`string`, or None):
+          source_namespaces (str, :class:`py:list` of :class:`py:str`, or None):
             Source namespace or list of source namespaces  of the indication
             filter. The values will be inserted into the CIM_IndicationFilter
             SourceNamespaces property. If None, the SourceNamespaces property
             will not be created. and the WBEM server will use the Interop
             namespace as the source namespace for the indication filter.
 
-          query (:term:`string`):
+          query (str):
             Filter query in the specified query language.
 
-          query_language (:term:`string`):
+          query_language (str):
             Query language for the specified filter query.
 
             Examples: 'WQL', 'DMTF:CQL'.
 
-          owned (:class:`py:bool`):
+          owned (bool):
             Defines the ownership type of the created indication filter
             instance: If `True`, it will be owned. Otherwise, it will be
             permanent. See :ref:`WBEMSubscriptionManager` for details about
             these ownership types.
 
-          filter_id (:term:`string`):
+          filter_id (str):
             A filter ID string that is used as a component in the value of the
             `Name` property of filter instances to help the user identify
             these instances in a WBEM server, or `None` if the `name`
@@ -895,7 +895,7 @@ class WBEMSubscriptionManager:
             used to identify groups of filters by using the same value for
             multiple filters.
 
-          name (:term:`string`):
+          name (str):
             *New in pywbem 0.10.*
 
             The filter name to be used directly for the `Name` property of the
@@ -905,7 +905,7 @@ class WBEMSubscriptionManager:
             This parameter is required for permanent filters and is rejected for
             owned filters.
 
-          source_namespace (:term:`string`):
+          source_namespace (str):
             Optional source namespace of the indication filter. If the
             parameter is provided the value will be inserted into the
             CIM_IndicationFilter SourceNamespace property. Otherwise the
@@ -984,7 +984,7 @@ class WBEMSubscriptionManager:
 
         Parameters:
 
-          server_id (:term:`string`):
+          server_id (str):
             The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
@@ -1009,7 +1009,7 @@ class WBEMSubscriptionManager:
 
         Parameters:
 
-          server_id (:term:`string`):
+          server_id (str):
             The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
@@ -1045,7 +1045,7 @@ class WBEMSubscriptionManager:
 
         Parameters:
 
-          server_id (:term:`string`):
+          server_id (str):
             The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
@@ -1116,7 +1116,7 @@ class WBEMSubscriptionManager:
 
         Parameters:
 
-          server_id (:term:`string`):
+          server_id (str):
             The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
@@ -1131,7 +1131,7 @@ class WBEMSubscriptionManager:
             If `None`, subscriptions will be created for all owned listener
             destinations registered to this subscription manager.
 
-          owned (:class:`py:bool`):
+          owned (bool):
             Defines the ownership type of the created subscription
             instances: If `True`, they will be owned. Otherwise, they will be
             permanent. See :ref:`WBEMSubscriptionManager` for details about
@@ -1204,7 +1204,7 @@ class WBEMSubscriptionManager:
 
         Parameters:
 
-          server_id (:term:`string`):
+          server_id (str):
             The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
@@ -1230,7 +1230,7 @@ class WBEMSubscriptionManager:
 
         Parameters:
 
-          server_id (:term:`string`):
+          server_id (str):
             The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
@@ -1263,7 +1263,7 @@ class WBEMSubscriptionManager:
 
         Parameters:
 
-          server_id (:term:`string`):
+          server_id (str):
             The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
@@ -1316,11 +1316,11 @@ class WBEMSubscriptionManager:
 
         Parameters:
 
-          server_id (:term:`string`):
+          server_id (str):
             The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
-          dest_url (:term:`string`):
+          dest_url (str):
             URL of the listener that is used by the WBEM server as the
             destination for indications.
 
@@ -1328,13 +1328,13 @@ class WBEMSubscriptionManager:
             uses HTTP or HTTPS for sending the indication. Host and port in the
             URL specify the target location to be used by the WBEM server.
 
-          owned (:class:`py:bool`):
+          owned (bool):
             Defines the ownership type of the created listener destination
             instance: If `True`, it will be owned. Otherwise, it will be
             permanent. See :ref:`WBEMSubscriptionManager` for details about
             these ownership types.
 
-          destination_id (:term:`string`):
+          destination_id (str):
             A destination ID string that is used as a component in the value of
             the `Name` property of owned destination instances to help the user
             identify these instances in a WBEM server, or `None` if the `name`
@@ -1347,7 +1347,7 @@ class WBEMSubscriptionManager:
             This parameter is required for owned destinations and is rejected
             for permanent destinations.
 
-          name (:term:`string`):
+          name (str):
             The destination name to be used directly for the `Name` property of
             permanent destination instances, or `None` if the `destination_id`
             parameter is specified.
@@ -1355,7 +1355,7 @@ class WBEMSubscriptionManager:
             This parameter is required for permanent destinations and is
             rejected for owned destinations.
 
-          persistence_type_value (:class:`int` or None)
+          persistence_type_value (:class:`py:int` or None):
             If integer, it is the value of the PeristenceType property.  If
             None, the `PersistenceType` property is not included in the
             created instance.
@@ -1433,32 +1433,32 @@ class WBEMSubscriptionManager:
 
         Parameters:
 
-          server_id (:term:`string`):
+          server_id (str):
             The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
-          source_namespaces (:class:`py:list` of :term:`string` or `None`):
+          source_namespaces (:class:`py:list` of :class:`py:str` or `None`):
             List of source namespaces of the indication filter. If None
             the SourceNamespaces property will not be created.
 
-          query (:term:`string`):
+          query (str):
             Filter query in the specified query language.
 
-          query_language (:term:`string`):
+          query_language (str):
             Query language for the specified filter query.
 
             Examples: 'WQL', 'DMTF:CQL'.
 
-          filter_id (:term:`string`):
+          filter_id (str):
             Filter ID string to be incorporated into the `Name` property of the
             filter instance, or `None`.
             Mutually exclusive with the `name` parameter.
 
-          name (:term:`string`):
+          name (str):
             Value for the `Name` property of the filter instance, or `None`.
             Mutually exclusive with the `filter_id` parameter.
 
-          source_namespace (:term:`string` or None):
+          source_namespace (:class:`py:str` or None):
             A namespace or None.
 
         Returns:
@@ -1522,7 +1522,7 @@ class WBEMSubscriptionManager:
 
         Parameters:
 
-          server_id (:term:`string`):
+          server_id (str):
             The server ID of the WBEM server, returned by
             :meth:`~pywbem.WBEMSubscriptionManager.add_server`.
 
@@ -1534,7 +1534,7 @@ class WBEMSubscriptionManager:
             Instance path of the indication filter instance in the WBEM
             server that specifies the indications to be sent.
 
-          owned (:class:`py:bool`):
+          owned (bool):
             Defines whether or not the created instance is *owned* by the
             subscription manager.
 

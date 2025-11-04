@@ -234,6 +234,7 @@ doc_utility_help_files := \
 # Dependents for Sphinx documentation build
 doc_dependent_files := \
     $(doc_conf_dir)/conf.py \
+    $(wildcard $(doc_conf_dir)/_static/*) \
     $(wildcard $(doc_conf_dir)/*.rst) \
     $(wildcard $(doc_conf_dir)/client/*.rst) \
     $(wildcard $(doc_conf_dir)/notebooks/*.ipynb) \

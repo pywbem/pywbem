@@ -122,7 +122,7 @@ def parse_url(url, allow_defaults=True):
 
     Parameters:
 
-      url (string): Input URL.
+      url (str): Input URL.
 
       allow_defaults (bool): If `True` allow defaults for scheme and
         port. If `False`, raise ValueError for missing scheme or port.
@@ -427,7 +427,7 @@ def wbem_request(conn, req_data, cimxml_headers, target_type='server'):
       conn (:class:`~pywbem.WBEMConnection`):
         WBEM connection to be used.
 
-      req_data (:term:`string`):
+      req_data (str):
         The CIM-XML formatted data to be sent as a request to the WBEM server
         or WBEM listener.
 
@@ -440,16 +440,16 @@ def wbem_request(conn, req_data, cimxml_headers, target_type='server'):
 
         A value of `None` is treated like an empty iterable.
 
-      target_type (:term:`string`): Target type: 'server' or 'listener'.
+      target_type (str): Target type: 'server' or 'listener'.
 
     Returns:
 
-        Tuple containing:
+        tuple: A tuple containing two items:
 
-            The CIM-XML formatted response data from the WBEM server or
-            WBEM listener, as a :term:`byte string` object.
+          * The CIM-XML formatted response data from the WBEM server or
+            WBEM listener, as a :class:`py:bytes` object.
 
-            The server response time in seconds as floating point number if
+          * The server response time in seconds as floating point number if
             this data was received from the server. If no data returned
             from server `None` is returned.
 

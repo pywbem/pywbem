@@ -33,7 +33,7 @@ def simplified_test_function(test_func):
 
     Parameters of the wrapper function returned by this decorator:
 
-    * desc (string): Short testcase description.
+    * desc (str): Short testcase description.
 
     * kwargs (dict): Keyword arguments for the test function.
 

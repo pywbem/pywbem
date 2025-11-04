@@ -339,10 +339,10 @@ def keyfile_password_prompt(keyfile):
     This method is only called if the key file has a password set.
 
     Parameters:
-      keyfile (string): Path name of private key file.
+      keyfile (str): Path name of private key file.
 
     Returns:
-      string: The password
+      str: The password
 
     Raises:
       ListenerPromptError: Password prompt was interrupted or ended
@@ -911,7 +911,7 @@ class WBEMListener:
         """
         Parameters:
 
-          host (:term:`string`):
+          host (str):
             IP address or host name to which this listener is bound (i.e. at
             which this listener can be reached).  If a listener is bound to a
             particular IP address it will only receive indications addressed to
@@ -926,19 +926,19 @@ class WBEMListener:
             equivalent to using the wildcard address with the default
             IP addressing family.
 
-          http_port (:term:`string` or :term:`integer`):
+          http_port (:class:`py:str` or :class:`py:int`):
             HTTP port at which this listener can be reached. At
             least one port (HTTP or HTTPS) must be set. Both the http and
             https ports can be set.
 
             `None` means not to set up a port for HTTP.
 
-          https_port (:term:`string` or :term:`integer`):
+          https_port (:class:`py:str` or :class:`py:int`):
             HTTPS port at which this listener can be reached.
 
             `None` means not to set up a port for HTTPS.
 
-          certfile (:term:`string`):
+          certfile (str):
             File path of certificate file to be used as server certificate
             during SSL/TLS handshake when creating the secure HTTPS connection.
 
@@ -949,7 +949,7 @@ class WBEMListener:
             `None` means not to use a server certificate file. Setting up a port
             for HTTPS requires specifying a certificate file.
 
-          keyfile (:term:`string`):
+          keyfile (str):
             File path of private key file to be used by the server during
             SSL/TLS handshake when creating the secure HTTPS connection.
 
@@ -959,7 +959,7 @@ class WBEMListener:
             `None` means not to use a private key file. Setting up a port
             for HTTPS requires specifying a private key file.
 
-          max_ind_queue_size (:term:`integer`):
+          max_ind_queue_size (int):
             A positive integer which defines the maximum size of the indication
             queue. If an indication is received and the queue is full, the
             indication is not put into the queue and a CIM-XML response
@@ -1103,7 +1103,7 @@ class WBEMListener:
     @property
     def host(self):
         """
-        :term:`string`: IP address or host name to which this listener is
+        str: IP address or host name to which this listener is
         bound. If IP adress 0.0.0.0, this listener is not bound to a particular
         IP address and accepts requests from any host on any network.
         """
@@ -1112,7 +1112,7 @@ class WBEMListener:
     @property
     def http_port(self):
         """
-        :term:`integer`: HTTP port at which this listener can be reached.
+        int: HTTP port at which this listener can be reached.
 
         `None` means there is no port set up for HTTP.
         """
@@ -1121,7 +1121,7 @@ class WBEMListener:
     @property
     def https_port(self):
         """
-        :term:`integer`: HTTPS port at which this listener can be reached.
+        int: HTTPS port at which this listener can be reached.
 
         `None` means there is no port set up for HTTPS.
         """
@@ -1130,8 +1130,8 @@ class WBEMListener:
     @property
     def http_started(self):
         """
-        :class:`py:bool`: Boolean indicating whether the listener is started
-        for the HTTP port.
+        bool: Boolean indicating whether the listener is started for the HTTP
+        port.
 
         If no port is set up for HTTP, `False` is returned.
 
@@ -1142,8 +1142,8 @@ class WBEMListener:
     @property
     def https_started(self):
         """
-        :class:`py:bool`: Boolean indicating whether the listener is started
-        for the HTTPS port.
+        bool: Boolean indicating whether the listener is started for the HTTPS
+        port.
 
         If no port is set up for HTTPS, `False` is returned.
 
@@ -1154,7 +1154,7 @@ class WBEMListener:
     @property
     def certfile(self):
         """
-        :term:`string`: File path of the certificate file used as server
+        str: File path of the certificate file used as server
         certificate during SSL/TLS handshake when creating the secure HTTPS
         connection.
 
@@ -1166,7 +1166,7 @@ class WBEMListener:
     @property
     def keyfile(self):
         """
-        :term:`string`: File path of the private key file used by the server
+        str: File path of the private key file used by the server
         during SSL/TLS handshake when creating the secure HTTPS connection.
 
         `None` means there is no certificate file being used (that is, no port
@@ -1193,7 +1193,7 @@ class WBEMListener:
     @property
     def max_ind_queue_size(self):
         """
-        :term:`integer`: The maximum size of the indication queue.
+        int: The maximum size of the indication queue.
 
         A value of 0 means that the indication queue will grow as needed,
         limited only by the available memory in the listener process.
@@ -1205,7 +1205,7 @@ class WBEMListener:
         Returns whether the indication queue exists.
 
         Returns:
-            :class:`py:bool`: `True` if the indication queue exists; otherwise
+            bool: `True` if the indication queue exists; otherwise
             `False`.
         """
         return self._ind_queue is not None
@@ -1215,7 +1215,7 @@ class WBEMListener:
         Returns whether the indication queue is empty.
 
         Returns:
-            :class:`py:bool`: `True` if the indication queue is empty;
+            bool: `True` if the indication queue is empty;
             otherwise `False`.
             If the indication queue does not exist, `None` is returned.
         """
@@ -1231,7 +1231,7 @@ class WBEMListener:
         as indications flow.
 
         Returns:
-            :term:`integer`: Number of indications currently in the indication
+            int: Number of indications currently in the indication
             queue. If the indication queue does not exist, `None` is returned.
         """
         if self._ind_queue is None:
@@ -1634,10 +1634,10 @@ class WBEMListener:
           indication (:class:`~pywbem.CIMInstance`):
             Representation of the CIM indication to be delivered.
 
-          host (:term:`string`):
+          host (str):
             Host name or IP address of WBEM server sending the indication.
 
-          msgid (:term:`string`):
+          msgid (str):
             Message ID of the indication from the export request.
         """
         for callback in self._callbacks:
@@ -1701,7 +1701,7 @@ def callback_interface(indication, host):
         Representation of the CIM indication that has been received.
         Its `path` attribute is `None`.
 
-      host (:term:`string`):
+      host (str):
         Host name or IP address of WBEM server sending the indication.
 
     Raises:
