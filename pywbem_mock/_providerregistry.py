@@ -85,7 +85,7 @@ class ProviderRegistry:
 
         Parameters:
 
-          dest (:term:`string`):
+          dest (str):
             File path of an output file. If `None`, the output is written to
             stdout.
         """
@@ -155,7 +155,7 @@ class ProviderRegistry:
 
         Parameters:
 
-          conn  (:class:`~pywbem_mock.FakedWBEMConnection`):
+          conn (:class:`~pywbem_mock.FakedWBEMConnection`):
             Defines the attributes of the connection. Used to issue requests to
             create instances in the Interop namespace for all existing
             namespaces that do not have instances of CIM_Namespace defined
@@ -170,13 +170,13 @@ class ProviderRegistry:
             `provider_classnames` that define the type of provider and the CIM
             classes that the provider serves.
 
-          namespaces (:term:`string` or list of :term:`string`):
+          namespaces (:class:`py:str` or list of :class:`py:str`):
             Namespace or namespaces for which the provider is being registered.
 
             If `None`, the default namespace of the connection will be set to
             the built-in default namespace
 
-          schema_pragma_files (:term:`py:iterable` of :term:`string` or :term:`string`):
+          schema_pragma_files (:term:`py:iterable` of :class:`py:str` or :class:`py:str`):
             Path names of schema pragma files for the set of CIM
             classes that make up a schema such as the DMTF schema. These files
             must contain include pragams defining the file location of the
@@ -188,7 +188,7 @@ class ProviderRegistry:
             see :class:`pywbem.MOFCompiler` for more information on the
             `search_paths` parameter.
 
-          verbose (:class:`py:bool`):
+          verbose (bool):
             Display details on actions
 
         Raises:
@@ -320,14 +320,14 @@ class ProviderRegistry:
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The namespace in which the request will be executed.
 
-          provider_type (:term:`string`):
+          provider_type (str):
             String containing keyword ('instance-write' or 'method') defining
             the type of provider.
 
-          classname (:term:`string`):
+          classname (str):
             Name of the class defined for the operation
 
         Returns:
@@ -358,7 +358,7 @@ class ProviderRegistry:
         list is case sensitive.
 
         Returns:
-            list of :term:`string`: namespaces
+            :class:`py:list` of :class:`py:str`: namespaces
             for which providers are registered.
         """
         return list(self._registry.keys())
@@ -370,11 +370,11 @@ class ProviderRegistry:
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The namespace in which the request will be executed.
 
         Returns:
-            list of :term:`string`:
+            list of :class:`py:str`:
             Names of classes registered for namespace
 
         Raises:
@@ -390,14 +390,14 @@ class ProviderRegistry:
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The namespace in which the request will be executed.
 
-          classname (:term:`string`):
+          classname (str):
             Name of the class defined for the operation.
 
         Returns:
-            list of :term:`string`: Strings defining provider
+            :class:`py:list` of :class:`py:str`: Strings defining provider
             types for the defined namespace and classname
 
         Raises:
@@ -412,13 +412,13 @@ class ProviderRegistry:
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The namespace in which the request will be executed.
 
-          classname (:term:`string`):
+          classname (str):
             Name of the class defined for the operation.
 
-          provider_type (:term:`string`):
+          provider_type (str):
             String containing keyword ('instance-write' or 'method') defining
             the type of provider.
 
@@ -436,13 +436,13 @@ class ProviderRegistry:
         is a tuple(namespace, classname, provider_type, provider_obj),
         with:
 
-          namespace (:term:`string`):
+          namespace (str):
             The namespace in which the request will be executed.
 
-          classname (:term:`string`):
+          classname (str):
             Name of the class defined for the operation.
 
-          provider_type (:term:`string`):
+          provider_type (str):
             String containing keyword ('instance-write' or 'method') defining
             the type of provider.
 

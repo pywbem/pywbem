@@ -764,7 +764,7 @@ TESTCASES_REQUEST_INVALID_PARAMS = [
     # * condition: Boolean condition for testcase to run, or 'pdb' for
     #   debugger
     (
-        "Test invalid invokemethod objectname (integer)",
+        "Test invalid invokemethod objectname (int)",
         dict(
             init_kwargs={},
             method='invokemethod',

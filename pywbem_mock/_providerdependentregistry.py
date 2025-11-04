@@ -99,11 +99,11 @@ class ProviderDependentRegistry:
 
         Parameters:
 
-          mock_script_path (:term:`string`):
+          mock_script_path (str):
             Path name of the mock script. May be relative or absolute, and will
             be normalized to look up the registered dependents.
 
-          dependent_paths (:term:`string` or :class:`py:list` of :term:`string`):
+          dependent_paths (:class:`py:str` or :class:`py:list` of :class:`py:str`):
             Path name(s) of provider dependent files to be registered.
             May be relative or absolute, and will be normalized when
             registering them.
@@ -135,7 +135,7 @@ class ProviderDependentRegistry:
 
         Parameters:
 
-          mock_script_path (:term:`string`):
+          mock_script_path (str):
             Path name of the mock script. May be relative or absolute, and will
             be normalized to look up the registered dependents.
 

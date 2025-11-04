@@ -125,13 +125,13 @@ class MainProvider(ResolverMixin, BaseProvider):
         """
         Parameters:
 
-          host (:term:`string`):
+          host (str):
             Value of the host attribute from the class that called
             this constructor, normally FakedWBEMConnection.  This
             attribute is used to construct the host component of
             CIMNamespaces in some responses.
 
-          disable_pull_operations (:class:`py:bool`):
+          disable_pull_operations (bool):
             Flag to allow user to disable the pull operations ( Open... and
             Pull.. requests). The default is None which enables pull operations
             to execute. Setting the flag to True causes pull operations
@@ -205,7 +205,7 @@ class MainProvider(ResolverMixin, BaseProvider):
         defined classname (cln) in the namespace.
 
         Parameters:
-          classname(:term:`string` or None):
+          classname (:class:`py:str` or None):
             Class name for which superclasses will be retrieved.
             If None, an empty list is returned
 
@@ -243,7 +243,7 @@ class MainProvider(ResolverMixin, BaseProvider):
         The input classname is NOT included in the returned list.
 
         Parameters:
-          classname (:term:`string` or None):
+          classname (:class:`py:str` or None):
             The name of the CIM class for which subclass names will
             be retrieved. If None, retrieval starts at the root of
             the class hierarchy
@@ -251,10 +251,10 @@ class MainProvider(ResolverMixin, BaseProvider):
           class_store (:class:`~pywbem_mock.BaseObjectStore):
            The CIM repository to search for this class and subclasses
 
-          deep_inheritance (:class:`py:bool`):
+          deep_inheritance (bool):
 
         Returns:
-          list of :term:`unicode string` with the names of all subclasses of
+          list of :class:`py:str` with the names of all subclasses of
           `classname`.
         """
 
@@ -328,7 +328,7 @@ class MainProvider(ResolverMixin, BaseProvider):
             This parameter allows accessing many instances without repeated
             namespace existence tests.
 
-          property_list (:term:`string` or :term:`py:iterable` of :term:`string`):
+          property_list (:class:`py:str` or :term:`py:iterable` of :class:`py:str`):
             List of property names that will be used to filter properties
             of the returned instance.  If property_list is None, no
             filtering is done. Otherwise each property name in the
@@ -596,19 +596,19 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing
             slash characters are ignored.
 
-          ClassName (:term:`string`):
+          ClassName (str):
             Name of the class whose subclasses will be retrieved
             (case independent).
 
             If `None`, the top-level classes in the namespace will be
             retrieved.
 
-          DeepInheritance (:class:`py:bool`):
+          DeepInheritance (bool):
             Indicates that all (direct and indirect) subclasses of the
             specified class or of the top-level classes are to be included in
             the result, as follows:
@@ -624,7 +624,7 @@ class MainProvider(ResolverMixin, BaseProvider):
             Note, the semantics of the `DeepInheritance` parameter in
             :meth:`pywbem.WBEMConnection.EnumerateInstances` is different.
 
-          LocalOnly (:class:`py:bool`):
+          LocalOnly (bool):
             Indicates that inherited properties, methods, and qualifiers are to
             be excluded from the returned classes, as follows.
 
@@ -632,7 +632,7 @@ class MainProvider(ResolverMixin, BaseProvider):
             * If `True`, inherited elements are excluded.
             * If `None`, the :term:`DSP0200` server default of `True` is used.
 
-          IncludeQualifiers (:class:`py:bool`):
+          IncludeQualifiers (bool):
             Indicates that qualifiers are to be included in the returned
             classes, as follows:
 
@@ -640,7 +640,7 @@ class MainProvider(ResolverMixin, BaseProvider):
             * If `True`, qualifiers are included.
             * If `None`, the  :term:`DSP0200`  defined default is `True`.
 
-          IncludeClassOrigin (:class:`py:bool`):
+          IncludeClassOrigin (bool):
             Indicates that class origin information is to be included on each
             property and method in the returned classes, as follows:
 
@@ -710,19 +710,19 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing
             slash characters are ignored.
 
-          ClassName (:term:`string`):
+          ClassName (str):
             Name of the class whose subclasses are to be retrieved
             (case independent).
 
             If `None`, the top-level classes in the namespace will be
             retrieved.
 
-          DeepInheritance (:class:`py:bool`):
+          DeepInheritance (bool):
             Indicates that all (direct and indirect) subclasses of the
             specified class or of the top-level classes are to be included in
             the result, as follows:
@@ -740,7 +740,7 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         Returns:
 
-            A list of :term:`unicode string` objects that are the class names
+            A list of :class:`py:str` objects that are the class names
             of the enumerated classes
 
         Raises:
@@ -782,15 +782,15 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing
             slash characters are ignored.
 
-          ClassName (:term:`string`):
+          ClassName (str):
             Name of the class to be retrieved (case independent).
 
-          LocalOnly (:class:`py:bool`):
+          LocalOnly (bool):
             Indicates that inherited properties, methods, and qualifiers are to
             be excluded from the returned class, as follows.
 
@@ -798,7 +798,7 @@ class MainProvider(ResolverMixin, BaseProvider):
             * If `True`, inherited elements are excluded.
             * If `None`, uses :term:`DSP0200` defined server default of `True`.
 
-          IncludeQualifiers (:class:`py:bool`):
+          IncludeQualifiers (bool):
             Indicates that qualifiers are to be included in the returned
             class, as follows:
 
@@ -806,7 +806,7 @@ class MainProvider(ResolverMixin, BaseProvider):
             * If `True`, qualifiers are included.
             * If `None`, uses :term:`DSP0200` defined server default of `True`.
 
-          IncludeClassOrigin (:class:`py:bool`):
+          IncludeClassOrigin (bool):
             Indicates that class origin information is to be included on each
             property and method in the returned class, as follows:
 
@@ -814,7 +814,7 @@ class MainProvider(ResolverMixin, BaseProvider):
             * If `True`, class origin information is included.
             * If `None`, uses :term:`DSP0200` defined server default of `False`.
 
-          PropertyList (:term:`string` or :term:`py:iterable` of :term:`string`):
+          PropertyList (:class:`py:str` or :term:`py:iterable` of :class:`py:str`):
             An iterable specifying the names of the properties (or a string
             that defines a single property) to be included in the returned
             class (case independent).
@@ -867,7 +867,7 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing
             slash characters are ignored.
@@ -931,7 +931,7 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing
             slash characters are ignored.
@@ -1054,12 +1054,12 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing
             slash characters are ignored.
 
-          ClassName (:term:`string`):
+          ClassName (str):
             Name of the class to be deleted (case independent).
 
         Raises:
@@ -1120,7 +1120,7 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing
             slash characters are ignored.
@@ -1157,12 +1157,12 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing
             slash characters are ignored.
 
-          QualifierName (:term:`string`):
+          QualifierName (str):
             Name of the qualifier declaration to be retrieved
             (case independent).
 
@@ -1208,7 +1208,7 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing
             slash characters are ignored.
@@ -1249,12 +1249,12 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing slash
             characters are ignored.
 
-          QualifierName (:term:`string`):
+          QualifierName (str):
             Name of the qualifier declaration to be deleted (case independent).
 
         Raises:
@@ -1270,13 +1270,13 @@ class MainProvider(ResolverMixin, BaseProvider):
             Test for qualifier exists in any component of the class cls.
 
             Parameters:
-              cls (:class:`~pywbem.CIMClass`)
+              cls (:class:`~pywbem.CIMClass`):
                 CIM class to search for existence of qualifier
-              qualifier_name (:term:`string`):
+              qualifier_name (str):
                 Name of qualifier for which search is executed
 
             Returns:
-                :class:`py:bool` True if qualifier exists, False if qualifier
+                bool: `True` if qualifier exists, `False` if qualifier
                 not found in the class
             """
             if qualifier_name in cls.qualifiers:
@@ -1352,7 +1352,7 @@ class MainProvider(ResolverMixin, BaseProvider):
               Must not be None.
             * `host`: value ignored.
 
-          LocalOnly (:class:`py:bool`):
+          LocalOnly (bool):
             This parameter is used to control the exclusion of inherited
             properties in the returned instances. :term:`DSP0200` version 1.2
             has deprecated this parameter and allows servers to honor it, or to
@@ -1363,7 +1363,7 @@ class MainProvider(ResolverMixin, BaseProvider):
             is consistent with the recommendation in DSP0200 for clients to set
             the parameter to False.
 
-          IncludeQualifiers (:class:`py:bool`):
+          IncludeQualifiers (bool):
             Indicates that qualifiers are to be included in the returned
             instance, as follows:
 
@@ -1379,7 +1379,7 @@ class MainProvider(ResolverMixin, BaseProvider):
             IGNORE_INSTANCE_IQ_PARAM config variable. The default config
             value is True(ignore this parameter and use False)
 
-          IncludeClassOrigin (:class:`py:bool`):
+          IncludeClassOrigin (bool):
             Indicates that class origin information is to be included on each
             property in the returned instance, as follows:
 
@@ -1391,7 +1391,7 @@ class MainProvider(ResolverMixin, BaseProvider):
             IGNORE_INSTANCE_ICO_PARAM config variable. The default config
             value is True(ignore this parameter and use False)
 
-          PropertyList (:term:`string` or :term:`py:iterable` of :term:`string`):
+          PropertyList (:class:`py:str` or :term:`py:iterable` of :class:`py:str`):
             An iterable specifying the names of the properties (or a string
             that defines a single property) to be included in the returned
             instance (case independent).
@@ -1458,16 +1458,16 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing slash
             characters are ignored.
 
-          ClassName (:term:`string`):
+          ClassName (str):
             Name of the class for which instances are to be enumerated (case
             independent).
 
-          LocalOnly (:class:`py:bool`):
+          LocalOnly (bool):
             This parameter is used to control the exclusion of inherited
             properties in the returned instances. :term:`DSP0200` version 1.2
             has deprecated this parameter and allows servers to honor it, or to
@@ -1478,7 +1478,7 @@ class MainProvider(ResolverMixin, BaseProvider):
             is consistent with the recommendation in DSP0200 for clients to set
             the parameter to False.
 
-          DeepInheritance (:class:`py:bool`):
+          DeepInheritance (bool):
             Indicates that properties added by subclasses of the specified
             class are to be included in the returned instances, as follows:
 
@@ -1492,11 +1492,11 @@ class MainProvider(ResolverMixin, BaseProvider):
             :meth:`pywbem.WBEMConnection.EnumerateClassNames`
             is different.
 
-          IncludeQualifiers (:class:`py:bool`):
+          IncludeQualifiers (bool):
             This parameter has been deprecated in :term:`DSP0200`. and this
             provider ignores it and never returns qualifiers.
 
-          IncludeClassOrigin (:class:`py:bool`):
+          IncludeClassOrigin (bool):
             Indicates that class origin information is to be included on each
             property in the returned instances, as follows:
 
@@ -1508,7 +1508,7 @@ class MainProvider(ResolverMixin, BaseProvider):
             implementation treats this parameter always as if the value is
             `False`.
 
-          PropertyList (:term:`string` or :term:`py:iterable` of :term:`string`):
+          PropertyList (:class:`py:str` or :term:`py:iterable` of :class:`py:str`):
             An iterable specifying the names of the properties (or a string
             that defines a single property) to be included in the returned
             instances (case independent).
@@ -1612,12 +1612,12 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing slash
             characters are ignored.
 
-          ClassName (:term:`string`):
+          ClassName (str):
             Name of the class to be enumerated (case independent).
 
         Returns:
@@ -1670,17 +1670,17 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing slash
             characters are ignored.
 
-          QueryLanguage (:term:`string`):
+          QueryLanguage (str):
             Name of the query language used in the `Query` parameter, e.g.
             "DMTF:CQL" for CIM Query Language, and "WQL" for WBEM Query
             Language.
 
-          Query (:term:`string`):
+          Query (str):
             Query string in the query language specified in the `QueryLanguage`
             parameter.
 
@@ -2021,7 +2021,7 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing slash
             characters are ignored.
@@ -2036,19 +2036,19 @@ class MainProvider(ResolverMixin, BaseProvider):
               Its `host` attribute of this object will be `None`.
 
             * Class-level use: The class path of the source class,
-              as a :term:`string` object.
+              as a :class:`py:str` object.
               The `namespace` attribute of this object will be equal to the
               namespace parameter.
               Its `host` attribute of this object will be `None`.
 
-          ResultClass (:term:`string`):
+          ResultClass (str):
             Class name of an association class (case independent),
             to filter the result to include only traversals of that association
             class (or subclasses).
 
             `None` means that no such filtering is peformed.
 
-          Role (:term:`string`):
+          Role (str):
             Role name (= property name) of the source end (case independent),
             to filter the result to include only traversals from that source
             role.
@@ -2126,7 +2126,7 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing slash
             characters are ignored.
@@ -2141,26 +2141,26 @@ class MainProvider(ResolverMixin, BaseProvider):
               Its `host` attribute of this object will be `None`.
 
             * Class-level use: The class path of the source class,
-              as a :term:`string` object.
+              as a :class:`py:str` object.
               The `namespace` attribute of this object will be equal to the
               namespace parameter.
               Its `host` attribute of this object will be `None`.
 
-          ResultClass (:term:`string`):
+          ResultClass (str):
             Class name of an association class (case independent),
             to filter the result to include only traversals of that association
             class (or subclasses).
 
             `None` means that no such filtering is peformed.
 
-          Role (:term:`string`):
+          Role (str):
             Role name (= property name) of the source end (case independent),
             to filter the result to include only traversals from that source
             role.
 
             `None` means that no such filtering is peformed.
 
-          IncludeQualifiers (:class:`py:bool`):
+          IncludeQualifiers (bool):
             Indicates that qualifiers are to be included in the returned
             instances (or classes), as follows:
 
@@ -2174,7 +2174,7 @@ class MainProvider(ResolverMixin, BaseProvider):
             This parameter has been deprecated in :term:`DSP0200`. Clients
             cannot rely on qualifiers to be returned in this operation.
 
-          IncludeClassOrigin (:class:`py:bool`):
+          IncludeClassOrigin (bool):
             Indicates that class origin information is to be included on each
             property or method in the returned instances (or classes), as
             follows:
@@ -2189,7 +2189,7 @@ class MainProvider(ResolverMixin, BaseProvider):
             instance-level use. WBEM servers may either implement this
             parameter as specified, or may treat any specified value as `False`.
 
-          PropertyList (:term:`string` or :term:`py:iterable` of :term:`string`):
+          PropertyList (:class:`py:str` or :term:`py:iterable` of :class:`py:str`):
             An iterable specifying the names of the properties (or a string
             that defines a single property) to be included in the returned
             instances (or classes) (case independent).
@@ -2289,7 +2289,7 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing slash
             characters are ignored.
@@ -2304,7 +2304,7 @@ class MainProvider(ResolverMixin, BaseProvider):
               Its `host` attribute of this object will be `None`.
 
             * Class-level use: The class path of the source class,
-              as a :term:`string` object.
+              as a :class:`py:str` object.
               The `namespace` attribute of this object will be equal to the
               namespace parameter.
               Its `host` attribute of this object will be `None`.
@@ -2330,7 +2330,7 @@ class MainProvider(ResolverMixin, BaseProvider):
                 the CIM namespace, or `None` if the server did not return host
                 information.
 
-            * For class-level requests (ObjectName is :term:`string`):
+            * For class-level requests (ObjectName is :class:`py:str`):
               A list of :class:`~pywbem.CIMClassName` objects that are the
               class paths of the associated classes, with their attributes set
               as follows:
@@ -2391,7 +2391,7 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing slash
             characters are ignored.
@@ -2406,7 +2406,7 @@ class MainProvider(ResolverMixin, BaseProvider):
               Its `host` attribute of this object will be `None`.
 
             * Class-level use: The class path of the source class,
-              as a :term:`string` object.
+              as a :class:`py:str` object.
               The `namespace` attribute of this object will be equal to the
               namespace parameter.
               Its `host` attribute of this object will be `None`.
@@ -2431,7 +2431,7 @@ class MainProvider(ResolverMixin, BaseProvider):
               * `host`: Host and optionally port of the WBEM server containing
                 the CIM namespace.
 
-            * For class-level requests (ObjectName is :term:`string`):
+            * For class-level requests (ObjectName is :class:`py:str`):
               A list of :func:`py:tuple` of (classpath, class) objects that are
               representations of the associated classes.
 
@@ -2519,7 +2519,7 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing slash
             characters are ignored.
@@ -2527,12 +2527,12 @@ class MainProvider(ResolverMixin, BaseProvider):
           objects (list of:class:`CIMInstanceName` or list of :class:`CIMInstance` ):
             list of objects to be returned to the caller.
 
-          FilterQueryLanguage (:term:`string`):
+          FilterQueryLanguage (str):
             The name of the filter query language used for the `FilterQuery`
             parameter. The DMTF-defined Filter Query Language (see
             :term:`DSP0212`) is specified as "DMTF:FQL".
 
-          FilterQuery (:term:`string`):
+          FilterQuery (str):
             The filter query in the query language defined by the
             `FilterQueryLanguage` parameter.
 
@@ -2551,7 +2551,7 @@ class MainProvider(ResolverMixin, BaseProvider):
             * If `None`, this parameter is not passed to the WBEM server, and
               causes the server-implemented default timeout to be used.
 
-          ContinueOnError (:class:`py:bool`):
+          ContinueOnError (bool):
             Indicates to the WBEM server to continue sending responses
             after an error response has been sent.
 
@@ -2590,7 +2590,7 @@ class MainProvider(ResolverMixin, BaseProvider):
             * **instances** or **instance_patns**
               Representations of the retrieved instances.
 
-            * **eos** (:class:`py:bool`):
+            * **eos** (bool):
               Indicates whether the enumeration session is exhausted after
               this operation:
 
@@ -2608,11 +2608,11 @@ class MainProvider(ResolverMixin, BaseProvider):
 
               The tuple items are:
 
-              * server_context (:term:`string`):
+              * server_context (str):
                 Enumeration context string returned by the server if
                 the session is not exhausted, or `None` otherwise. This string
                 is opaque for the client.
-              * namespace (:term:`string`):
+              * namespace (str):
                 Name of the CIM namespace that was used for this operation.
 
               NOTE: This inner tuple hides the need for a CIM namespace
@@ -2800,12 +2800,12 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing slash
             characters are ignored.
 
-          ClassName (:term:`string`):
+          ClassName (str):
             Name of the class to be enumerated (case independent).
 
           See _open_response() for description of additional parameters
@@ -2825,7 +2825,7 @@ class MainProvider(ResolverMixin, BaseProvider):
               * `host`: Host and optionally port of the WBEM server containing
                 the CIM namespace.
 
-            * **eos** (:class:`py:bool`):
+            * **eos** (bool):
               Indicates whether the enumeration session is exhausted after
               this operation:
 
@@ -2843,11 +2843,11 @@ class MainProvider(ResolverMixin, BaseProvider):
 
               The tuple items are:
 
-              * server_context (:term:`string`):
+              * server_context (str):
                 Enumeration context string returned by the server if
                 the session is not exhausted, or `None` otherwise. This string
                 is opaque for the client.
-              * namespace (:term:`string`):
+              * namespace (str):
                 Name of the CIM namespace that was used for this operation.
 
               NOTE: This inner tuple hides the need for a CIM namespace
@@ -2898,12 +2898,12 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing slash
             characters are ignored.
 
-          ClassName (:term:`string`):
+          ClassName (str):
             Name of the class to be enumerated (case independent).
 
           See _open_response() for description of additional parameters
@@ -2926,7 +2926,7 @@ class MainProvider(ResolverMixin, BaseProvider):
               * `host`: Host and optionally port of the WBEM server containing
                 the CIM namespace.
 
-            * **eos** (:class:`py:bool`):
+            * **eos** (bool):
               Indicates whether the enumeration session is exhausted after
               this operation:
 
@@ -2944,11 +2944,11 @@ class MainProvider(ResolverMixin, BaseProvider):
 
               The tuple items are:
 
-              * server_context (:term:`string`):
+              * server_context (str):
                 Enumeration context string returned by the server if
                 the session is not exhausted, or `None` otherwise. This string
                 is opaque for the client.
-              * namespace (:term:`string`):
+              * namespace (str):
                 Name of the CIM namespace that was used for this operation.
 
               NOTE: This inner tuple hides the need for a CIM namespace
@@ -3007,7 +3007,7 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing slash
             characters are ignored.
@@ -3071,7 +3071,7 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing slash
             characters are ignored.
@@ -3141,7 +3141,7 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing slash
             characters are ignored.
@@ -3210,7 +3210,7 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing slash
             characters are ignored.
@@ -3285,7 +3285,7 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing slash
             characters are ignored.
@@ -3346,11 +3346,11 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         Parameters:
 
-          EnumerationContext (:term:`string`):
+          EnumerationContext (str):
             Identifier for the enumeration context created by the
             corresponding Open... request.
 
-          MaxObjectCount (:term:`integer`):
+          MaxObjectCount (int):
             Positive integer that defines the maximum number of instances
             that may be returned from this request.
 
@@ -3371,7 +3371,7 @@ class MainProvider(ResolverMixin, BaseProvider):
               * `host`: Host and optionally port of the WBEM server containing
                 the CIM namespace.
 
-            * **eos** (:class:`py:bool`):
+            * **eos** (bool):
               Indicates whether the enumeration session is exhausted after
               this operation:
 
@@ -3389,11 +3389,11 @@ class MainProvider(ResolverMixin, BaseProvider):
 
               The tuple items are:
 
-              * server_context (:term:`string`):
+              * server_context (str):
                 Enumeration context string returned by the server if
                 the session is not exhausted, or `None` otherwise. This string
                 is opaque for the client.
-              * namespace (:term:`string`):
+              * namespace (str):
                 Name of the CIM namespace that was used for this operation.
 
               NOTE: This inner tuple hides the need for a CIM namespace
@@ -3422,11 +3422,11 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         Parameters:
 
-          EnumerationContext (:term:`string`):
+          EnumerationContext (str):
             Identifier for the enumeration context created by the
             corresponding Open... request.
 
-          MaxObjectCount (:term:`integer`):
+          MaxObjectCount (int):
             Positive integer that defines the maximum number of instances
             that may be returned from this request.
 
@@ -3445,7 +3445,7 @@ class MainProvider(ResolverMixin, BaseProvider):
               * `host`: Host and optionally port of the WBEM server containing
                 the CIM namespace.
 
-            * **eos** (:class:`py:bool`):
+            * **eos** (bool):
               Indicates whether the enumeration session is exhausted after
               this operation:
 
@@ -3463,11 +3463,11 @@ class MainProvider(ResolverMixin, BaseProvider):
 
               The tuple items are:
 
-              * server_context (:term:`string`):
+              * server_context (str):
                 Enumeration context string returned by the server if
                 the session is not exhausted, or `None` otherwise. This string
                 is opaque for the client.
-              * namespace (:term:`string`):
+              * namespace (str):
                 Name of the CIM namespace that was used for this operation.
 
               NOTE: This inner tuple hides the need for a CIM namespace
@@ -3496,11 +3496,11 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         Parameters:
 
-          EnumerationContext (:term:`string`):
+          EnumerationContext (str):
             Identifier for the enumeration context created by the
             corresponding Open... request.
 
-          MaxObjectCount (:term:`integer`):
+          MaxObjectCount (int):
             Positive integer that defines the maximum number of instances
             that may be returned from this request.
 
@@ -3516,7 +3516,7 @@ class MainProvider(ResolverMixin, BaseProvider):
               object is `None`, because this operation does not return instance
               paths.
 
-            * **eos** (:class:`py:bool`):
+            * **eos** (bool):
               Indicates whether the enumeration session is exhausted after
               this operation:
 
@@ -3534,11 +3534,11 @@ class MainProvider(ResolverMixin, BaseProvider):
 
               The tuple items are:
 
-              * server_context (:term:`string`):
+              * server_context (str):
                 Enumeration context string returned by the server if
                 the session is not exhausted, or `None` otherwise. This string
                 is opaque for the client.
-              * namespace (:term:`string`):
+              * namespace (str):
                 Name of the CIM namespace that was used for this operation.
 
               NOTE: This inner tuple hides the need for a CIM namespace
@@ -3570,7 +3570,7 @@ class MainProvider(ResolverMixin, BaseProvider):
 
         Parameters:
 
-          EnumerationContext(:term:`string`):
+          EnumerationContext(str):
             Identifier for the enumeration context created by the
             corresponding Open... request.
 

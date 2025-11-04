@@ -20,12 +20,12 @@ def assert_number_of_instances_equal(
 
         conn (WBEMConnection with 'es_server' attribute)
 
-        exp_number (integer): Expected number of instances or instance paths.
+        exp_number (int): Expected number of instances or instance paths.
 
-        inst_list (list of CIMInstanceName or CIMInstance): List of instances
-          or instance paths to be tested.
+        inst_list (:class:`py:list` of CIMInstanceName or CIMInstance): List of
+          instances or instance paths to be tested.
 
-        inst_list_msg (string): Short definition what inst_list is.
+        inst_list_msg (str): Short definition what inst_list is.
     """
     if len(inst_list) != exp_number:
         raise AssertionError(
@@ -45,12 +45,12 @@ def assert_number_of_instances_minimum(
 
         conn (WBEMConnection with 'es_server' attribute)
 
-        exp_number (integer): Expected number of instances or instance paths.
+        exp_number (int): Expected number of instances or instance paths.
 
-        inst_list (list of CIMInstanceName or CIMInstance): List of instances
-          or instance paths to be tested.
+        inst_list (:class:`py:list` of CIMInstanceName or CIMInstance): List of
+          instances or instance paths to be tested.
 
-        inst_list_msg (string): Short definition what inst_list is.
+        inst_list_msg (str): Short definition what inst_list is.
     """
     if len(inst_list) < exp_number:
         raise AssertionError(
@@ -78,7 +78,7 @@ def assert_instance_of(conn, obj_list, classname):
         obj_list (CIMInstanceName or CIMInstance or tuple/list thereof):
           The CIM instances and CIM instance paths to be evaluated.
 
-        classname (string): The CIM class name.
+        classname (str): The CIM class name.
     """
 
     # TODO 2018-12 AM: Improve performance by avoiding EI on each path
@@ -214,7 +214,7 @@ def assert_property_one_of(conn, instance, prop_name, value_list):
         instance (CIMInstance): The CIM instance that has the property to
           be verified.
 
-        prop_name (string): Name of the CIM property to be verified.
+        prop_name (str): Name of the CIM property to be verified.
 
         value_list (iterable of values): The set of allowable values for
           the property.
@@ -248,7 +248,7 @@ def assert_property_contains(conn, instance, prop_name, value):
         instance (CIMInstance): The CIM instance that has the property to
           be verified.
 
-        prop_name (string): Name of the CIM property to be verified.
+        prop_name (str): Name of the CIM property to be verified.
 
         value (value): The value.
     """
@@ -288,11 +288,11 @@ def assert_path_equal(conn, path1, path1_msg, path2, path2_msg):
 
         path1 (CIMInstanceName): First instance path to be compared.
 
-        path1_msg (string): Short definition what path1 is.
+        path1_msg (str): Short definition what path1 is.
 
         path2 (CIMInstanceName): Second instance path to be compared.
 
-        path2_msg (string): Short definition what path2 is.
+        path2_msg (str): Short definition what path2 is.
     """
 
     # Check parameters
@@ -322,12 +322,12 @@ def assert_path_in(conn, path, path_msg, path_list, path_list_msg):
         path (CIMInstanceName): Instance path to be tested for being contained
           in list.
 
-        path_msg (string): Short definition what path is.
+        path_msg (str): Short definition what path is.
 
         path_list (iterable of CIMInstanceName): List of instance paths tested
           for containing path.
 
-        path_list_msg (string): Short definition what path_list is.
+        path_list_msg (str): Short definition what path_list is.
     """
 
     # Check parameters
@@ -359,17 +359,17 @@ def assert_association_a1(
 
         conn (WBEMConnection with 'es_server' attribute)
 
-        profile_id (string): Profile org and name as 'org:name'
+        profile_id (str): Profile org and name as 'org:name'
 
         source_path (CIMInstanceName): Instance path of the source instance.
 
-        source_role (string): Filter: Role on source end of association.
+        source_role (str): Filter: Role on source end of association.
 
-        source_class (string): Filter: Class name of source end of association.
+        source_class (str): Filter: Class name of source end of association.
 
-        far_role (string): Filter: Role on far end of association.
+        far_role (str): Filter: Role on far end of association.
 
-        far_class (string): Filter: Class name of far end of association.
+        far_class (str): Filter: Class name of far end of association.
     """
 
     a1_assoc_insts = conn.References(
@@ -427,17 +427,17 @@ def assert_association_a2(
 
         conn (WBEMConnection with 'es_server' attribute)
 
-        profile_id (string): Profile org and name as 'org:name'
+        profile_id (str): Profile org and name as 'org:name'
 
         source_path (CIMInstanceName): Instance path of the source instance.
 
-        source_role (string): Filter: Role on source end of association.
+        source_role (str): Filter: Role on source end of association.
 
-        source_class (string): Filter: Class name of source end of association.
+        source_class (str): Filter: Class name of source end of association.
 
-        far_role (string): Filter: Role on far end of association.
+        far_role (str): Filter: Role on far end of association.
 
-        far_class (string): Filter: Class name of far end of association.
+        far_class (str): Filter: Class name of far end of association.
     """
 
     a2_assoc_insts = conn.References(
@@ -502,17 +502,17 @@ def assert_association_a3(
 
         conn (WBEMConnection with 'es_server' attribute)
 
-        profile_id (string): Profile org and name as 'org:name'
+        profile_id (str): Profile org and name as 'org:name'
 
         source_path (CIMInstanceName): Instance path of the source instance.
 
-        source_role (string): Filter: Role on source end of association.
+        source_role (str): Filter: Role on source end of association.
 
-        source_class (string): Filter: Class name of source end of association.
+        source_class (str): Filter: Class name of source end of association.
 
-        far_role (string): Filter: Role on far end of association.
+        far_role (str): Filter: Role on far end of association.
 
-        far_class (string): Filter: Class name of far end of association.
+        far_class (str): Filter: Class name of far end of association.
     """
 
     a3_assoc_paths = conn.ReferenceNames(
@@ -579,17 +579,17 @@ def assert_association_a4(
 
         conn (WBEMConnection with 'es_server' attribute)
 
-        profile_id (string): Profile org and name as 'org:name'
+        profile_id (str): Profile org and name as 'org:name'
 
         source_path (CIMInstanceName): Instance path of the source instance.
 
-        source_role (string): Filter: Role on source end of association.
+        source_role (str): Filter: Role on source end of association.
 
-        source_class (string): Filter: Class name of source end of association.
+        source_class (str): Filter: Class name of source end of association.
 
-        far_role (string): Filter: Role on far end of association.
+        far_role (str): Filter: Role on far end of association.
 
-        far_class (string): Filter: Class name of far end of association.
+        far_class (str): Filter: Class name of far end of association.
     """
 
     a4_assoc_paths = conn.ReferenceNames(
@@ -661,17 +661,17 @@ def assert_association_a5(
 
         conn (WBEMConnection with 'es_server' attribute)
 
-        profile_id (string): Profile org and name as 'org:name'
+        profile_id (str): Profile org and name as 'org:name'
 
         source_path (CIMInstanceName): Instance path of the source instance.
 
-        source_role (string): Filter: Role on source end of association.
+        source_role (str): Filter: Role on source end of association.
 
-        source_class (string): Filter: Class name of source end of association.
+        source_class (str): Filter: Class name of source end of association.
 
-        far_role (string): Filter: Role on far end of association.
+        far_role (str): Filter: Role on far end of association.
 
-        far_class (string): Filter: Class name of far end of association.
+        far_class (str): Filter: Class name of far end of association.
     """
 
     a5_assoc_insts = conn.EnumerateInstances(
@@ -734,17 +734,17 @@ def assert_association_a6(
 
         conn (WBEMConnection with 'es_server' attribute)
 
-        profile_id (string): Profile org and name as 'org:name'
+        profile_id (str): Profile org and name as 'org:name'
 
         source_path (CIMInstanceName): Instance path of the source instance.
 
-        source_role (string): Filter: Role on source end of association.
+        source_role (str): Filter: Role on source end of association.
 
-        source_class (string): Filter: Class name of source end of association.
+        source_class (str): Filter: Class name of source end of association.
 
-        far_role (string): Filter: Role on far end of association.
+        far_role (str): Filter: Role on far end of association.
 
-        far_class (string): Filter: Class name of far end of association.
+        far_class (str): Filter: Class name of far end of association.
     """
 
     a6_assoc_paths = conn.EnumerateInstanceNames(
@@ -939,10 +939,10 @@ def assert_profile_tree(conn, profile_inst, profile_ancestry,
             * key: std_uri of profile that is tested.
             * value: std_uri of its referencing profile (or spec, for the top).
 
-        reference_direction (string): Reference direction to use for the test
+        reference_direction (str): Reference direction to use for the test
           ('dmtf' or 'snia').
 
-        tls_org (string), tls_name (string): Org and name of top level spec
+        tls_org (str), tls_name (str): Org and name of top level spec
           of the profile tree (used only for failure messages).
     """
 

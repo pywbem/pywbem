@@ -138,27 +138,27 @@ class FakedWBEMConnection(WBEMConnection):
         """
         Parameters:
 
-          default_namespace (:term:`string`):
+          default_namespace (str):
             Default namespace.
             This parameter has the same characteristics as the same-named init
             parameter of :class:`~pywbem.WBEMConnection`.
 
-          use_pull_operations (:class:`py:bool`):
+          use_pull_operations (bool):
             Flag to control whether pull or traditional operations are
             used in the iter... operations.
             This parameter has the same characteristics as the same-named init
             parameter of :class:`~pywbem.WBEMConnection`.
 
-          timeout (:term:`number`):
+          timeout (:class:`py:int` or :class:`py:float`):
             This parameter has the same characteristics as the same-named init
             parameter of :class:`~pywbem.WBEMConnection`.
 
-          stats_enabled (:class:`py:bool`):
+          stats_enabled (bool):
             Flag to enable operation statistics.
             This parameter has the same characteristics as the same-named init
             parameter of :class:`~pywbem.WBEMConnection`.
 
-          response_delay (:term:`number`):
+          response_delay (:class:`py:int` or :class:`py:float`):
             Artifically created delay for each operation, in seconds. This must
             be a positive number. Delays less than a second or other fractional
             delays may be achieved with float numbers.
@@ -168,7 +168,7 @@ class FakedWBEMConnection(WBEMConnection):
             :attr:`~pywbem_mock.FakedWBEMConnection.response_delay` property
             can be used to set this delay subsequent to object creation.
 
-          disable_pull_operations (:class:`py:bool`):
+          disable_pull_operations (bool):
             Flag to allow user to disable the pull operations ( Open... and
             Pull.. requests). The default is None which enables pull operations
             to execute. Setting the flag to True causes pull operations
@@ -177,7 +177,7 @@ class FakedWBEMConnection(WBEMConnection):
             The :attr:`~pywbem_mock.FakedWBEMConnection.disable_pull_operations`
             property can be used to set this variable.
 
-        url (:term:`string`):
+        url (str):
             Defines a url to replace the default http://FakedURL.5988 url which
             is passed to the superclass. The url must be an acceptable syntax
             for WBEMConnection initialization.  This is useful when multiple
@@ -242,7 +242,7 @@ class FakedWBEMConnection(WBEMConnection):
     @property
     def namespaces(self):
         """
-        :term:`NocaseList` of :term:`string`:
+        :term:`NocaseList` of :class:`py:str`:
         The names of the namespaces that exist in the CIM repository.
         """
         return self._mainprovider.namespaces
@@ -250,7 +250,7 @@ class FakedWBEMConnection(WBEMConnection):
     @property
     def interop_namespace_names(self):
         """
-        :term:`NocaseList` of :term:`string`:
+        :term:`NocaseList` of :class:`py:str`:
         The valid Interop namespace names.
 
         Only these names may be the Interop namespace and only one
@@ -283,13 +283,14 @@ class FakedWBEMConnection(WBEMConnection):
     @property
     def response_delay(self):
         """
-        :term:`number`:
-          Artifically created delay for each operation, in seconds.
-          If `None`, there is no delay.
+        :class:`py:int` or :class:`py:float`: Artifically created delay for
+        each operation, in seconds.
 
-          This attribute is settable. For details, see the description of the
-          same-named init parameter of
-          :class:`this class <pywbem_mock.FakedWBEMConnection>`.
+        If `None`, there is no delay.
+
+        This attribute is settable. For details, see the description of the
+        same-named init parameter of
+        :class:`this class <pywbem_mock.FakedWBEMConnection>`.
         """
         return self._response_delay
 
@@ -306,7 +307,7 @@ class FakedWBEMConnection(WBEMConnection):
     @property
     def disable_pull_operations(self):
         """
-        :class:`py:bool`:
+        bool:
           Boolean flag to set option to disable the execution of the open and
           pull operation request handlers in the CIM repository. This
           emulates the characteristic in some CIM servers that did not
@@ -405,12 +406,12 @@ class FakedWBEMConnection(WBEMConnection):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace to be added to the CIM repository.
             Must not be `None`. Any leading or trailing slash characters are
             removed before the string is used to define the namespace name.
 
-          verbose (:class:`py:bool`):
+          verbose (bool):
             Verbose mode: Print a message about the namespace creation.
 
         Raises:
@@ -440,12 +441,12 @@ class FakedWBEMConnection(WBEMConnection):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the CIM repository (case
             insensitive). Must not be `None`. Leading or trailing
             slash characters are ignored.
 
-          verbose (:class:`py:bool`):
+          verbose (bool):
             Verbose mode: Print a message about the namespace deletion.
 
         Raises:
@@ -471,12 +472,12 @@ class FakedWBEMConnection(WBEMConnection):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The namespace name that is to be tested.
 
         Returns:
 
-          :class:`py:bool`: Indicates whether the namespace name is a valid
+          bool: Indicates whether the namespace name is a valid
           Interop namespace name.
         """
         return self._mainprovider.is_interop_namespace(namespace)
@@ -491,7 +492,7 @@ class FakedWBEMConnection(WBEMConnection):
 
         Returns:
 
-          :term:`string`: The name of the Interop namespace if one exists in
+          str: The name of the Interop namespace if one exists in
           the CIM repository or otherwise `None`.
         """
         return self._mainprovider.find_interop_namespace()
@@ -512,10 +513,10 @@ class FakedWBEMConnection(WBEMConnection):
 
         Parameters:
 
-          interop_namespace  (:term:`string`):
+          interop_namespace (str):
             The Interop namespace defined for this environment
 
-          schema_pragma_file (:term:`string`):
+          schema_pragma_file (str):
             File path defining a CIM schema pragma file for the set of
             CIM classes that make up a schema such as the DMTF schema.
             This file must contain a pragma statement for each of the
@@ -525,7 +526,7 @@ class FakedWBEMConnection(WBEMConnection):
             provider and it is assumed that the CIM classes are already
             installed
 
-          verbose (:class:`py:bool`):
+          verbose (bool):
             If True, displays progress information as providers are installed.
 
         Raises:
@@ -565,10 +566,10 @@ class FakedWBEMConnection(WBEMConnection):
 
         Parameters:
 
-          interop_namespace  (:term:`string`):
+          interop_namespace (str):
             The Interop namespace defined for this environment
 
-          schema_pragma_file (:term:`string`):
+          schema_pragma_file (str):
             File path defining a CIM schema pragma file for the set of
             CIM classes that make up a schema such as the DMTF schema.
             This file must contain a pragma statement for each of the
@@ -578,7 +579,7 @@ class FakedWBEMConnection(WBEMConnection):
             provider and it is assumed that the CIM classes are already
             installed
 
-          verbose (:class:`py:bool`):
+          verbose (bool):
             If True, displays progress information as providers are installed.
 
         Raises:
@@ -643,10 +644,10 @@ class FakedWBEMConnection(WBEMConnection):
 
         Parameters:
 
-          mof_file (:term:`string`):
+          mof_file (str):
             Path name of the file containing the MOF definitions to be compiled.
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the associated CIM repository that
             is the target of the compilation, and is also used for lookup of any
             dependent CIM elements. If `None`, the default namespace of the
@@ -656,14 +657,14 @@ class FakedWBEMConnection(WBEMConnection):
             specified in this parameter or the MOF inamespace pragma must
             exist.
 
-          search_paths (:term:`py:iterable` of :term:`string`):
+          search_paths (:term:`py:iterable` of :class:`py:str`):
             An iterable of directory path names where MOF dependent files will
             be looked up.
             See the description of the `search_path` init parameter of the
             :class:`~pywbem.MOFCompiler` class for more information on MOF
             dependent files.
 
-          verbose (:class:`py:bool`):
+          verbose (bool):
             Controls whether to issue more detailed compiler messages.
 
         Raises:
@@ -719,10 +720,10 @@ class FakedWBEMConnection(WBEMConnection):
 
         Parameters:
 
-          mof_str (:term:`string`):
+          mof_str (str):
             A string with the MOF definitions to be compiled.
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the associated CIM repository that
             is the target of the compilation, and is also used for lookup of any
             dependent CIM elements. If `None`, the default namespace of the
@@ -732,14 +733,14 @@ class FakedWBEMConnection(WBEMConnection):
             specified in this parameter or the MOF inamespace pragma must
             exist.
 
-          search_paths (:term:`py:iterable` of :term:`string`):
+          search_paths (:term:`py:iterable` of :class:`py:str`):
             An iterable of directory path names where MOF dependent files will
             be looked up.
             See the description of the `search_path` init parameter of the
             :class:`~pywbem.MOFCompiler` class for more information on MOF
             dependent files.
 
-          verbose (:class:`py:bool`):
+          verbose (bool):
             Controls whether to issue more detailed compiler messages.
 
         Raises:
@@ -802,17 +803,17 @@ class FakedWBEMConnection(WBEMConnection):
 
         Parameters:
 
-          class_names (:term:`string` or :class:`py:list` of :term:`string`):
+          class_names (:class:`py:str` or :class:`py:list` of :class:`py:str`):
             Class names of the classes to be compiled. These class names must
             be a subset of the classes defined in `schema_pragma_file`.
 
-          schema_pragma_files (:term:`string` or :class:`py:list` of :term:`string`):
+          schema_pragma_files (:class:`py:str` or :class:`py:list` of :class:`py:str`):
             Relative or absolute file path(s) of schema pragma files that
             include a MOF pragma include statement for each CIM class to be
             compiled.  This file path is available from
             :attr:`pywbem_mock.DMTFCIMSchema.schema_pragma_file`.
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in the associated CIM repository that
             is the target of the compilation, and is also used for lookup of any
             dependent CIM elements. If `None`, the default namespace of the
@@ -822,7 +823,7 @@ class FakedWBEMConnection(WBEMConnection):
             specified in this parameter or the MOF inamespace pragma must
             exist.
 
-          verbose (:class:`py:bool`):
+          verbose (bool):
             If `True`, progress messages are output to stdout as the schema is
             downloaded and expanded. Default is `False`.
 
@@ -891,7 +892,7 @@ class FakedWBEMConnection(WBEMConnection):
             CIM object or objects to be added to the CIM repository. The
             list may contain different kinds of CIM objects.
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the target CIM namespace in the CIM repository. This
             namespace is also used for lookup of any existing or dependent
             CIM objects. If `None`, the default namespace of the connection is
@@ -985,21 +986,21 @@ class FakedWBEMConnection(WBEMConnection):
 
         Parameters:
 
-          namespaces (:term:`string` or :class:`py:list` of :term:`string`):
+          namespaces (:class:`py:str` or :class:`py:list` of :class:`py:str`):
             Limits display output to the specified CIM namespace or namespaces.
             If `None`, all namespaces of the CIM repository are displayed.
 
-          dest (:term:`string`):
+          dest (str):
             File path of an output file. If `None`, the output is written to
             stdout.
 
-          summary (:class:`py:bool`):
+          summary (bool):
             Flag for summary mode. If `True`, only a summary count of CIM
             objects in the specified namespaces of the CIM repository is
             produced. If `False`, both the summary count and the details of
             the CIM objects are produced.
 
-          output_format (:term:`string`):
+          output_format (str):
             Output format, one of: 'mof', 'xml', or 'repr'.
         """
 
@@ -1156,12 +1157,12 @@ class FakedWBEMConnection(WBEMConnection):
             same as the defult method in InstanceWriteProvider and it must
             return data in the same format if the default method returns data.
 
-          namespaces (:term:`string` or :class:`py:list` of :term:`string`):
+          namespaces (:class:`py:str` or :class:`py:list` of :class:`py:str`):
             Namespace or namespaces for which the provider is to be registered.
 
             If `None`, the default namespace of the connection will be used.
 
-          schema_pragma_files  (:term:`string` or :class:`py:list` of :term:`string`):
+          schema_pragma_files (:class:`py:str` or :class:`py:list` of :class:`py:str`):
             File paths defining a schema pragma file MOF for the set of CIM
             classes that make up a schema such as the DMTF schema. These files
             must contain include pragma statements defining the file location
@@ -1173,7 +1174,7 @@ class FakedWBEMConnection(WBEMConnection):
             See :class:`pywbem.MOFCompiler` for more information on the
             `search_paths` parameter.
 
-          verbose (:class:`py:bool`):
+          verbose (bool):
             Flag to enable detailed display of actions
 
         Raises:
@@ -1199,7 +1200,7 @@ class FakedWBEMConnection(WBEMConnection):
 
         Parameters:
 
-          dest (:term:`string`):
+          dest (str):
             File path of an output file. If `None`, the output is written to
             stdout.
         """
@@ -1376,11 +1377,11 @@ class FakedWBEMConnection(WBEMConnection):
 
         Parameters:
 
-          namespace (:term:`string_type`):
+          namespace (str):
             The namespace from which the instance namess are to be retrieved.
             Must not be None.
 
-          params (class:`py:dict`):
+          params (dict):
             Dictionary of parameters for the method called.
 
         Returns:
@@ -1403,11 +1404,11 @@ class FakedWBEMConnection(WBEMConnection):
 
         Parameters:
 
-          namespace (:term:`string_type`):
+          namespace (str):
             The namespace from which the instance is to be retrieved. Must not
             be None.
 
-          params (class:`py:dict`):
+          params (dict):
             Dictionary of parameters for the method called.
 
         Returns:
@@ -1437,11 +1438,11 @@ class FakedWBEMConnection(WBEMConnection):
 
         Parameters:
 
-          namespace (:term:`string_type`):
+          namespace (str):
             The namespace from which the instance is to be retrieved. Must not
             be None.
 
-          params (class:`py:dict`):
+          params (dict):
             Dictionary of parameters for the method called.
 
         Returns:
@@ -1472,7 +1473,7 @@ class FakedWBEMConnection(WBEMConnection):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             Namespace in which the instance will be created
             Must not be None.
 
@@ -1499,7 +1500,7 @@ class FakedWBEMConnection(WBEMConnection):
         :class:`ProviderDispatcher`.
 
         Parameters:
-          namespace (:term:`string`):
+          namespace (str):
             Namespace in containing the instance to be modified
             Must not be None.
 
@@ -1528,7 +1529,7 @@ class FakedWBEMConnection(WBEMConnection):
         :class:`ProviderDispatcher`.
 
         Parameters:
-          namespace (:term:`string`):
+          namespace (str):
             Namespace containing the instance to be deleted
             Must not be None.
 
@@ -1552,7 +1553,7 @@ class FakedWBEMConnection(WBEMConnection):
         for imethodcall.
 
         Parameters:
-          namespace (:term:`string`):
+          namespace (str):
             Namespace containing the class and method
             Must not be None.
 

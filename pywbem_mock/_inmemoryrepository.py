@@ -180,7 +180,7 @@ class InMemoryRepository(BaseRepository):
 
         Parameters:
 
-          initial_namespace (:term:`string` or None):
+          initial_namespace (:class:`py:str` or None):
             Optional initial namespace that will be added to
             the CIM repository.
         """
@@ -209,7 +209,7 @@ class InMemoryRepository(BaseRepository):
         the items in the data base and is only a diagnostic tool.
 
         Parameters:
-          dest (:term:`string`):
+          dest (str):
             File path of an output file. If `None`, the output is written to
             stdout.
         """

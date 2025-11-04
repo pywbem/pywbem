@@ -93,14 +93,14 @@ class RunIndicationTest:
                 OpenPegasus server because the indication generator is defined
                 as part of that server
 
-            indication_destination_host (:term:`string`):
+            indication_destination_host (str):
                 host name/ip address containing the listener.  This is
                 the address to where indications are sent by the WBEM server.
                 If the WBEM server is on a different system or in a container
                 this must be an address usable by that system/container.
                 Localhost is not a valid host name in that case.
 
-            listener_host (:term:`string` or None):
+            listener_host (str or None):
                 host name/ip address that will be used by the listener as its
                 bind address. If this parameter contains a string that will be
                 passed to WBEMListener as the host parameter. That name/IP
@@ -110,25 +110,25 @@ class RunIndicationTest:
                 indications addressed to any IP address in the containing
                 computer system.
 
-            http_listener_port (:term:`number`):
+            http_listener_port (int):
                 listener port for indications sent with http.
 
-            request_indications (:term:`number`):
+            request_indications (int):
                 Number of indications requested from server for. The default
                 is 1 indication.
 
-            repeat_loop (:term:`number`):
+            repeat_loop (int):
                 The number of times the request indications method is to
                 be sent to the server.  It is sent to request that the
                 server generate the number of indications defined by the
                 request_indications parameter and when that number of
                 indications has been received
 
-            verbose (:class:`py:bool`):
+            verbose (bool):
                 Flag that when set generates diagnostic displays as the
                 test proceedes.
 
-            cmd  (:term:`string` or None):
+            cmd (str or None):
                 String defines a special test setup to allow execting just
                 the setup or just the send of indications
                 1. setup

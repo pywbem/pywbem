@@ -167,7 +167,7 @@ def instance_of(conn, obj_list, classname):
         obj_list (CIMInstanceName or CIMInstance or tuple/list thereof):
           The CIM instances and CIM instance paths to be evaluated.
 
-        classname (string): The CIM class name.
+        classname (str): The CIM class name.
     """
 
     assert obj_list is not None

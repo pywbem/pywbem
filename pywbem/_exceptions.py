@@ -54,7 +54,7 @@ class _RequestExceptionMixin:
           **kwargs :
             Any other keyword arguments are passed on to the next superclass.
 
-          request_data (:term:`string`):
+          request_data (str):
             CIM-XML request string. Omitted or `None` means the exception does
             not store a CIM-XML request.
             Must be specified as a keyword argument; if specified it will be
@@ -71,7 +71,7 @@ class _RequestExceptionMixin:
     @property
     def request_data(self):
         """
-        :term:`string`: CIM-XML request string (settable).
+        str: CIM-XML request string (settable).
         `None` if the exception does not store a CIM-XML request.
         """
         return self._request_data
@@ -104,7 +104,7 @@ class _ResponseExceptionMixin:
           **kwargs :
             Any other keyword arguments are passed on to the next superclass.
 
-          response_data (:term:`string`):
+          response_data (str):
             CIM-XML response string. Omitted or `None` means the exception does
             not store a CIM-XML response.
             Must be specified as a keyword argument; if specified it will be
@@ -121,7 +121,7 @@ class _ResponseExceptionMixin:
     @property
     def response_data(self):
         """
-        :term:`string`: CIM-XML response string (settable).
+        str: CIM-XML response string (settable).
         `None` if the exception does not store a CIM-XML response.
         """
         return self._response_data
@@ -174,8 +174,7 @@ class Error(Exception):
     @property
     def conn_str(self):
         """
-        :term:`unicode string`: String that identifies the connection in
-        exception messages.
+        str: String that identifies the connection in exception messages.
         """
         ret_str = f"Connection id: {self.conn_id}"
         return ret_str
@@ -194,7 +193,7 @@ class ConnectionError(Error):
         """
         Parameters:
 
-          message (:term:`string`): Error message (will be put into `args[0]`).
+          message (str): Error message (will be put into `args[0]`).
 
           conn_id (:term:`connection id`):
             Connection ID of the connection in whose context the error happened.
@@ -221,7 +220,7 @@ class AuthError(Error):
         """
         Parameters:
 
-          message (:term:`string`): Error message (will be put into `args[0]`).
+          message (str): Error message (will be put into `args[0]`).
 
           conn_id (:term:`connection id`):
             Connection ID of the connection in whose context the error happened.
@@ -257,12 +256,12 @@ class HTTPError(_RequestExceptionMixin, _ResponseExceptionMixin, Error):
         """
         Parameters:
 
-          status (:term:`integer`): HTTP status code (e.g. 500).
+          status (int): HTTP status code (e.g. 500).
 
-          reason (:term:`string`): HTTP reason phrase (e.g.
+          reason (str): HTTP reason phrase (e.g.
             "Internal Server Error").
 
-          cimerror (:term:`string`): Value of the `CIMError` HTTP header field,
+          cimerror (str): Value of the `CIMError` HTTP header field,
             if present. `None`, otherwise.
 
           cimdetails (dict): Dictionary with CIMOM-specific header
@@ -279,10 +278,10 @@ class HTTPError(_RequestExceptionMixin, _ResponseExceptionMixin, Error):
             happen in context of any connection, or if the connection context
             was not known.
 
-          request_data (:term:`string`): CIM-XML request string.
+          request_data (str): CIM-XML request string.
             `None` means the exception does not store a CIM-XML request.
 
-          response_data (:term:`string`): CIM-XML response string.
+          response_data (str): CIM-XML response string.
             `None` means the exception does not store a CIM-XML response.
 
         :ivar args: A tuple (status, reason, cimerror, cimdetails) set from the
@@ -297,7 +296,7 @@ class HTTPError(_RequestExceptionMixin, _ResponseExceptionMixin, Error):
     @property
     def status(self):
         """
-        :term:`integer`: HTTP status code.
+        int: HTTP status code.
 
         Example: 500
 
@@ -310,7 +309,7 @@ class HTTPError(_RequestExceptionMixin, _ResponseExceptionMixin, Error):
     @property
     def reason(self):
         """
-        :term:`string`: HTTP reason phrase.
+        str: HTTP reason phrase.
 
         Example: "Internal Server Error"
 
@@ -321,8 +320,7 @@ class HTTPError(_RequestExceptionMixin, _ResponseExceptionMixin, Error):
     @property
     def cimerror(self):
         """
-        :term:`string`: Value of `CIMError` HTTP header field in response, if
-        present.
+        str: Value of `CIMError` HTTP header field in response, if present.
 
         `None`, otherwise.
 
@@ -365,7 +363,7 @@ class TimeoutError(Error):
         """
         Parameters:
 
-          message (:term:`string`): Error message (will be put into `args[0]`).
+          message (str): Error message (will be put into `args[0]`).
 
           conn_id (:term:`connection id`):
             Connection ID of the connection in whose context the error happened.
@@ -409,17 +407,17 @@ class ParseError(_RequestExceptionMixin, _ResponseExceptionMixin, Error):
         """
         Parameters:
 
-          message (:term:`string`): Error message (will be put into `args[0]`).
+          message (str): Error message (will be put into `args[0]`).
 
           conn_id (:term:`connection id`): Connection ID of the connection in
             whose context the error happened. `None` if the error did not
             happen in context of any connection, or if the connection context
             was not known.
 
-          request_data (:term:`string`): CIM-XML request string.
+          request_data (str): CIM-XML request string.
             `None` means the exception does not store a CIM-XML request.
 
-          response_data (:term:`string`): CIM-XML response string.
+          response_data (str): CIM-XML response string.
             `None` means the exception does not store a CIM-XML response.
 
         :ivar args: A tuple (message, ) set from the corresponding init
@@ -498,7 +496,7 @@ class VersionError(Error):
         """
         Parameters:
 
-          message (:term:`string`): Error message (will be put into `args[0]`).
+          message (str): Error message (will be put into `args[0]`).
 
           conn_id (:term:`connection id`):
             Connection ID of the connection in whose context the error happened.
@@ -586,16 +584,16 @@ class CIMError(_RequestExceptionMixin, Error):
         """
         Parameters:
 
-          status_code (:term:`integer`): Numeric CIM status code.
+          status_code (int): Numeric CIM status code.
 
-          status_description (:term:`string`): CIM status description text
+          status_description (str): CIM status description text
             returned by the server, representing a human readable message
             describing the error. `None`, if the server did not return
             a description text.
 
-          instances (list of :class:`~pywbem.CIMInstance`): List of CIM
-            instances returned by the WBEM server in the error response, that
-            provide more details on the error. `None` if there are no such
+          instances (:class:`py:list` of :class:`~pywbem.CIMInstance`): List of
+            CIM instances returned by the WBEM server in the error response,
+            that provide more details on the error. `None` if there are no such
             instances.
 
           conn_id (:term:`connection id`): Connection ID of the connection in
@@ -603,7 +601,7 @@ class CIMError(_RequestExceptionMixin, Error):
             happen in context of any connection, or if the connection context
             was not known.
 
-          request_data (:term:`string`): CIM-XML request string.
+          request_data (str): CIM-XML request string.
             `None` means the exception does not store a CIM-XML request.
 
         :ivar args: A tuple (status_code, status_description, instances) set
@@ -616,7 +614,7 @@ class CIMError(_RequestExceptionMixin, Error):
     @property
     def status_code(self):
         """
-        :term:`integer`: Numeric CIM status code.
+        int: Numeric CIM status code.
 
         *New in pywbem 0.9.*
 
@@ -629,7 +627,7 @@ class CIMError(_RequestExceptionMixin, Error):
     @property
     def status_code_name(self):
         """
-        :term:`string`: Symbolic name of the CIM status code.
+        str: Symbolic name of the CIM status code.
 
         Example: "CIM_ERR_INVALID_CLASS"
 
@@ -642,7 +640,7 @@ class CIMError(_RequestExceptionMixin, Error):
     @property
     def status_description(self):
         """
-        :term:`string`: CIM status description text returned by the server,
+        str: CIM status description text returned by the server,
         representing a human readable message describing the error.
 
         *New in pywbem 0.9.*
@@ -659,9 +657,9 @@ class CIMError(_RequestExceptionMixin, Error):
     @property
     def instances(self):
         """
-        List of :class:`~pywbem.CIMInstance`: CIM instances returned by the
-        WBEM server in the error response, that provide more details on the
-        error.
+        :class:`py:list` of :class:`~pywbem.CIMInstance`: CIM instances
+        returned by the WBEM server in the error response, that provide more
+        details on the error.
 
         *New in pywbem 0.13.*
 
@@ -694,7 +692,7 @@ class ModelError(Error):
         """
         Parameters:
 
-          message (:term:`string`): Error message (will be put into `args[0]`).
+          message (str): Error message (will be put into `args[0]`).
 
           conn_id (:term:`connection id`):
             Connection ID of the connection in whose context the error happened.
@@ -723,7 +721,7 @@ class ListenerError(Exception):
         """
         Parameters:
 
-          message (:term:`string`): Error message (will be put into `args[0]`).
+          message (str): Error message (will be put into `args[0]`).
 
         :ivar args: A tuple (message, ) set from the corresponding init
             argument.

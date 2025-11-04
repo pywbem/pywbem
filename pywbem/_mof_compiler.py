@@ -357,7 +357,7 @@ class MOFCompileError(Error):
         """
         Parameters:
 
-          msg (:term:`string`):
+          msg (str):
             Message text describing the error.
 
           parser_token (`lex.LexToken` or `yacc.YaccProduction`):
@@ -386,7 +386,7 @@ class MOFCompileError(Error):
     @property
     def lineno(self):
         """
-        :term:`integer`: Line number in the MOF file or MOF string where the
+        int: Line number in the MOF file or MOF string where the
         error occurred (1-based).
         """
         return self.args[0]
@@ -394,7 +394,7 @@ class MOFCompileError(Error):
     @property
     def column(self):
         """
-        :term:`integer`: Position within the line in the MOF file or MOF string
+        int: Position within the line in the MOF file or MOF string
         where the error occurred (1-based).
         """
         return self.args[1]
@@ -402,7 +402,7 @@ class MOFCompileError(Error):
     @property
     def file(self):
         """
-        :term:`string`: File name of the MOF file where the error occurred.
+        str: File name of the MOF file where the error occurred.
 
         `None` if the error occurred in a MOF string that was compiled.
         """
@@ -411,7 +411,7 @@ class MOFCompileError(Error):
     @property
     def context(self):
         """
-        :term:`string`: MOF context, consisting of a first line that is the
+        str: MOF context, consisting of a first line that is the
         MOF line in error, and a second line that uses the '^' character to
         indicate the position of the token in error in the MOF line.
         """
@@ -420,7 +420,7 @@ class MOFCompileError(Error):
     @property
     def msg(self):
         """
-        :term:`string`: Message text describing the error.
+        str: Message text describing the error.
         """
         return self._msg
 
@@ -441,7 +441,7 @@ class MOFCompileError(Error):
 
         Returns:
 
-          :term:`string`: Multi-line error message.
+          str: Multi-line error message.
         """
         ret_str = f'{self.error_kind}:'
         disp_file = 'String' if not self.file else self.file
@@ -494,7 +494,7 @@ class MOFRepositoryError(MOFCompileError):
         """
         Parameters:
 
-          msg (:term:`string`):
+          msg (str):
             Message text describing the error.
 
           parser_token (`lex.LexToken` or `yacc.YaccProduction`):
@@ -534,7 +534,7 @@ class MOFRepositoryError(MOFCompileError):
 
         Returns:
 
-          :term:`string`: Multi-line error message.
+          str: Multi-line error message.
         """
         ret_str = super().get_err_msg()
         ret_str += f"\n{self.cim_error}"
@@ -2117,7 +2117,7 @@ class BaseRepositoryConnection(metaclass=ABCMeta):
     default_namespace = property(
         _getns, _setns, None,
         """
-        :term:`string`: The default repository namespace.
+        str: The default repository namespace.
 
         This property is settable.
         """
@@ -2306,7 +2306,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
 
     def _getns(self):
         """
-        :term:`string`: Return the default repository namespace to be used.
+        str: Return the default repository namespace to be used.
 
         This method exists for compatibility. Use the :attr:`default_namespace`
         property instead.
@@ -2333,7 +2333,7 @@ class MOFWBEMConnection(BaseRepositoryConnection):
     default_namespace = property(
         _getns, _setns, None,
         """
-        :term:`string`: The default repository namespace to be used.
+        str: The default repository namespace to be used.
 
         The default repository namespace is the default namespace of the
         underlying repository connection if there is such an underlying
@@ -2728,7 +2728,7 @@ class MOFCompiler:
             case, the MOF compiler can only process standalone MOF that does
             not depend on existing CIM elements in the repository.
 
-          search_paths (:term:`py:iterable` of :term:`string` or :term:`string`):
+          search_paths (:term:`py:iterable` of :class:`py:str` or :class:`py:str`):
             Directory path name(s) where the MOF compiler will search for MOF
             dependent files if the MOF element they define is not in the target
             namespace of the CIM repository. The compiler searches the
@@ -2753,7 +2753,7 @@ class MOFCompiler:
             in the ``pragma include`` directive as a file path relative to the
             including file.
 
-          verbose (:class:`py:bool`):
+          verbose (bool):
             Indicates whether to issue more detailed compiler messages.
 
           log_func (:term:`callable`):
@@ -2852,17 +2852,17 @@ class MOFCompiler:
 
         Parameters:
 
-          mof (:term:`string` or list of :term:`string`):
+          mof (:class:`py:str` or :class:`py:list` of :class:`py:str`):
             The string or list of strings MOF statements to be compiled.
 
-          ns (:term:`string`):
+          ns (str):
             The name of the CIM namespace in the associated CIM repository
             that is used for lookup of any dependent CIM elements, and that
             is also the target of the compilation. If `None`, the default
             namespace of the connection is used. The namespace specified in
             this parameter must exist.
 
-          filename (:term:`string`):
+          filename (str):
             The path name of the file that the MOF statements were read from.
             This information is used only in compiler messages.
 
@@ -2943,10 +2943,10 @@ class MOFCompiler:
 
         Parameters:
 
-          mof (:term:`string`):
+          mof (str):
             The string of MOF statements to be compiled.
 
-          ns (:term:`string`):
+          ns (str):
             The name of the CIM namespace in the associated CIM repository that
             is the target of the compilation, and is also used for lookup of any
             dependent CIM elements. If `None`, the default namespace of the
@@ -2956,7 +2956,7 @@ class MOFCompiler:
             specified in this parameter or in the MOF '#pragma namespace'
             directive must exist.
 
-          filename (:term:`string`):
+          filename (str):
             The path name of the file that the MOF statements were read from.
             This information is used only in compiler messages.
 
@@ -3019,11 +3019,11 @@ class MOFCompiler:
 
         Parameters:
 
-          filename (:term:`string`):
+          filename (str):
             The path name of the MOF file containing the MOF statements to be
             compiled.
 
-          ns (:term:`string`):
+          ns (str):
             The name of the CIM namespace in the associated CIM repository that
             is the target of the compilation, and is also used for lookup of any
             dependent CIM elements. If `None`, the default namespace of the
@@ -3067,12 +3067,12 @@ class MOFCompiler:
 
         Parameters:
 
-          classame (:term:`string`):
+          classame (str):
             The name of the CIM class to look up.
 
         Returns:
 
-          :term:`string`: Path name of the MOF file defining the CIM class, if
+          str: Path name of the MOF file defining the CIM class, if
           it was found. `None`, if it was not found.
         """
 
@@ -3119,7 +3119,7 @@ def _yacc(verbose=False, out_dir=None):
 
       verbose (bool): Print messages while creating the parser object.
 
-      out_dir (string): Path name of the directory in which the YACC table
+      out_dir (str): Path name of the directory in which the YACC table
         module source file (_mofparsetab.py) for the MOF compiler will be
         generated. If None, that file will not be generated.
 
@@ -3168,7 +3168,7 @@ def _lex(verbose=False, out_dir=None):
 
       verbose (bool): Print messages while creating the parser object.
 
-      out_dir (string): Path name of the directory in which the LEX table
+      out_dir (str): Path name of the directory in which the LEX table
         module source file (_moflextab.py) for the MOF compiler will be
         generated. If None, that file will not be generated.
 

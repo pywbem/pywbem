@@ -381,12 +381,12 @@ def _qualifiers_tomof(qualifiers, indent, maxline=MAX_MOF_LINE):
 
       qualifiers (NocaseDict of CIMQualifier): Qualifiers to format.
 
-      indent (:term:`integer`): Number of spaces to indent each line of
+      indent (int): Number of spaces to indent each line of
         the returned string, counted to the opening bracket in the first line.
 
     Returns:
 
-      :term:`unicode string`: MOF string.
+      str: The MOF representation of the qualifiers.
     """
 
     if not qualifiers:
@@ -425,7 +425,7 @@ def _mof_escaped(strvalue):
 
     Parameters:
 
-      strvalue (:term:`unicode string`): The string value. Must not be `None`.
+      strvalue (str): The string value. Must not be `None`.
         Special characters must not be backslash-escaped.
 
     Details on backslash-escaping:
@@ -561,32 +561,32 @@ def mofstr(value, indent=MOF_INDENT, maxline=MAX_MOF_LINE, line_pos=0,
 
     Parameters:
 
-      value (:term:`unicode string`): The string value. Must not be `None`.
+      value (str): The string value. Must not be `None`.
         Special characters must not be backslash-escaped.
 
-      indent (:term:`integer`): Number of spaces to indent any new lines that
+      indent (int): Number of spaces to indent any new lines that
         are generated.
 
-      maxline (:term:`integer`): Maximum line length for the generated MOF.
+      maxline (int): Maximum line length for the generated MOF.
 
-      line_pos (:term:`integer`): Length of content already on the current
+      line_pos (int): Length of content already on the current
         line.
 
-      end_space (:term:`integer`): Length of space to be left free on the last
+      end_space (int): Length of space to be left free on the last
         line.
 
       avoid_splits (bool): Avoid splits at the price of starting a new line
         instead of using the current line.
 
-      quote_char (:term:`unicode string`): Character to be used for surrounding
+      quote_char (str): Character to be used for surrounding
         the string parts with. For CIM string typed values, this must be a
         double quote (the default), and for CIM char16 typed values, this must
         be a single quote.
 
     Returns:
 
-      tuple of
-        * :term:`unicode string`: MOF string.
+      tuple: A tuple of
+        * :class:`py:str`: MOF string.
         * new line_pos
     """
 
@@ -670,23 +670,23 @@ def mofval(value, indent=MOF_INDENT, maxline=MAX_MOF_LINE, line_pos=0,
 
     Parameters:
 
-      value (:term:`unicode string`): The non-string value. Must not be `None`.
+      value (str): The non-string value. Must not be `None`.
 
-      indent (:term:`integer`): Number of spaces to indent any new lines that
+      indent (int): Number of spaces to indent any new lines that
         are generated.
 
-      maxline (:term:`integer`): Maximum line length for the generated MOF.
+      maxline (int): Maximum line length for the generated MOF.
 
-      line_pos (:term:`integer`): Length of content already on the current
+      line_pos (int): Length of content already on the current
         line.
 
-      end_space (:term:`integer`): Length of space to be left free on the last
+      end_space (int): Length of space to be left free on the last
         line.
 
     Returns:
 
-      tuple of
-        * :term:`unicode string`: MOF string.
+      tuple: A tuple of
+        * :class:`py:str`: MOF string.
         * new line_pos
 
     Raises:
@@ -739,17 +739,17 @@ def _scalar_value_tomof(
         Must not be an array/list/tuple. Must not be a :ref:`CIM object` other
         than those listed.
 
-      type (string): CIM data type name.
+      type (str): CIM data type name.
 
-      indent (:term:`integer`): Number of spaces to indent any new lines that
+      indent (int): Number of spaces to indent any new lines that
         are generated.
 
-      maxline (:term:`integer`): Maximum line length for the generated MOF.
+      maxline (int): Maximum line length for the generated MOF.
 
-      line_pos (:term:`integer`): Length of content already on the current
+      line_pos (int): Length of content already on the current
         line.
 
-      end_space (:term:`integer`): Length of space to be left free on the last
+      end_space (int): Length of space to be left free on the last
         line.
 
       avoid_splits (bool): Avoid splits at the price of starting a new line
@@ -757,8 +757,8 @@ def _scalar_value_tomof(
 
     Returns:
 
-      tuple of
-        * :term:`unicode string`: MOF string.
+      tuple: A tuple of
+        * :class:`py:str`: MOF string.
         * new line_pos
     """  # noqa: E501
 
@@ -817,15 +817,15 @@ def _value_tomof(
 
       value (CIM-typed value or list of CIM-typed values): The value.
 
-      indent (:term:`integer`): Number of spaces to indent any new lines that
+      indent (int): Number of spaces to indent any new lines that
         are generated.
 
-      maxline (:term:`integer`): Maximum line length for the generated MOF.
+      maxline (int): Maximum line length for the generated MOF.
 
-      line_pos (:term:`integer`): Length of content already on the current
+      line_pos (int): Length of content already on the current
         line.
 
-      end_space (:term:`integer`): Length of space to be left free on the last
+      end_space (int): Length of space to be left free on the last
         line.
 
       avoid_splits (bool): Avoid splits at the price of starting a new line
@@ -833,8 +833,8 @@ def _value_tomof(
 
     Returns:
 
-      tuple of
-        * :term:`unicode string`: MOF string.
+      tuple: A tuple of
+        * :class:`py:str`: MOF string.
         * new line_pos
     """
 
@@ -1091,7 +1091,7 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
         """
         Parameters:
 
-          classname (:term:`string`):
+          classname (str):
             Name of the creation class of the referenced instance.
 
             Must not be `None`.
@@ -1103,7 +1103,7 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
             Keybindings for the instance path (that is, the key property values
             of the referenced instance).
 
-          host (:term:`string`):
+          host (str):
             Host and optionally port of the WBEM server containing the CIM
             namespace of the referenced instance.
 
@@ -1127,7 +1127,7 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
             The lexical case of the string is preserved. Object comparison and
             hash value calculation are performed case-insensitively.
 
-          namespace (:term:`string`):
+          namespace (str):
             Name of the CIM namespace containing the referenced instance.
 
             `None` means that the namespace is unspecified, and the
@@ -1155,7 +1155,7 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def classname(self):
         """
-        :term:`unicode string`: Class name of this CIM instance path,
+        str: Class name of this CIM instance path,
         identifying the creation class of the referenced instance.
 
         Will not be `None`.
@@ -1188,10 +1188,11 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
 
         Each dictionary item specifies one keybinding, with:
 
-        * key (:term:`unicode string`): Keybinding name. Its lexical case was
+        * key (str): Keybinding name. Its lexical case was
           preserved.
 
-        * value (:term:`CIM data type` or :term:`number`): Keybinding value.
+        * value (:term:`CIM data type` or :class:`py:int` or :class:`py:float`):
+          Keybinding value.
           `None` is not allowed by default, consistent with :term:`DSP0004`.
           This default behavior can be changed via the config variable
           :attr:`pywbem.config.IGNORE_NULL_KEY_VALUE`.
@@ -1212,7 +1213,8 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
         :class:`this class <pywbem.CIMInstanceName>`.
 
         When setting a keybinding value, it will be preserved whether the
-        input value was a :term:`CIM data type`, a :term:`number` or `None`.
+        input value was a :term:`CIM data type`, :class:`py:int`,
+        :class:`py:float` or `None`.
         If the input value was a :term:`CIM data type`, the CIM type of the
         keybinding value is known and this will cause the TYPE attribute
         in the KEYVALUE element of the CIM-XML representation to be present.
@@ -1220,7 +1222,7 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
         The keybindings can also be accessed and manipulated one by one
         because the attribute value is a modifiable dictionary. The provided
         input value must be specified as a :term:`CIM data type` or as
-        :term:`number`::
+        :class:`py:int` or :class:`py:float`::
 
             instpath = CIMInstanceName(...)
             v1 = "abc"  # must be a CIM data type or Python number type
@@ -1232,7 +1234,7 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
         In addition, the keybindings can be accessed and manipulated one by
         one by using the entire :class:`~pywbem.CIMInstanceName` object like a
         dictionary. Again, the provided input value must be specified as a
-        :term:`CIM data type` or as :term:`number`::
+        :term:`CIM data type` or as :class:`py:int` or :class:`py:float`::
 
             instpath = CIMInstanceName(...)
             v2 = 42  # must be a CIM data type or Python number type
@@ -1282,7 +1284,7 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def namespace(self):
         """
-        :term:`unicode string`: Namespace name of this CIM instance path,
+        str: Namespace name of this CIM instance path,
         identifying the namespace of the referenced instance.
 
         `None` means that the namespace is unspecified.
@@ -1307,8 +1309,7 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def host(self):
         """
-        :term:`unicode string`: Host and optionally port
-        of this CIM instance path,
+        str: Host and optionally port of this CIM instance path,
         identifying the WBEM server of the referenced instance.
 
         For details about the string format, see the same-named init parameter
@@ -1491,11 +1492,11 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
 
         Parameters:
 
-          key (:term:`string`):
+          key (str):
             Name of the keybinding (in any lexical case).
 
         Returns:
-          :class:`py:bool`: Boolean indicating whether this CIM instance path
+          bool: Boolean indicating whether this CIM instance path
           has the keybinding.
         """
         return key in self.keybindings
@@ -1509,7 +1510,7 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
 
         Parameters:
 
-          key (:term:`string`):
+          key (str):
             Name of the keybinding (in any lexical case).
 
           default (:term:`CIM data type`):
@@ -1648,16 +1649,16 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
 
         Parameters:
 
-          ignore_host (:class:`py:bool`): Ignore the host of the
+          ignore_host (bool): Ignore the host of the
             instance path, even if a host is specified.
 
-          ignore_namespace (:class:`py:bool`): Ignore the namespace and host of
+          ignore_namespace (bool): Ignore the namespace and host of
             the instance path, even if a namespace and/or host is specified.
 
         Returns:
 
-          The CIM-XML representation, as an object of an appropriate subclass
-          of :term:`Element`.
+          :term:`Element`: The CIM-XML representation, as an object of an
+          appropriate subclass of :term:`Element`.
         """
 
         kbs = []
@@ -1751,7 +1752,7 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
                     ignore_namespace=False):
         """
         Return the CIM-XML representation of this CIM instance path,
-        as a :term:`unicode string`.
+        as a :class:`py:str`.
 
         *New in pywbem 0.9.*
 
@@ -1760,7 +1761,7 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
 
         Parameters:
 
-          indent (:term:`string` or :term:`integer`):
+          indent (:class:`py:str` or :class:`py:int`):
             `None` indicates that a single-line version of the XML should be
             returned, without any whitespace between the XML elements.
 
@@ -1769,16 +1770,15 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
             string to be used for each level of nested XML elements. An integer
             value specifies an indentation string of so many blanks.
 
-          ignore_host (:class:`py:bool`): Ignore the host of the
+          ignore_host (bool): Ignore the host of the
             instance path, even if a host is specified.
 
-          ignore_namespace (:class:`py:bool`): Ignore the namespace and host of
+          ignore_namespace (bool): Ignore the namespace and host of
             the instance path, even if a namespace and/or host is specified.
 
         Returns:
 
-            The CIM-XML representation of the value, as a
-            :term:`unicode string`.
+            str: The CIM-XML representation of the object.
         """
         xml_elem = self.tocimxml(ignore_host, ignore_namespace)
         return tocimxmlstr(xml_elem, indent)
@@ -1955,7 +1955,7 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
 
         Parameters:
 
-          wbem_uri (:term:`string`):
+          wbem_uri (str):
             WBEM URI for an instance path.
 
         Returns:
@@ -2067,7 +2067,7 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
 
         Parameters:
 
-          format (:term:`string`): Format for the generated WBEM URI string,
+          format (str): Format for the generated WBEM URI string,
             using one of the following values:
 
             * ``"standard"`` - Standard format that is conformant to untyped
@@ -2129,8 +2129,8 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
 
         Returns:
 
-          :term:`unicode string`: Untyped WBEM URI of the CIM instance path,
-          in the specified format.
+          str: Untyped WBEM URI of the CIM instance path, in the specified
+          format.
 
         Raises:
 
@@ -2275,23 +2275,23 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
             instance (:class:`~pywbem.CIMInstance`):
                 The CIM instance with the key property values.
 
-            namespace (:term:`string`):
+            namespace (str):
                 Namespace to include in the created
                 :class:`~pywbem.CIMInstanceName` or `None`.
 
-            host (:term:`string`):
+            host (str):
                 Host name to include in created
                 :class:`~pywbem.CIMInstanceName` or `None`.
 
-            strict (:class:`py:bool`):
+            strict (bool):
                 Strict mode (see description of `class_` parameter).
 
         Returns:
 
             :class:`~pywbem.CIMInstanceName`:
-                :class:`~pywbem.CIMInstanceName` built from the key properties
-                in the `class_` parameter using the key property values in the
-                `instance` parameter.
+            :class:`~pywbem.CIMInstanceName` built from the key properties
+            in the `class_` parameter using the key property values in the
+            `instance` parameter.
 
         Raises:
 
@@ -2338,7 +2338,7 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
         """
         Parameters:
 
-          classname (:term:`string`):
+          classname (str):
             Name of the creation class for the instance.
 
             Must not be `None`.
@@ -2388,8 +2388,7 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def classname(self):
         """
-        :term:`unicode string`: Name of the creation class
-        of this CIM instance.
+        str: Name of the creation class of this CIM instance.
 
         Will not be `None`.
 
@@ -2420,7 +2419,7 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
 
         Each dictionary item specifies one property value, with:
 
-        * key (:term:`unicode string`): Property name. Its lexical case was
+        * key (str): Property name. Its lexical case was
           preserved.
 
         * value (:class:`~pywbem.CIMProperty`): Property value.
@@ -2503,7 +2502,7 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
 
         Each dictionary item specifies one qualifier value, with:
 
-        * key (:term:`unicode string`): Qualifier name. Its lexical case was
+        * key (str): Qualifier name. Its lexical case was
           preserved.
 
         * value (:class:`~pywbem.CIMQualifier`): Qualifier value.
@@ -2806,12 +2805,11 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
 
         Parameters:
 
-          key (:term:`string`):
+          key (str):
             Name of the property (in any lexical case).
 
         Returns:
-          :class:`py:bool`: Boolean indicating whether the instance has the
-          property.
+          bool: Boolean indicating whether the instance has the property.
         """
         return key in self.properties
 
@@ -2824,7 +2822,7 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
 
         Parameters:
 
-          key (:term:`string`):
+          key (str):
             Name of the property (in any lexical case).
 
           default (:term:`CIM data type`):
@@ -2973,13 +2971,13 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
 
         Parameters:
 
-          ignore_path (:class:`py:bool`): Ignore the path of the instance, even
+          ignore_path (bool): Ignore the path of the instance, even
             if a path is specified.
 
         Returns:
 
-          The CIM-XML representation, as an object of an appropriate subclass
-          of :term:`Element`.
+          :term:`Element`: The CIM-XML representation, as an object of an
+          appropriate subclass of :term:`Element`.
         """
 
         # The items in the self.properties dictionary are required to be
@@ -3027,7 +3025,7 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
     def tocimxmlstr(self, indent=None, ignore_path=False):
         """
         Return the CIM-XML representation of this CIM instance,
-        as a :term:`unicode string`.
+        as a :class:`py:str`.
 
         *New in pywbem 0.9.*
 
@@ -3036,7 +3034,7 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
 
         Parameters:
 
-          indent (:term:`string` or :term:`integer`):
+          indent (:class:`py:str` or :class:`py:int`):
             `None` indicates that a single-line version of the XML should be
             returned, without any whitespace between the XML elements.
 
@@ -3045,13 +3043,12 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
             string to be used for each level of nested XML elements. An integer
             value specifies an indentation string of so many blanks.
 
-          ignore_path (:class:`py:bool`): Ignore the path of the instance, even
+          ignore_path (bool): Ignore the path of the instance, even
             if a path is specified.
 
         Returns:
 
-            The CIM-XML representation of the object, as a
-            :term:`unicode string`.
+            str: The CIM-XML representation of the object.
         """
         xml_elem = self.tocimxml(ignore_path)
         return tocimxmlstr(xml_elem, indent)
@@ -3076,11 +3073,11 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
 
         Parameters:
 
-          maxline (:term:`integer`): Maximum line length.
+          maxline (int): Maximum line length.
 
         Returns:
 
-          :term:`unicode string`: MOF string.
+          str: The MOF representation of the CIM instance.
         """
 
         mof = []
@@ -3117,7 +3114,7 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
             are to be built into the instance, in particular any key properties
             if the `include_path` parameter is `True`.
 
-          namespace (:term:`string`):
+          namespace (str):
             Namespace to be included in the path component of the returned
             CIMInstance if `include_path` parameter is `True`.
 
@@ -3130,7 +3127,7 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
             a ValueError exception is raised. Not all properties in the class
             need to be defined in `property_values`.
 
-          include_missing_properties (:class:`py:bool`):
+          include_missing_properties (bool):
             Determines if properties not in the `property_values` parameter are
             included in the instance.
 
@@ -3142,7 +3139,7 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
             If `False` only properties in the `property_values` parameter are
             included in the new instance.
 
-         include_class_origin (:class:`py:bool`):
+         include_class_origin (bool):
             Determines if class origin information from the class is included
             in the returned instance.
 
@@ -3255,7 +3252,7 @@ class CIMClassName(_CIMComparisonMixin, SlottedPickleMixin):
         """
         Parameters:
 
-          classname (:term:`string`):
+          classname (str):
             Class name of the referenced class.
 
             Must not be `None`.
@@ -3263,7 +3260,7 @@ class CIMClassName(_CIMComparisonMixin, SlottedPickleMixin):
             The lexical case of the string is preserved. Object comparison and
             hash value calculation are performed case-insensitively.
 
-          host (:term:`string`):
+          host (str):
             Host and optionally port of the WBEM server containing the CIM
             namespace of the referenced class.
 
@@ -3287,7 +3284,7 @@ class CIMClassName(_CIMComparisonMixin, SlottedPickleMixin):
             The lexical case of the string is preserved. Object comparison and
             hash value calculation are performed case-insensitively.
 
-          namespace (:term:`string`):
+          namespace (str):
             Name of the CIM namespace containing the referenced class.
 
             `None` means that the namespace is unspecified, and the
@@ -3311,8 +3308,8 @@ class CIMClassName(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def classname(self):
         """
-        :term:`unicode string`: Class name of this CIM class path,
-        identifying the referenced class.
+        str: Class name of this CIM class path, identifying the referenced
+        class.
 
         Will not be `None`.
 
@@ -3342,8 +3339,8 @@ class CIMClassName(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def namespace(self):
         """
-        :term:`unicode string`: Namespace name of this CIM class path,
-        identifying the namespace of the referenced class.
+        str: Namespace name of this CIM class path, identifying the namespace
+        of the referenced class.
 
         `None` means that the namespace is unspecified.
 
@@ -3367,8 +3364,7 @@ class CIMClassName(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def host(self):
         """
-        :term:`unicode string`: Host and optionally port
-        of this CIM class path,
+        str: Host and optionally port of this CIM class path,
         identifying the WBEM server of the referenced class.
 
         For details about the string format, see the same-named init parameter
@@ -3506,16 +3502,16 @@ class CIMClassName(_CIMComparisonMixin, SlottedPickleMixin):
 
         Parameters:
 
-          ignore_host (:class:`py:bool`): Ignore the host of the
+          ignore_host (bool): Ignore the host of the
             class path, even if a host is specified.
 
-          ignore_namespace (:class:`py:bool`): Ignore the namespace and host of
+          ignore_namespace (bool): Ignore the namespace and host of
             the class path, even if a namespace and/or host is specified.
 
         Returns:
 
-          The CIM-XML representation, as an object of an appropriate subclass
-          of :term:`Element`.
+          :term:`Element`: The CIM-XML representation, as an object of an
+          appropriate subclass of :term:`Element`.
         """
 
         classname_xml = _cim_xml.CLASSNAME(self.classname)
@@ -3538,7 +3534,7 @@ class CIMClassName(_CIMComparisonMixin, SlottedPickleMixin):
                     ignore_namespace=False):
         """
         Return the CIM-XML representation of this CIM class path,
-        as a :term:`unicode string`.
+        as a :class:`py:str`.
 
         *New in pywbem 0.9.*
 
@@ -3547,7 +3543,7 @@ class CIMClassName(_CIMComparisonMixin, SlottedPickleMixin):
 
         Parameters:
 
-          indent (:term:`string` or :term:`integer`):
+          indent (:class:`py:str` or :class:`py:int`):
             `None` indicates that a single-line version of the XML should be
             returned, without any whitespace between the XML elements.
 
@@ -3556,16 +3552,15 @@ class CIMClassName(_CIMComparisonMixin, SlottedPickleMixin):
             string to be used for each level of nested XML elements. An integer
             value specifies an indentation string of so many blanks.
 
-          ignore_host (:class:`py:bool`): Ignore the host of the
+          ignore_host (bool): Ignore the host of the
             class path, even if a host is specified.
 
-          ignore_namespace (:class:`py:bool`): Ignore the namespace and host of
+          ignore_namespace (bool): Ignore the namespace and host of
             the class path, even if a namespace and/or host is specified.
 
         Returns:
 
-            The CIM-XML representation of the object, as a
-            :term:`unicode string`.
+            str: The CIM-XML representation of the object.
         """
         xml_elem = self.tocimxml(ignore_host, ignore_namespace)
         return tocimxmlstr(xml_elem, indent)
@@ -3614,7 +3609,7 @@ class CIMClassName(_CIMComparisonMixin, SlottedPickleMixin):
 
         Parameters:
 
-          wbem_uri (:term:`string`):
+          wbem_uri (str):
             WBEM URI for a class path.
 
         Returns:
@@ -3693,7 +3688,7 @@ class CIMClassName(_CIMComparisonMixin, SlottedPickleMixin):
 
         Parameters:
 
-          format (:term:`string`): Format for the generated WBEM URI string,
+          format (str): Format for the generated WBEM URI string,
             using one of the following values:
 
             * ``"standard"`` - Standard format that is conformant to untyped
@@ -3748,8 +3743,7 @@ class CIMClassName(_CIMComparisonMixin, SlottedPickleMixin):
 
         Returns:
 
-          :term:`unicode string`: Untyped WBEM URI of the CIM class path,
-          in the specified format.
+          str: Untyped WBEM URI of the CIM class path, in the specified format.
 
         Raises:
 
@@ -3808,7 +3802,7 @@ class CIMClass(_CIMComparisonMixin, SlottedPickleMixin):
         """
         Parameters:
 
-          classname (:term:`string`):
+          classname (str):
             Class name of the class.
 
             Must not be `None`.
@@ -3822,7 +3816,7 @@ class CIMClass(_CIMComparisonMixin, SlottedPickleMixin):
           methods (:term:`methods input object`):
             The method declarations for the class.
 
-          superclass (:term:`string`):
+          superclass (str):
             Name of the superclass for the class.
 
             `None` means that the class is a top-level class, and the
@@ -3870,7 +3864,7 @@ class CIMClass(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def classname(self):
         """
-        :term:`unicode string`: Class name of this CIM class.
+        str: Class name of this CIM class.
 
         Will not be `None`.
 
@@ -3900,7 +3894,7 @@ class CIMClass(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def superclass(self):
         """
-        :term:`unicode string`: Class name of the superclass of this CIM class.
+        str: Class name of the superclass of this CIM class.
 
         `None` means that the class is a top-level class.
 
@@ -3925,7 +3919,7 @@ class CIMClass(_CIMComparisonMixin, SlottedPickleMixin):
 
         Each dictionary item specifies one property declaration, with:
 
-        * key (:term:`unicode string`): Property name. Its lexical case was
+        * key (str): Property name. Its lexical case was
           preserved.
 
         * value (:class:`~pywbem.CIMProperty`): Property declaration.
@@ -3987,7 +3981,7 @@ class CIMClass(_CIMComparisonMixin, SlottedPickleMixin):
 
         Each dictionary item specifies one method, with:
 
-        * key (:term:`unicode string`): Method name. Its lexical case was
+        * key (str): Method name. Its lexical case was
           preserved.
 
         * value (:class:`~pywbem.CIMMethod`): Method declaration.
@@ -4049,7 +4043,7 @@ class CIMClass(_CIMComparisonMixin, SlottedPickleMixin):
 
         Each dictionary item specifies one qualifier value, with:
 
-        * key (:term:`unicode string`): Qualifier name. Its lexical case was
+        * key (str): Qualifier name. Its lexical case was
           preserved.
 
         * value (:class:`~pywbem.CIMQualifier`): Qualifier value.
@@ -4266,8 +4260,8 @@ class CIMClass(_CIMComparisonMixin, SlottedPickleMixin):
 
         Returns:
 
-          The CIM-XML representation, as an object of an appropriate subclass
-          of :term:`Element`.
+          :term:`Element`: The CIM-XML representation, as an object of an
+          appropriate subclass of :term:`Element`.
         """
         return _cim_xml.CLASS(
             self.classname,
@@ -4279,7 +4273,7 @@ class CIMClass(_CIMComparisonMixin, SlottedPickleMixin):
     def tocimxmlstr(self, indent=None):
         """
         Return the CIM-XML representation of this CIM class,
-        as a :term:`unicode string`.
+        as a :class:`py:str`.
 
         *New in pywbem 0.9.*
 
@@ -4288,7 +4282,7 @@ class CIMClass(_CIMComparisonMixin, SlottedPickleMixin):
 
         Parameters:
 
-          indent (:term:`string` or :term:`integer`):
+          indent (:class:`py:str` or :class:`py:int`):
             `None` indicates that a single-line version of the XML should be
             returned, without any whitespace between the XML elements.
 
@@ -4299,8 +4293,7 @@ class CIMClass(_CIMComparisonMixin, SlottedPickleMixin):
 
         Returns:
 
-            The CIM-XML representation of the object, as a
-            :term:`unicode string`.
+            str: The CIM-XML representation of the object.
         """
         xml_elem = self.tocimxml()
         return tocimxmlstr(xml_elem, indent)
@@ -4323,7 +4316,7 @@ class CIMClass(_CIMComparisonMixin, SlottedPickleMixin):
 
         Returns:
 
-          :term:`unicode string`: MOF string.
+          str: The MOF representation of the CIM class.
         """
 
         mof = []
@@ -4409,7 +4402,7 @@ class CIMProperty(_CIMComparisonMixin, SlottedPickleMixin):
 
         Parameters:
 
-          name (:term:`string`):
+          name (str):
             Name of the property.
 
             Must not be `None`.
@@ -4432,7 +4425,7 @@ class CIMProperty(_CIMComparisonMixin, SlottedPickleMixin):
             using the rules documented in the description of
             :func:`~pywbem.cimvalue`, taking into account the `type` parameter.
 
-          type (:term:`string`):
+          type (str):
             Name of the CIM data type of the property (e.g. ``"uint8"``).
 
             `None` will cause the type to be inferred from the `value`
@@ -4442,7 +4435,7 @@ class CIMProperty(_CIMComparisonMixin, SlottedPickleMixin):
             :exc:`py:ValueError` is raised if the type is not a
             valid CIM data type (see :ref:`CIM data types`).
 
-          class_origin (:term:`string`):
+          class_origin (str):
             The CIM class origin of the property (the name
             of the most derived class that defines or overrides the property in
             the class hierarchy of the class owning the property).
@@ -4454,14 +4447,14 @@ class CIMProperty(_CIMComparisonMixin, SlottedPickleMixin):
             The lexical case of the string is preserved. Object comparison and
             hash value calculation are performed case-insensitively.
 
-          array_size (:term:`integer`):
+          array_size (int):
             The size of the array property, for fixed-size arrays.
 
             `None` means that the array property has variable size, and
             :attr:`~pywbem.CIMProperty.array_size` attribute
             will also be `None`.
 
-          propagated (:class:`py:bool`):
+          propagated (bool):
             If not `None`, specifies whether the property declaration has been
             propagated from a superclass, or the property value has been
             propagated from the creation class.
@@ -4470,7 +4463,7 @@ class CIMProperty(_CIMComparisonMixin, SlottedPickleMixin):
             :attr:`~pywbem.CIMProperty.propagated` attribute
             will also be `None`.
 
-          is_array (:class:`py:bool`):
+          is_array (bool):
             A boolean indicating whether the property is an array (`True`) or a
             scalar (`False`).
 
@@ -4478,7 +4471,7 @@ class CIMProperty(_CIMComparisonMixin, SlottedPickleMixin):
             will be inferred from the `value` parameter.
             If the `value` parameter is `None`, a scalar is assumed.
 
-          reference_class (:term:`string`):
+          reference_class (str):
             For reference properties, the name of the class referenced by the
             property, or `None` indicating that the referenced class is
             unspecified.
@@ -4496,7 +4489,7 @@ class CIMProperty(_CIMComparisonMixin, SlottedPickleMixin):
             The qualifiers for the property declaration. Has no meaning for
             property values.
 
-          embedded_object (:term:`string`):
+          embedded_object (str):
             A string value indicating the kind of embedded object represented
             by the property value. Has no meaning for property declarations.
 
@@ -4601,7 +4594,7 @@ class CIMProperty(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def name(self):
         """
-        :term:`unicode string`: Name of this CIM property.
+        str: Name of this CIM property.
 
         Will not be `None`.
 
@@ -4649,7 +4642,7 @@ class CIMProperty(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def type(self):
         """
-        :term:`unicode string`: Name of the CIM data type of this CIM property.
+        str: Name of the CIM data type of this CIM property.
 
         Example: ``"uint8"``
 
@@ -4680,7 +4673,7 @@ class CIMProperty(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def reference_class(self):
         """
-        :term:`unicode string`: The name of the class referenced by this CIM
+        str: The name of the class referenced by this CIM
         reference property.
 
         Will be `None` for non-reference properties or if the referenced class
@@ -4705,7 +4698,7 @@ class CIMProperty(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def embedded_object(self):
         """
-        :term:`unicode string`: A string value indicating the kind of embedded
+        str: A string value indicating the kind of embedded
         object represented by this CIM property value.
 
         Has no meaning for CIM property declarations.
@@ -4744,7 +4737,7 @@ class CIMProperty(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def is_array(self):
         """
-        :class:`py:bool`: Boolean indicating that this CIM property
+        bool: Boolean indicating that this CIM property
         is an array (as opposed to a scalar).
 
         Will not be `None`.
@@ -4764,7 +4757,7 @@ class CIMProperty(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def array_size(self):
         """
-        :term:`integer`: The size of the fixed-size array of this CIM property.
+        int: The size of the fixed-size array of this CIM property.
 
         `None` means that the array has variable size, or that the
         property is a scalar.
@@ -4784,7 +4777,7 @@ class CIMProperty(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def class_origin(self):
         """
-        :term:`unicode string`: The class origin of this CIM property,
+        str: The class origin of this CIM property,
         identifying the most derived class that defines or overrides the
         property in the class hierarchy of the class owning the property.
 
@@ -4805,7 +4798,7 @@ class CIMProperty(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def propagated(self):
         """
-        :class:`py:bool`: Boolean indicating that the property declaration
+        bool: Boolean indicating that the property declaration
         has been propagated from a superclass, or that the property value has
         been propagated from the creation class.
 
@@ -4833,7 +4826,7 @@ class CIMProperty(_CIMComparisonMixin, SlottedPickleMixin):
 
         Each dictionary item specifies one qualifier value, with:
 
-        * key (:term:`unicode string`): Qualifier name. Its lexical case was
+        * key (str): Qualifier name. Its lexical case was
           preserved.
 
         * value (:class:`~pywbem.CIMQualifier`): Qualifier value.
@@ -4969,8 +4962,8 @@ class CIMProperty(_CIMComparisonMixin, SlottedPickleMixin):
 
         Returns:
 
-          The CIM-XML representation, as an object of an appropriate subclass
-          of :term:`Element`.
+          :term:`Element`: The CIM-XML representation, as an object of an
+          appropriate subclass of :term:`Element`.
         """
 
         qualifiers = [q.tocimxml() for q in self.qualifiers.values()]
@@ -5043,7 +5036,7 @@ class CIMProperty(_CIMComparisonMixin, SlottedPickleMixin):
     def tocimxmlstr(self, indent=None):
         """
         Return the CIM-XML representation of this CIM property,
-        as a :term:`unicode string`.
+        as a :class:`py:str`.
 
         *New in pywbem 0.9.*
 
@@ -5052,7 +5045,7 @@ class CIMProperty(_CIMComparisonMixin, SlottedPickleMixin):
 
         Parameters:
 
-          indent (:term:`string` or :term:`integer`):
+          indent (:class:`py:str` or :class:`py:int`):
             `None` indicates that a single-line version of the XML should be
             returned, without any whitespace between the XML elements.
 
@@ -5063,8 +5056,7 @@ class CIMProperty(_CIMComparisonMixin, SlottedPickleMixin):
 
         Returns:
 
-            The CIM-XML representation of the object, as a
-            :term:`unicode string`.
+            str: The CIM-XML representation of the object.
         """
         xml_elem = self.tocimxml()
         return tocimxmlstr(xml_elem, indent)
@@ -5091,12 +5083,12 @@ class CIMProperty(_CIMComparisonMixin, SlottedPickleMixin):
             CIM instance. Else, return MOF for a property definition in a CIM
             class.
 
-          indent (:term:`integer`): Number of spaces to indent each line of
+          indent (int): Number of spaces to indent each line of
             the returned string, counted in the line with the property name.
 
         Returns:
 
-          :term:`unicode string`: MOF string.
+          str: The MOF representation of the CIM property.
         """
 
         mof = []
@@ -5254,7 +5246,7 @@ class CIMMethod(_CIMComparisonMixin, SlottedPickleMixin):
 
         Parameters:
 
-          name (:term:`string`):
+          name (str):
             Name of this CIM method (just the method name, without class name
             or parenthesis).
 
@@ -5263,7 +5255,7 @@ class CIMMethod(_CIMComparisonMixin, SlottedPickleMixin):
             The lexical case of the string is preserved. Object comparison and
             hash value calculation are performed case-insensitively.
 
-          return_type (:term:`string`):
+          return_type (str):
             Name of the CIM data type of the method return type
             (e.g. ``"uint32"``).
 
@@ -5292,7 +5284,7 @@ class CIMMethod(_CIMComparisonMixin, SlottedPickleMixin):
           parameters (:term:`parameters input object`):
             Parameter declarations for the method.
 
-          class_origin (:term:`string`):
+          class_origin (str):
             The CIM class origin of the method (the name
             of the most derived class that defines or overrides the method in
             the class hierarchy of the class owning the method).
@@ -5304,7 +5296,7 @@ class CIMMethod(_CIMComparisonMixin, SlottedPickleMixin):
             The lexical case of the string is preserved. Object comparison and
             hash value calculation are performed case-insensitively.
 
-          propagated (:class:`py:bool`):
+          propagated (bool):
             If not `None`, specifies whether the method has been
             propagated from a superclass.
 
@@ -5327,7 +5319,7 @@ class CIMMethod(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def name(self):
         """
-        :term:`unicode string`: Name of this CIM method.
+        str: Name of this CIM method.
 
         Will not be `None`.
 
@@ -5352,7 +5344,7 @@ class CIMMethod(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def return_type(self):
         """
-        :term:`unicode string`: Name of the CIM data type of the return type of
+        str: Name of the CIM data type of the return type of
         this CIM method.
 
         Example: ``"uint32"``
@@ -5385,7 +5377,7 @@ class CIMMethod(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def class_origin(self):
         """
-        :term:`unicode string`: The class origin of this CIM method,
+        str: The class origin of this CIM method,
         identifying the most derived class that defines or overrides the
         method in the class hierarchy of the class owning the method.
 
@@ -5406,7 +5398,7 @@ class CIMMethod(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def propagated(self):
         """
-        :class:`py:bool`: Boolean indicating that this CIM method has been
+        bool: Boolean indicating that this CIM method has been
         propagated from a superclass.
 
         `None` means that propagation information is not available.
@@ -5432,7 +5424,7 @@ class CIMMethod(_CIMComparisonMixin, SlottedPickleMixin):
 
         Each dictionary item specifies one parameter, with:
 
-        * key (:term:`unicode string`): Parameter name. Its lexical case was
+        * key (str): Parameter name. Its lexical case was
           preserved.
 
         * value (:class:`~pywbem.CIMParameter`): Parameter declaration.
@@ -5492,7 +5484,7 @@ class CIMMethod(_CIMComparisonMixin, SlottedPickleMixin):
 
         Each dictionary item specifies one qualifier value, with:
 
-        * key (:term:`unicode string`): Qualifier name. Its lexical case was
+        * key (str): Qualifier name. Its lexical case was
           preserved.
 
         * value (:class:`~pywbem.CIMQualifier`): Qualifier value.
@@ -5666,8 +5658,8 @@ class CIMMethod(_CIMComparisonMixin, SlottedPickleMixin):
 
         Returns:
 
-          The CIM-XML representation, as an object of an appropriate subclass
-          of :term:`Element`.
+          :term:`Element`: The CIM-XML representation, as an object of an
+          appropriate subclass of :term:`Element`.
         """
         return _cim_xml.METHOD(
             self.name,
@@ -5680,7 +5672,7 @@ class CIMMethod(_CIMComparisonMixin, SlottedPickleMixin):
     def tocimxmlstr(self, indent=None):
         """
         Return the CIM-XML representation of this CIM method,
-        as a :term:`unicode string`.
+        as a :class:`py:str`.
 
         *New in pywbem 0.9.*
 
@@ -5689,7 +5681,7 @@ class CIMMethod(_CIMComparisonMixin, SlottedPickleMixin):
 
         Parameters:
 
-          indent (:term:`string` or :term:`integer`):
+          indent (:class:`py:str` or :class:`py:int`):
             `None` indicates that a single-line version of the XML should be
             returned, without any whitespace between the XML elements.
 
@@ -5700,8 +5692,7 @@ class CIMMethod(_CIMComparisonMixin, SlottedPickleMixin):
 
         Returns:
 
-            The CIM-XML representation of the object, as a
-            :term:`unicode string`.
+            str: The CIM-XML representation of the object.
         """
         xml_elem = self.tocimxml()
         return tocimxmlstr(xml_elem, indent)
@@ -5715,12 +5706,12 @@ class CIMMethod(_CIMComparisonMixin, SlottedPickleMixin):
 
         Parameters:
 
-          indent (:term:`integer`): Number of spaces to indent each line of
+          indent (int): Number of spaces to indent each line of
             the returned string, counted in the line with the method name.
 
         Returns:
 
-          :term:`unicode string`: MOF string.
+          str: The MOF representation of the CIM method.
         """
 
         mof = []
@@ -5795,7 +5786,7 @@ class CIMParameter(_CIMComparisonMixin, SlottedPickleMixin):
 
         Parameters:
 
-          name (:term:`string`):
+          name (str):
             Name of this CIM parameter.
 
             Must not be `None`.
@@ -5803,7 +5794,7 @@ class CIMParameter(_CIMComparisonMixin, SlottedPickleMixin):
             The lexical case of the string is preserved. Object comparison and
             hash value calculation are performed case-insensitively.
 
-          type (:term:`string`):
+          type (str):
             Name of the CIM data type of this CIM parameter.
 
             Example: ``"uint8"``
@@ -5813,7 +5804,7 @@ class CIMParameter(_CIMComparisonMixin, SlottedPickleMixin):
             :exc:`py:ValueError` is raised if the type is `None` or
             not a valid CIM data type (see :ref:`CIM data types`).
 
-          reference_class (:term:`string`):
+          reference_class (str):
             For reference parameters, the name of the class referenced by the
             parameter, or `None` indicating that the referenced class is
             unspecified.
@@ -5823,7 +5814,7 @@ class CIMParameter(_CIMComparisonMixin, SlottedPickleMixin):
             The lexical case of the string is preserved. Object comparison and
             hash value calculation are performed case-insensitively.
 
-          is_array (:class:`py:bool`):
+          is_array (bool):
             A boolean indicating whether the parameter is an array (`True`) or a
             scalar (`False`).
 
@@ -5832,7 +5823,7 @@ class CIMParameter(_CIMComparisonMixin, SlottedPickleMixin):
             will be inferred from the `value` parameter.
             If the `value` parameter is `None`, a scalar is assumed.
 
-          array_size (:term:`integer`):
+          array_size (int):
             The size of the array parameter, for fixed-size arrays.
 
             `None` means that the array parameter has variable size, and the
@@ -5850,7 +5841,7 @@ class CIMParameter(_CIMComparisonMixin, SlottedPickleMixin):
             using the rules documented in the description of
             :func:`~pywbem.cimvalue`, taking into account the `type` parameter.
 
-          embedded_object (:term:`string`):
+          embedded_object (str):
             A string value indicating the kind of embedded object represented
             by the parameter value (i.e. the `value` parameter). Has no meaning
             for parameter declarations.
@@ -5898,7 +5889,7 @@ class CIMParameter(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def name(self):
         """
-        :term:`unicode string`: Name of this CIM parameter.
+        str: Name of this CIM parameter.
 
         Will not be `None`.
 
@@ -5923,8 +5914,7 @@ class CIMParameter(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def type(self):
         """
-        :term:`unicode string`: Name of the CIM data type of this CIM
-        parameter.
+        str: Name of the CIM data type of this CIM parameter.
 
         Example: ``"uint8"``
 
@@ -5955,8 +5945,7 @@ class CIMParameter(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def reference_class(self):
         """
-        :term:`unicode string`: The name of the class referenced by this CIM
-        reference parameter.
+        str: The name of the class referenced by this CIM reference parameter.
 
         Will be `None` for non-reference parameters or if the referenced class
         is unspecified in reference parameters.
@@ -5976,8 +5965,8 @@ class CIMParameter(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def is_array(self):
         """
-        :class:`py:bool`: Boolean indicating that this CIM parameter
-        is an array (as opposed to a scalar).
+        bool: Boolean indicating that this CIM parameter is an array (as
+        opposed to a scalar).
 
         Will not be `None`.
 
@@ -5996,8 +5985,7 @@ class CIMParameter(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def array_size(self):
         """
-        :term:`integer`: The size of the fixed-size array of this CIM
-        parameter.
+        int: The size of the fixed-size array of this CIM parameter.
 
         `None` means that the array has variable size, or that the
         parameter is a scalar.
@@ -6023,7 +6011,7 @@ class CIMParameter(_CIMComparisonMixin, SlottedPickleMixin):
 
         Each dictionary item specifies one qualifier value, with:
 
-        * key (:term:`unicode string`): Qualifier name. Its lexical case was
+        * key (str): Qualifier name. Its lexical case was
           preserved.
 
         * value (:class:`~pywbem.CIMQualifier`): Qualifier value.
@@ -6099,8 +6087,8 @@ class CIMParameter(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def embedded_object(self):
         """
-        :term:`unicode string`: A string value indicating the kind of embedded
-        object represented by this CIM parameter value.
+        str: A string value indicating the kind of embedded object represented
+        by this CIM parameter value.
 
         Has no meaning for CIM parameter declarations.
 
@@ -6280,8 +6268,8 @@ class CIMParameter(_CIMComparisonMixin, SlottedPickleMixin):
 
         Returns:
 
-          The CIM-XML representation, as an object of an appropriate subclass
-          of :term:`Element`.
+          :term:`Element`: The CIM-XML representation, as an object of an
+          appropriate subclass of :term:`Element`.
         """
 
         if as_value:  # pylint: disable=no-else-return
@@ -6378,7 +6366,7 @@ class CIMParameter(_CIMComparisonMixin, SlottedPickleMixin):
     def tocimxmlstr(self, indent=None, as_value=False):
         """
         Return the CIM-XML representation of this CIM parameter,
-        as a :term:`unicode string`.
+        as a :class:`py:str`.
 
         *New in pywbem 0.9.*
 
@@ -6391,7 +6379,7 @@ class CIMParameter(_CIMComparisonMixin, SlottedPickleMixin):
 
         Parameters:
 
-          indent (:term:`string` or :term:`integer`):
+          indent (:class:`py:str` or :class:`py:int`):
             `None` indicates that a single-line version of the XML should be
             returned, without any whitespace between the XML elements.
 
@@ -6405,8 +6393,7 @@ class CIMParameter(_CIMComparisonMixin, SlottedPickleMixin):
 
         Returns:
 
-            The CIM-XML representation of the object, as a
-            :term:`unicode string`.
+            str: The CIM-XML representation of the object.
         """
         xml_elem = self.tocimxml(as_value)
         return tocimxmlstr(xml_elem, indent)
@@ -6424,12 +6411,12 @@ class CIMParameter(_CIMComparisonMixin, SlottedPickleMixin):
 
         Parameters:
 
-          indent (:term:`integer`): Number of spaces to indent each line of
+          indent (int): Number of spaces to indent each line of
             the returned string, counted in the line with the parameter name.
 
         Returns:
 
-          :term:`unicode string`: MOF string.
+          str: The MOF representation of the CIM parameter.
         """
 
         mof = []
@@ -6517,7 +6504,7 @@ class CIMQualifier(_CIMComparisonMixin, SlottedPickleMixin):
 
         Parameters:
 
-          name (:term:`string`):
+          name (str):
             Name of the qualifier.
 
             Must not be `None`.
@@ -6536,7 +6523,7 @@ class CIMQualifier(_CIMComparisonMixin, SlottedPickleMixin):
             using the rules documented in the description of
             :func:`~pywbem.cimvalue`, taking into account the `type` parameter.
 
-          type (:term:`string`):
+          type (str):
             Name of the CIM data type of the qualifier (e.g. ``"uint8"``).
 
             `None` will cause the type to be inferred from the `value`
@@ -6546,7 +6533,7 @@ class CIMQualifier(_CIMComparisonMixin, SlottedPickleMixin):
             :exc:`py:ValueError` is raised if the type is not a
             valid CIM data type (see :ref:`CIM data types`).
 
-          propagated (:class:`py:bool`):
+          propagated (bool):
             If not `None`, specifies whether the qualifier value has been
             propagated from a superclass.
 
@@ -6554,7 +6541,7 @@ class CIMQualifier(_CIMComparisonMixin, SlottedPickleMixin):
             :attr:`~pywbem.CIMQualifier.propagated` attribute
             will also be `None`.
 
-          overridable (:class:`py:bool`):
+          overridable (bool):
             If not `None`, specifies whether the qualifier value is overridable
             in subclasses.
 
@@ -6562,7 +6549,7 @@ class CIMQualifier(_CIMComparisonMixin, SlottedPickleMixin):
             :attr:`~pywbem.CIMQualifier.overridable` attribute
             will also be `None`.
 
-          tosubclass (:class:`py:bool`):
+          tosubclass (bool):
             If not `None`, specifies whether the qualifier value propagates
             to subclasses.
 
@@ -6570,7 +6557,7 @@ class CIMQualifier(_CIMComparisonMixin, SlottedPickleMixin):
             :attr:`~pywbem.CIMQualifier.tosubclass` attribute
             will also be `None`.
 
-          toinstance (:class:`py:bool`):
+          toinstance (bool):
             If not `None`, specifies whether the qualifier value propagates
             to instances.
 
@@ -6581,7 +6568,7 @@ class CIMQualifier(_CIMComparisonMixin, SlottedPickleMixin):
             Note that :term:`DSP0200` has deprecated the presence of qualifier
             values on CIM instances.
 
-          translatable (:class:`py:bool`):
+          translatable (bool):
             If not `None`, specifies whether the qualifier is translatable.
 
             `None` means that this information is not available, and the
@@ -6629,7 +6616,7 @@ class CIMQualifier(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def name(self):
         """
-        :term:`unicode string`: Name of this CIM qualifier.
+        str: Name of this CIM qualifier.
 
         Will not be `None`.
 
@@ -6654,8 +6641,7 @@ class CIMQualifier(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def type(self):
         """
-        :term:`unicode string`: Name of the CIM data type of this CIM
-        qualifier.
+        str: Name of the CIM data type of this CIM qualifier.
 
         Example: ``"uint8"``
 
@@ -6691,7 +6677,7 @@ class CIMQualifier(_CIMComparisonMixin, SlottedPickleMixin):
         `None` means that the value is Null.
 
         For CIM data types string and char16, this attribute will be a
-        :term:`unicode string`, even when specified as a :term:`byte string`.
+        :class:`py:str`, even when specified as :class:`py:bytes`.
 
         This attribute is settable. For details, see the description of the
         same-named init parameter of
@@ -6708,8 +6694,8 @@ class CIMQualifier(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def propagated(self):
         """
-        :class:`py:bool`: Boolean indicating that the qualifier value has been
-        propagated from a superclass.
+        bool: Boolean indicating that the qualifier value has been propagated
+        from a superclass.
 
         `None` means that propagation information is not available.
 
@@ -6728,8 +6714,8 @@ class CIMQualifier(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def tosubclass(self):
         """
-        :class:`py:bool`: If not `None`, causes an implicit qualifier type to
-        be defined for this qualifier that has the specified flavor.
+        bool: If not `None`, causes an implicit qualifier type to be defined
+        for this qualifier that has the specified flavor.
 
         If `True`, specifies the ToSubclass flavor (the qualifier value
         propagates to subclasses); if `False` specifies the Restricted flavor
@@ -6752,8 +6738,8 @@ class CIMQualifier(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def toinstance(self):
         """
-        :class:`py:bool`: If not `None`, causes an implicit qualifier type to
-        be defined for this qualifier that has the specified flavor.
+        bool: If not `None`, causes an implicit qualifier type to be defined
+        for this qualifier that has the specified flavor.
 
         If `True` specifies the ToInstance flavor(the qualifier value
         propagates to instances. If `False`, specifies that qualifier values
@@ -6780,8 +6766,8 @@ class CIMQualifier(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def overridable(self):
         """
-        :class:`py:bool`: If not `None`, causes an implicit qualifier type to
-        be defined for this qualifier that has the specified flavor.
+        bool: If not `None`, causes an implicit qualifier type to be defined
+       for this qualifier that has the specified flavor.
 
         If `True`, specifies the  EnableOverride flavor(the qualifier value is
         overridable in subclasses); if `False` specifies the DisableOverride
@@ -6804,8 +6790,8 @@ class CIMQualifier(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def translatable(self):
         """
-        :class:`py:bool`: If not `None`, causes an implicit qualifier type to
-        be defined for this qualifier that has the specified flavor.
+        bool: If not `None`, causes an implicit qualifier type to be defined
+        for this qualifier that has the specified flavor.
 
         If `True`, specifies the Translatable flavor (the qualifier is
         translatable); if `False` specifies that the qualfier is
@@ -6942,8 +6928,8 @@ class CIMQualifier(_CIMComparisonMixin, SlottedPickleMixin):
 
         Returns:
 
-          The CIM-XML representation, as an object of an appropriate subclass
-          of :term:`Element`.
+          :term:`Element`: The CIM-XML representation, as an object of an
+          appropriate subclass of :term:`Element`.
         """
 
         if self.value is None:
@@ -6977,7 +6963,7 @@ class CIMQualifier(_CIMComparisonMixin, SlottedPickleMixin):
     def tocimxmlstr(self, indent=None):
         """
         Return the CIM-XML representation of this CIM qualifier,
-        as a :term:`unicode string`.
+        as a :class:`py:str`.
 
         *New in pywbem 0.9.*
 
@@ -6986,7 +6972,7 @@ class CIMQualifier(_CIMComparisonMixin, SlottedPickleMixin):
 
         Parameters:
 
-          indent (:term:`string` or :term:`integer`):
+          indent (:class:`py:str` or :class:`py:int`):
             `None` indicates that a single-line version of the XML should be
             returned, without any whitespace between the XML elements.
 
@@ -6997,8 +6983,7 @@ class CIMQualifier(_CIMComparisonMixin, SlottedPickleMixin):
 
         Returns:
 
-            The CIM-XML representation of the object, as a
-            :term:`unicode string`.
+            str: The CIM-XML representation of the object.
         """
         xml_elem = self.tocimxml()
         return tocimxmlstr(xml_elem, indent)
@@ -7019,13 +7004,13 @@ class CIMQualifier(_CIMComparisonMixin, SlottedPickleMixin):
 
         Parameters:
 
-          indent (:term:`integer`): For a multi-line result, the number of
+          indent (int): For a multi-line result, the number of
             spaces to indent each line except the first line (on which the
             qualifier name appears). For a single-line result, ignored.
 
         Returns:
 
-          :term:`unicode string`: MOF string.
+          str: The MOF representation of the CIM qualifier.
         """
 
         mof = []
@@ -7124,7 +7109,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
         """
         Parameters:
 
-          name (:term:`string`):
+          name (str):
             Name of the qualifier.
 
             Must not be `None`.
@@ -7132,7 +7117,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
             The lexical case of the string is preserved. Object comparison and
             hash value calculation are performed case-insensitively.
 
-          type (:term:`string`):
+          type (str):
             Name of the CIM data type of the qualifier (e.g. ``"uint8"``).
 
             Must not be `None`.
@@ -7151,7 +7136,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
             using the rules documented in the description of
             :func:`~pywbem.cimvalue`, taking into account the `type` parameter.
 
-          is_array (:class:`py:bool`):
+          is_array (bool):
             A boolean indicating whether the qualifier is an array (`True`) or
             a scalar (`False`).
 
@@ -7160,7 +7145,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
             will be inferred from the `value` parameter.
             If the `value` parameter is `None`, a scalar is assumed.
 
-          array_size (:term:`integer`):
+          array_size (int):
             The size of the array qualifier, for fixed-size arrays.
 
             `None` means that the array qualifier has variable size, and the
@@ -7175,11 +7160,11 @@ class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
 
             Each dictionary item specifies one scope value, with:
 
-            * key (:term:`string`): Scope name, in upper case.
+            * key (str): Scope name, in upper case.
 
               Must not be `None`.
 
-            * value (:class:`py:bool`): Scope value, specifying whether the
+            * value (bool): Scope value, specifying whether the
               qualifier has that scope (i.e. can be applied to a CIM element of
               that kind).
 
@@ -7191,7 +7176,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
             For details about the dictionary items, see the corresponding
             attribute.
 
-          overridable (:class:`py:bool`):
+          overridable (bool):
             If not `None`, defines the flavor that defines whether the
             qualifier value is overridable in subclasses.
 
@@ -7199,7 +7184,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
             :attr:`~pywbem.CIMQualifierDeclaration.overridable` attribute
             will also be `None`.
 
-          tosubclass (:class:`py:bool`):
+          tosubclass (bool):
             If not `None`, specifies the flavor that defines whether the
             qualifier value propagates to subclasses.
 
@@ -7207,7 +7192,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
             :attr:`~pywbem.CIMQualifierDeclaration.tosubclass` attribute
             will also be `None`.
 
-          toinstance (:class:`py:bool`):
+          toinstance (bool):
             If not `None`, specifies the flavor that defines whether the
             qualifier value propagates to instances.
 
@@ -7219,7 +7204,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
             values on CIM instances and this flavor is not defined in
             :term:`DSP0004`
 
-          translatable (:class:`py:bool`):
+          translatable (bool):
             If not `None`, specifies  the flavor that defines whether the
             qualifier is translatable.
 
@@ -7255,7 +7240,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def name(self):
         """
-        :term:`unicode string`: Name of this CIM qualifier type.
+        str: Name of this CIM qualifier type.
 
         Will not be `None`.
 
@@ -7281,8 +7266,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def type(self):
         """
-        :term:`unicode string`: Name of the CIM data type of this CIM
-        qualifier type.
+        str: Name of the CIM data type of this CIM qualifier type.
 
         Example: ``"uint8"``.
 
@@ -7318,7 +7302,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
         `None` means that the value is Null.
 
         For CIM data types string and char16, this attribute will be a
-        :term:`unicode string`, even when specified as a :term:`byte string`.
+        :class:`py:str`, even when specified as :class:`py:bytes`.
 
         This attribute is settable. For details, see the description of the
         same-named init parameter of
@@ -7335,8 +7319,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def is_array(self):
         """
-        :class:`py:bool`: Boolean indicating that this CIM qualifier type
-        is an array (as opposed to a scalar).
+        bool: Boolean indicating that this CIM qualifier type is an array
+        (as opposed to a scalar).
 
         Will not be `None`.
 
@@ -7355,8 +7339,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def array_size(self):
         """
-        :term:`integer`: The size of the fixed-size array of this CIM qualifier
-        type.
+        int: The size of the fixed-size array of this CIM qualifier type.
 
         `None` means that the array has variable size (or that the
         qualifier type is not an array).
@@ -7380,9 +7363,9 @@ class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
 
         Each dictionary item specifies one scope value, with:
 
-        * key (:term:`unicode string`): Scope name, in upper case.
+        * key (str): Scope name, in upper case.
 
-        * value (:class:`py:bool`): Scope value, specifying whether the
+        * value (bool): Scope value, specifying whether the
           qualifier has that scope (i.e. can be applied to a CIM element of
           that kind).
 
@@ -7410,7 +7393,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def tosubclass(self):
         """
-        :class:`py:bool`: If `True` specifies the ToSubclass flavor (the
+        bool: If `True` specifies the ToSubclass flavor (the
         qualifier value propagates to subclasses); if `False` specifies the
         Restricted flavor (the qualifier value does not propagate to
         subclasses).
@@ -7432,7 +7415,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def toinstance(self):
         """
-        :class:`py:bool`: If `True`, specifies the ToInstance flavor. This
+        bool: If `True`, specifies the ToInstance flavor. This
         flavor specifies that the qualifier value propagates to instances. If
         `False`, specifies that qualifier values do not propagate to instances.
         There is no flavor corresponding to `toinstance=False`.
@@ -7457,7 +7440,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def overridable(self):
         """
-        :class:`py:bool`: If `True`, specifies the  EnableOverride flavor (the
+        bool: If `True`, specifies the EnableOverride flavor (the
         qualifier value is overridable in subclasses); if `False` specifies the
         DisableOverride flavor (the qualifier value is not overridable in
         subclasses).
@@ -7479,7 +7462,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
     @property
     def translatable(self):
         """
-        :class:`py:bool`: If `True`, specifies the Translatable flavor. This
+        bool: If `True`, specifies the Translatable flavor. This
         flavor specifies that the qualifier is translatable. If `False`,
         specifies that the qualfier is not translatable. There is no flavor
         corresponding to `translatable=False`.
@@ -7628,8 +7611,8 @@ class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
 
         Returns:
 
-          The CIM-XML representation, as an object of an appropriate subclass
-          of :term:`Element`.
+          :term:`Element`: The CIM-XML representation, as an object of an
+          appropriate subclass of :term:`Element`.
         """
 
         if self.value is None:
@@ -7665,7 +7648,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
     def tocimxmlstr(self, indent=None):
         """
         Return the CIM-XML representation of this CIM qualifier type,
-        as a :term:`unicode string`.
+        as a :class:`py:str`.
 
         *New in pywbem 0.9.*
 
@@ -7674,7 +7657,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
 
         Parameters:
 
-          indent (:term:`string` or :term:`integer`):
+          indent (:class:`py:str` or :class:`py:int`):
             `None` indicates that a single-line version of the XML should be
             returned, without any whitespace between the XML elements.
 
@@ -7685,8 +7668,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
 
         Returns:
 
-            The CIM-XML representation of the object, as a
-            :term:`unicode string`.
+            str: The CIM-XML representation of the object.
         """
         xml_elem = self.tocimxml()
         return tocimxmlstr(xml_elem, indent)
@@ -7709,7 +7691,7 @@ class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
 
         Returns:
 
-          :term:`unicode string`: MOF string.
+          str: The MOF representation of the CIM qualifier type.
         """
 
         mof = []
@@ -7789,13 +7771,13 @@ def tocimxml(value):
 
     Parameters:
 
-      value (:term:`CIM object`, :term:`CIM data type`, :term:`number`, :class:`py:datetime.datetime`, or tuple/list thereof):
+      value (:term:`CIM object`, :term:`CIM data type`, :class:`py:int`, :class:`py:float`, :class:`py:datetime.datetime`, or tuple/list thereof):
         The input object. Must not be `None`.
 
     Returns:
 
-      The CIM-XML representation, as an object of an appropriate subclass of
-      :term:`Element`.
+      :term:`Element`: The CIM-XML representation, as an object of an
+      appropriate subclass of :term:`Element`.
 
     Raises:
       ValueError: Invalid input value.
@@ -7826,7 +7808,7 @@ def tocimxml(value):
 def tocimxmlstr(value, indent=None):
     """
     Return the CIM-XML representation of the CIM object or CIM data type,
-    as a :term:`unicode string`.
+    as a :class:`py:str`.
 
     *New in pywbem 0.9.*
 
@@ -7838,7 +7820,7 @@ def tocimxmlstr(value, indent=None):
         The CIM object or CIM data type to be converted to CIM-XML, or an
         :term:`Element` object that already is the CIM-XML representation.
 
-      indent (:term:`string` or :term:`integer`):
+      indent (:class:`py:str` or :class:`py:int`):
         `None` indicates that a single-line version of the XML should be
         returned, without any whitespace between the XML elements.
 
@@ -7849,7 +7831,7 @@ def tocimxmlstr(value, indent=None):
 
     Returns:
 
-        The CIM-XML representation of the value, as a :term:`unicode string`.
+        str: The CIM-XML representation of the value.
     """
 
     if isinstance(value, Element):
@@ -7897,7 +7879,7 @@ def cimvalue(value, type):
 
     Parameters:
 
-      `type` (:term:`string`):
+      `type` (str):
         The CIM data type name for the CIM object. See :ref:`CIM data types`
         for valid type names.
 
@@ -7914,21 +7896,21 @@ def cimvalue(value, type):
 
         * If `type` is ``'string'`` or ``'char16'``:
 
-          - Objects of type :term:`byte string`; they will be converted to
-            :term:`unicode string`.
+          - Objects of type :class:`py:bytes`; they will be converted to
+            :class:`py:str`.
 
         * If `type` specifies one of the CIM integer data types (e.g.
           ``'uint8'``):
 
           - Any object supported as an init parameter for :class:`py:int`.
-            This includes :term:`string` values with decimal integer numbers.
+            This includes :class:`py:str` values with decimal integer numbers.
             If the value is not supported, `ValueError` will be raised.
 
         * If `type` specifies one of the CIM float data types (e.g.
           ``'real32'``):
 
           - Any object supported as an init parameter for :class:`py:float`.
-            This includes :term:`string` values with decimal integer or float
+            This includes :class:`py:str` values with decimal integer or float
             numbers.
             If the value is not supported, `ValueError` will be raised.
 
@@ -7944,15 +7926,14 @@ def cimvalue(value, type):
 
         * If `type` is ``'reference'``:
 
-          - :term:`string`. The string must be an untyped WBEM URI representing
+          - :class:`py:str`. The string must be an untyped WBEM URI representing
             an instance path (see :term:`DSP0207`).
           - :class:`~pywbem.CIMInstanceName`. An instance path.
           - :class:`~pywbem.CIMClassName`. A class path.
 
     Returns:
 
-        A :term:`CIM data type` object, representing the specified value and
-        type.
+        :term:`CIM data type`: The specified value in the specified type.
 
     Raises:
 

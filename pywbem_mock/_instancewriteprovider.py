@@ -119,7 +119,7 @@ class InstanceWriteProvider(BaseProvider):
     Create or Modify an instance.
     """
 
-    #: :term:`string`: Keyword defining the type of request the provider will
+    #: str: Keyword defining the type of request the provider will
     #: service. The type for this provider class is predefined as
     #  'instance-write'.
     provider_type = 'instance-write'
@@ -187,7 +187,7 @@ class InstanceWriteProvider(BaseProvider):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             The name of the CIM namespace in which the CIM instance is to be
             created, in any lexical case, and with leading and trailing slash
             characters removed.
@@ -368,7 +368,7 @@ class InstanceWriteProvider(BaseProvider):
             be ignored by the provider, because instance-level qualifiers have
             been deprecated in CIM.
 
-          IncludeQualifiers (:class:`py:bool`):
+          IncludeQualifiers (bool):
             This parameter should be ignored by the provider, because
             instance-level qualifiers have been deprecated in CIM.
 
@@ -544,7 +544,7 @@ class InstanceWriteProvider(BaseProvider):
             Object from which references/keybindings searched to determine
             if multinamespace object. Must be an association.
 
-          target_namespace (:term:`string`):
+          target_namespace (str):
             The namespace name provided with the request call
             (ex. CreateInstance)
 
@@ -637,10 +637,10 @@ class InstanceWriteProvider(BaseProvider):
           new_instance (:class:`~pywbem.CIMInstance`):
             The new instance that will be created
 
-          orig_ns (:term:`string`):
+          orig_ns (str):
             The namespace name attached to the CreateInstance request
 
-          assoc_namespaces (list of :term:`string`):
+          assoc_namespaces (:class:`py:list` of :class:`py:str`):
             List of the namespaces defined in reference properties including
             the original namespace (orig_ns)
 
@@ -737,7 +737,7 @@ class InstanceWriteProvider(BaseProvider):
             The modified instance that is to replace the original
             instance in the repository
 
-          assoc_namespaces (list of :term:`string`):
+          assoc_namespaces (:class:`py:list` of :class:`py:str`):
             List of the namespaces defined in reference properties including
             the original namespace (orig_ns)
 
@@ -805,7 +805,7 @@ class InstanceWriteProvider(BaseProvider):
           new_instance (:class:`~pywbem.CIMInstance`):
             The instance from which the CIMInstanceName will be derived.
 
-          namespace: (:term:`string`):
+          namespace: (str):
             The namespace in which the instance will be added.
 
         Raises:

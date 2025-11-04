@@ -94,7 +94,7 @@ class ResolverMixin:  # pylint: disable=too-few-public-methods
           new_class (:class:`~pywbem.CIMClass`):
             The class being validated
 
-        scope (:term:`string`):
+        scope (str):
             The scope defined for the object containing the qualifiers.
             May be 'CLASS', 'PROPERTY', 'METHOD', 'PARAMETER'
 

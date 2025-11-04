@@ -157,9 +157,9 @@ def test_char16_str(char16_init_tuple):
 
     # Each list item is a tuple of:
     # - obj_type (type): CIM integer data type (e.g. Uint8).
-    # - exp_cimtype (string): Expected value of cimtype class attribute for
+    # - exp_cimtype (str): Expected value of cimtype class attribute for
     #   this CIM data type.
-    # - exp_minvalue (integer): Expected value of minvalue class attribute for
+    # - exp_minvalue (int): Expected value of minvalue class attribute for
     #   this CIM data type.
     # - exp_maxvalue (): Expected value of maxvalue class attribute for
     #   this CIM data type.
@@ -305,7 +305,7 @@ def test_integer_init_too_high(integer_tuple):
 
     # Each list item is a tuple of:
     # - obj_type (type): CIM real data type (e.g. Real32).
-    # - exp_cimtype (string): Expected value of cimtype class attribute for
+    # - exp_cimtype (str): Expected value of cimtype class attribute for
     #   this CIM data type.
 
     # (obj_type, exp_cimtype)

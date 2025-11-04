@@ -54,10 +54,10 @@ class OpArgs(OpArgsTuple):
 
     Attributes:
 
-      ~OpArgs.method (:term:`unicode string`):
+      ~OpArgs.method (str):
         Name of the :class:`~pywbem.WBEMConnection` method.
 
-      ~OpArgs.args (:class:`py:dict`):
+      ~OpArgs.args (dict):
         Dictionary of input arguments (both positional and keyword-based).
     """
     __slots__ = ()
@@ -116,25 +116,25 @@ class HttpRequest(HttpRequestTuple):
 
     Attributes:
 
-      ~HttpRequest.version (:term:`number`):
+      ~HttpRequest.version (:class:`py:int` or :class:`py:float`):
         HTTP version from the request line (10 for HTTP/1.0, 11 for HTTP/1.1).
 
-      ~HttpRequest.url (:term:`unicode string`):
+      ~HttpRequest.url (str):
         URL of the WBEM server (e.g. 'https://myserver.acme.com:15989').
 
-      ~HttpRequest.target (:term:`unicode string`):
+      ~HttpRequest.target (str):
         Target URL segment as stated in request line (e.g. '/cimom').
 
-      ~HttpRequest.method (:term:`unicode string`):
+      ~HttpRequest.method (str):
         HTTP method as stated in the request line (e.g. "POST").
 
-      ~HttpRequest.headers (:class:`py:dict`):
+      ~HttpRequest.headers (dict):
         A dictionary of all HTTP header fields:
 
-        * key (:term:`unicode string`): Name of the header field
-        * value (:term:`unicode string`): Value of the header field
+        * key (str): Name of the header field
+        * value (str): Value of the header field
 
-      ~HttpRequest.payload (:term:`unicode string`):
+      ~HttpRequest.payload (str):
         HTTP payload, i.e. the CIM-XML string.
     """
     __slots__ = ()
@@ -164,22 +164,22 @@ class HttpResponse(HttpResponseTuple):
 
     Attributes:
 
-      ~HttpResponse.version (:term:`number`):
+      ~HttpResponse.version (:class:`py:int` or :class:`py:float`):
         HTTP version from the response line (10 for HTTP/1.0, 11 for HTTP/1.1).
 
-      ~HttpResponse.status (:term:`number`):
+      ~HttpResponse.status (:class:`py:int` or :class:`py:float`):
         HTTP status code from the response line (e.g. 200).
 
-      ~HttpResponse.reason (:term:`unicode string`):
+      ~HttpResponse.reason (str):
         HTTP reason phrase from the response line (e.g. "OK").
 
-      ~HttpResponse.headers (:class:`py:dict`):
+      ~HttpResponse.headers (dict):
         A dictionary of all HTTP header fields:
 
-        * key (:term:`unicode string`): Name of the header field
-        * value (:term:`unicode string`): Value of the header field
+        * key (str): Name of the header field
+        * value (str): Value of the header field
 
-      ~HttpResponse.payload (:term:`unicode string`):
+      ~HttpResponse.payload (str):
         HTTP payload, i.e. the CIM-XML string.
     """
     __slots__ = ()
@@ -252,7 +252,7 @@ class BaseOperationRecorder:
     @property
     def enabled(self):
         """
-        Indicate whether the recorder is enabled.
+        bool: Indicate whether the recorder is enabled.
 
         *New in pywbem 0.10.*
         """
@@ -273,10 +273,10 @@ class BaseOperationRecorder:
 
         Parameters:
 
-          filename(:term:`string`):
+          filename(str):
             Name of the file where the recorder output will be written
 
-          file_mode(:term:`string`):
+          file_mode(str):
             Optional file mode.  The default is 'w' which overwrites any
             existing file.  if 'a' is used, the data is appended to any
             existing file.
@@ -469,7 +469,7 @@ class LogOperationRecorder(BaseOperationRecorder):
             (ex.pywbem.ops.1-2343) so that each WBEMConnection could be
             logged with a separate logger.
 
-          detail_levels (:class:`py:dict`):
+          detail_levels (dict):
             Dictionary identifying the detail level for one or both of
             the loggers.
             Key: Simple logger name (e.g. 'api').

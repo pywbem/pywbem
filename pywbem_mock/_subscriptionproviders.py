@@ -151,7 +151,7 @@ class CommonMethodsMixin:
             be ignored by the provider, because instance-level qualifiers have
             been deprecated in CIM.
 
-          modifiable_properties (:term:`string` or list of :term:`string`):
+          modifiable_properties (:class:`py:str` or list of :class:`py:str`):
             Property names of properties that are modifiable by. If
             properties that are not modifiable are included, the request
             is rejected with CIM_ERR_INVALID_PARAMETER
@@ -256,14 +256,13 @@ class CommonMethodsMixin:
         Validate that no subscriptions exist containing reference to this
         instance.
 
+        Returns if there are no corresponding subscriptions.
+
         Parameters:
 
-          instance_name (:class:`~pywbem.CIMInstanceName`)
+          instance_name (:class:`~pywbem.CIMInstanceName`):
             Instance name of the target instance. The class must be either
             the filter class or the listener destination class
-
-        Returns:
-          Returns if there are no corresponding subscriptions.
         """
         # If a subscription exists containing this ListenerDestination,
         # reject delete
@@ -291,7 +290,6 @@ class CommonMethodsMixin:
         This method:
 
         1. Validates that the provider classs exist.
-
         """
         assert self.installed is False
 
@@ -335,7 +333,7 @@ class CIMIndicationFilterProvider(CommonMethodsMixin, InstanceWriteProvider):
 
     # This class level attribute must exist to define the CIM classname(es) .
     # for which this provider is responsible.
-    #: provider_classnames (:term:`string` or list of :term:`string`):
+    #: provider_classnames (:class:`py:str` or list of :class:`py:str`):
     #:        The classname for this provider
     provider_classnames = FILTER_CLASSNAME
 
@@ -381,7 +379,7 @@ class CIMIndicationFilterProvider(CommonMethodsMixin, InstanceWriteProvider):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             Must be a valid Interop namespace.
 
           new_instance (:class:`~pywbem.CIMInstance`):
@@ -458,7 +456,7 @@ class CIMIndicationFilterProvider(CommonMethodsMixin, InstanceWriteProvider):
 
         Parameters:
 
-          InstanceName: (:class:`~pywbem.CIMInstanceName`):
+          InstanceName (:class:`~pywbem.CIMInstanceName`):
             The keybinding `Name` must exist; it defines the namespace to be
             deleted.
 
@@ -509,7 +507,7 @@ class CIMListenerDestinationProvider(CommonMethodsMixin, InstanceWriteProvider):
 
     # This class level attribute must exist to define the CIM classname(es) .
     # for which this provider is responsible.
-    #: provider_classnames (:term:`string`):
+    #: provider_classnames (str):
     #:        The classnames for this provider
     provider_classnames = LISTENERDESTINATION_CLASSNAME
 
@@ -555,7 +553,7 @@ class CIMListenerDestinationProvider(CommonMethodsMixin, InstanceWriteProvider):
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             Must be a valid Interop namespace.
 
           new_instance (:class:`~pywbem.CIMInstance`):
@@ -692,7 +690,7 @@ class CIMIndicationSubscriptionProvider(CommonMethodsMixin,
 
     # This class level attribute must exist to define the CIM classname(es) .
     # for which this provider is responsible.
-    #: provider_classnames (:term:`string`):
+    #: provider_classnames (str):
     #:        The classname for this provider
     provider_classnames = SUBSCRIPTION_CLASSNAME
 
@@ -738,7 +736,7 @@ class CIMIndicationSubscriptionProvider(CommonMethodsMixin,
 
         Parameters:
 
-          namespace (:term:`string`):
+          namespace (str):
             Must be a valid Interop namespace.
 
           new_instance (:class:`~pywbem.CIMInstance`):

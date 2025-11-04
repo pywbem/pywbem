@@ -101,9 +101,9 @@ def validate_cim_xml(cim_xml_str, root_elem_name=None):
 
     Parameters:
 
-      cim_xml_str (string): CIM-XML string to be validated.
+      cim_xml_str (str): CIM-XML string to be validated.
 
-      root_elem_name (string): Name of XML element that is expected as the root
+      root_elem_name (str): Name of XML element that is expected as the root
         element in the CIM-XML string to be validated.
         `None` means no checking for a particular root element is performed.
 
@@ -173,9 +173,9 @@ def validate_cim_xml_obj(obj, obj_xml_str, exp_xml_str):
       obj (CIM object): The CIM object that belongs to the CIM-XML string,
        just for reporting purposes.
 
-      obj_xml_str (string): The CIM-XML string to be validated.
+      obj_xml_str (str): The CIM-XML string to be validated.
 
-      exp_xml_str (string): The expected CIM-XML string.
+      exp_xml_str (str): The expected CIM-XML string.
     """
 
     assert _xml_semantic_compare(obj_xml_str, exp_xml_str), (
@@ -216,9 +216,9 @@ def assert_xml_equal(act_xml_str, exp_xml_str):
 
     Parameters:
 
-      act_xml_str (string): The actual XML string.
+      act_xml_str (str): The actual XML string.
 
-      exp_xml_str (string): The expected XML string.
+      exp_xml_str (str): The expected XML string.
     """
 
     assert _xml_semantic_compare(act_xml_str, exp_xml_str), (

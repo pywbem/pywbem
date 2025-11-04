@@ -227,19 +227,19 @@ class ValueMapping:
           server (:class:`~pywbem.WBEMConnection` or :class:`~pywbem.WBEMServer`):
             The connection to the WBEM server containing the namespace.
 
-          namespace (:term:`string`):
+          namespace (str):
             Name of the CIM namespace containing the class.
             If `None`, the default namespace of the connection will be used.
 
-          classname (:term:`string`):
+          classname (str):
             Name of the CIM class exposing the property. The property can be
             defined in that class or inherited into that class.
 
-          propname (:term:`string`):
+          propname (str):
             Name of the CIM property that defines the `Values` / `ValueMap`
             qualifiers.
 
-          values_default (`None` or :term:`string`):
+          values_default (`None` or :class:`py:str`):
             Controls the handling of different sizes of the `Values` and
             `ValueMap` arrays:
 
@@ -252,7 +252,8 @@ class ValueMapping:
 
         Returns:
 
-            The new :class:`~pywbem.ValueMapping` instance.
+            :class:`~pywbem.ValueMapping`: The new :class:`~pywbem.ValueMapping`
+            instance.
 
         Raises:
 
@@ -307,18 +308,18 @@ class ValueMapping:
           server (:class:`~pywbem.WBEMConnection` or :class:`~pywbem.WBEMServer`):
             The connection to the WBEM server containing the namespace.
 
-          namespace (:term:`string`):
+          namespace (str):
             Name of the CIM namespace containing the class.
 
-          classname (:term:`string`):
+          classname (str):
             Name of the CIM class exposing the method. The method can be
             defined in that class or inherited into that class.
 
-          methodname (:term:`string`):
+          methodname (str):
             Name of the CIM method that defines the `Values` / `ValueMap`
             qualifiers.
 
-          values_default (`None` or :term:`string`):
+          values_default (`None` or :class:`py:str`):
             Controls the handling of different sizes of the `Values` and
             `ValueMap` arrays:
 
@@ -331,7 +332,8 @@ class ValueMapping:
 
         Returns:
 
-            The new :class:`~pywbem.ValueMapping` instance.
+            :class:`~pywbem.ValueMapping`: The new :class:`~pywbem.ValueMapping`
+            instance.
 
         Raises:
 
@@ -388,21 +390,21 @@ class ValueMapping:
           server (:class:`~pywbem.WBEMConnection` or :class:`~pywbem.WBEMServer`):
             The connection to the WBEM server containing the namespace.
 
-          namespace (:term:`string`):
+          namespace (str):
             Name of the CIM namespace containing the class.
 
-          classname (:term:`string`):
+          classname (str):
             Name of the CIM class exposing the method. The method can be
             defined in that class or inherited into that class.
 
-          methodname (:term:`string`):
+          methodname (str):
             Name of the CIM method that has the parameter.
 
-          parametername (:term:`string`):
+          parametername (str):
             Name of the CIM parameter that defines the `Values` / `ValueMap`
             qualifiers.
 
-          values_default (`None` or :term:`string`):
+          values_default (`None` or :class:`py:str`):
             Controls the handling of different sizes of the `Values` and
             `ValueMap` arrays:
 
@@ -415,7 +417,8 @@ class ValueMapping:
 
         Returns:
 
-            The new :class:`~pywbem.ValueMapping` instance.
+            :class:`~pywbem.ValueMapping`: The new :class:`~pywbem.ValueMapping`
+            instance.
 
         Raises:
 
@@ -472,18 +475,20 @@ class ValueMapping:
 
         Parameters:
 
-          i (integer): position into valuemap_list and values_list
+          i (int): Position into valuemap_list and values_list
 
-          valuemap_list (list of strings): `ValueMap` qualifier value
+          valuemap_list (:class:`py:list` of :class:`py:str`): `ValueMap`
+            qualifier value
 
-          values_list (list of strings): `Values` qualifier value
+          values_list (:class:`py:list` of :class:`py:str`): `Values` qualifier
+            value
 
           cimtype (type): CIM type of the CIM element
 
         Raises:
 
             ModelError: Invalid integer representation in `ValueMap` qualifier
-              defined on the CIM element.
+            defined on the CIM element.
         """
         values_str = values_list[i]
         valuemap_str = valuemap_list[i]
@@ -551,26 +556,26 @@ class ValueMapping:
           conn (:class:`~pywbem.WBEMConnection`):
             The connection to the WBEM server containing the namespace.
 
-          namespace (:term:`string`):
+          namespace (str):
             Name of the CIM namespace containing the class.
 
-          classname (:term:`string`):
+          classname (str):
             Name of the CIM class exposing the property or method. The property
             or method can be defined in that class or inherited into that class.
 
-          propname (:term:`string`):
+          propname (str):
             Name of the CIM property that defines the `Values` / `ValueMap`
             qualifiers.
 
-          methodname (:term:`string`):
+          methodname (str):
             Name of the CIM method that defines the `Values` / `ValueMap`
             qualifiers on its return value, or that has the parameter.
 
-          parametername (:term:`string`):
+          parametername (str):
             Name of the CIM parameter that defines the `Values` / `ValueMap`
             qualifiers.
 
-          values_default (`None` or :term:`string`):
+          values_default (`None` or :class:`py:str`):
             Controls the handling of different sizes of the `Values` and
             `ValueMap` arrays:
 
@@ -583,7 +588,8 @@ class ValueMapping:
 
         Returns:
 
-            The created :class:`~pywbem.ValueMapping` instance for the specified
+            :class:`~pywbem.ValueMapping`: The created
+            :class:`~pywbem.ValueMapping` instance for the specified
             CIM element.
 
         Raises:
@@ -734,7 +740,7 @@ class ValueMapping:
     @property
     def namespace(self):
         """
-        :term:`string`: Name of the CIM namespace containing the class that
+        str: Name of the CIM namespace containing the class that
         defines the mapped CIM element.
         """
         return self._namespace
@@ -742,14 +748,14 @@ class ValueMapping:
     @property
     def classname(self):
         """
-        :term:`string`: Name of the CIM class defining the mapped CIM element.
+        str: Name of the CIM class defining the mapped CIM element.
         """
         return self._classname
 
     @property
     def propname(self):
         """
-        :term:`string`: Name of the CIM property that is mapped. `None`, if
+        str: Name of the CIM property that is mapped. `None`, if
         no property is mapped.
         """
         return self._propname
@@ -757,7 +763,7 @@ class ValueMapping:
     @property
     def methodname(self):
         """
-        :term:`string`: Name of the CIM method, that either is mapped itself,
+        str: Name of the CIM method, that either is mapped itself,
         or that has the parameter that is mapped.  `None`, if no method or
         parameter is mapped.
         """
@@ -766,7 +772,7 @@ class ValueMapping:
     @property
     def parametername(self):
         """
-        :term:`string`: Name of the CIM parameter that is mapped. `None`, if
+        str: Name of the CIM parameter that is mapped. `None`, if
         no parameter is mapped.
         """
         return self._parametername
@@ -774,7 +780,7 @@ class ValueMapping:
     @property
     def values_default(self):
         """
-        `None` or :term:`string`: Controls the handling of different sizes of
+        `None` or :class:`py:str`: Controls the handling of different sizes of
         the `Values` and `ValueMap` arrays:
 
         - If `None`, a :exc:`~pywbem.ModelError` exception will be raised for
@@ -814,12 +820,12 @@ class ValueMapping:
 
         Parameters:
 
-          element_value (:term:`integer` or :class:`~pywbem.CIMInt` or list/tuple thereof):
+          element_value (:class:`py:int` or :class:`~pywbem.CIMInt` or list/tuple thereof):
             The value(s) of the CIM element. May be `None`.
 
         Returns:
 
-          :term:`string` or list of :term:`string`:
+          :class:`py:str` or :class:`py:list` of :class:`py:str`:
             The `Values` string(s) for the element value.
             This is:
             * a single string, if the element value was a single value
@@ -844,13 +850,12 @@ class ValueMapping:
 
         Parameters:
 
-          element_value (:term:`integer` or :class:`~pywbem.CIMInt`):
+          element_value (:class:`py:int` or :class:`~pywbem.CIMInt`):
             The single integer value of the CIM element. Must not be `None`.
 
         Returns:
 
-          :term:`string`:
-            The single `Values` string for the element value.
+          str: The single `Values` string for the element value.
 
         Raises:
 
@@ -911,7 +916,7 @@ class ValueMapping:
 
         Parameters:
 
-          values_str (:term:`string`):
+          values_str (str):
             The `Values` string for the (single) element value. Must not be
             `None`.
 
@@ -968,7 +973,8 @@ class ValueMapping:
 
         Returns:
 
-          :term:`iterator` for tuple of integer value(s) and `Values` string.
+          :term:`iterator`: Iterator for tuple of integer value(s) and `Values`
+          string.
         """
 
         for values_str in self._v2b_dict:

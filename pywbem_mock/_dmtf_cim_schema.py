@@ -112,7 +112,7 @@ def build_schema_mof(class_names, schema_pragma_file):
 
     Parameters:
 
-      class_names (:term:`string` or list of :term:`string`):
+      class_names (:class:`py:str` or list of :class:`py:str`):
         These must be class names of classes in the DMTF CIM schema represented
         by the instance of :class:`~pywbem_mock.DMTFCIMSchema` object. This
         parameter can be a string if there is only a single class name to be
@@ -124,14 +124,14 @@ def build_schema_mof(class_names, schema_pragma_file):
         classes, classed defined by reference properties, and classes defined
         by an embedded-object.
 
-    schema_pragma_file (:term:`string`):
+    schema_pragma_file (str):
         File path defining a CIM schema pragma file for the set of
         CIM classes that make up a schema such as the DMTF schema.
         This file must contain a pragma statement for each of the
         classes defined in the schema.
 
     Returns:
-        :term:`string`: Valid MOF containing pragma statements from the
+        str: Valid MOF containing pragma statements from the
         `CIM schema pragma file` for all of the classes in `schema_classes`.
 
     Raises:
@@ -218,7 +218,7 @@ class DMTFCIMSchema:
             This must represent a DMTF CIM schema that is available from the
             DMTF web site.
 
-          schema_root_dir (:term:`string`):
+          schema_root_dir (str):
             Path name of the schema root directory into which the DMTF CIM
             schema zip file is downloaded and in which a subdirectory for the
             extracted MOF files for the schema version defined is created
@@ -228,14 +228,14 @@ class DMTFCIMSchema:
             extracted into a subdirectory identified by the schema version
             information See :attr:`schema_mof_dir`.
 
-          use_experimental (:class:`py:bool`):
+          use_experimental (bool):
             If `True`, the experimental version of the defined DMTF schema is
             installed.
 
             If `False`, (default) the final version of the defined
             DMTF schema is installed.
 
-          verbose (:class:`py:bool`):
+          verbose (bool):
             If `True`, progress messages are output to stdout as the schema is
             downloaded and expanded. Default is `False`.
 
@@ -300,7 +300,7 @@ class DMTFCIMSchema:
     @property
     def schema_version_str(self):
         """
-        :term:`string`: The DMTF CIM schema version as a string in the form
+        str: The DMTF CIM schema version as a string in the form
         ``major version>.<minor version>.<update version>``.
 
         Example: "2.49.0" defines DMTF CIM schema version 2.49.0.
@@ -310,7 +310,7 @@ class DMTFCIMSchema:
     @property
     def schema_root_dir(self):
         """
-        :term:`string`: Path name of the directory in which the DMTF CIM
+        str: Path name of the directory in which the DMTF CIM
         schema zip file is downloaded. The MOF files are extracted into the
         subdirectory indicated by :attr:`schema_mof_dir`.
         """
@@ -319,7 +319,7 @@ class DMTFCIMSchema:
     @property
     def schema_mof_dir(self):
         """
-        :term:`string`: Path name of the directory in which the DMTF CIM Schema
+        str: Path name of the directory in which the DMTF CIM Schema
         MOF files are extracted from the downloaded zip file. This property can
         be used as the MOF compiler search path for compiling classes in the
         DMTF CIM schema. This directory will also contain the
@@ -330,7 +330,7 @@ class DMTFCIMSchema:
     @property
     def schema_pragma_file(self):
         """
-        :term:`string`: Path name of the schema pragma file for the DMTF CIM
+        str: Path name of the schema pragma file for the DMTF CIM
         schema. This file contains `#pragama include` statements for all of
         the classes and qualifier declarations of the schema.
 
@@ -351,7 +351,7 @@ class DMTFCIMSchema:
     @property
     def schema_zip_file(self):
         """
-        :term:`string`: Path name of the DMTF CIM schema zip file after being
+        str: Path name of the DMTF CIM schema zip file after being
         downloaded from the DMTF web site.
         """
         return self._schema_zip_file
@@ -359,7 +359,7 @@ class DMTFCIMSchema:
     @property
     def schema_zip_url(self):
         """
-        :term:`string`: URL of the DMTF CIM schema zip file that is
+        str: URL of the DMTF CIM schema zip file that is
         downloaded from the DMTF web site.
 
         """
@@ -504,7 +504,7 @@ class DMTFCIMSchema:
 
         Parameters:
 
-          class_names (:term:`string` or list of :term:`string`):
+          class_names (:class:`py:str` or list of :class:`py:str`):
             These must be class names of classes in the DMTF CIM schema
             represented by this :class:`~pywbem_mock.DMTFCIMSchema` object.
             This parameter can be a string if there is only a single class name
@@ -516,7 +516,7 @@ class DMTFCIMSchema:
             reference properties, and classes defined by an embedded-object.
 
         Returns:
-            :term:`string`: Valid MOF containing pragma statements for
+            str: Valid MOF containing pragma statements for
             all of the classes in `schema_classes`.
 
         Raises:

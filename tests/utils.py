@@ -192,7 +192,7 @@ def is_inherited_from(member_name, derived_class, base_class):
 
     Parameters:
 
-      member_name (string): The name of the class member to be checked.
+      member_name (str): The name of the class member to be checked.
 
       derived_class (class): The derived class to be used for the check.
 

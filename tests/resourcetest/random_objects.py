@@ -100,7 +100,7 @@ def random_string(length_range, charset='ascii'):
 
     Parameters:
       length_range (Range): Length range.
-      charset (string): CHaracter set for the values. Valid character sets
+      charset (str): CHaracter set for the values. Valid character sets
         are:
         - 'ascii' - Printable 7-bit ASCII characters (U+0020 .. U+007E)
     """
@@ -121,7 +121,7 @@ def random_type_value(values, type=None):
 
     Parameters:
       values (ValueProfile or value): Values
-      type (string): Use this type instead of a random type from the profile
+      type (str): Use this type instead of a random type from the profile
     """
 
     if not isinstance(values, ValueProfile):

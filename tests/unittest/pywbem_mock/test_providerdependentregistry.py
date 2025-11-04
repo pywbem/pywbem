@@ -54,7 +54,7 @@ def create_conn(reg_dict):
 
     Parameters:
       reg_dict (dict): Dependents to be registered, with:
-        Key (string): Path name of mock script; does not need to be normalized.
+        Key (str): Path name of mock script; does not need to be normalized.
         Value (list): List of path names of dependent files; do not need to be
           normalized.
     """

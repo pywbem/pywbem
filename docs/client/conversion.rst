@@ -15,7 +15,7 @@ Function                        Purpose
                                 :term:`Element` object.
 :func:`~pywbem.tocimxmlstr`     Return the CIM-XML representation of a CIM
                                 object or CIM data typed value as a
-                                :term:`unicode string`.
+                                :class:`py:str`.
 :func:`~pywbem.cimvalue`        Return a CIM data typed value from a Python
                                 value.
 :func:`~pywbem.cimtype`         Return the CIM data type name of a CIM data

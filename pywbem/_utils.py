@@ -33,11 +33,11 @@ __all__ = []
 def _ensure_unicode(obj):
     """
     If the input object is a string, make sure it is returned as a
-    :term:`unicode string`, as follows:
+    :class:`py:str`, as follows:
 
-    * If the input object already is a :term:`unicode string`, it is returned
+    * If the input object already is a :class:`py:str`, it is returned
       unchanged.
-    * If the input string is a :term:`byte string`, it is decoded using UTF-8.
+    * If the input string is :class:`py:bytes`, it is decoded using UTF-8.
     * Otherwise, the input object was not a string and is returned unchanged.
     """
     if isinstance(obj, bytes):
@@ -47,12 +47,12 @@ def _ensure_unicode(obj):
 
 def _ensure_bytes(obj):
     """
-    If the input object is a string, make sure it is returned as a
-    :term:`byte string`, as follows:
+    If the input object is a string, make sure it is returned as
+    :class:`py:bytes`, as follows:
 
-    * If the input object already is a :term:`byte string`, it is returned
+    * If the input object already is :class:`py:bytes`, it is returned
       unchanged.
-    * If the input string is a :term:`unicode string`, it is encoded using
+    * If the input string is a :class:`py:str`, it is encoded using
       UTF-8.
     * Otherwise, the input object was not a string and is returned unchanged.
     """
@@ -73,7 +73,7 @@ def _ensure_bool(obj):
 
 def _to_unicode(obj):
     """
-    Convert the input binary string to a :term:`unicode string`.
+    Convert the input binary string to :class:`py:str`.
     The input object must be a byte string.
     Use this if there is a previous test about the string type.
     """
@@ -82,7 +82,7 @@ def _to_unicode(obj):
 
 def _to_bytes(obj):
     """
-    Convert the input binary string to a :term:`byte string`.
+    Convert the input binary string to :class:`py:bytes`.
     The input object must be a unicode string.
     Use this if there is a previous test about the string type.
     """
