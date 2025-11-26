@@ -205,17 +205,17 @@ def patched_makefile(self, mode='r', bufsize=-1):
     return self.fd
 
 
-def pytest_collect_file(parent, path):
+def pytest_collect_file(parent, file_path):
     """
     py.test hook that is called for a directory to collect its test files.
 
     For an example very similar to what we do here, see
     https://docs.pytest.org/en/latest/example/nonpython.html
     """
-    if path.ext == ".yaml":
+    if file_path.suffix == ".yaml":
         if hasattr(YamlFile, 'from_parent'):
             # pylint: disable=no-member
-            return YamlFile.from_parent(fspath=path, parent=parent)
+            return YamlFile.from_parent(path=file_path, parent=parent)
         # Direct creation has been deprecated in pytest, but
         # from_parent() was introduced only in pytest 6.0.0 and we
         # have to pin to lower pytest versions on py27/py34/py35.
