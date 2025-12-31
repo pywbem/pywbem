@@ -20,14 +20,9 @@ requests>=2.32.4
 yamlloader>=0.5.5
 
 # typing-extensions
-# nocaselist 2.x requires typing-extensions>=3.10 on Python<=3.9
-# On Python 3.6, pip 21.3.1 is the newest version and it fails recognizing
-#   that typing-extensions 4.2.0 started requiring Python>=3.7
-# Development dependencies:
-#   rich 12.1.0 requires Python>=3.6 and typing-extensions>=4.0.0,<5.0 on Python<=3.8
-#   rich 13.x.x requires Python>=3.7 and typing-extensions>=4.0.0,<5.0 on Python<=3.8
-#   pydantic 2.9.0 requires typing-extensions>=4.12.2 on Python>=3.13
-typing-extensions>=4.12.2; python_version <= '3.9'
+# typing-extensions 4.14.0 removed support for Python 3.8
+typing-extensions>=4.13.2; python_version == '3.8'
+typing-extensions>=4.14.1; python_version >= '3.9'
 
 
 # Indirect dependencies for install that are needed for some reason (must be consistent with minimum-constraints-install.txt)
