@@ -20,8 +20,7 @@ click-default-group==1.2.4
 
 # Unit test (imports into testcases):
 packaging==24.1
-pytest==4.6.0; python_version <= '3.9'
-pytest==6.2.5; python_version >= '3.10'
+pytest==7.0.0
 testfixtures==6.9.0
 colorama==0.4.5
 # FormEncode is used for xml comparisons in unit test
