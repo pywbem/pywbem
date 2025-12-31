@@ -16,14 +16,7 @@ six>=1.16.0; python_version >= '3.10'
 
 # Unit test (imports into testcases):
 packaging>=24.1
-# pytest 4.3.1 solves an issue on Python 3 with minimum package levels
-# pytest==6.0.0 causes pylint to report "not-callable" issues
-# pytest>=6.0.0 causes pylint to report "abstract-method" issues
-# For both, see https://github.com/pytest-dev/pytest/issues/7591
-# Max pytest version < 8.0 because of issue with Deprecated warnings in pytest 8.0.x.
-# pytest-cov 4.0.0 depends on pytest>=4.6
-pytest>=4.6.0,!=6.0,<8.0; python_version <= '3.9'
-pytest>=7.0.0,<10.0; python_version >= '3.10'
+pytest>=7.0.0
 testfixtures>=6.9.0
 # pylint>=2.15 requires colorama>=0.4.5
 colorama>=0.4.5

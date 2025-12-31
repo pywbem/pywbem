@@ -219,7 +219,7 @@ def pytest_collect_file(parent, file_path):
         # Direct creation has been deprecated in pytest, but
         # from_parent() was introduced only in pytest 6.0.0 and we
         # have to pin to lower pytest versions on py27/py34/py35.
-        return YamlFile(fspath=path, parent=parent)
+        return YamlFile(fspath=file_path, parent=parent)
     return None  # to avoid pylint inconsistent-return-statements
 
 
