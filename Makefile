@@ -746,79 +746,51 @@ clean:
 html: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done $(doc_build_dir)/html/index.html
 	@echo "Makefile: Target $@ done."
 
-# Boolean variable indicating that Sphinx should be run
-# We run Sphinx only on Python>=3.8 because lower Python versions require too old Sphinx versions
-run_sphinx := $(shell $(PYTHON_CMD) -c "import sys; py=sys.version_info[0:2]; sys.stdout.write('true' if py>=(3,8) else 'false')")
-
 $(doc_build_dir)/html/index.html: Makefile $(doc_utility_help_files) $(doc_dependent_files)
-ifeq ($(run_sphinx),true)
 	@echo "Makefile: Creating the documentation as HTML pages"
 	-$(call RM_FUNC,$@)
 	bash -c "pushd docs; $(doc_cmd) -b html $(doc_opts) ../$(doc_build_dir)/html"
 	@echo "Makefile: Done creating the documentation as HTML pages; top level file: $@"
-else
-	@echo "Skipping Sphinx to create HTML pages on Python version $(python_version)"
-endif
 
 .PHONY: pdf
 pdf: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile $(doc_utility_help_files) $(doc_dependent_files)
-ifeq ($(run_sphinx),true)
 	@echo "Makefile: Creating the documentation as PDF file"
 	-$(call RM_FUNC,$@)
 	bash -c "pushd docs; $(doc_cmd) -b latex $(doc_opts) ../$(doc_build_dir)/pdf"
 	@echo "Makefile: Running LaTeX files through pdflatex..."
 	$(MAKE) -C $(doc_build_dir)/pdf all-pdf
 	@echo "Makefile: Done creating the documentation as PDF file in: $(doc_build_dir)/pdf/"
-else
-	@echo "Skipping Sphinx to create PDF files on Python version $(python_version)"
-endif
 	@echo "Makefile: Target $@ done."
 
 .PHONY: man
 man: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile $(doc_utility_help_files) $(doc_dependent_files)
-ifeq ($(run_sphinx),true)
 	@echo "Makefile: Creating the documentation as man pages"
 	-$(call RM_FUNC,$@)
 	bash -c "pushd docs; $(doc_cmd) -b man $(doc_opts) ../$(doc_build_dir)/man/man1"
 	@echo "Makefile: Done creating the documentation as man pages in: $(doc_build_dir)/man/man1"
-else
-	@echo "Skipping Sphinx to create man files on Python version $(python_version)"
-endif
 	@echo "Makefile: Target $@ done."
 
 .PHONY: docchanges
 docchanges: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done
-ifeq ($(run_sphinx),true)
 	@echo "Makefile: Creating the doc changes overview file"
 	bash -c "pushd docs; $(doc_cmd) -b changes $(doc_opts) ../$(doc_build_dir)/changes"
 	@echo
 	@echo "Makefile: Done creating the doc changes overview file in: $(doc_build_dir)/changes/"
-else
-	@echo "Skipping Sphinx to create doc changes overview file on Python version $(python_version)"
-endif
 	@echo "Makefile: Target $@ done."
 
 .PHONY: doclinkcheck
 doclinkcheck: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done
-ifeq ($(run_sphinx),true)
 	@echo "Makefile: Creating the doc link errors file"
 	bash -c "pushd docs; $(doc_cmd) -b linkcheck $(doc_opts) ../$(doc_build_dir)/linkcheck"
 	@echo
 	@echo "Makefile: Done creating the doc link errors file: $(doc_build_dir)/linkcheck/output.txt"
-else
-	@echo "Skipping Sphinx to create doc link errors file on Python version $(python_version)"
-endif
 	@echo "Makefile: Target $@ done."
 
 .PHONY: doccoverage
 doccoverage: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done
-ifeq ($(run_sphinx),true)
 	@echo "Makefile: Creating the doc coverage results file"
 	bash -c "pushd docs; $(doc_cmd) -b coverage $(doc_opts) ../$(doc_build_dir)/coverage"
 	@echo "Makefile: Done creating the doc coverage results file: $(doc_build_dir)/coverage/python.txt"
-else
-	@echo "Skipping Sphinx to create doc coverage results file on Python version $(python_version)"
-endif
 	@echo "Makefile: Target $@ done."
 
 # Note: When dynamic versioning with "setuptools-scm" is used, the default
