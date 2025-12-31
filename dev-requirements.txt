@@ -27,17 +27,21 @@ more-itertools>=4.0.0
 # Safety CI by pyup.io
 # safety 3.6.1 fixes the issue with typer >=0.17.0, see https://github.com/pyupio/safety/issues/778
 # pydantic 2.8.0 fixes an install issue on Python 3.13.
-safety>=3.6.1
-safety-schemas>=0.0.14
+safety>=3.6.1; python_version == '3.8'
+safety>=3.7.0; python_version >= '3.9'
+safety-schemas>=0.0.14; python_version == '3.8'
+safety-schemas>=0.0.16; python_version >= '3.9'
 dparse>=0.6.4
 ruamel.yaml>=0.17.21
 click>=8.0.2
 Authlib>=1.3.2; python_version == '3.8'
 Authlib>=1.6.5; python_version >= '3.9'
 marshmallow>=3.15.0
-pydantic>=2.8.0
-pydantic_core>=2.20.0
-#safety 3.6.1 depends on typer>=0.16.0
+pydantic>=2.8.0; python_version == '3.8'
+pydantic>=2.12.0; python_version >= '3.9'
+pydantic_core>=2.20.0; python_version == '3.8'
+pydantic_core>=2.41.1; python_version >= '3.9'
+# safety 3.6.1 depends on typer>=0.16.0
 typer>=0.16.0
 typer-cli>=0.16.0
 typer-slim>=0.16.0
@@ -45,7 +49,7 @@ psutil>=6.1.0
 filelock>=3.16.1
 
 # Tox
-tox>=2.5.0
+tox>=3.21.0
 
 # Sphinx (no imports, invoked via sphinx-build script):
 # Sphinx 6.0.0 started requiring Python>=3.8
@@ -74,15 +78,16 @@ Babel>=2.11.0
 
 # PyLint (no imports, invoked via pylint script)
 pylint>=3.0.1; python_version == '3.8'
-pylint>=3.3.3; python_version >= '3.9'
+pylint>=3.3.3; python_version == '3.9'
+pylint>=4.0.4; python_version >= '3.10'
 astroid>=3.0.1; python_version == '3.8'
-astroid>=3.3.8; python_version >= '3.9'
+astroid>=3.3.8; python_version == '3.9'
+astroid>=4.0.2; python_version >= '3.10'
 lazy-object-proxy>=1.4.3
 wrapt>=1.17.0
 # platformdirs is also used by tox
 platformdirs>=4.1.0
-# isort 4.3.8 fixes an issue with py310 and works on py310 (Note that isort 5.10.0 has official support for py310)
-isort>=4.3.8
+isort>=5.0.9
 tomlkit>=0.10.1
 dill>=0.3.7
 
@@ -135,19 +140,8 @@ jupyterlab>=4.2.6,<5
 pyrsistent>=0.19.1
 
 # Pywin32 is used (at least?) by jupyter.
-# Pywin32 version 226 needs to be excluded, see issues #1946 and #1975.
-# Issue #2675: Pywin32 version 225+ provides wheel files for py38, but does not
-#   advertise py38 on Pypi. That causes pywin32==225 to fail but pywin32>=225
-#   to work.
-#   Reported to pywin32 as https://github.com/mhammond/pywin32/issues/1448.
-#   Addressed by increasing the minimum version of pywin32 to >=227 on Python >=3.8.
-# pywin32 version 302 added support for Python 3.10 (lower pywin32 versions could not be installed there)
-# pywin32 version 303 added support for Python 3.11 (lower pywin32 versions could not be installed there)
-# pywin32 version 306 added support for Python 3.12 (lower pywin32 versions could not be installed there)
-# pywin32 version 307 added support for Python 3.13 (lower pywin32 versions could not be installed there)
-pywin32>=227; sys_platform == 'win32' and python_version <= '3.9'
-pywin32>=306; sys_platform == 'win32' and python_version >= '3.10' and python_version <= '3.12'
-pywin32>=307; sys_platform == 'win32' and python_version >= '3.13'
+# pywin32 version 311 added support for Python 3.14
+pywin32>=311; sys_platform == 'win32'
 
 # The tornado package is used by ipykernel which is used by jupyter.
 tornado>=6.4.2; python_version <= '3.8'
@@ -171,18 +165,15 @@ pip-check-reqs>=2.4.3,!=2.5.0; python_version <= '3.11'
 pip-check-reqs>=2.5.1; python_version >= '3.12'
 
 # notebook 6.4.10 depends on pyzmq>=17
-# pyzmq 26.1.0 added wheel archives for Python 3.13
-pyzmq>=26.1.0
+# pyzmq 27.0.1 added wheel archives for Python 3.14
+pyzmq>=27.0.1
 
 # bleach is used by nbconvert
 bleach>=3.3.0
 
 # pywinpty is used by terminado <- notebook <- jupyter
-# pywinpty 2.0.14 has an issue with latest maturin on Python 3.8, see https://github.com/andfoy/pywinpty/issues/486
-# pywinpty <2.0.14 has the above issue on Python 3.13
-pywinpty>=2.0.12,!=2.0.14; os_name == "nt" and python_version == '3.8'
-pywinpty>=2.0.12; os_name == "nt" and python_version >= '3.9' and python_version <= '3.12'
-pywinpty>=2.0.14; os_name == "nt" and python_version >= '3.13'
+pywinpty>=2.0.12; os_name == "nt" and python_version == '3.8'
+pywinpty>=3.0.1; os_name == "nt" and python_version >= '3.9'
 
 # notebook 6.4.10 depends on terminado>=0.8.3
 # terminado 0.10.0 requires pywinpty>=1.1.0, see issue there
