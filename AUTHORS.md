@@ -10,6 +10,7 @@ Jon Carey <unknown@unknown.org>
 Karl Schopmeyer <karl.schopmeyer@gmail.com>
 Michal Minar <miminar@redhat.com>
 Norm Paxton <unknown@unknown.org>
+Steve Kowalik <steven@wedontsleep.org>
 Tim Potter <tpot@hp.com>
 Tony <23.tony@gmail.com>
 Tony Asleson <tasleson@redhat.com>
