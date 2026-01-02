@@ -234,7 +234,7 @@ from ._tupleparse import TupleParser
 from ._tupletree import xml_to_tupletree_sax
 from ._exceptions import CIMXMLParseError, XMLParseError, CIMVersionError, \
     DTDVersionError, ProtocolVersionError, ListenerCertificateError, \
-    ListenerPortError, ListenerPromptError
+    ListenerPortError, ListenerPromptError, ListenerStartError
 from ._utils import _format
 
 # CIM-XML protocol related versions implemented by the WBEM listener.
@@ -374,8 +374,12 @@ class ThreadedHTTPServer(socketserver.ThreadingMixIn, HTTPServer):
 def make_server(host, port, handler):
     """
     Create and return a ThreadedHTTPServer with the correct addressing family.
+
+    Raises:
+      socket.gaierror: Error resolving host and port.
     """
-    infos = socket.getaddrinfo(host, port)
+    infos = socket.getaddrinfo(
+        host, port, socket.AF_UNSPEC, socket.SOCK_STREAM, 0, socket.AI_PASSIVE)
 
     # Pick the first result (usually fine for binding)
     info = infos[0]
@@ -1312,29 +1316,27 @@ class WBEMListener:
         try:
             if self._http_port:
                 if not self._http_server:
-                    self.logger.info("Creating threaded HTTP server on port %s",
-                                     self._http_port)
+                    self.logger.info(
+                        "Creating threaded HTTP server for host %r on port %s",
+                        self._host, self._http_port)
                     try:
                         server = make_server(
                             self._host, self._http_port,
                             ListenerRequestHandler)
                     except OSError as exc:
-                        self.logger.error(
-                            "Creation of threaded HTTP server failed: %s: %s",
-                            exc.__class__.__name__, exc)
+                        # Note: socket.gaierror is derived from OSError
                         self._stop_indication_delivery()
-                        # Linux/macOS on py2: socket.error (derived from
-                        # IOError);
-                        # Linux/macOS on py3: OSError;
-                        # Windows does not raise any exception if port is used
                         if getattr(exc, 'errno', None) == errno.EADDRINUSE:
-                            new_exc = ListenerPortError(
-                                f"WBEM listener port {self._http_port} is "
-                                "already in use")
-                            new_exc.__cause__ = None
-                            raise new_exc  # ListenerPortError
-                        raise
-
+                            # Windows does not raise exception if port is used
+                            msg = (f"WBEM listener port {self._http_port} is "
+                                   "already in use")
+                            self.logger.error(msg)
+                            raise ListenerPortError(msg) from exc
+                        msg = ("Creation of threaded HTTP server for host "
+                               f"{self._host!r} on port {self._http_port} "
+                               f"failed: {exc.__class__.__name__}: {exc}")
+                        self.logger.error(msg)
+                        raise ListenerStartError(msg) from exc
                     # pylint: disable=attribute-defined-outside-init
                     self.logger.info(
                         "Starting HTTP listener thread to run threaded "
@@ -1356,29 +1358,26 @@ class WBEMListener:
                 if not self._https_server:
 
                     self.logger.info(
-                        "Creating threaded HTTPS server on port %s",
-                        self._https_port)
+                        "Creating threaded HTTPS server for host %r on port %s",
+                        self._host, self._https_port)
                     try:
                         server = make_server(
                             self._host, self._https_port,
                             ListenerRequestHandler)
                     except OSError as exc:
-                        self.logger.error(
-                            "Creation of threaded HTTPS server failed: %s: %s",
-                            exc.__class__.__name__, exc)
+                        # Note: socket.gaierror is derived from OSError
                         self._stop_indication_delivery()
-                        # Linux/macOS on py2: socket.error (derived from
-                        # IOError);
-                        # Linux/macOS on py3: OSError;
-                        # Windows does not raise any exception if port is used
                         if getattr(exc, 'errno', None) == errno.EADDRINUSE:
-                            new_exc = ListenerPortError(
-                                f"WBEM listener port {self._https_port} is "
-                                "already in use")
-                            new_exc.__cause__ = None
-                            raise new_exc  # ListenerPortError
-                        raise
-
+                            # Windows does not raise exception if port is used
+                            msg = (f"WBEM listener port {self._https_port} is "
+                                   "already in use")
+                            self.logger.error(msg)
+                            raise ListenerPortError(msg) from exc
+                        msg = ("Creation of threaded HTTPS server for host "
+                               f"{self._host!r} on port {self._https_port} "
+                               f"failed: {exc.__class__.__name__}: {exc}")
+                        self.logger.error(msg)
+                        raise ListenerStartError(msg) from exc
                     # pylint: disable=attribute-defined-outside-init
                     server.listener = self
 
