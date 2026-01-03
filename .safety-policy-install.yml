@@ -30,36 +30,8 @@ security:
     #     reason: {text}    # optional: Reason for ignoring it. Will be reported in the Safety reports
     #     expires: {date}   # optional: Date when this ignore will expire
     ignore-vulnerabilities:
-        39611:
-            reason: Fixed PyYAML version 5.4 requires Python>=3.6; full_load method or FullLoader is not used
-        40291:
-            reason: Fixed pip version 21.1 requires Python>=3.6 and is used there
-        42559:
-            reason: Fixed pip version 21.1 requires Python>=3.6 and is used there
-        51499:
-            reason: Fixed wheel version 0.38.1 requires Python>=3.7 and is used there
-        52365:
-            reason: Fixed certifi version 2022.12.07 requires Python>=3.6 and is used there
-        52495:
-            reason: Fixed setuptools version 65.5.1 requires Python>=3.7 and is used there
-        58755:
-            reason: Fixed requests version 2.31.0 requires Python>=3.7 and is used there
-        59956:
-            reason: Fixed certifi version 2023.07.22 requires Python>=3.6 and is used there
-        62044:
-            reason: Fixed pip version 23.3 requires Python>=3.7 and is used there
         67599:
             reason: Disputed issue in pip version 23.3 - No known fix
-        67895:
-            reason: Fixed idna version 3.7 requires requests>=2.26.0 which requires Python>=3.6 and is used there
-        76752:
-            reason: Fixed setuptools version 78.1.1 requires Python>=3.9 and pyproject.toml does not support python_version markers
-        77744:
-            reason: Fixed urllib3 version 2.5.0 requires Python>=3.9 and is used there
-        77745:
-            reason: Fixed urllib3 version 2.5.0 requires Python>=3.9 and is used there
-        79883:
-            reason: Fixed pip version 25.2 requires Python>=3.9 and is used there
 
     # Continue with exit code 0 when vulnerabilities are found.
     continue-on-vulnerability-error: False

@@ -109,7 +109,7 @@ Pywbem is supported in these environments:
 * Operating Systems: Linux, OS-X, native Windows, UNIX-like environments
   under Windows (such as `CygWin`_, MSYS2, Babun, or Gow).
 
-* Python: 3.8 and higher
+* Python: 3.9 and higher
 
 * WBEM servers: Any WBEM server that conforms to the DMTF specifications listed
   in :ref:`Standards conformance`. WBEM servers supporting older versions of
