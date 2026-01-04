@@ -746,14 +746,25 @@ class ListenerCertificateError(ListenerError):
     pass
 
 
-class ListenerPortError(ListenerError):
+class ListenerStartError(ListenerError):
+    """
+    This exception indicates a problem with starting the listener.
+
+    *New in pywbem 1.9.*
+
+    Derived from :exc:`~pywbem.ListenerError`.
+    """
+    pass
+
+
+class ListenerPortError(ListenerStartError):
     """
     This exception indicates that the port for the pywbem listener is already
     in use.
 
     *New in pywbem 1.3.*
 
-    Derived from :exc:`~pywbem.ListenerError`.
+    Derived from :exc:`~pywbem.ListenerStartError`.
     """
     pass
 
