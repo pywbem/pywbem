@@ -37,10 +37,11 @@ maintainers = [
     {name = "Karl Schopmeyer", email = "k.schopmeyer@swbell.net"}
 ]
 readme = "README_PYPI.md"
-license = {text = "LGPL version 2.1, or (at your option) any later version"}
+# License info in new PEP 639 format (since setuptools 77.0.3)
+license = "LGPL-2.1-or-later"
+license-files = ["LICENSE"]
 keywords = ["cim", "wbem", "client"]
 classifiers = [
-    "License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)",
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Intended Audience :: System Administrators",
