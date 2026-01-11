@@ -371,15 +371,37 @@ class ThreadedHTTPServer(socketserver.ThreadingMixIn, HTTPServer):
     allow_reuse_address = True
 
 
-def make_server(host, port, handler):
+def make_server(logger, host, port, handler):
     """
     Create and return a ThreadedHTTPServer with the correct addressing family.
 
     Raises:
       socket.gaierror: Error resolving host and port.
     """
-    infos = socket.getaddrinfo(
-        host, port, socket.AF_UNSPEC, socket.SOCK_STREAM, 0, socket.AI_PASSIVE)
+
+    # The following attempts to handle a bad IPv6 setup, which has happened in
+    # GitHub Actions on macOS. The straight forward way to get the address
+    # info would be to use socket.AF_UNSPEC. For host=None, a DNS resolution
+    # is not actually needed. However, on macOS the underlying OS-level
+    # getaddrinfo() investigates the IPv6 setup for socket.AF_UNSPEC even when
+    # host=None, and it does that in a blocking way without the possibility to
+    # specify a timeout. When the Ipv6 setup is incorrect, this causes the
+    # OS-level getaddrinfo() to block indefinitely.
+    # By first trying IPv4 and then IPv6 in the code below (instead of
+    # AF_UNSPEC), this problem is circumvented.
+    logger.debug(f"Resolving address of host {host} using AF_INET (IPv4)")
+    try:
+        infos = socket.getaddrinfo(
+            host, port, socket.AF_INET, socket.SOCK_STREAM, 0,
+            socket.AI_PASSIVE)
+    except socket.gaierror as exc:
+        logger.debug(f"Resolving address of host {host} using AF_INET "
+                     f"failed: {exc}")
+        logger.debug(f"Resolving address of host {host} using AF_INET6 (IPv6)")
+        infos = socket.getaddrinfo(
+            host, port, socket.AF_INET6, socket.SOCK_STREAM, 0,
+            socket.AI_PASSIVE)
+    logger.debug(f"Successfully resolved address of host {host} to: {infos!r}")
 
     # Pick the first result (usually fine for binding)
     info = infos[0]
@@ -387,11 +409,56 @@ def make_server(host, port, handler):
     family = info[0]
     sockaddr = info[4]  # (host, port) for IPv4, more for IPv6
 
+    logger.debug(f"Creating HTTPServer for family {family} and sockaddr "
+                 f"{sockaddr}")
+
     class AFServer(ThreadedHTTPServer):
-        "Class for setting address_family - it must be a class attribute"
+        """
+        Class for setting address_family - it must be a class attribute
+        """
+
         address_family = family
 
+        def server_bind(self):
+            """
+            This overrides the server_bind() from superclass HTTPServer,
+            in order to avoid the hang when it tries to perform reverse DNS
+            lookup via socket.getfqdn(host).
+            """
+
+            # Overriding server_bind() must reapply socket options
+            if self.allow_reuse_address:
+                self.socket.setsockopt(
+                    socket.SOL_SOCKET, socket.SO_REUSEADDR, 1
+                )
+            if getattr(self, "allow_reuse_port", False):
+                try:
+                    self.socket.setsockopt(
+                        socket.SOL_SOCKET, socket.SO_REUSEPORT, 1
+                    )
+                except (AttributeError, OSError):
+                    pass
+
+            # Perform the actual bind
+            self.socket.bind(self.server_address)
+
+            # Synchronize the server object with what the actual server address
+            # the OS decided to use during bind()
+            self.server_address = self.socket.getsockname()
+
+            host, port = self.server_address[:2]
+
+            # Set hostname without using reverse DNS lookup
+            if host in ("0.0.0.0", "::", ""):
+                self.server_name = "localhost"
+            else:
+                self.server_name = host
+
+            self.server_port = port
+
     server = AFServer(sockaddr, handler)
+    logger.debug(f"Successfully created HTTPServer for family {family}")
+
     return server
 
 
@@ -1321,7 +1388,7 @@ class WBEMListener:
                         self._host, self._http_port)
                     try:
                         server = make_server(
-                            self._host, self._http_port,
+                            self.logger, self._host, self._http_port,
                             ListenerRequestHandler)
                     except OSError as exc:
                         # Note: socket.gaierror is derived from OSError
@@ -1362,7 +1429,7 @@ class WBEMListener:
                         self._host, self._https_port)
                     try:
                         server = make_server(
-                            self._host, self._https_port,
+                            self.logger, self._host, self._https_port,
                             ListenerRequestHandler)
                     except OSError as exc:
                         # Note: socket.gaierror is derived from OSError
@@ -1525,23 +1592,25 @@ class WBEMListener:
 
         if self._http_server:
             self.logger.info(
-                "Stopping threaded HTTP server (and its listener thread)")
+                "Stopping threaded HTTP server and its listener thread")
             self._http_server.shutdown()
             self._http_server.server_close()
+            self._http_thread.join()
             self._http_server = None
             self._http_thread = None
             self.logger.info(
-                "Stopped threaded HTTP server (and its listener thread)")
+                "Stopped threaded HTTP server and its listener thread")
 
         if self._https_server:
             self.logger.info(
-                "Stopping threaded HTTPS server (and its listener thread)")
+                "Stopping threaded HTTPS server and its listener thread")
             self._https_server.shutdown()
             self._https_server.server_close()
+            self._https_thread.join()
             self._https_server = None
             self._https_thread = None
             self.logger.info(
-                "Stopped threaded HTTP server (and its listener thread)")
+                "Stopped threaded HTTPS server and its listener thread")
 
     def _callback_run(self):
         """
