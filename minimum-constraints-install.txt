@@ -36,7 +36,7 @@ typing-extensions==4.12.2; python_version <= '3.9'
 # Indirect dependencies for install that are needed for some reason (must be consistent with requirements.txt)
 
 urllib3==2.2.3; python_version == '3.8'
-urllib3==2.5.0; python_version >= '3.9'
+urllib3==2.6.0; python_version >= '3.9'
 certifi==2024.07.04
 
 # requests 2.31 requires idna>=2.5,<4
