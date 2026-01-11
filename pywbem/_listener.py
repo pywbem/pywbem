@@ -378,25 +378,8 @@ def make_server(host, port, handler):
     Raises:
       socket.gaierror: Error resolving host and port.
     """
-
-    # The following attempts to handle a bad IPv6 setup, which has happened in
-    # GitHub Actions on macOS. The straight forward way to get the address
-    # info would be to use socket.AF_UNSPEC. For host=None, a DNS resolution
-    # is not actually needed. However, on macOS the underlying OS-level
-    # getaddrinfo() investigates the IPv6 setup even for host=None, and it
-    # does that in a blocking way without the possibility to specify a timeout.
-    # When the Ipv6 setup is incorrect, this causes the OS-level getaddrinfo()
-    # to block indefinitely.
-    # By first trying IPv6 and then IPv4 in the code below (instead of
-    # AF_UNSPEC), this problem is circumvented.
-    try:
-        infos = socket.getaddrinfo(
-            host, port, socket.AF_INET6, socket.SOCK_STREAM, 0,
-            socket.AI_PASSIVE)
-    except socket.gaierror:
-        infos = socket.getaddrinfo(
-            host, port, socket.AF_INET, socket.SOCK_STREAM, 0,
-            socket.AI_PASSIVE)
+    infos = socket.getaddrinfo(
+        host, port, socket.AF_UNSPEC, socket.SOCK_STREAM, 0, socket.AI_PASSIVE)
 
     # Pick the first result (usually fine for binding)
     info = infos[0]
