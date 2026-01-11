@@ -30,7 +30,7 @@ typing-extensions>=4.14.1; python_version >= '3.9'
 # setuptools 61.0.0 breaks "setup.py install", see https://github.com/pypa/setuptools/issues/3198
 setuptools!=61.0.0
 
-urllib3>=2.5.0
+urllib3>=2.6.0
 
 certifi>=2024.07.04
 idna>=3.7
