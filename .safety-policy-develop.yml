@@ -34,6 +34,8 @@ security:
             reason: Py package is no longer being fixed (latest version 1.11.0)
         70612:
             reason: Safety issue and CVE do not list a fixed version of Jinja2
+        79993:
+            reason: Fixed jupyterlab version 4.4.8 requires Python>=3.9 and other upgrades
 
     # Continue with exit code 0 when vulnerabilities are found.
     continue-on-vulnerability-error: False
