@@ -1,1 +1,0 @@
-Docs: Fixed heading levels in change log.

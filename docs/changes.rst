@@ -16,6 +16,23 @@ Change log
    .. include:: tmp_changes.rst
 
 .. towncrier start
+pywbem 1.8.2
+------------
+
+Released: 2026-01-12
+
+**Bug fixes:**
+
+* Addressed safety issues up to 2026-01-12.
+
+* Dev: Circumvented install issue with ruamel.yaml.clibz on Windows, by
+  excluding versions 0.3.5 and 0.3.6.
+
+* Dev: Added dependencies for Sphinx.
+
+* Docs: Fixed heading levels in change log. (`#3346 <https://github.com/pywbem/pywbem/issues/3346>`_)
+
+
 pywbem 1.8.1
 ^^^^^^^^^^^^
 
