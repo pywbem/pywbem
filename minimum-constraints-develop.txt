@@ -77,22 +77,15 @@ vendorize==0.3.0
 more-itertools==4.0.0
 
 # Safety CI by pyup.io
-safety==3.6.1; python_version == '3.8'
-safety==3.7.0; python_version >= '3.9'
-safety-schemas==0.0.14; python_version == '3.8'
-safety-schemas==0.0.16; python_version >= '3.9'
+safety==3.7.0
+safety-schemas==0.0.16
 dparse==0.6.4
-ruamel.yaml==0.17.21; python_version == '3.8'
-ruamel.yaml==0.18.17; python_version >= '3.9'
-ruamel.yaml.clibz==0.3.6; python_version >= '3.9' and sys_platform != 'win32'
-ruamel.yaml.clibz==0.3.5; python_version >= '3.9' and sys_platform == 'win32'
+ruamel.yaml==0.19.1
 click==8.0.2
 Authlib==1.6.5
 marshmallow==3.15.0
-pydantic==2.8.0; python_version == '3.8'
-pydantic==2.12.0; python_version >= '3.9'
-pydantic_core==2.20.0; python_version == '3.8'
-pydantic_core==2.41.1; python_version >= '3.9'
+pydantic==2.12.0
+pydantic_core==2.41.1
 typer==0.16.0
 typer-cli==0.16.0
 typer-slim==0.16.0
