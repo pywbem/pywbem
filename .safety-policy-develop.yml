@@ -160,6 +160,10 @@ security:
             reason: Fixed authlib version 1.6.4 requires Python>=3.9 and is used there
         79993:
             reason: Fixed jupyterlab version 4.4.8 requires Python>=3.9 and other upgrades
+        80401:
+            reason: Fixed authlib version 1.6.5 requires Python>=3.9 and is used there
+        81132:
+            reason: Fixed authlib version 1.6.5 requires Python>=3.9 and is used there
 
     # Continue with exit code 0 when vulnerabilities are found.
     continue-on-vulnerability-error: False
