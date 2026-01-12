@@ -65,6 +65,11 @@ jobs:
               { \
                 \"os\": \"windows-latest\", \
                 \"python-version\": \"3.9\", \
+                \"package_level\": \"minimum\" \
+              }, \
+              { \
+                \"os\": \"windows-latest\", \
+                \"python-version\": \"3.9\", \
                 \"package_level\": \"latest\" \
               } \
             ] \
