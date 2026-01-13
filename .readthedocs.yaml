@@ -13,6 +13,9 @@ build:
     # Checkout tags to make setuptools_scm happy
     post_checkout:
       - git fetch --tags
+      # Debug:
+      - git tag
+      - setuptools-scm
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
