@@ -9,7 +9,7 @@ Positional arguments:
 Server related options:
   Specify the WBEM server and namespace the MOF compiler works against.
 
-  -s, --server url      Host name or URL of the WBEM server (required),
+  -s url, --server url  Host name or URL of the WBEM server (required),
                         in this format:
                             [scheme://]host[:port]
                         - scheme: Defines the protocol to use:
@@ -26,16 +26,16 @@ Server related options:
                           Defaults:
                              - 5988, when using HTTP
                              - 5989, whenusing HTTPS
-  -n, --namespace namespace
+  -n namespace, --namespace namespace
                         Namespace in the WBEM server.
                         Default: root/cimv2
 
 Connection security related options:
   Specify user name and password or certificates and keys.
 
-  -u, --user user       User name for authenticating with the WBEM server.
+  -u user, --user user  User name for authenticating with the WBEM server.
                         Default: No user name.
-  -p, --password password
+  -p password, --password password
                         Password for authenticating with the WBEM server.
                         Default: Will be prompted for, if user name specified.
   -nvc, --no-verify-cert
@@ -71,7 +71,8 @@ Action related options:
                         still required to check qualifiers.
 
 General options:
-  -I, --include dir     Path name of a MOF include directory. Can be specified
+  -I dir, --include dir
+                        Path name of a MOF include directory. Can be specified
                         multiple times.
   -v, --verbose         Print more messages while processing
   -V, --version         Display pywbem version and exit.
