@@ -1,2 +1,0 @@
-Docs: Replaced type terms that were created to hide differences between Python 2
-and Python 3 (such as "unicode string") with their Python 3 types.
