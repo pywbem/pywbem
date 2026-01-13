@@ -9,6 +9,10 @@ build:
   os: ubuntu-22.04
   tools:
     python: "3.11"
+  jobs:
+    # Checkout tags to make setuptools_scm happy
+    post_checkout:
+      - git fetch --tags
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
