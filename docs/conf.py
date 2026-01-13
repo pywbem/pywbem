@@ -683,6 +683,8 @@ nitpick_ignore = [
     ("py:obj", r'pywbem.ListenerPortError.with_traceback'),
     ("py:obj", r'pywbem.ListenerPromptError.add_note'),
     ("py:obj", r'pywbem.ListenerPromptError.with_traceback'),
+    ("py:obj", r'pywbem.ListenerQueueFullError.add_note'),
+    ("py:obj", r'pywbem.ListenerQueueFullError.with_traceback'),
     ("py:obj", r'pywbem.ListenerError.add_note'),
     ("py:obj", r'pywbem.ListenerError.with_traceback'),
     ("py:obj", r'pywbem_mock.FakedWBEMConnection.AssociatorNames'),
