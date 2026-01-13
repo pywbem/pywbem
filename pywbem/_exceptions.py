@@ -27,7 +27,7 @@ __all__ = ['Error', 'ConnectionError', 'AuthError', 'HTTPError', 'TimeoutError',
            'VersionError', 'ParseError', 'CIMVersionError', 'DTDVersionError',
            'ProtocolVersionError', 'CIMXMLParseError', 'XMLParseError',
            'HeaderParseError', 'CIMError', 'ModelError',
-           'ListenerError', 'ListenerCertificateError',
+           'ListenerError', 'ListenerCertificateError', 'ListenerStartError',
            'ListenerPortError', 'ListenerPromptError',
            'ListenerQueueFullError']
 
