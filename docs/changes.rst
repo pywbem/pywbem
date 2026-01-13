@@ -26,7 +26,8 @@ Released: 2026-01-12
 * Addressed safety issues up to 2026-01-12.
 
 * Dev: Circumvented install issue with ruamel.yaml.clibz on Windows, by
-  excluding versions 0.3.5 and 0.3.6.
+  increasing minimum version of ruamel.yaml and removing constraints on
+  ruamel.yaml.clibz.
 
 * Dev: Added dependencies for Sphinx.
 
