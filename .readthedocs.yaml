@@ -15,7 +15,6 @@ build:
       - git fetch --tags
       # Debug:
       - git tag
-      - setuptools-scm
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
