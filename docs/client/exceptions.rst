@@ -4,6 +4,8 @@
 Exceptions
 ----------
 
+Note: Listener exceptions are listed in :ref:`Listener exceptions`.
+
 .. automodule:: pywbem._exceptions
 
 .. autoclass:: pywbem.Error
@@ -77,36 +79,6 @@ Exceptions
     :autosummary-inherited-members:
 
 .. autoclass:: pywbem.ModelError
-    :members:
-    :autosummary:
-    :autosummary-inherited-members:
-
-.. autoclass:: pywbem.ListenerError
-    :members:
-    :autosummary:
-    :autosummary-inherited-members:
-
-.. autoclass:: pywbem.ListenerCertificateError
-    :members:
-    :autosummary:
-    :autosummary-inherited-members:
-
-.. autoclass:: pywbem.ListenerStartError
-    :members:
-    :autosummary:
-    :autosummary-inherited-members:
-
-.. autoclass:: pywbem.ListenerPortError
-    :members:
-    :autosummary:
-    :autosummary-inherited-members:
-
-.. autoclass:: pywbem.ListenerPromptError
-    :members:
-    :autosummary:
-    :autosummary-inherited-members:
-
-.. autoclass:: pywbem.ListenerQueueFullError
     :members:
     :autosummary:
     :autosummary-inherited-members:
