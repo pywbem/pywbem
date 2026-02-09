@@ -30,7 +30,7 @@ typing-extensions==4.14.1
 
 # Indirect dependencies for install that are needed for some reason (must be consistent with requirements.txt)
 
-urllib3==2.6.0
+urllib3==2.6.3
 certifi==2024.07.04
 
 # requests 2.31 requires idna>=2.5,<4
