@@ -34,7 +34,7 @@ dparse>=0.6.4
 ruamel.yaml>=0.19.1
 click>=8.0.2
 Authlib>=1.6.5
-marshmallow>=3.15.0
+marshmallow>=3.26.2
 pydantic>=2.12.0
 pydantic_core>=2.41.1
 # safety 3.6.1 depends on typer>=0.16.0
@@ -117,7 +117,7 @@ jupyter-server>=2.14.1
 # notebook 6.5.1 started using nbclassic
 nbclassic>=1.0.0
 nbclient>=0.8.0
-nbconvert>=7.7.3
+nbconvert>=7.17.0
 nbformat>=5.9.0
 notebook>=7.2.2
 notebook-shim>=0.2.3
