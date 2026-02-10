@@ -375,7 +375,7 @@ help:
 	@echo "  ruff       - Run Ruff (an alternate lint tool) on sources"
 	@echo "  pylint     - Run PyLint on sources"
 	@echo "  installtest - Run install tests"
-	@echo "  safety     - Run Safety for install and all"
+	@echo "  safety     - Run Safety for install and development"
 	@echo "  test       - Run unit and function tests (in tests/unittest and tests/functiontest)"
 	@echo "  testinstalled - Simulate the testing of an installed version of pywbem"
 	@echo "  leaktest   - Run memory leak tests (in tests/leaktest)"
@@ -598,10 +598,6 @@ ruff: $(done_dir)/ruff_$(pymn)_$(PACKAGE_LEVEL).done
 
 .PHONY: pylint
 pylint: $(done_dir)/pylint_$(pymn)_$(PACKAGE_LEVEL).done
-	@echo "Makefile: Target $@ done."
-
-.PHONY: safety
-safety: $(done_dir)/safety_all_$(pymn)_$(PACKAGE_LEVEL).done $(done_dir)/safety_install_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Target $@ done."
 
 .PHONY: todo
@@ -921,19 +917,12 @@ $(done_dir)/ruff_$(pymn)_$(PACKAGE_LEVEL).done: Makefile $(py_src_files) $(py_te
 	echo "done" >$@
 	@echo "Makefile: Done running Ruff"
 
-$(done_dir)/safety_all_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile $(safety_develop_policy_file) minimum-constraints-develop.txt minimum-constraints-install.txt
-	@echo "Makefile: Running Safety for development packages (and tolerate safety issues when RUN_TYPE is normal or scheduled)"
-	-$(call RM_FUNC,$@)
+.PHONY: safety
+safety: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile $(safety_develop_policy_file) $(safety_install_policy_file) minimum-constraints-develop.txt minimum-constraints-install.txt minimum-constraints-install.txt
+	@echo "Makefile: Running Safety"
 	bash -c "safety check --policy-file $(safety_develop_policy_file) -r minimum-constraints-develop.txt --full-report || test '$(RUN_TYPE)' == 'normal' || test '$(RUN_TYPE)' == 'scheduled' || exit 1"
-	echo "done" >$@
-	@echo "Makefile: Done running Safety for development packages"
-
-$(done_dir)/safety_install_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile $(safety_install_policy_file) minimum-constraints-install.txt
-	@echo "Makefile: Running Safety for install packages (and tolerate safety issues when RUN_TYPE is normal)"
-	-$(call RM_FUNC,$@)
 	bash -c "safety check --policy-file $(safety_install_policy_file) -r minimum-constraints-install.txt --full-report || test '$(RUN_TYPE)' == 'normal' || exit 1"
-	echo "done" >$@
-	@echo "Makefile: Done running Safety for install packages"
+	@echo "Makefile: Done running Safety"
 
 ifdef TEST_INSTALLED
   test_deps = $(done_dir)/test_$(pymn)_$(PACKAGE_LEVEL).done $(moftab_files)
