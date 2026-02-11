@@ -91,7 +91,7 @@ typer-cli==0.16.0
 typer-slim==0.16.0
 psutil==6.1.0
 filelock==3.16.1; python_version == '3.9'
-filelock==3.20.1; python_version >= '3.10'
+filelock==3.20.3; python_version >= '3.10'
 
 # The following used by safety and Sphinx
 Levenshtein==0.25.1
