@@ -58,7 +58,7 @@ pytest-cov==4.0.0
 coveralls==3.3.0
 
 # Virtualenv
-virtualenv==20.26.6
+virtualenv==20.36.1
 
 
 # Direct dependencies for development (without test) and indirect dependencies
@@ -82,7 +82,7 @@ safety-schemas==0.0.16
 dparse==0.6.4
 ruamel.yaml==0.19.1
 click==8.0.2
-Authlib==1.6.5
+Authlib==1.6.6
 marshmallow==3.26.2
 pydantic==2.12.0
 pydantic_core==2.41.1
