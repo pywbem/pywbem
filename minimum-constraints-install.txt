@@ -21,7 +21,8 @@ wheel==0.46.2
 ply==3.10
 PyYAML==6.0.2
 # requests version 2.32.0 required by safety issue 71064 (2.32.0, 2.32.1 yanked)
-requests==2.32.4
+requests==2.32.5; python_version == '3.9'
+requests==2.33.0; python_version >= '3.10'
 yamlloader==0.5.5
 
 # typing-extensions
