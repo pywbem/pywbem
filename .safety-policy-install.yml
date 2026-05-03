@@ -1,5 +1,5 @@
 # Safety policy file for packages needed for installation
-# For documentation, see https://docs.pyup.io/docs/safety-20-policy-file
+# Docs: https://docs.safetycli.com/safety-docs/administration/safety-policy-files
 #
 # Generally package vulnerabilites listed in the ignore-vulnerabilities
 # list below are there because:
@@ -11,35 +11,77 @@
 #    python that cannot support the required version of the package are no
 #    longer supported by pywbem.
 
-# Configuration for the 'safety check' command
-security:
+# Configuration for the 'safety scan' command
+version: '3.0'
 
-    # Ignore certain severities.
-    # A number between 0 and 10, with the following significant values:
-    # - 9: ignore all vulnerabilities except CRITICAL severity
-    # - 7: ignore all vulnerabilities except CRITICAL & HIGH severity
-    # - 4: ignore all vulnerabilities except CRITICAL, HIGH & MEDIUM severity
-    ignore-cvss-severity-below: 0
+scanning-settings:
+  max-depth: 1
+  exclude:
+    - dev-requirements.txt
+    - test-requirements.txt
+  include-files:
+    - path: minimum-constraints-install.txt
+      file-type: requirements.txt
+  system:
+    targets: []
 
-    # Ignore unknown severities.
-    # Should be set to False.
-    ignore-cvss-unknown-severity: False
+report:
+  dependency-vulnerabilities:
+    enabled: true
+    auto-ignore-in-report:
+      python:
 
-    # Ignore unpinned requirements
-    # Default is true. "Unpinned" in this case means anything else but "==".
-    # Since we are checking against the minimum-constraints file, this check
-    # is enabled (false).
-    ignore-unpinned-requirements: false
+        # Ignore dependencies found in the current Python environment
+        environment-results: false
 
-    # List of specific vulnerabilities to ignore.
-    # {id}:                 # vulnerability ID
-    #     reason: {text}    # optional: Reason for ignoring it. Will be reported in the Safety reports
-    #     expires: {date}   # optional: Date when this ignore will expire
-    ignore-vulnerabilities:
+        # Ignore unpinned packages in requirements files
+        unpinned-requirements: false
+
+      cvss-severity: []
+
+      # List of specific vulnerabilities to ignore.
+      # {id}:                 # vulnerability ID
+      #     reason: {text}    # optional: Reason for ignoring it
+      #     expires: {date}   # optional: Date when this ignore will expire
+      vulnerabilities:
         67599:
-            reason: Disputed issue in pip version 23.3 - No known fix
+          reason: Disputed issue in pip version 23.3 - No known fix
+          expires: '2099-01-01'
         90553:
-            reason: Fixed requests version 2.33.0 requires Python>=3.10 and is used there
+          reason: Fixed requests version 2.33.0 requires Python>=3.10 and is used there
+          expires: '2099-01-01'
 
-    # Continue with exit code 0 when vulnerabilities are found.
-    continue-on-vulnerability-error: False
+fail-scan-with-exit-code:
+  dependency-vulnerabilities:
+    enabled: true
+    fail-on-any-of:
+      cvss-severity:
+        - high
+        - critical
+        - medium
+        - low
+      exploitability:
+        - high
+        - critical
+        - medium
+        - low
+
+security-updates:
+  dependency-vulnerabilities:
+    auto-security-updates-limit:
+      - patch
+
+installation:
+  default-action: allow
+  audit-logging:
+    enabled: true
+  allow:
+    packages: []
+    vulnerabilities: {}
+  deny:
+    packages: {}
+    vulnerabilities:
+      warning-on-any-of:
+        cvss-severity: []
+      block-on-any-of:
+        cvss-severity: []
