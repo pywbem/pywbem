@@ -40,10 +40,14 @@ security:
             reason: Py package is no longer being fixed (latest version 1.11.0)
         70612:
             reason: Safety issue and CVE do not list a fixed version of Jinja2
+        71199:
+            reason: Fixed anyio version 4.13.0 requires Python>=3.10 and is used there
         79993:
             reason: Fixed jupyterlab version 4.4.8 requires Python>=3.9 and other upgrades
         82754:
             reason: Fixed filelock version 3.20.1 requires Python>=3.10 and is used there
+        83159:
+            reason: Fixed marshmallow version 4.3.0 requires Python>=3.10 and is used there
         84183:
             reason: Fixed filelock version 3.20.3 requires Python>=3.10 and is used there
         84415:
@@ -51,6 +55,8 @@ security:
         # Need to comment out due to issue https://github.com/pyupio/safety/issues/847
         # SFTY-20260218-01424:
         #     reason: Fixed nltk version 3.9.3 requires Python>=3.10 and is used there
+        # SFTY-20260318-30374:
+        #   reason: Fixed nltk version 3.9.3 requires Python>=3.10 and is used there
 
     # Continue with exit code 0 when vulnerabilities are found.
     continue-on-vulnerability-error: False
