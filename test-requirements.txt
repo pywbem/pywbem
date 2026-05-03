@@ -29,7 +29,7 @@ FormEncode>=2.1.1
 easy-vault>=0.7.0
 easy-server>=0.8.0
 pytest-easy-server>=0.8.0
-cryptography>=46.0.5
+cryptography>=47.0.0
 keyring>=18.0.0
 
 # jsonschema 4.18.0 required by jupyter-events 0.9.1
@@ -51,6 +51,7 @@ pluggy>=1.3.0
 decorator>=4.0.11
 
 # Lxml
-lxml>=6.0.2
+lxml>=6.1.0
 
-virtualenv>=20.26.6
+virtualenv>=21.3.0
+python-discovery>=1.2.2
