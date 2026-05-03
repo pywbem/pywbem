@@ -920,8 +920,8 @@ $(done_dir)/ruff_$(pymn)_$(PACKAGE_LEVEL).done: Makefile $(py_src_files) $(py_te
 .PHONY: safety
 safety: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile $(safety_develop_policy_file) $(safety_install_policy_file) minimum-constraints-develop.txt minimum-constraints-install.txt minimum-constraints-install.txt
 	@echo "Makefile: Running Safety"
-	bash -c "safety check --policy-file $(safety_install_policy_file) -r minimum-constraints-install.txt --full-report || test '$(RUN_TYPE)' == 'normal' || exit 1"
-	bash -c "safety check --policy-file $(safety_develop_policy_file) -r minimum-constraints-develop.txt --full-report || test '$(RUN_TYPE)' == 'normal' || test '$(RUN_TYPE)' == 'scheduled' || exit 1"
+	bash -c "safety scan --policy-file $(safety_install_policy_file) --full-report || test '$(RUN_TYPE)' == 'normal' || exit 1"
+	bash -c "safety scan --policy-file $(safety_develop_policy_file) --full-report || test '$(RUN_TYPE)' == 'normal' || test '$(RUN_TYPE)' == 'scheduled' || exit 1"
 	@echo "Makefile: Done running Safety"
 
 ifdef TEST_INSTALLED
