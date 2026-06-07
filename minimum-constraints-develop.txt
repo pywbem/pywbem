@@ -20,7 +20,9 @@ click-default-group==1.2.4
 
 # Unit test (imports into testcases):
 packaging==24.2
-pytest==8.0.2
+# Need to comment out pytest==8.4.0 due to issue https://github.com/pyupio/safety/issues/847
+# pytest==8.4.0; python_version == '3.9'
+pytest==9.0.3; python_version >= '3.10'
 testfixtures==6.9.0
 colorama==0.4.5
 # FormEncode is used for xml comparisons in unit test
@@ -46,7 +48,7 @@ importlib-metadata==4.8.3
 tzdata==2024.1; sys_platform == 'win32'
 
 # Unit test (indirect dependencies):
-pluggy==1.3.0
+pluggy==1.5.0
 decorator==4.0.11
 
 # Lxml
@@ -105,8 +107,8 @@ tox==3.21.0
 Sphinx==7.2.4
 docutils==0.18.1
 sphinx-git==10.1.1
-GitPython==3.1.47
-Pygments==2.15.0
+GitPython==3.1.50
+Pygments==2.20.0
 sphinx-rtd-theme==2.0.0
 sphinxcontrib-applehelp==1.0.4
 sphinxcontrib-devhelp==1.0.2
@@ -147,33 +149,37 @@ ruff==0.3.5
 
 # Jupyter Notebook (no imports, invoked via jupyter script):
 
-jupyter==1.0.0
-ipython==8.10.0
-ipykernel==6.17.0
-ipython-genutils==0.2.0
-ipywidgets==8.0.0
-jupyter-console==6.5.0
-jupyter_client==8.0.3
-jupyter_core==5.1.0
-jupyterlab_pygments==0.3.0
-jupyterlab-widgets==3.0.3
-jupyter-server==2.14.1
-nbclassic==1.0.0
-nbclient==0.8.0
-nbconvert==7.17.1
-nbformat==5.9.0
-notebook==7.5.6
-notebook-shim==0.2.3
-jupyterlab-server==2.28.0
-jupyterlab==4.5.7
-
-pyrsistent==0.19.1
+# Jupyter Notebook (no imports, invoked via jupyter script):
+# TODO: Re-enable for Python 3.13 on Windows once pywin32 install issue is solved, see
+#       https://github.com/mhammond/pywin32/issues/2367
+notebook==7.5.6; sys_platform != 'win32' or python_version <= '3.12'
+ipykernel==6.31.0; sys_platform != 'win32' or python_version <= '3.12'
+ipython-genutils==0.2.0; sys_platform != 'win32' or python_version <= '3.12'
+ipython==8.18.1; sys_platform != 'win32' or python_version <= '3.12'
+ipywidgets==8.1.8; sys_platform != 'win32' or python_version <= '3.12'
+jupyter_client==8.6.3; sys_platform != 'win32' or python_version <= '3.12'
+jupyter-console==6.6.3; sys_platform != 'win32' or python_version <= '3.12'
+jupyter_core==5.8.1; sys_platform != 'win32' or python_version <= '3.12'
+jupyter_server==2.18.2; sys_platform != 'win32' or python_version <= '3.12'
+jupyter==1.1.1; sys_platform != 'win32' or python_version <= '3.12'
+jupyterlab_pygments==0.3.0; sys_platform != 'win32' or python_version <= '3.12'
+jupyterlab_server==2.28.0; sys_platform != 'win32' or python_version <= '3.12'
+jupyterlab_widgets==3.0.16; sys_platform != 'win32' or python_version <= '3.12'
+jupyterlab==4.5.7; sys_platform != 'win32' or python_version <= '3.12'
+nbclient==0.10.2; sys_platform != 'win32' or python_version <= '3.12'
+nbconvert==7.17.1; sys_platform != 'win32' or python_version <= '3.12'
+nbformat==5.10.4; sys_platform != 'win32' or python_version <= '3.12'
+notebook_shim==0.2.4; sys_platform != 'win32' or python_version <= '3.12'
 
 # Pywin32 is used (at least?) by jupyter.
-pywin32==311; sys_platform == 'win32'
+pywin32==303; sys_platform == 'win32' and python_version <= '3.11'
+# TODO: Re-enable for Python 3.13 once pywin32 install issue is solved, see
+#       https://github.com/mhammond/pywin32/issues/2367
+pywin32==306; sys_platform == 'win32' and python_version == '3.12'
 
-# The tornado package is used by ipykernel which is used by jupyter.
-tornado==6.5.5
+# pywinpty is used by terminado <- notebook <- jupyter
+pywinpty==2.0.12; sys_platform == 'win32' and python_version <= '3.12'
+pywinpty==3.0.2; sys_platform == 'win32' and python_version >= '3.13'
 
 # Table output formatter used by the manual performance tests to display
 # timing results
@@ -189,17 +195,6 @@ pipdeptree==2.24.0
 pip-check-reqs==2.4.3; python_version <= '3.11'
 pip-check-reqs==2.5.1; python_version >= '3.12'
 
-# notebook 6.4.10 depends on pyzmq>=17
-pyzmq==27.0.1
-
-# bleach is used by nbconvert
-bleach==3.3.0
-
-# pywinpty is used by terminado <- notebook <- jupyter
-pywinpty==3.0.1; os_name == "nt"
-
-terminado==0.8.3
-
 
 # Dependencies to reduce backtracking time (must be consistent with dev-requirements.txt)
 
@@ -213,7 +208,7 @@ traitlets==5.6.0
 # Indirect dependencies for development and test that are not in dev-requirements.txt or test-requirements.txt.
 
 alabaster==0.7.9
-appnope==0.1.0
+appnope==0.1.2
 appdirs==1.4.3
 argon2-cffi==21.2.0
 argon2-cffi-bindings==21.2.0
@@ -222,12 +217,12 @@ asttokens==2.0.4
 attrs==22.2.0
 backcall==0.2.0
 beautifulsoup4==4.10.0
+bleach==3.3.0
 cffi==2.0.0
-# Click used by easy-vault (8.0.2) and safety (7.1.1).
 Click==8.0.2
 clint==0.5.1
 comm==0.2.2
-debugpy==1.5.1
+debugpy==1.6.5
 defusedxml==0.7.1
 docopt==0.6.1
 future==0.18.3
@@ -240,8 +235,6 @@ iniconfig==1.1.1
 jedi==0.17.2
 Jinja2==3.1.6
 linecache2==1.0.0
-# MarkupSafe version depends on nbconvert min version 6.5.1 requirement
-# Jinja2 3.0.0 depends on MarkupSafe>=2.0.0rc2
 MarkupSafe==2.0.0; python_version <= '3.12'
 MarkupSafe==3.0.0; python_version >= '3.13'
 matplotlib-inline==0.1.3
@@ -253,19 +246,19 @@ nltk==3.9.4; python_version >= '3.10'
 pandocfilters==1.4.1
 parso==0.7.0
 pathlib2==2.3.7.post1
-# ipython 7.23.1 depends on pexpect>4.3, sys_platform != "win32"
 pexpect==4.4.0
 pickleshare==0.7.5
 prometheus-client==0.13.1
-prompt-toolkit==3.0.30
+prompt-toolkit==3.0.41
 ptyprocess==0.5.1
 py==1.11.0
 pycparser==2.21
 pyparsing==3.0.7
+pyrsistent==0.19.1
 python-dateutil==2.8.2
-# Babel==2.10.0 depends on pytz>=2015.7
 pytz==2019.1
-qtconsole==4.2.1
+pyzmq==27.0.1
+qtconsole==5.7.2
 QtPy==2.0.1
 rfc3986==1.4.0
 rich==12.0.0
@@ -278,14 +271,15 @@ snowballstemmer==2.0.0
 soupsieve==2.3.1
 stack-data==0.2.0
 tenacity==8.5.0
+terminado==0.8.3
 testpath==0.3
 toml==0.10.0
 tomli==2.0.1
+tornado==6.5.5
 tqdm==4.66.3
 traceback2==1.4.0
+truststore==0.9.1
 wcwidth==0.1.7
 webencodings==0.5.1
-widgetsnbextension==4.0.0
-# importlib-metadata 4.8.3 depends on zipp>=0.5
-# importlib-resources 5.6.0 depends on zipp>=3.1.0; python_version < "3.10"
+widgetsnbextension==4.0.14
 zipp==3.19.1

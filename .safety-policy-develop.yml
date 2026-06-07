@@ -55,6 +55,8 @@ security:
         # Need to comment out due to issue https://github.com/pyupio/safety/issues/847
         # SFTY-20260218-01424:
         #     reason: Fixed nltk version 3.9.3 requires Python>=3.10 and is used there
+        # SFTY-20260122-20373:
+        #     reason: Fixed pytest version 9.0.3 requires Python>=3.10 and is used there
         # SFTY-20260318-30374:
         #   reason: Fixed nltk version 3.9.3 requires Python>=3.10 and is used there
 
