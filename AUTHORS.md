@@ -15,5 +15,6 @@ Tim Potter <tpot@hp.com>
 Tony <23.tony@gmail.com>
 Tony Asleson <tasleson@redhat.com>
 Will Spearman <wspearman@sciencelogic.com>
+dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
 pyup-bot <github-bot@pyup.io>
 ```
