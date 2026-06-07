@@ -1,0 +1,59 @@
+# This GitHub workflow will backport ("roll back") PRs that are labelled with
+# "backport" to the latest stable branch by creating an according PR.
+
+name: backport
+
+on:
+  pull_request_target:  # Triggers when the PR is closed (which includes merging)
+    types: [closed]
+    branches:
+      - master
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  backport:
+    name: Backport pull request to latest stable branch
+    runs-on: ubuntu-latest
+    if: >
+      github.event.pull_request.merged == true &&
+      contains(github.event.pull_request.labels.*.name, 'backport')
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Determine latest stable branch
+        id: stable
+        run: |
+          latest=$(git branch -r \
+            | sed -e 's|origin/||' -e 's| ||g' \
+            | grep -E '^stable_[0-9]+\.[0-9]+$' \
+            | sort -t. -k1,1V -k2,2V \
+            | tail -1)
+          if [ -z "$latest" ]; then
+            echo "## Backport failed" >> "$GITHUB_STEP_SUMMARY"
+            echo "No stable_M.N branch found" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          echo "branch=$latest" >> "$GITHUB_OUTPUT"
+
+      - name: Create backport pull request
+        id: backport
+        uses: korthout/backport-action@v4
+        with:
+          label_pattern: '^$'   # disable label-based targeting
+          target_branches: ${{ steps.stable.outputs.branch }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fail if backport had conflicts
+        if: steps.backport.outputs.was_successful == 'false'
+        run: |
+          branch="${{ steps.stable.outputs.branch }}"
+          echo "## Backport failed" >> "$GITHUB_STEP_SUMMARY"
+          echo "Cherry-pick to branch ${{ steps.stable.outputs.branch }} had conflicts and requires manual resolution." >> "$GITHUB_STEP_SUMMARY"
+          echo "Please cherry-pick the changes locally and resolve the conflicts." >> "$GITHUB_STEP_SUMMARY"
+          exit 1
