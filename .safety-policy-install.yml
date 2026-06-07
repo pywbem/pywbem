@@ -40,6 +40,9 @@ security:
             reason: Disputed issue in pip version 23.3 - No known fix
         90553:
             reason: Fixed requests version 2.33.0 requires Python>=3.10 and is used there
+        # Need to comment out SFTY IDs due to issue https://github.com/pyupio/safety/issues/847
+        # SFTY-20260420-60812:
+        #     reason: Fixed pip version 26.1 requires Python>=3.10 and is used there
 
     # Continue with exit code 0 when vulnerabilities are found.
     continue-on-vulnerability-error: False
