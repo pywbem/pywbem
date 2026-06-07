@@ -268,6 +268,14 @@ jobs:
         RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
       run: |
         make safety
+    - name: Check for uncommitted changes to tracked files
+      if: "startsWith(matrix.os, 'ubuntu-') && matrix.python-version == '3.14'"
+      env:
+        PACKAGE_LEVEL: ${{ matrix.package_level }}
+        RUN_TYPE: ${{ steps.set-run-type.outputs.result }}
+      run: |
+        git status
+        git diff HEAD --quiet
 
   test_finish:
     needs: test
