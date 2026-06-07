@@ -54,8 +54,8 @@ tox>=3.21.0
 Sphinx>=7.2.4,<8.0.0
 docutils>=0.18.1
 sphinx-git>=10.1.1
-GitPython>=3.1.47
-Pygments>=2.15.0
+GitPython>=3.1.50
+Pygments>=2.20.0
 sphinx-rtd-theme>=2.0.0
 sphinxcontrib-applehelp>=1.0.4
 sphinxcontrib-devhelp>=1.0.2
@@ -102,37 +102,44 @@ entrypoints>=0.3.0
 ruff>=0.3.5
 
 # Jupyter Notebook (no imports, invoked via jupyter script):
-
-jupyter>=1.0.0
-# ipython 8.20.0 removed support for Python 3.9
-ipython>=8.10.0
-ipykernel>=6.17.0
-ipython-genutils>=0.2.0
-ipywidgets>=8.0.0
-jupyter-console>=6.5.0
-jupyter_client>=8.0.3
-jupyter_core>=5.1.0
-jupyterlab_pygments>=0.3.0
-jupyterlab-widgets>=3.0.3
-jupyter-server>=2.14.1
-# notebook 6.5.1 started using nbclassic
-nbclassic>=1.0.0
-nbclient>=0.8.0
-nbconvert>=7.17.1
-nbformat>=5.9.0
-notebook>=7.5.6
-notebook-shim>=0.2.3
-jupyterlab-server>=2.28.0,<3
-jupyterlab>=4.5.7,<4.6
-
-pyrsistent>=0.19.1
+# Note: The packages for Jupyter Notebook are prone to causing endless pip backtracking when
+#       installed with minimum versions. This was addressed by pinning the package versions
+#       to a maximum in order to reduce the search space for pip.
+# Note: notebook 6.5.1 starts using nbclassic which seems to introduce some challenges for pip
+#       dependency resolution, so for now we pin notebook to <6.5.
+# TODO: Re-enable for Python 3.13 on Windows once pywin32 install issue is solved, see
+#       https://github.com/mhammond/pywin32/issues/2367
+notebook>=7.5.6; sys_platform != 'win32' or python_version <= '3.12'
+ipykernel>=6.31.0; sys_platform != 'win32' or python_version <= '3.12'
+ipython-genutils>=0.2.0; sys_platform != 'win32' or python_version <= '3.12'
+ipython>=8.18.1; sys_platform != 'win32' or python_version <= '3.12'
+ipywidgets>=8.1.8; sys_platform != 'win32' or python_version <= '3.12'
+jupyter_client>=8.6.3; sys_platform != 'win32' or python_version <= '3.12'
+jupyter-console>=6.6.3; sys_platform != 'win32' or python_version <= '3.12'
+jupyter_core>=5.8.1; sys_platform != 'win32' or python_version <= '3.12'
+jupyter_server>=2.18.2; sys_platform != 'win32' or python_version <= '3.12'
+jupyter>=1.1.1; sys_platform != 'win32' or python_version <= '3.12'
+jupyterlab_pygments>=0.3.0; sys_platform != 'win32' or python_version <= '3.12'
+jupyterlab_server>=2.28.0; sys_platform != 'win32' or python_version <= '3.12'
+jupyterlab_widgets>=3.0.16; sys_platform != 'win32' or python_version <= '3.12'
+jupyterlab>=4.5.7; sys_platform != 'win32' or python_version <= '3.12'
+nbclient>=0.10.2; sys_platform != 'win32' or python_version <= '3.12'
+nbconvert>=7.17.1; sys_platform != 'win32' or python_version <= '3.12'
+nbformat>=5.10.4; sys_platform != 'win32' or python_version <= '3.12'
+notebook_shim>=0.2.4; sys_platform != 'win32' or python_version <= '3.12'
 
 # Pywin32 is used (at least?) by jupyter.
-# pywin32 version 311 added support for Python 3.14
-pywin32>=311; sys_platform == 'win32'
+# Pywin32 version 226 needs to be excluded, see issues #1946 and #1975.
+# pywin32 version 302 added support for Python 3.10
+# pywin32 version 303 added support for Python 3.11
+pywin32>=303; sys_platform == 'win32' and python_version <= '3.11'
+# TODO: Re-enable for Python 3.13 once pywin32 install issue is solved, see
+#       https://github.com/mhammond/pywin32/issues/2367
+pywin32>=306; sys_platform == 'win32' and python_version == '3.12'
 
-# The tornado package is used by ipykernel which is used by jupyter.
-tornado>=6.5.5
+# pywinpty is used by terminado <- notebook <- jupyter
+pywinpty>=2.0.12; sys_platform == 'win32' and python_version <= '3.12'
+pywinpty>=3.0.2; sys_platform == 'win32' and python_version >= '3.13'
 
 # Table output formatter used by the manual performance tests to display timing results
 tabulate>=0.8.3
@@ -150,20 +157,6 @@ pipdeptree>=2.24.0
 # pip-check-reqs 2.5.0 has issue https://github.com/r1chardj0n3s/pip-check-reqs/issues/143
 pip-check-reqs>=2.4.3,!=2.5.0; python_version <= '3.11'
 pip-check-reqs>=2.5.1; python_version >= '3.12'
-
-# notebook 6.4.10 depends on pyzmq>=17
-# pyzmq 27.0.1 added wheel archives for Python 3.14
-pyzmq>=27.0.1
-
-# bleach is used by nbconvert
-bleach>=3.3.0
-
-# pywinpty is used by terminado <- notebook <- jupyter
-pywinpty>=3.0.1; os_name == "nt"
-
-# notebook 6.4.10 depends on terminado>=0.8.3
-# terminado 0.10.0 requires pywinpty>=1.1.0, see issue there
-terminado>=0.8.3,<0.10.0
 
 
 # Dependencies to reduce backtracking time (must be consistent with minimum-constraints-develop.txt)
