@@ -29,4 +29,4 @@ setuptools>=78.1.1
 urllib3>=2.6.3
 
 certifi>=2024.07.04
-idna>=3.7
+idna>=3.15
