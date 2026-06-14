@@ -108,17 +108,26 @@ class TestLoggingConfigure:
             # TODO compare detail_level
 
             compare(logger.level, 10)
-            if logger.handlers[0]:
+
+            # We tolerate the presence of pytest's LogCaptureHandler, because
+            # pytest 9.1.0 started setting that up even when invoked with -s
+            # Note that pytest does not provide LogCaptureHandler at its public
+            # API, so we test the class name.
+            assert 1 <= len(logger.handlers) <= 2
+            if type(logger.handlers[0]).__name__ == "LogCaptureHandler":
+                # Pick the second handler for testing
+                assert len(logger.handlers) == 2
+                handler = logger.handlers[1]
+            else:
+                # Pick the first (and only) handler for testing
                 assert len(logger.handlers) == 1
+                handler = logger.handlers[0]
+
                 if log_dest == 'file':
-                    assert isinstance(logger.handlers[0],
-                                      logging.FileHandler) is True
+                    assert isinstance(handler, logging.FileHandler)
                     assert log_filename is not None
                 elif log_dest == 'stderr':
-                    assert isinstance(logger.handlers[0],
-                                      logging.StreamHandler) is True
-            else:
-                assert False, 'No logger defined for test'
+                    assert isinstance(handler, logging.StreamHandler)
 
     @pytest.mark.parametrize(
         "log_name", ['api', 'http', 'all']
