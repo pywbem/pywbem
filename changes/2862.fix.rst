@@ -1,0 +1,5 @@
+Test: Fixed the occasional permission errors during indication listener tests
+that occurred on Windows, by letting the operating system assign the port for
+the listener under test, instead of hard coding them.
+This required adding new properties 'http_bound_port' and 'https_bound_port'
+to the :class:`WBEMListener` class that indicate the assigned ports.
