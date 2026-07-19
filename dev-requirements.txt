@@ -25,26 +25,19 @@ coveralls>=3.3.0
 more-itertools>=4.0.0
 
 # Safety CI by pyup.io
-# safety 3.6.1 fixes the issue with typer >=0.17.0, see https://github.com/pyupio/safety/issues/778
-# pydantic 2.8.0 fixes an install issue on Python 3.13.
-safety>=3.7.0
+safety>=3.8.1
 safety-schemas>=0.0.16
 dparse>=0.6.4
-# ruamel.yaml starting with 0.18.17 requires ruamel.yaml.clibz
 ruamel.yaml>=0.19.1
-click>=8.0.2
 Authlib>=1.6.12
-marshmallow>=4.0.1; python_version == '3.9'
-marshmallow>=4.3.0; python_version >= '3.10'
+marshmallow>=3.26.2
 pydantic>=2.12.0
 pydantic_core>=2.41.1
-# safety 3.6.1 depends on typer>=0.16.0
 typer>=0.16.0
 typer-cli>=0.16.0
 typer-slim>=0.16.0
-psutil>=6.1.0
-filelock>=3.16.1; python_version == '3.9'
-filelock>=3.24.2; python_version >= '3.10'
+# safety 3.8.1 depends on ruststore>=0.10.4 only on Python>=3.10
+truststore>=0.10.4; python_version >= '3.10'
 
 # Tox
 tox>=3.21.0
