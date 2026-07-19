@@ -52,13 +52,32 @@ security:
             reason: Fixed filelock version 3.20.3 requires Python>=3.10 and is used there
         84415:
             reason: Fixed filelock version 3.20.3 requires Python>=3.10 and is used there
-        # Need to comment out due to issue https://github.com/pyupio/safety/issues/847
-        # SFTY-20260218-01424:
-        #     reason: Fixed nltk version 3.9.3 requires Python>=3.10 and is used there
-        # SFTY-20260122-20373:
-        #     reason: Fixed pytest version 9.0.3 requires Python>=3.10 and is used there
-        # SFTY-20260318-30374:
-        #   reason: Fixed nltk version 3.9.3 requires Python>=3.10 and is used there
+        89824:
+            reason: Fixed nltk version 3.9.4 requires Python>=3.10 and is used there
+        89826:
+            reason: Fixed nltk version 3.9.4 requires Python>=3.10 and is used there
+        89827:
+            reason: Fixed nltk version 3.9.3 requires Python>=3.10 and is used there
+        SFTY-20260218-01424:
+            reason: Fixed nltk version 3.9.3 requires Python>=3.10 and is used there
+        SFTY-20260122-20373:
+            reason: Fixed pytest version 9.0.3 requires Python>=3.10 and is used there
+        SFTY-20260616-24225:
+            reason: Fixed bleach version 6.4.0 requires Python>=3.10 and is used there
+        SFTY-20260318-30374:
+            reason: Fixed nltk version 3.9.3 requires Python>=3.10 and is used there
+        SFTY-20260304-49322:
+            reason: Fixed nltk version 3.9.3 requires Python>=3.10 and is used there
+        SFTY-20260320-58622:
+            reason: Fixed nltk version 3.9.4 requires Python>=3.10 and is used there
+        SFTY-20260616-58930:
+            reason: Fixed nltk version 3.10.0 requires Python>=3.10 and is used there
+        SFTY-20260309-65600:
+            reason: Fixed nltk version 3.9.3 requires Python>=3.10 and is used there
+        SFTY-20260616-76367:
+            reason: Fixed bleach version 6.4.0 requires Python>=3.10 and is used there
+        SFTY-20260618-91928:
+            reason: Fixed jupyter-server version 2.20.0 requires Python>=3.10 and is used there
 
     # Continue with exit code 0 when vulnerabilities are found.
     continue-on-vulnerability-error: False
