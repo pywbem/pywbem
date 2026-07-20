@@ -66,77 +66,20 @@ ifndef COMSPEC
 endif
 
 # Determine OS platform make runs on.
-#
-# The PLATFORM variable is set to one of:
-# * Windows_native: Windows native environment (the Windows command processor
-#   is used as shell and its internal commands are used, such as "del").
-# * Windows_UNIX: A UNIX-like envieonment on Windows (the UNIX shell and its
-#   internal commands are used, such as "rm").
-# * Linux: Some Linux distribution
-# * Darwin: OS-X / macOS
-#
-# This in turn determines the type of shell that is used by make when invoking
-# commands, and the set of internal shell commands that is assumed to be
-# available (e.g. "del" for the Windows native command processor and "rm" for
-# a UNIX-like shell). Note that GNU make always uses the value of the SHELL
-# make variable to invoke the shell for its commands, but it does not always
-# read that variable from the environment. In fact, the approach GNU make uses
-# to set the SHELL make variable is very special, see
-# https://www.gnu.org/software/make/manual/html_node/Choosing-the-Shell.html.
-# On native Windows this seems to be implemented differently than described:
-# SHELL is not set to COMSPEC, so we do that here. When COMSPEC includes a
-# path, it specifies it using backslashes. GNU make internally changes any
-# backslashes in SHELL to forward slashes, so $(SHELL) cannot be used on
-# native Windows to invoke the shell. Using $(shell ...) works.
-#
-# Note: Native Windows and CygWin are hard to distinguish: The native Windows
-# envvars are set in CygWin as well. COMSPEC (or ComSpec) is set on both
-# platforms. Using "uname" will display CYGWIN_NT-.. on both platforms. If the
-# CygWin make is used on native Windows, most of the CygWin behavior is visible
-# in context of that make (e.g. a SHELL variable is set, PATH gets converted to
-# UNIX syntax, execution of batch files requires execute permission, etc.).
 ifeq ($(OS),Windows_NT)
   ifdef PWD
     PLATFORM := Windows_UNIX
+    SHELL := $(shell which bash)
   else
     PLATFORM := Windows_native
-    ifdef COMSPEC
-      # Some GNU make versions convert backslashes automatically (but not all?)
-      SHELL := $(subst \,/,$(COMSPEC))
-    else
-      SHELL := cmd.exe
-    endif
-    .SHELLFLAGS := /c
+    SHELL := wsl bash
   endif
+  .SHELLFLAGS := -c
 else
   # Values: Linux, Darwin
   PLATFORM := $(shell uname -s)
-endif
-
-ifeq ($(PLATFORM),Windows_native)
-  # Note: The substituted backslashes must be doubled.
-  # Remove files (blank-separated list of wildcard path specs)
-  RM_FUNC = del /f /q $(subst /,\\,$(1))
-  # Remove files recursively (single wildcard path spec)
-  RM_R_FUNC = del /f /q /s $(subst /,\\,$(1))
-  # Remove directories (blank-separated list of wildcard path specs)
-  RMDIR_FUNC = rmdir /q /s $(subst /,\\,$(1))
-  # Remove directories recursively (single wildcard path spec)
-  RMDIR_R_FUNC = rmdir /q /s $(subst /,\\,$(1))
-  # Copy a file, preserving the modified date
-  CP_FUNC = copy /y $(subst /,\\,$(1)) $(subst /,\\,$(2))
-  ENV = set
-  WHICH = where
-  DEV_NULL = nul
-else
-  RM_FUNC = rm -f $(1)
-  RM_R_FUNC = find . -type f -name '$(1)' -delete
-  RMDIR_FUNC = rm -rf $(1)
-  RMDIR_R_FUNC = find . -type d -name '$(1)' | xargs -n 1 rm -rf
-  CP_FUNC = cp -r $(1) $(2)
-  ENV = env | sort
-  WHICH = which
-  DEV_NULL = /dev/null
+  SHELL := $(shell which bash)
+  .SHELLFLAGS := -c
 endif
 
 # Name of this Python package
@@ -168,7 +111,7 @@ coverage_html_dir := coverage_html
 # Note: Errors in getting the version (e.g. if setuptools-scm is not installed)
 # are detected in _check_version. We avoid confusion by suppressing such errors
 # here.
-package_version := $(shell $(PYTHON_CMD) -m setuptools_scm 2>$(DEV_NULL))
+package_version := $(shell $(PYTHON_CMD) -m setuptools_scm 2>/dev/null)
 
 # The version file is recreated by setuptools-scm on every build, so it is
 # excluuded from git, and also from some dependency lists.
@@ -450,13 +393,13 @@ platform:
 	@echo "Make command location: $(MAKE)"
 	@echo "Make version: $(MAKE_VERSION)"
 	@echo "Python command name: $(PYTHON_CMD)"
-	@echo "Python command location: $(shell $(WHICH) $(PYTHON_CMD))"
+	@echo "Python command location: $(shell which $(PYTHON_CMD))"
 	@echo "Python version: $(python_version)"
 	@$(PYTHON_CMD) tools/python_bitsize.py
 	@$(PYTHON_CMD) tools/python_unicodesize.py
 	@echo "OpenSSL version used by Python ssl: $(openssl_version)"
 	@echo "Pip command name: $(PIP_CMD)"
-	@echo "Pip command location: $(shell $(WHICH) $(PIP_CMD))"
+	@echo "Pip command location: $(shell which $(PIP_CMD))"
 	@echo "Pip command version: $(shell $(PIP_CMD) --version)"
 	@echo "$(package_name) package version: $(package_version)"
 
@@ -468,7 +411,7 @@ pip_list:
 .PHONY: env
 env:
 	@echo "Makefile: Environment as seen by make:"
-	$(ENV)
+	env | sort
 
 .PHONY: _check_version
 _check_version:
@@ -477,20 +420,20 @@ ifeq (,$(package_version))
 endif
 
 $(done_dir)/base_$(pymn)_$(PACKAGE_LEVEL).done: Makefile base-requirements.txt minimum-constraints-develop.txt minimum-constraints-install.txt
-	-$(call RM_FUNC,$@)
+	rm -f $@
 	@echo "Installing/upgrading pip, setuptools and wheel with PACKAGE_LEVEL=$(PACKAGE_LEVEL)"
 	$(PYTHON_CMD) -m pip install $(pip_level_opts) -r base-requirements.txt
 	echo "done" >$@
 
 $(done_dir)/install_pywbem_$(pymn)_$(PACKAGE_LEVEL).done: Makefile $(done_dir)/base_$(pymn)_$(PACKAGE_LEVEL).done requirements.txt minimum-constraints-develop.txt minimum-constraints-install.txt pyproject.toml
-	-$(call RM_FUNC,$@)
+	rm -f $@
 ifdef TEST_INSTALLED
 	@echo "Makefile: Skipping installation of pywbem and its Python runtime prerequisites because TEST_INSTALLED is set"
 	@echo "Makefile: Checking whether pywbem is actually installed:"
 	$(PIP_CMD) show $(package_name)
 else
 	@echo "Makefile: Installing pywbem (as editable) and its Python installation prerequisites (with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
-	-$(call RMDIR_FUNC,build $(package_name).egg-info .eggs)
+	rm -rf build $(package_name).egg-info .eggs
 	$(PIP_INSTALL_CMD) $(pip_level_opts) -r requirements.txt
 	$(PIP_INSTALL_CMD) $(pip_level_opts) -e .
 	@echo "Makefile: Done installing pywbem and its Python runtime prerequisites"
@@ -502,7 +445,7 @@ install: $(done_dir)/install_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Target $@ done."
 
 $(done_dir)/install_$(pymn)_$(PACKAGE_LEVEL).done: Makefile $(done_dir)/base_$(pymn)_$(PACKAGE_LEVEL).done $(done_dir)/install_pywbem_$(pymn)_$(PACKAGE_LEVEL).done
-	-$(call RM_FUNC,$@)
+	rm -f $@
 	$(PYTHON_CMD) -c "import $(package_name)"
 	$(PYTHON_CMD) -c "import $(mock_package_name)"
 	echo "done" >$@
@@ -512,12 +455,8 @@ installc:
 	$(error Cythonizing pywbem is no longer supported by this Makefile)
 
 $(done_dir)/installc_$(pymn)_$(PACKAGE_LEVEL).done: Makefile $(done_dir)/base_$(pymn)_$(PACKAGE_LEVEL).done $(done_dir)/installc_pywbem_$(pymn)_$(PACKAGE_LEVEL).done
-	-$(call RM_FUNC,$@)
-ifeq ($(PLATFORM),Windows_native)
-	cmd /c "set TEST_INSTALLED=1 & $(PYTHON_CMD) -c "from tests.utils import import_installed; pkg=import_installed('$(package_name)'); print('$(package_name).__file__={}'.format(pkg.__file__))""
-else
+	rm -f $@
 	TEST_INSTALLED=1 $(PYTHON_CMD) -c "from tests.utils import import_installed; pkg=import_installed('$(package_name)'); print('$(package_name).__file__={}'.format(pkg.__file__))"
-endif
 	echo "done" >$@
 
 .PHONY: develop_os
@@ -526,7 +465,7 @@ develop_os: $(done_dir)/develop_os_$(pymn)_$(PACKAGE_LEVEL).done
 
 $(done_dir)/develop_os_$(pymn)_$(PACKAGE_LEVEL).done: Makefile $(done_dir)/base_$(pymn)_$(PACKAGE_LEVEL).done pywbem_os_setup.sh pywbem_os_setup.bat
 	@echo "Makefile: Installing OS-level development requirements"
-	-$(call RM_FUNC,$@)
+	rm -f $@
 ifeq ($(PLATFORM),Windows_native)
 	pywbem_os_setup.bat develop
 else
@@ -541,14 +480,14 @@ develop: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done
 
 $(done_dir)/test_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/base_$(pymn)_$(PACKAGE_LEVEL).done test-requirements.txt minimum-constraints-develop.txt minimum-constraints-install.txt
 	@echo "Makefile: Installing Python test requirements (with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
-	-$(call RM_FUNC,$@)
+	rm -f $@
 	$(PIP_INSTALL_CMD) $(pip_level_opts) -r test-requirements.txt
 	echo "done" >$@
 	@echo "Makefile: Done installing Python test requirements"
 
 $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/test_$(pymn)_$(PACKAGE_LEVEL).done $(done_dir)/base_$(pymn)_$(PACKAGE_LEVEL).done $(done_dir)/install_$(pymn)_$(PACKAGE_LEVEL).done $(done_dir)/develop_os_$(pymn)_$(PACKAGE_LEVEL).done dev-requirements.txt minimum-constraints-develop.txt minimum-constraints-install.txt
 	@echo "Makefile: Installing Python development requirements (with PACKAGE_LEVEL=$(PACKAGE_LEVEL))"
-	-$(call RM_FUNC,$@)
+	rm -f $@
 	$(PIP_INSTALL_CMD) $(pip_level_opts) -r dev-requirements.txt
 	echo "done" >$@
 	@echo "Makefile: Done installing Python development requirements"
@@ -610,23 +549,23 @@ all: install develop check_reqs build builddoc check ruff pylint installtest tes
 
 .PHONY: release_branch
 release_branch:
-	@bash -c 'if [ -z "$(VERSION)" ]; then echo ""; echo "Error: VERSION env var is not set"; echo ""; false; fi'
-	@bash -c 'if [ -n "$$(git status -s)" ]; then echo ""; echo "Error: Local git repo has uncommitted files:"; echo ""; git status; false; fi'
+	@if [ -z "$(VERSION)" ]; then echo ""; echo "Error: VERSION env var is not set"; echo ""; false; fi
+	@if [ -n "$$(git status -s)" ]; then echo ""; echo "Error: Local git repo has uncommitted files:"; echo ""; git status; false; fi
 	git fetch origin
-	@bash -c 'if [ -z "$$(git tag -l $(VERSION)a0)" ]; then echo ""; echo "Error: Release start tag $(VERSION)a0 does not exist (the version has not been started)"; echo ""; false; fi'
-	@bash -c 'if [ -n "$$(git tag -l $(VERSION))" ]; then echo ""; echo "Error: Release tag $(VERSION) already exists (the version has already been released)"; echo ""; false; fi'
-	@bash -c 'if [[ -n "$${BRANCH}" ]]; then echo $${BRANCH} >branch.tmp; elif [[ "$${VERSION#*.*.}" == "0" ]]; then echo "master" >branch.tmp; else echo "stable_$${VERSION%.*}" >branch.tmp; fi'
-	@bash -c 'if [ -z "$$(git branch --contains $(VERSION)a0 $$(cat branch.tmp))" ]; then echo ""; echo "Error: Release start tag $(VERSION)a0 is not in target branch $$(cat branch.tmp), but in:"; echo ""; git branch --contains $(VERSION)a0;. false; fi'
+	@if [ -z "$$(git tag -l $(VERSION)a0)" ]; then echo ""; echo "Error: Release start tag $(VERSION)a0 does not exist (the version has not been started)"; echo ""; false; fi
+	@if [ -n "$$(git tag -l $(VERSION))" ]; then echo ""; echo "Error: Release tag $(VERSION) already exists (the version has already been released)"; echo ""; false; fi
+	@if [[ -n "$${BRANCH}" ]]; then echo $${BRANCH} >branch.tmp; elif [[ "$${VERSION#*.*.}" == "0" ]]; then echo "master" >branch.tmp; else echo "stable_$${VERSION%.*}" >branch.tmp; fi
+	@if [ -z "$$(git branch --contains $(VERSION)a0 $$(cat branch.tmp))" ]; then echo ""; echo "Error: Release start tag $(VERSION)a0 is not in target branch $$(cat branch.tmp), but in:"; echo ""; git branch --contains $(VERSION)a0;. false; fi
 	@echo "==> This will start the release of $(package_name) version $(VERSION) to PyPI using target branch $$(cat branch.tmp)"
 	@echo -n '==> Continue? [yN] '
-	@bash -c 'read answer; if [ "$$answer" != "y" ]; then echo "Aborted."; false; fi'
-	bash -c 'git checkout $$(cat branch.tmp)'
+	@read answer; if [ "$$answer" != "y" ]; then echo "Aborted."; false; fi
+	git checkout $$(cat branch.tmp)
 	git pull
-	@bash -c 'if [ -z "$$(git branch -l release_$(VERSION))" ]; then echo "Creating release branch release_$(VERSION)"; git checkout -b release_$(VERSION); fi'
+	@if [ -z "$$(git branch -l release_$(VERSION))" ]; then echo "Creating release branch release_$(VERSION)"; git checkout -b release_$(VERSION); fi
 	git checkout release_$(VERSION)
 	make authors
 	towncrier build --version $(VERSION) --yes
-	@bash -c 'if ls changes/*.rst >/dev/null 2>/dev/null; then echo ""; echo "Error: There are incorrectly named change fragment files that towncrier did not use:"; ls -1 changes/*.rst; echo ""; false; fi'
+	@if ls changes/*.rst >/dev/null 2>/dev/null; then echo ""; echo "Error: There are incorrectly named change fragment files that towncrier did not use:"; ls -1 changes/*.rst; echo ""; false; fi
 	git commit -asm "Release $(VERSION)"
 	git push --set-upstream origin release_$(VERSION)
 	rm -f branch.tmp
@@ -635,17 +574,17 @@ release_branch:
 
 .PHONY: release_publish
 release_publish:
-	@bash -c 'if [ -z "$(VERSION)" ]; then echo ""; echo "Error: VERSION env var is not set"; echo ""; false; fi'
-	@bash -c 'if [ -n "$$(git status -s)" ]; then echo ""; echo "Error: Local git repo has uncommitted files:"; echo ""; git status; false; fi'
+	@if [ -z "$(VERSION)" ]; then echo ""; echo "Error: VERSION env var is not set"; echo ""; false; fi
+	@if [ -n "$$(git status -s)" ]; then echo ""; echo "Error: Local git repo has uncommitted files:"; echo ""; git status; false; fi
 	git fetch origin
-	@bash -c 'if [ -n "$$(git tag -l $(VERSION))" ]; then echo ""; echo "Error: Release tag $(VERSION) already exists (the version has already been released)"; echo ""; false; fi'
-	@bash -c 'if [[ -n "$${BRANCH}" ]]; then echo $${BRANCH} >branch.tmp; elif [[ "$${VERSION#*.*.}" == "0" ]]; then echo "master" >branch.tmp; else echo "stable_$${VERSION%.*}" >branch.tmp; fi'
-	@bash -c 'if ! git show-ref --quiet refs/remotes/origin/$$(cat branch.tmp); then echo ""; echo "Error: Branch origin/$$(cat branch.tmp) does not exist. Incorrect VERSION env var?"; echo ""; false; fi'
-	@bash -c 'if [[ ! $$(git log --format=format:%s origin/$$(cat branch.tmp)~..origin/$$(cat branch.tmp)) =~ ^Release\ $(VERSION) ]]; then echo ""; echo "Error: Release PR for $(VERSION) has not been merged yet"; echo ""; false; fi'
+	@if [ -n "$$(git tag -l $(VERSION))" ]; then echo ""; echo "Error: Release tag $(VERSION) already exists (the version has already been released)"; echo ""; false; fi
+	@if [[ -n "$${BRANCH}" ]]; then echo $${BRANCH} >branch.tmp; elif [[ "$${VERSION#*.*.}" == "0" ]]; then echo "master" >branch.tmp; else echo "stable_$${VERSION%.*}" >branch.tmp; fi
+	@if ! git show-ref --quiet refs/remotes/origin/$$(cat branch.tmp); then echo ""; echo "Error: Branch origin/$$(cat branch.tmp) does not exist. Incorrect VERSION env var?"; echo ""; false; fi
+	@if [[ ! $$(git log --format=format:%s origin/$$(cat branch.tmp)~..origin/$$(cat branch.tmp)) =~ ^Release\ $(VERSION) ]]; then echo ""; echo "Error: Release PR for $(VERSION) has not been merged yet"; echo ""; false; fi
 	@echo "==> This will publish $(package_name) version $(VERSION) to PyPI using target branch $$(cat branch.tmp)"
 	@echo -n '==> Continue? [yN] '
-	@bash -c 'read answer; if [ "$$answer" != "y" ]; then echo "Aborted."; false; fi'
-	bash -c 'git checkout $$(cat branch.tmp)'
+	@read answer; if [ "$$answer" != "y" ]; then echo "Aborted."; false; fi
+	git checkout $$(cat branch.tmp)
 	git pull
 	git tag -f $(VERSION)
 	git push -f --tags
@@ -657,17 +596,17 @@ release_publish:
 
 .PHONY: start_branch
 start_branch:
-	@bash -c 'if [ -z "$(VERSION)" ]; then echo ""; echo "Error: VERSION env var is not set"; echo ""; false; fi'
-	@bash -c 'if [ -n "$$(git status -s)" ]; then echo ""; echo "Error: Local git repo has uncommitted files:"; echo ""; git status; false; fi'
+	@if [ -z "$(VERSION)" ]; then echo ""; echo "Error: VERSION env var is not set"; echo ""; false; fi
+	@if [ -n "$$(git status -s)" ]; then echo ""; echo "Error: Local git repo has uncommitted files:"; echo ""; git status; false; fi
 	git fetch origin
-	@bash -c 'if [ -n "$$(git tag -l $(VERSION))" ]; then echo ""; echo "Error: Release tag $(VERSION) already exists (the version has already been released)"; echo ""; false; fi'
-	@bash -c 'if [ -n "$$(git tag -l $(VERSION)a0)" ]; then echo ""; echo "Error: Release start tag $(VERSION)a0 already exists (the new version has alreay been started)"; echo ""; false; fi'
-	@bash -c 'if [ -n "$$(git branch -l start_$(VERSION))" ]; then echo ""; echo "Error: Start branch start_$(VERSION) already exists (the start of the new version is already underway)"; echo ""; false; fi'
-	@bash -c 'if [[ -n "$${BRANCH}" ]]; then echo $${BRANCH} >branch.tmp; elif [[ "$${VERSION#*.*.}" == "0" ]]; then echo "master" >branch.tmp; else echo "stable_$${VERSION%.*}" >branch.tmp; fi'
+	@if [ -n "$$(git tag -l $(VERSION))" ]; then echo ""; echo "Error: Release tag $(VERSION) already exists (the version has already been released)"; echo ""; false; fi
+	@if [ -n "$$(git tag -l $(VERSION)a0)" ]; then echo ""; echo "Error: Release start tag $(VERSION)a0 already exists (the new version has alreay been started)"; echo ""; false; fi
+	@if [ -n "$$(git branch -l start_$(VERSION))" ]; then echo ""; echo "Error: Start branch start_$(VERSION) already exists (the start of the new version is already underway)"; echo ""; false; fi
+	@if [[ -n "$${BRANCH}" ]]; then echo $${BRANCH} >branch.tmp; elif [[ "$${VERSION#*.*.}" == "0" ]]; then echo "master" >branch.tmp; else echo "stable_$${VERSION%.*}" >branch.tmp; fi
 	@echo "==> This will start new version $(VERSION) using target branch $$(cat branch.tmp)"
 	@echo -n '==> Continue? [yN] '
-	@bash -c 'read answer; if [ "$$answer" != "y" ]; then echo "Aborted."; false; fi'
-	bash -c 'git checkout $$(cat branch.tmp)'
+	@read answer; if [ "$$answer" != "y" ]; then echo "Aborted."; false; fi
+	git checkout $$(cat branch.tmp)
 	git pull
 	git checkout -b start_$(VERSION)
 	echo "Dummy change for starting new version $(VERSION)" >changes/noissue.$(VERSION).notshown.rst
@@ -680,17 +619,17 @@ start_branch:
 
 .PHONY: start_tag
 start_tag:
-	@bash -c 'if [ -z "$(VERSION)" ]; then echo ""; echo "Error: VERSION env var is not set"; echo ""; false; fi'
-	@bash -c 'if [ -n "$$(git status -s)" ]; then echo ""; echo "Error: Local git repo has uncommitted files:"; echo ""; git status; false; fi'
+	@if [ -z "$(VERSION)" ]; then echo ""; echo "Error: VERSION env var is not set"; echo ""; false; fi
+	@if [ -n "$$(git status -s)" ]; then echo ""; echo "Error: Local git repo has uncommitted files:"; echo ""; git status; false; fi
 	git fetch origin
-	@bash -c 'if [ -n "$$(git tag -l $(VERSION)a0)" ]; then echo ""; echo "Error: Release start tag $(VERSION)a0 already exists (the new version has alreay been started)"; echo ""; false; fi'
-	@bash -c 'if [[ -n "$${BRANCH}" ]]; then echo $${BRANCH} >branch.tmp; elif [[ "$${VERSION#*.*.}" == "0" ]]; then echo "master" >branch.tmp; else echo "stable_$${VERSION%.*}" >branch.tmp; fi'
-	@bash -c 'if ! git show-ref --quiet refs/remotes/origin/$$(cat branch.tmp); then echo ""; echo "Error: Branch origin/$$(cat branch.tmp) does not exist. Incorrect VERSION env var?"; echo ""; false; fi'
-	@bash -c 'if [[ ! $$(git log --format=format:%s origin/$$(cat branch.tmp)~..origin/$$(cat branch.tmp)) =~ ^Start\ $(VERSION) ]]; then echo ""; echo "Error: Start PR for $(VERSION) has not been merged yet"; echo ""; false; fi'
+	@if [ -n "$$(git tag -l $(VERSION)a0)" ]; then echo ""; echo "Error: Release start tag $(VERSION)a0 already exists (the new version has alreay been started)"; echo ""; false; fi
+	@if [[ -n "$${BRANCH}" ]]; then echo $${BRANCH} >branch.tmp; elif [[ "$${VERSION#*.*.}" == "0" ]]; then echo "master" >branch.tmp; else echo "stable_$${VERSION%.*}" >branch.tmp; fi
+	@if ! git show-ref --quiet refs/remotes/origin/$$(cat branch.tmp); then echo ""; echo "Error: Branch origin/$$(cat branch.tmp) does not exist. Incorrect VERSION env var?"; echo ""; false; fi
+	@if [[ ! $$(git log --format=format:%s origin/$$(cat branch.tmp)~..origin/$$(cat branch.tmp)) =~ ^Start\ $(VERSION) ]]; then echo ""; echo "Error: Start PR for $(VERSION) has not been merged yet"; echo ""; false; fi
 	@echo "==> This will complete the start of new version $(VERSION) using target branch $$(cat branch.tmp)"
 	@echo -n '==> Continue? [yN] '
-	@bash -c 'read answer; if [ "$$answer" != "y" ]; then echo "Aborted."; false; fi'
-	bash -c 'git checkout $$(cat branch.tmp)'
+	@read answer; if [ "$$answer" != "y" ]; then echo "Aborted."; false; fi
+	git checkout $$(cat branch.tmp)
 	git pull
 	git tag -f $(VERSION)a0
 	git push -f --tags
@@ -711,16 +650,16 @@ AUTHORS.md: _always
 	echo "" >>AUTHORS.md.tmp
 	echo "Sorted list of authors derived from git commit history:" >>AUTHORS.md.tmp
 	echo '```' >>AUTHORS.md.tmp
-	bash -c "git shortlog --summary --email HEAD | cut -f 2 | LC_ALL=C.UTF-8 sort >>AUTHORS.md.tmp"
+	git shortlog --summary --email HEAD | cut -f 2 | LC_ALL=C.UTF-8 sort >>AUTHORS.md.tmp
 	echo '```' >>AUTHORS.md.tmp
-	bash -c "if ! diff -q AUTHORS.md.tmp AUTHORS.md; then echo 'Updating AUTHORS.md as follows:'; diff AUTHORS.md.tmp AUTHORS.md; mv AUTHORS.md.tmp AUTHORS.md; else echo 'AUTHORS.md was already up to date'; rm AUTHORS.md.tmp; fi"
+	if ! diff -q AUTHORS.md.tmp AUTHORS.md; then echo 'Updating AUTHORS.md as follows:'; diff AUTHORS.md.tmp AUTHORS.md; mv AUTHORS.md.tmp AUTHORS.md; else echo 'AUTHORS.md was already up to date'; rm AUTHORS.md.tmp; fi
 
 .PHONY: clobber
 clobber: clean
 	@echo "Makefile: Removing everything for a fresh start"
-	-$(call RM_FUNC,epydoc.log $(moftab_files) $(dist_files) $(dist_dir)/$(package_name)-$(package_version)*.egg pywbem/*cover pywbem_mock/*cover)
-	-$(call RM_R_FUNC,*.done)
-	-$(call RMDIR_FUNC,$(doc_build_dir) .tox $(coverage_html_dir) build_build_ext build_cythonize)
+	rm -f epydoc.log $(moftab_files) $(dist_files) $(dist_dir)/$(package_name)-$(package_version)*.egg pywbem/*cover pywbem_mock/*cover
+	find . -type f -name '*.done' -delete
+	rm -rf $(doc_build_dir) .tox $(coverage_html_dir) build_build_ext build_cythonize
 	@echo "Makefile: Done removing everything for a fresh start"
 	@echo "Makefile: Target $@ done."
 
@@ -728,15 +667,15 @@ clobber: clean
 .PHONY: clean
 clean:
 	@echo "Makefile: Removing temporary build products"
-	-$(call RM_R_FUNC,*.pyc)
-	-$(call RM_R_FUNC,*~)
-	-$(call RM_R_FUNC,.*~)
-	-$(call RMDIR_R_FUNC,__pycache__)
-	-$(call RMDIR_R_FUNC,.pytest_cache)
-	-$(call RMDIR_R_FUNC,.ruff_cache)
-	-$(call RM_FUNC,MANIFEST parser.out .coverage $(package_name)/parser.out)
-	-$(call RM_FUNC,$(package_name)/mofparsetab.py* $(package_name)/moflextab.py*)
-	-$(call RMDIR_FUNC,build .cache $(package_name).egg-info .eggs)
+	find . -type f -name '*.pyc' -delete
+	find . -type f -name '*~' -delete
+	find . -type f -name '.*~' -delete
+	find . -type d -name '__pycache__' | xargs -n 1 rm -rf
+	find . -type d -name '.pytest_cache' | xargs -n 1 rm -rf
+	find . -type d -name '.ruff_cache' | xargs -n 1 rm -rf
+	rm -f MANIFEST parser.out .coverage $(package_name)/parser.out
+	rm -f $(package_name)/mofparsetab.py* $(package_name)/moflextab.py*
+	rm -rf build .cache $(package_name).egg-info .eggs
 	@echo "Makefile: Done removing temporary build products"
 	@echo "Makefile: Target $@ done."
 
@@ -746,15 +685,15 @@ html: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done $(doc_build_dir)/html/in
 
 $(doc_build_dir)/html/index.html: Makefile $(doc_utility_help_files) $(doc_dependent_files)
 	@echo "Makefile: Creating the documentation as HTML pages"
-	-$(call RM_FUNC,$@)
-	bash -c "pushd docs; $(doc_cmd) -b html $(doc_opts) ../$(doc_build_dir)/html"
+	rm -f $@
+	bash -c "cd docs; $(doc_cmd) -b html $(doc_opts) ../$(doc_build_dir)/html"
 	@echo "Makefile: Done creating the documentation as HTML pages; top level file: $@"
 
 .PHONY: pdf
 pdf: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile $(doc_utility_help_files) $(doc_dependent_files)
 	@echo "Makefile: Creating the documentation as PDF file"
-	-$(call RM_FUNC,$@)
-	bash -c "pushd docs; $(doc_cmd) -b latex $(doc_opts) ../$(doc_build_dir)/pdf"
+	rm -f $@
+	bash -c "cd docs; $(doc_cmd) -b latex $(doc_opts) ../$(doc_build_dir)/pdf"
 	@echo "Makefile: Running LaTeX files through pdflatex..."
 	$(MAKE) -C $(doc_build_dir)/pdf all-pdf
 	@echo "Makefile: Done creating the documentation as PDF file in: $(doc_build_dir)/pdf/"
@@ -763,15 +702,15 @@ pdf: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile $(doc_utility_he
 .PHONY: man
 man: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile $(doc_utility_help_files) $(doc_dependent_files)
 	@echo "Makefile: Creating the documentation as man pages"
-	-$(call RM_FUNC,$@)
-	bash -c "pushd docs; $(doc_cmd) -b man $(doc_opts) ../$(doc_build_dir)/man/man1"
+	rm -f $@
+	bash -c "cd docs; $(doc_cmd) -b man $(doc_opts) ../$(doc_build_dir)/man/man1"
 	@echo "Makefile: Done creating the documentation as man pages in: $(doc_build_dir)/man/man1"
 	@echo "Makefile: Target $@ done."
 
 .PHONY: docchanges
 docchanges: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Creating the doc changes overview file"
-	bash -c "pushd docs; $(doc_cmd) -b changes $(doc_opts) ../$(doc_build_dir)/changes"
+	bash -c "cd docs; $(doc_cmd) -b changes $(doc_opts) ../$(doc_build_dir)/changes"
 	@echo
 	@echo "Makefile: Done creating the doc changes overview file in: $(doc_build_dir)/changes/"
 	@echo "Makefile: Target $@ done."
@@ -779,7 +718,7 @@ docchanges: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done
 .PHONY: doclinkcheck
 doclinkcheck: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Creating the doc link errors file"
-	bash -c "pushd docs; $(doc_cmd) -b linkcheck $(doc_opts) ../$(doc_build_dir)/linkcheck"
+	bash -c "cd docs; $(doc_cmd) -b linkcheck $(doc_opts) ../$(doc_build_dir)/linkcheck"
 	@echo
 	@echo "Makefile: Done creating the doc link errors file: $(doc_build_dir)/linkcheck/output.txt"
 	@echo "Makefile: Target $@ done."
@@ -787,7 +726,7 @@ doclinkcheck: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done
 .PHONY: doccoverage
 doccoverage: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Creating the doc coverage results file"
-	bash -c "pushd docs; $(doc_cmd) -b coverage $(doc_opts) ../$(doc_build_dir)/coverage"
+	bash -c "cd docs; $(doc_cmd) -b coverage $(doc_opts) ../$(doc_build_dir)/coverage"
 	@echo "Makefile: Done creating the doc coverage results file: $(doc_build_dir)/coverage/python.txt"
 	@echo "Makefile: Target $@ done."
 
@@ -799,25 +738,6 @@ doccoverage: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done
 MANIFEST.in: Makefile
 	@echo "Makefile: Creating the manifest input file"
 	echo "# file GENERATED by Makefile, do NOT edit" >$@
-ifeq ($(PLATFORM),Windows_native)
-	for %%f in ($(dist_manifest_in_files)) do (echo include %%f >>$@)
-	echo recursive-include $(test_dir) * >>$@
-	echo recursive-exclude $(test_dir) *.pyc >>$@
-	echo recursive-exclude attic * >>$@
-	echo recursive-exclude changes * >>$@
-	echo recursive-exclude design * >>$@
-	echo recursive-exclude dist * >>$@
-	echo recursive-exclude docs * >>$@
-	echo recursive-exclude examples * >>$@
-	echo recursive-exclude images * >>$@
-	echo recursive-exclude packaging * >>$@
-	echo recursive-exclude perf * >>$@
-	echo recursive-exclude .github * >>$@
-	echo exclude .gitignore >>$@
-	echo exclude DEVELOP.md >>$@
-	echo exclude SECURITY.md >>$@
-	echo exclude TODO.md >>$@
-else
 	echo "$(dist_manifest_in_files)" |xargs -n 1 echo include >>$@
 	echo "recursive-include $(test_dir) *" >>$@
 	echo "recursive-exclude $(test_dir) *.pyc" >>$@
@@ -835,7 +755,6 @@ else
 	echo "exclude DEVELOP.md" >>$@
 	echo "exclude SECURITY.md" >>$@
 	echo "exclude TODO.md" >>$@
-endif
 	@echo "Makefile: Done creating the manifest input file: $@"
 
 # Distribution archives.
@@ -847,29 +766,24 @@ endif
 # wheel archives.
 $(sdist_file): pyproject.toml MANIFEST.in $(dist_dependent_files) $(moftab_files) $(done_dir)/vendor_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Creating the source distribution archive: $(sdist_file)"
-	-$(call RM_FUNC,MANIFEST)
-	-$(call RMDIR_FUNC,build $(package_name).egg-info-INFO .eggs)
+	rm -f MANIFEST
+	rm -rf build $(package_name).egg-info-INFO .eggs
 	$(PYTHON_CMD) -m build --no-isolation --sdist --outdir $(dist_dir) .
-	bash -c "ls -l $(sdist_file) || ls -l $(dist_dir) && echo package_level=$(package_level) && $(PYTHON_CMD) -m setuptools_scm"
+	ls -l $(sdist_file) || ls -l $(dist_dir) && echo package_level=$(package_level) && $(PYTHON_CMD) -m setuptools_scm
 	@echo "Makefile: Done creating the source distribution archive: $(sdist_file)"
 
 $(bdist_file) $(version_file): pyproject.toml $(dist_dependent_files) $(moftab_files) $(done_dir)/vendor_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Creating the normal wheel distribution archive: $(bdist_file)"
-	-$(call RMDIR_FUNC,build $(package_name).egg-info-INFO .eggs)
+	rm -rf build $(package_name).egg-info-INFO .eggs
 	$(PYTHON_CMD) -m build --no-isolation --wheel --outdir $(dist_dir) -C--universal .
-	bash -c "ls -l $(bdist_file) $(version_file) || ls -l $(dist_dir) && echo package_level=$(package_level) && $(PYTHON_CMD) -m setuptools_scm"
+	ls -l $(bdist_file) $(version_file) || ls -l $(dist_dir) && echo package_level=$(package_level) && $(PYTHON_CMD) -m setuptools_scm
 	@echo "Makefile: Done creating the normal wheel distribution archive: $(bdist_file)"
 
 $(bdistc_file): setup.py pyproject.toml $(dist_dependent_files) $(moftab_files) $(done_dir)/vendor_$(pymn)_$(PACKAGE_LEVEL).done
 	@echo "Makefile: Creating the cythonized wheel distribution archive: $(bdistc_file)"
-	-$(call RMDIR_FUNC,build $(package_name).egg-info-INFO .eggs)
-ifeq ($(PLATFORM),Windows_native)
-	cmd /c "set CFLAGS=$(cython_cflags) & $(PYTHON_CMD) setup.py bdist_wheel -d $(dist_dir) --universal --cythonized"
-	cmd /c dir $(dist_dir)
-else
+	rm -rf build $(package_name).egg-info-INFO .eggs
 	CFLAGS='$(cython_cflags)' $(PYTHON_CMD) setup.py bdist_wheel -d $(dist_dir) --universal --cythonized
 	ls -l $(dist_dir)
-endif
 	@echo "Makefile: Done creating the cythonized wheel distribution archive: $(bdistc_file)"
 
 # Note: The mof*tab files need to be removed in order to rebuild them (make rules vs. ply rules)
@@ -879,7 +793,7 @@ endif
 # purpose of this rule is to build the mof*tab files in ./pywbem.
 $(moftab_files): $(done_dir)/install_$(pymn)_$(PACKAGE_LEVEL).done $(moftab_dependent_files) build_moftab.py
 	@echo "Makefile: Creating the LEX/YACC table modules"
-	-$(call RM_FUNC,$(package_name)/_mofparsetab.py* $(package_name)/_moflextab.py*)
+	rm -f $(package_name)/_mofparsetab.py* $(package_name)/_moflextab.py*
 	$(PYTHON_CMD) -c "from pywbem import _mof_compiler; _mof_compiler._build(verbose=True)"
 	@echo "Makefile: Done creating the LEX/YACC table modules: $(moftab_files)"
 
@@ -894,7 +808,7 @@ $(moftab_files): $(done_dir)/install_$(pymn)_$(PACKAGE_LEVEL).done $(moftab_depe
 # Status 1 to 16 will be bit-ORed.
 $(done_dir)/pylint_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile $(pylint_rc_file) $(py_src_files) $(py_test_files)
 	@echo "Makefile: Running Pylint"
-	-$(call RM_FUNC,$@)
+	rm -f $@
 	pylint --version
 	pylint $(pylint_no_todo_opts) --rcfile=$(pylint_rc_file) $(py_src_files)
 	pylint $(pylint_todo_opts) --rcfile=$(pylint_rc_file) $(py_test_files)
@@ -903,7 +817,7 @@ $(done_dir)/pylint_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/develop_$(pymn)_$(
 
 $(done_dir)/flake8_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile $(flake8_rc_file) $(py_src_files) $(py_test_files)
 	@echo "Makefile: Running Flake8"
-	-$(call RM_FUNC,$@)
+	rm -f $@
 	flake8 --version
 	flake8 --statistics --config=$(flake8_rc_file) --filename='*' $(py_src_files) $(py_test_files)
 	echo "done" >$@
@@ -911,7 +825,7 @@ $(done_dir)/flake8_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/develop_$(pymn)_$(
 
 $(done_dir)/ruff_$(pymn)_$(PACKAGE_LEVEL).done: Makefile $(py_src_files) $(py_test_files)
 	@echo "Makefile: Running Ruff"
-	-$(call RM_FUNC,$@)
+	rm -f $@
 	ruff --version
 	ruff check --unsafe-fixes $(py_src_files) $(py_test_files)
 	echo "done" >$@
@@ -920,8 +834,8 @@ $(done_dir)/ruff_$(pymn)_$(PACKAGE_LEVEL).done: Makefile $(py_src_files) $(py_te
 .PHONY: safety
 safety: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile $(safety_develop_policy_file) $(safety_install_policy_file) minimum-constraints-develop.txt minimum-constraints-install.txt minimum-constraints-install.txt
 	@echo "Makefile: Running Safety"
-	bash -c "safety check --policy-file $(safety_install_policy_file) -r minimum-constraints-install.txt --full-report || test '$(RUN_TYPE)' == 'normal' || exit 1"
-	bash -c "safety check --policy-file $(safety_develop_policy_file) -r minimum-constraints-develop.txt --full-report || test '$(RUN_TYPE)' == 'normal' || test '$(RUN_TYPE)' == 'scheduled' || exit 1"
+	safety check --policy-file $(safety_install_policy_file) -r minimum-constraints-install.txt --full-report || test '$(RUN_TYPE)' == 'normal' || exit 1
+	safety check --policy-file $(safety_develop_policy_file) -r minimum-constraints-develop.txt --full-report || test '$(RUN_TYPE)' == 'normal' || test '$(RUN_TYPE)' == 'scheduled' || exit 1
 	@echo "Makefile: Done running Safety"
 
 ifdef TEST_INSTALLED
@@ -932,7 +846,7 @@ endif
 
 $(done_dir)/todo_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done Makefile $(pylint_rc_file) $(py_src_files) $(py_test_files)
 	@echo "Makefile: Checking for TODOs"
-	-$(call RM_FUNC,$@)
+	rm -f $@
 	pylint --exit-zero --reports=n --jobs=1 --disable=all --enable=fixme $(py_src_files) $(py_test_files)
 	-grep TODO $(doc_conf_dir) -r --include="*.rst"
 	echo "done" >$@
@@ -968,7 +882,7 @@ testinstalled: $(done_dir)/install_pywbem_$(pymn)_$(PACKAGE_LEVEL).done base-req
 ifeq ($(PLATFORM),Windows_native)
 	@echo "Makefile: Warning: Skipping the test on native Windows" >&2
 else
-	-$(call RMDIR_R_FUNC,.virtualenv/testinstalled)
+	find . -type d -name '.virtualenv/testinstalled' | xargs -n 1 rm -rf
 	virtualenv .virtualenv/testinstalled
 	bash -cx "source .virtualenv/testinstalled/bin/activate; $(PYTHON_CMD) --version; $(PIP_INSTALL_CMD) $(pip_level_opts) -r base-requirements.txt; $(PIP_INSTALL_CMD) $(pip_level_opts) .; $(PIP_CMD) list; TEST_INSTALLED=1 TESTCASES=test_mof_compiler.py TESTOPTS='-x' make test"
 endif
