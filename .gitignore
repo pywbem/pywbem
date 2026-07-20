@@ -54,3 +54,4 @@ setuptools-*.zip
 .DS_Store
 /try/
 /issues/
+/extra_reqs*.txt
