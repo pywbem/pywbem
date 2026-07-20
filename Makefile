@@ -351,9 +351,6 @@ dist_dependent_files_all := \
 # version file is rebuilt during build.
 dist_dependent_files := $(filter-out $(version_file), $(dist_dependent_files_all))
 
-# Packages whose dependencies are checked using pip-missing-reqs
-check_reqs_packages := pytest coverage coveralls flake8 pylint safety sphinx notebook jupyter towncrier
-
 PIP_INSTALL_CMD := $(PYTHON_CMD) -m pip install
 
 # Directory for .done files
@@ -365,10 +362,12 @@ help:
 	@echo "$(package_name) package version: $(package_version)"
 	@echo ""
 	@echo "Make targets:"
+	@echo "  check_reqs_prepare - Prepare dependency checks (must be run before install)"
 	@echo "  install    - Install pywbem and its Python installation and runtime prereqs"
+	@echo "  check_reqs_install - Perform missing install dependency checks (must be run before develop)"
 	@echo "  develop    - Install Python development prereqs (includes develop_os once after clobber)"
+	@echo "  check_reqs - Perform missing dependency checks (must be run after develop)"
 	@echo "  vendor     - Install or update the vendorized packages"
-	@echo "  check_reqs - Perform missing dependency checks"
 	@echo "  build      - Build the source and wheel distribution archives in: $(dist_dir)"
 	@echo "  builddoc   - Build documentation in: $(doc_build_dir)"
 	@echo "  check      - Run Flake8 on sources"
@@ -938,22 +937,44 @@ $(done_dir)/todo_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/develop_$(pymn)_$(PA
 	echo "done" >$@
 	@echo "Makefile: Done checking for TODOs"
 
+.PHONY: check_reqs_prepare
+check_reqs_prepare: Makefile
+	@echo "Makefile: Preparing check for missing and extra install dependencies of this package"
+	pip freeze | cut -d '=' -f 1 | grep -v '@' | tr '-' '.' | tr '_' '.' >tmp_initial-packages.txt
+
+.PHONY: check_reqs_install
+check_reqs_install: Makefile $(done_dir)/install_$(pymn)_$(PACKAGE_LEVEL).done minimum-constraints-install.txt
+	@echo "Makefile: Checking missing and extra install dependencies of this package"
+# Create empty tmp_initial-packages.txt for local runs that missed running check_reqs_prepare
+	touch tmp_initial-packages.txt
+	pip freeze | cut -d '=' -f 1 | grep -v '@' | tr '-' '.' | tr '_' '.' | grep -v -F -f tmp_initial-packages.txt | xargs -I {} sh -c 'if ! grep -iE ^{}== minimum-constraints-install.txt >/dev/null; then sh -c "pip freeze | grep -iE ^{}=="; fi' >tmp_missing-reqs.txt
+	if [ -s tmp_missing-reqs.txt ]; then echo 'Error: Missing packages in minimum-constraints-install.txt compared to what is installed:'; cat tmp_missing-reqs.txt; exit 1; fi
+	rm -f tmp_missing-reqs.txt
+	for pkg in $$(grep -E '^[a-z_0-9A-Z\-\.]+==' minimum-constraints-install.txt | cut -d '=' -f 1 | sort | uniq); do if ! pip show $$pkg >/dev/null 2>&1; then echo $$pkg; fi; done >extra_reqs_install_$(PLATFORM)_$(pymn)_$(PACKAGE_LEVEL).txt
+	if [ -s extra_reqs_install_$(PLATFORM)_$(pymn)_$(PACKAGE_LEVEL).txt ]; then echo 'Warning: Extra packages in minimum-constraints-install.txt compared to what is installed:'; cat extra_reqs_install_$(PLATFORM)_$(pymn)_$(PACKAGE_LEVEL).txt; fi
+	@echo "Makefile: Done checking missing and extra install dependencies of this package"
+	@echo "Makefile: $@ done."
+
 .PHONY: check_reqs
-check_reqs: $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done minimum-constraints-install.txt requirements.txt
-	@echo "Makefile: Checking missing dependencies of the package"
-	pip-missing-reqs $(package_name) --requirements-file=requirements.txt
-	pip-missing-reqs $(package_name) --requirements-file=minimum-constraints-install.txt
-	@echo "Makefile: Done checking missing dependencies of the package"
+check_reqs: Makefile $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done minimum-constraints-install.txt minimum-constraints-develop.txt requirements.txt
+	@echo "Makefile: Checking missing and extra dependencies of this package"
 ifeq ($(PLATFORM),Windows_native)
 # Reason for skipping on Windows is https://github.com/r1chardj0n3s/pip-check-reqs/issues/67
-	@echo "Makefile: Warning: Skipping the checking of missing dependencies of site-packages directory on native Windows" >&2
+	@echo "Makefile: Warning: Skipping the use of pip-missing-reqs on native Windows" >&2
 else
-	@echo "Makefile: Checking missing dependencies of some development packages"
-	cat minimum-constraints-develop.txt minimum-constraints-install.txt >minimum-constraints-all.txt.tmp
-	@rc=0; for pkg in $(check_reqs_packages); do dir=$$($(PYTHON_CMD) -c "import $${pkg} as m,os; dm=os.path.dirname(m.__file__); d=dm if not dm.endswith('site-packages') else m.__file__; print(d)"); cmd="pip-missing-reqs $${dir} --requirements-file=minimum-constraints-all.txt.tmp"; echo $${cmd}; $${cmd}; rc=$$(expr $${rc} + $${?}); done; exit $${rc}
-	rm -f minimum-constraints-all.txt.tmp
-	@echo "Makefile: Done checking missing dependencies of some development packages"
+	pip-missing-reqs $(package_name) --ignore-module $(package_name) --ignore-module $(mock_package_name) --requirements-file=requirements.txt
+	pip-missing-reqs $(package_name) --ignore-module $(package_name) --ignore-module $(mock_package_name) --requirements-file=minimum-constraints-install.txt
 endif
+	cat minimum-constraints-develop.txt minimum-constraints-install.txt >tmp_minimum-constraints.txt
+# Create empty tmp_initial-packages.txt for local runs that missed running check_reqs_prepare
+	touch tmp_initial-packages.txt
+	pip freeze | cut -d '=' -f 1 | grep -v '@' | tr '-' '.' | tr '_' '.' | grep -v -F -f tmp_initial-packages.txt | xargs -I {} sh -c 'if ! grep -iE ^{}== tmp_minimum-constraints.txt >/dev/null; then sh -c "pip freeze | grep -iE ^{}=="; fi' >tmp_missing-reqs.txt
+	if [ -s tmp_missing-reqs.txt ]; then echo 'Error: Missing packages in minimum-constraints files compared to what is installed:'; cat tmp_missing-reqs.txt; exit 1; fi
+	rm -f tmp_missing-reqs.txt tmp_initial-packages.txt
+	for pkg in $$(grep -E '^[a-z_0-9A-Z\-\.]+==' tmp_minimum-constraints.txt | cut -d '=' -f 1 | sort | uniq); do if ! pip show $$pkg >/dev/null 2>&1; then echo $$pkg; fi; done >extra_reqs_all_$(PLATFORM)_$(pymn)_$(PACKAGE_LEVEL).txt
+	if [ -s extra_reqs_all_$(PLATFORM)_$(pymn)_$(PACKAGE_LEVEL).txt ]; then echo 'Warning: Extra packages in minimum-constraints files compared to what is installed:'; cat extra_reqs_all_$(PLATFORM)_$(pymn)_$(PACKAGE_LEVEL).txt; fi
+	rm -f tmp_minimum-constraints.txt
+	@echo "Makefile: Done checking missing dependencies of this package"
 	@echo "Makefile: $@ done."
 
 .PHONY: test
