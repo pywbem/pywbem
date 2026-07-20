@@ -998,16 +998,24 @@ class WBEMListener:
             IP addressing family.
 
           http_port (:class:`py:str` or :class:`py:int`):
-            HTTP port at which this listener can be reached. At
-            least one port (HTTP or HTTPS) must be set. Both the http and
-            https ports can be set.
+            HTTP port to be used for the listener.
+            A value of 0 or '0' means that the operating system selects the
+            port.
 
             `None` means not to set up a port for HTTP.
 
+            At least one port (HTTP or HTTPS) must be set up. Both the HTTP and
+            HTTPS ports can be set up.
+
           https_port (:class:`py:str` or :class:`py:int`):
-            HTTPS port at which this listener can be reached.
+            HTTPS port to be used for the listener.
+            A value of 0 or '0' means that the operating system selects the
+            port.
 
             `None` means not to set up a port for HTTPS.
+
+            At least one port (HTTP or HTTPS) must be set up. Both the HTTP and
+            HTTPS ports can be set up.
 
           certfile (str):
             File path of certificate file to be used as server certificate
@@ -1183,7 +1191,11 @@ class WBEMListener:
     @property
     def http_port(self):
         """
-        int: HTTP port at which this listener can be reached.
+        int: HTTP port to be used for the listener.
+
+        A value of 0 means that the operating system should assign the port.
+        When the listener is running, the port that is used by the listener is
+        available in :attr:`http_bound_port`.
 
         `None` means there is no port set up for HTTP.
         """
@@ -1192,16 +1204,46 @@ class WBEMListener:
     @property
     def https_port(self):
         """
-        int: HTTPS port at which this listener can be reached.
+        int: HTTPS port to be used for the listener.
+
+        A value of 0 means that the operating system should assign the port.
+        When the listener is running, the port that is used by the listener is
+        available in :attr:`https_bound_port`.
 
         `None` means there is no port set up for HTTPS.
         """
         return self._https_port
 
     @property
+    def http_bound_port(self):
+        """
+        int: HTTP port this listener is bound to when started.
+
+        `None` when the listener is not running.
+
+        *New in pywbem 1.10.*
+        """
+        if self._http_server is not None:
+            return getattr(self._http_server, "server_port", None)
+        return None
+
+    @property
+    def https_bound_port(self):
+        """
+        int: HTTPS port this listener is bound to when started.
+
+        `None` when the listener is not running.
+
+        *New in pywbem 1.10.*
+        """
+        if self._https_server is not None:
+            return getattr(self._https_server, "server_port", None)
+        return None
+
+    @property
     def http_started(self):
         """
-        bool: Boolean indicating whether the listener is started for the HTTP
+        bool: Boolean indicating whether the listener is running for the HTTP
         port.
 
         If no port is set up for HTTP, `False` is returned.
@@ -1213,7 +1255,7 @@ class WBEMListener:
     @property
     def https_started(self):
         """
-        bool: Boolean indicating whether the listener is started for the HTTPS
+        bool: Boolean indicating whether the listener is running for the HTTPS
         port.
 
         If no port is set up for HTTPS, `False` is returned.
@@ -1381,7 +1423,7 @@ class WBEMListener:
         self._callback_thread.start()
 
         try:
-            if self._http_port:
+            if self._http_port is not None:
                 if not self._http_server:
                     self.logger.info(
                         "Creating threaded HTTP server for host %r on port %s",
@@ -1421,7 +1463,7 @@ class WBEMListener:
                 self._http_server = None
                 self._http_thread = None
 
-            if self._https_port:
+            if self._https_port is not None:
                 if not self._https_server:
 
                     self.logger.info(

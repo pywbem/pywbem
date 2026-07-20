@@ -55,7 +55,7 @@ def test_indications(wbem_connection):  # noqa: F811
     # Use the empty string host that allows receving indications addressed to
     # any valid valid destination on the system.
     listener_host = ""
-    port = 5000
+    port = 0  # Let the OS assign the port
     log = True
     verbose = True
 
