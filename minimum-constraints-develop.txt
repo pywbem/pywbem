@@ -102,7 +102,7 @@ tox==3.21.0
 Sphinx==7.2.4
 docutils==0.18.1
 sphinx-git==10.1.1
-GitPython==3.1.50
+GitPython==3.1.52
 Pygments==2.20.0
 sphinx-rtd-theme==2.0.0
 sphinxcontrib-applehelp==1.0.4
@@ -161,7 +161,7 @@ jupyter==1.1.1; sys_platform != 'win32' or python_version <= '3.12'
 jupyterlab_pygments==0.3.0; sys_platform != 'win32' or python_version <= '3.12'
 jupyterlab_server==2.28.0; sys_platform != 'win32' or python_version <= '3.12'
 jupyterlab_widgets==3.0.16; sys_platform != 'win32' or python_version <= '3.12'
-jupyterlab==4.5.9; sys_platform != 'win32' or python_version <= '3.12'
+jupyterlab==4.5.10; sys_platform != 'win32' or python_version <= '3.12'
 nbclient==0.10.2; sys_platform != 'win32' or python_version <= '3.12'
 nbconvert==7.17.1; sys_platform != 'win32' or python_version <= '3.12'
 nbformat==5.10.4; sys_platform != 'win32' or python_version <= '3.12'
@@ -263,7 +263,7 @@ QtPy==2.0.1
 rfc3986==1.4.0
 rich==12.0.0
 Send2Trash==1.8.2
-sh==1.12.14
+sh==2.2.4
 simplegeneric==0.8.1
 # smmap is used by gitdb
 smmap==5.0.0
