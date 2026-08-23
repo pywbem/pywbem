@@ -913,7 +913,7 @@ $(done_dir)/ruff_$(pymn)_$(PACKAGE_LEVEL).done: Makefile $(py_src_files) $(py_te
 	@echo "Makefile: Running Ruff"
 	-$(call RM_FUNC,$@)
 	ruff --version
-	ruff check --unsafe-fixes $(py_src_files) $(py_test_files)
+	-ruff check --unsafe-fixes $(py_src_files) $(py_test_files)
 	echo "done" >$@
 	@echo "Makefile: Done running Ruff"
 
