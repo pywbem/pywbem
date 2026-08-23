@@ -126,19 +126,15 @@ class _CIMComparisonMixin:  # pylint: disable=too-few-public-methods
             f"'{type(other)}'")
 
     def __lt__(self, other):
-        ""  # Avoids docstring to be inherited
         self.__raise_ordering_not_supported(other, '<')
 
     def __gt__(self, other):
-        ""  # Avoids docstring to be inherited
         self.__raise_ordering_not_supported(other, '>')
 
     def __ge__(self, other):
-        ""  # Avoids docstring to be inherited
         self.__raise_ordering_not_supported(other, '>=')
 
     def __le__(self, other):
-        ""  # Avoids docstring to be inherited
         self.__raise_ordering_not_supported(other, '<=')
 
     def __hash__(self):
@@ -185,7 +181,6 @@ class SlottedPickleMixin:
     __slots__ = []
 
     def __getstate__(self):
-        ""  # Avoids docstring to be inherited
 
         dct = {}
         for attr in self.__slots__:
@@ -200,7 +195,6 @@ class SlottedPickleMixin:
         return dct
 
     def __setstate__(self, dct):
-        ""  # Avoids docstring to be inherited
 
         # Defer import due to circular import dependencies:
         # pylint: disable=import-outside-toplevel
@@ -362,7 +356,6 @@ class Char16(CIMType, str):
 
     # Changing the string content requires using __new__() instead of __init__()
     def __new__(cls, content=''):
-        ""  # Avoids docstring to be inherited
         return super().__new__(cls, _ensure_unicode(content))
 
 
@@ -768,11 +761,9 @@ class CIMDateTime(_CIMComparisonMixin, CIMType):
             s=self)
 
     def __getstate__(self):
-        ""  # Avoids docstring to be inherited
         return str(self)
 
     def __setstate__(self, arg):
-        ""  # Avoids docstring to be inherited
         self.__init__(arg)
 
     def __eq__(self, other):
@@ -890,7 +881,6 @@ class CIMInt(CIMType, int):
     maxvalue = None
 
     def __new__(cls, *args, **kwargs):
-        ""  # Avoids docstring being inherited
 
         # Python 3.7 removed support for passing the value for int() as a
         # keyword argument named 'x'. It now must be passed as a positional

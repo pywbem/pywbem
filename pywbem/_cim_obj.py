@@ -1414,27 +1414,21 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
             s=self)
 
     def __contains__(self, key):
-        ""  # Avoids docstring to be inherited
         return key in self.keybindings
 
     def __getitem__(self, key):
-        ""  # Avoids docstring to be inherited
         return self.keybindings[key]
 
     def __setitem__(self, key, value):
-        ""  # Avoids docstring to be inherited
         self.keybindings[key] = value
 
     def __delitem__(self, key):
-        ""  # Avoids docstring to be inherited
         del self.keybindings[key]
 
     def __len__(self):
-        ""  # Avoids docstring to be inherited
         return len(self.keybindings)
 
     def __iter__(self):
-        ""  # Avoids docstring to be inherited
         return iter(self.keybindings.keys())
 
     def copy(self):
