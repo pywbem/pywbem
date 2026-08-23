@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Tests for _utils module
 """
@@ -42,178 +41,178 @@ TESTCASES_ASCII2 = [
 
     (
         "None",
-        dict(
-            value=None,
-            exp_result="None",
-        ),
+        {
+            'value': None,
+            'exp_result': "None",
+        },
         None, None, True
     ),
     (
         "Integer",
-        dict(
-            value=42,
-            exp_result="42",
-        ),
+        {
+            'value': 42,
+            'exp_result': "42",
+        },
         None, None, True
     ),
     (
         "Unicode string, empty",
-        dict(
-            value='',
-            exp_result="''",
-        ),
+        {
+            'value': '',
+            'exp_result': "''",
+        },
         None, None, True
     ),
     (
         "Byte string, empty",
-        dict(
-            value=b'',
-            exp_result="''",
-        ),
+        {
+            'value': b'',
+            'exp_result': "''",
+        },
         None, None, True
     ),
     (
         "Unicode string, ASCII",
-        dict(
-            value='abc',
-            exp_result="'abc'",
-        ),
+        {
+            'value': 'abc',
+            'exp_result': "'abc'",
+        },
         None, None, True
     ),
     (
         "Byte string, ASCII",
-        dict(
-            value=b'bla',
-            exp_result="'bla'",
-        ),
+        {
+            'value': b'bla',
+            'exp_result': "'bla'",
+        },
         None, None, True
     ),
     (
         "Unicode string, printable UCS-2 char below U+00FF",
-        dict(
-            value='\u00E0',
-            exp_result="'\\u00e0'",
-        ),
+        {
+            'value': '\u00E0',
+            'exp_result': "'\\u00e0'",
+        },
         None, None, True
     ),
     (
         "Unicode string, printable UCS-2 char above U+00FF",
-        dict(
-            value='\u041F',
-            exp_result="'\\u041f'",
-        ),
+        {
+            'value': '\u041F',
+            'exp_result': "'\\u041f'",
+        },
         None, None, True
     ),
     (
         "Unicode string, printable UCS-4 char",
-        dict(
-            value='\U0001D122',
-            exp_result="'\\U0001d122'",
-        ),
+        {
+            'value': '\U0001D122',
+            'exp_result': "'\\U0001d122'",
+        },
         None, None, True
     ),
     (
         "Unicode string, multiple printable UCS-2 chars below U+00FF",
-        dict(
-            value='\u00E0\u00E1\u00E2',
-            exp_result="'\\u00e0\\u00e1\\u00e2'",
-        ),
+        {
+            'value': '\u00E0\u00E1\u00E2',
+            'exp_result': "'\\u00e0\\u00e1\\u00e2'",
+        },
         None, None, True
     ),
     (
         "Unicode string, multiple printable UCS-2 chars above U+00FF",
-        dict(
-            value='\u041F\u0440\u6C2E',
-            exp_result="'\\u041f\\u0440\\u6c2e'",
-        ),
+        {
+            'value': '\u041F\u0440\u6C2E',
+            'exp_result': "'\\u041f\\u0440\\u6c2e'",
+        },
         None, None, True
     ),
     (
         "Unicode string, multiple printable UCS-4 chars",
-        dict(
-            value='\U0001D122\U0001D11E\U0001D106',
-            exp_result="'\\U0001d122\\U0001d11e\\U0001d106'",
-        ),
+        {
+            'value': '\U0001D122\U0001D11E\U0001D106',
+            'exp_result': "'\\U0001d122\\U0001d11e\\U0001d106'",
+        },
         None, None, True
     ),
     (
         "Unicode string, one backslash escape and rest of UCS-2 char",
-        dict(
-            value='\\xE0',
-            exp_result="'\\\\xE0'",
-        ),
+        {
+            'value': '\\xE0',
+            'exp_result': "'\\\\xE0'",
+        },
         None, None, True
     ),
     (
         "Unicode string, one backslash escape and UCS-2 char",
-        dict(
-            value='\\\u00E0',
-            exp_result="'\\\\\\u00e0'",
-        ),
+        {
+            'value': '\\\u00E0',
+            'exp_result': "'\\\\\\u00e0'",
+        },
         None, None, True
     ),
     (
         "Unicode string, two backslash escapes and rest of UCS-2 char",
-        dict(
-            value='\\\\xE0',
-            exp_result="'\\\\\\\\xE0'",
-        ),
+        {
+            'value': '\\\\xE0',
+            'exp_result': "'\\\\\\\\xE0'",
+        },
         None, None, True
     ),
     (
         "Unicode string, two backslash escapes and UCS-2 char",
-        dict(
-            value='\\\\\u00E0',
-            exp_result="'\\\\\\\\\\u00e0'",
-        ),
+        {
+            'value': '\\\\\u00E0',
+            'exp_result': "'\\\\\\\\\\u00e0'",
+        },
         None, None, True
     ),
     (
         "List of strings",
-        dict(
-            value=['a', 'b'],
-            exp_result="['a', 'b']",
-        ),
+        {
+            'value': ['a', 'b'],
+            'exp_result': "['a', 'b']",
+        },
         None, None, True
     ),
     (
         "Tuple of strings",
-        dict(
-            value=('a', 'b'),
-            exp_result="('a', 'b')",
-        ),
+        {
+            'value': ('a', 'b'),
+            'exp_result': "('a', 'b')",
+        },
         None, None, True
     ),
     (
         "Set of strings",
-        dict(
-            value={'a'},
-            exp_result="{'a'}",
-        ),
+        {
+            'value': {'a'},
+            'exp_result': "{'a'}",
+        },
         None, None, True
     ),
     (
         "Dict of strings",
-        dict(
-            value={'a': 1},
-            exp_result="{'a': 1}",
-        ),
+        {
+            'value': {'a': 1},
+            'exp_result': "{'a': 1}",
+        },
         None, None, True
     ),
     (
         "OrderedDict of strings",
-        dict(
-            value=OrderedDict([('a', 1), ('b', 2)]),
-            exp_result="OrderedDict({'a': 1, 'b': 2})",
-        ),
+        {
+            'value': OrderedDict([('a', 1), ('b', 2)]),
+            'exp_result': "OrderedDict({'a': 1, 'b': 2})",
+        },
         None, None, True
     ),
     (
         "NocaseDict of strings",
-        dict(
-            value=NocaseDict([('a', 1), ('b', 2)]),
-            exp_result="NocaseDict({'a': 1, 'b': 2})",
-        ),
+        {
+            'value': NocaseDict([('a', 1), ('b', 2)]),
+            'exp_result': "NocaseDict({'a': 1, 'b': 2})",
+        },
         None, None, True
     ),
 ]
@@ -257,272 +256,272 @@ TESTCASES_FORMAT_FIXED = [
 
     (
         "Unicode format string, empty",
-        dict(
-            format_str="",
-            format_args=[],
-            format_kwargs={},
-            exp_result="",
-        ),
+        {
+            'format_str': "",
+            'format_args': [],
+            'format_kwargs': {},
+            'exp_result': "",
+        },
         None, None, True
     ),
     (
         "Byte format string, empty",
-        dict(
-            format_str=b"",
-            format_args=[],
-            format_kwargs={},
-            exp_result="",
-        ),
+        {
+            'format_str': b"",
+            'format_args': [],
+            'format_kwargs': {},
+            'exp_result': "",
+        },
         None if BYTE_FORMAT_SUPPORTED else TypeError, None, True
     ),
     (
         "Format string, empty",
-        dict(
-            format_str="",
-            format_args=[],
-            format_kwargs={},
-            exp_result="",
-        ),
+        {
+            'format_str': "",
+            'format_args': [],
+            'format_kwargs': {},
+            'exp_result': "",
+        },
         None, None, True
     ),
     (
         "Unicode format string without conversion and unicode string ASCII",
-        dict(
-            format_str="{0}",
-            format_args=["abc"],
-            format_kwargs={},
-            exp_result="abc",
-        ),
+        {
+            'format_str': "{0}",
+            'format_args': ["abc"],
+            'format_kwargs': {},
+            'exp_result': "abc",
+        },
         None, None, True
     ),
     (
         "Byte format string without conversion and unicode string ASCII",
-        dict(
-            format_str=b"{0}",
-            format_args=["abc"],
-            format_kwargs={},
-            exp_result="abc",
-        ),
+        {
+            'format_str': b"{0}",
+            'format_args': ["abc"],
+            'format_kwargs': {},
+            'exp_result': "abc",
+        },
         None if BYTE_FORMAT_SUPPORTED else TypeError, None, True
     ),
     (
         "Format string without conversion and unicode string ASCII",
-        dict(
-            format_str="{0}",
-            format_args=["abc"],
-            format_kwargs={},
-            exp_result="abc",
-        ),
+        {
+            'format_str': "{0}",
+            'format_args': ["abc"],
+            'format_kwargs': {},
+            'exp_result': "abc",
+        },
         None, None, True
     ),
     (
         "Unicode format string without conversion and byte string ASCII",
-        dict(
-            format_str="{0}",
-            format_args=[b"abc"],
-            format_kwargs={},
-            exp_result="b'abc'",
-        ),
+        {
+            'format_str': "{0}",
+            'format_args': [b"abc"],
+            'format_kwargs': {},
+            'exp_result': "b'abc'",
+        },
         None, None, True
     ),
     (
         "Byte format string without conversion and byte string ASCII",
-        dict(
-            format_str=b"{0}",
-            format_args=[b"abc"],
-            format_kwargs={},
-            exp_result="b'abc'",
-        ),
+        {
+            'format_str': b"{0}",
+            'format_args': [b"abc"],
+            'format_kwargs': {},
+            'exp_result': "b'abc'",
+        },
         None if BYTE_FORMAT_SUPPORTED else TypeError, None, True
     ),
     (
         "Format string without conversion and byte string ASCII",
-        dict(
-            format_str="{0}",
-            format_args=[b"abc"],
-            format_kwargs={},
-            exp_result="b'abc'",
-        ),
+        {
+            'format_str': "{0}",
+            'format_args': [b"abc"],
+            'format_kwargs': {},
+            'exp_result': "b'abc'",
+        },
         None, None, True
     ),
     (
         "Unicode format string with 's' and byte string ASCII",
-        dict(
-            format_str="{0!s}",
-            format_args=[b"abc"],
-            format_kwargs={},
-            exp_result="b'abc'",
-        ),
+        {
+            'format_str': "{0!s}",
+            'format_args': [b"abc"],
+            'format_kwargs': {},
+            'exp_result': "b'abc'",
+        },
         None, None, True
     ),
     (
         "Unicode format string with 's' and unicode string ASCII",
-        dict(
-            format_str="{0!s}",
-            format_args=["abc"],
-            format_kwargs={},
-            exp_result="abc",
-        ),
+        {
+            'format_str': "{0!s}",
+            'format_args': ["abc"],
+            'format_kwargs': {},
+            'exp_result': "abc",
+        },
         None, None, True
     ),
     (
         "Format string with 'r' and byte string ASCII",
-        dict(
-            format_str="{0!r}",
-            format_args=[b"abc"],
-            format_kwargs={},
-            exp_result="b'abc'",
-        ),
+        {
+            'format_str': "{0!r}",
+            'format_args': [b"abc"],
+            'format_kwargs': {},
+            'exp_result': "b'abc'",
+        },
         None, None, True
     ),
     (
         "Format string with 'r' and unicode string ASCII",
-        dict(
-            format_str="{0!r}",
-            format_args=["abc"],
-            format_kwargs={},
-            exp_result="'abc'",
-        ),
+        {
+            'format_str': "{0!r}",
+            'format_args': ["abc"],
+            'format_kwargs': {},
+            'exp_result': "'abc'",
+        },
         None, None, True
     ),
     (
         "Format string with 'a' and byte string ASCII",
-        dict(
-            format_str="{0!a}",
-            format_args=[b"abc"],
-            format_kwargs={},
-            exp_result="b'abc'",
-        ),
+        {
+            'format_str': "{0!a}",
+            'format_args': [b"abc"],
+            'format_kwargs': {},
+            'exp_result': "b'abc'",
+        },
         None, None, True
     ),
     (
         "Format string with 'a' and unicode string ASCII",
-        dict(
-            format_str="{0!a}",
-            format_args=["abc"],
-            format_kwargs={},
-            exp_result="'abc'",
-        ),
+        {
+            'format_str': "{0!a}",
+            'format_args': ["abc"],
+            'format_kwargs': {},
+            'exp_result': "'abc'",
+        },
         None, None, True
     ),
     (
         "Format string with 'A' and byte string ASCII",
-        dict(
-            format_str="{0!A}",
-            format_args=[b"abc"],
-            format_kwargs={},
-            exp_result="'abc'",
-        ),
+        {
+            'format_str': "{0!A}",
+            'format_args': [b"abc"],
+            'format_kwargs': {},
+            'exp_result': "'abc'",
+        },
         None, None, True
     ),
     (
         "Format string with 'A' and unicode string ASCII",
-        dict(
-            format_str="{0!A}",
-            format_args=["abc"],
-            format_kwargs={},
-            exp_result="'abc'",
-        ),
+        {
+            'format_str': "{0!A}",
+            'format_args': ["abc"],
+            'format_kwargs': {},
+            'exp_result': "'abc'",
+        },
         None, None, True
     ),
     (
         "Format string with 'A' and unicode string UCS-2 below U+0100",
-        dict(
-            format_str="{0!A}",
-            format_args=["a\u00E0b"],
-            format_kwargs={},
-            exp_result="'a\\u00e0b'",
-        ),
+        {
+            'format_str': "{0!A}",
+            'format_args': ["a\u00E0b"],
+            'format_kwargs': {},
+            'exp_result': "'a\\u00e0b'",
+        },
         None, None, True
     ),
     (
         "Format string with 'A' and unicode string UCS-2 above U+00FF",
-        dict(
-            format_str="{0!A}",
-            format_args=["a\u0412b"],
-            format_kwargs={},
-            exp_result="'a\\u0412b'",
-        ),
+        {
+            'format_str': "{0!A}",
+            'format_args': ["a\u0412b"],
+            'format_kwargs': {},
+            'exp_result': "'a\\u0412b'",
+        },
         None, None, True
     ),
     (
         "Format string with 'A' and unicode string UCS-4 above U+FFFF",
-        dict(
-            format_str="{0!A}",
-            format_args=["a\U0001D122b"],
-            format_kwargs={},
-            exp_result="'a\\U0001d122b'",
-        ),
+        {
+            'format_str': "{0!A}",
+            'format_args': ["a\U0001D122b"],
+            'format_kwargs': {},
+            'exp_result': "'a\\U0001d122b'",
+        },
         None, None, True
     ),
     (
         "Format string with 'A' and list of strings",
-        dict(
-            format_str="{0!A}",
-            format_args=[['a', 'b']],
-            format_kwargs={},
-            exp_result="['a', 'b']",
-        ),
+        {
+            'format_str': "{0!A}",
+            'format_args': [['a', 'b']],
+            'format_kwargs': {},
+            'exp_result': "['a', 'b']",
+        },
         None, None, True
     ),
     (
         "Format string with 'A' and tuple of strings",
-        dict(
-            format_str="{0!A}",
-            format_args=[('a', 'b')],
-            format_kwargs={},
-            exp_result="('a', 'b')",
-        ),
+        {
+            'format_str': "{0!A}",
+            'format_args': [('a', 'b')],
+            'format_kwargs': {},
+            'exp_result': "('a', 'b')",
+        },
         None, None, True
     ),
     (
         "Format string with 'A' and set of strings",
-        dict(
-            format_str="{0!A}",
-            format_args=[{'a'}],
-            format_kwargs={},
-            exp_result="{'a'}",
-        ),
+        {
+            'format_str': "{0!A}",
+            'format_args': [{'a'}],
+            'format_kwargs': {},
+            'exp_result': "{'a'}",
+        },
         None, None, True
     ),
     (
         "Format string with 'A' and dict of strings",
-        dict(
-            format_str="{0!A}",
-            format_args=[{'a': 1}],
-            format_kwargs={},
-            exp_result="{'a': 1}",
-        ),
+        {
+            'format_str': "{0!A}",
+            'format_args': [{'a': 1}],
+            'format_kwargs': {},
+            'exp_result': "{'a': 1}",
+        },
         None, None, True
     ),
     (
         "Format string with 'A' and OrderedDict of strings",
-        dict(
-            format_str="{0!A}",
-            format_args=[OrderedDict([('a', 1), ('b', 2)])],
-            format_kwargs={},
-            exp_result="OrderedDict({'a': 1, 'b': 2})",
-        ),
+        {
+            'format_str': "{0!A}",
+            'format_args': [OrderedDict([('a', 1), ('b', 2)])],
+            'format_kwargs': {},
+            'exp_result': "OrderedDict({'a': 1, 'b': 2})",
+        },
         None, None, True
     ),
     (
         "Format string with 'A' and NocaseDict of strings",
-        dict(
-            format_str="{0!A}",
-            format_args=[NocaseDict([('a', 1), ('b', 2)])],
-            format_kwargs={},
-            exp_result="NocaseDict({'a': 1, 'b': 2})",
-        ),
+        {
+            'format_str': "{0!A}",
+            'format_args': [NocaseDict([('a', 1), ('b', 2)])],
+            'format_kwargs': {},
+            'exp_result': "NocaseDict({'a': 1, 'b': 2})",
+        },
         None, None, True
     ),
     (
         "Format string with invalid conversion specifier",
-        dict(
-            format_str="{0!x}",
-            format_args=["abc"],
-            format_kwargs={},
-            exp_result=None,
-        ),
+        {
+            'format_str': "{0!x}",
+            'format_args': ["abc"],
+            'format_kwargs': {},
+            'exp_result': None,
+        },
         ValueError, None, True
     ),
 ]
@@ -578,13 +577,13 @@ def test_format_random(unicode_cp):
 
     unicode_char = unichr2(unicode_cp)
     if unicode_char is None:
-        pytest.skip("Random Unicode code point U+%06X is a surrogate" %
-                    unicode_cp)
+        pytest.skip("Random Unicode code point U+{:06X} is a surrogate".
+                    format(unicode_cp))
 
     cat = unicodedata.category(unicode_char)
     if cat in ('Cn', 'Cc', 'Cs'):
-        pytest.skip("Random Unicode code point U+%06X has category: %s" %
-                    (unicode_cp, cat))
+        pytest.skip("Random Unicode code point U+{:06X} has category: {}".
+                    format(unicode_cp, cat))
 
     # The code to be tested
     act_result = _format("{0!A}", unicode_char)
@@ -631,218 +630,218 @@ TESTCASES_INTEGER_VALUE_TO_INT = [
     # Test variations of zero
     (
         "Binary value '0b'",
-        dict(
-            value='0b',
-            exp_result=0,
-        ),
+        {
+            'value': '0b',
+            'exp_result': 0,
+        },
         None, None, True
     ),
     (
         "Binary value '0B'",
-        dict(
-            value='0B',
-            exp_result=0,
-        ),
+        {
+            'value': '0B',
+            'exp_result': 0,
+        },
         None, None, True
     ),
     (
         "Decimal / octal value '0'",
-        dict(
-            value='0',
-            exp_result=0,
-        ),
+        {
+            'value': '0',
+            'exp_result': 0,
+        },
         None, None, True
     ),
     (
         "Hexadecimal value '0x0'",
-        dict(
-            value='0x0',
-            exp_result=0,
-        ),
+        {
+            'value': '0x0',
+            'exp_result': 0,
+        },
         None, None, True
     ),
     (
         "Hexadecimal value '0X0'",
-        dict(
-            value='0X0',
-            exp_result=0,
-        ),
+        {
+            'value': '0X0',
+            'exp_result': 0,
+        },
         None, None, True
     ),
 
     # Test variations of a single digit positive number
     (
         "Binary value '1b'",
-        dict(
-            value='1b',
-            exp_result=1,
-        ),
+        {
+            'value': '1b',
+            'exp_result': 1,
+        },
         None, None, True
     ),
     (
         "Binary value '1B'",
-        dict(
-            value='1B',
-            exp_result=1,
-        ),
+        {
+            'value': '1B',
+            'exp_result': 1,
+        },
         None, None, True
     ),
     (
         "Decimal value '1'",
-        dict(
-            value='1',
-            exp_result=1,
-        ),
+        {
+            'value': '1',
+            'exp_result': 1,
+        },
         None, None, True
     ),
     (
         "Octal value '01'",
-        dict(
-            value='01',
-            exp_result=1,
-        ),
+        {
+            'value': '01',
+            'exp_result': 1,
+        },
         None, None, True
     ),
     (
         "Hexadecimal value '0x1'",
-        dict(
-            value='0x1',
-            exp_result=1,
-        ),
+        {
+            'value': '0x1',
+            'exp_result': 1,
+        },
         None, None, True
     ),
     (
         "Hexadecimal value '0X1'",
-        dict(
-            value='0X1',
-            exp_result=1,
-        ),
+        {
+            'value': '0X1',
+            'exp_result': 1,
+        },
         None, None, True
     ),
 
     # Test variations of a single digit positive number
     (
         "Binary value '-1b'",
-        dict(
-            value='-1b',
-            exp_result=-1,
-        ),
+        {
+            'value': '-1b',
+            'exp_result': -1,
+        },
         None, None, True
     ),
     (
         "Binary value '-1B'",
-        dict(
-            value='-1B',
-            exp_result=-1,
-        ),
+        {
+            'value': '-1B',
+            'exp_result': -1,
+        },
         None, None, True
     ),
     (
         "Decimal value '-1'",
-        dict(
-            value='-1',
-            exp_result=-1,
-        ),
+        {
+            'value': '-1',
+            'exp_result': -1,
+        },
         None, None, True
     ),
     (
         "Octal value '-01'",
-        dict(
-            value='-01',
-            exp_result=-1,
-        ),
+        {
+            'value': '-01',
+            'exp_result': -1,
+        },
         None, None, True
     ),
     (
         "Hexadecimal value '-0x1'",
-        dict(
-            value='-0x1',
-            exp_result=-1,
-        ),
+        {
+            'value': '-0x1',
+            'exp_result': -1,
+        },
         None, None, True
     ),
     (
         "Hexadecimal value '-0X1'",
-        dict(
-            value='-0X1',
-            exp_result=-1,
-        ),
+        {
+            'value': '-0X1',
+            'exp_result': -1,
+        },
         None, None, True
     ),
 
     # Test correct base of conversion
     (
         "Binary value '1101b'",
-        dict(
-            value='1101b',
-            exp_result=13,
-        ),
+        {
+            'value': '1101b',
+            'exp_result': 13,
+        },
         None, None, True
     ),
     (
         "Decimal value '123'",
-        dict(
-            value='123',
-            exp_result=123,
-        ),
+        {
+            'value': '123',
+            'exp_result': 123,
+        },
         None, None, True
     ),
     (
         "Octal value '017'",
-        dict(
-            value='017',
-            exp_result=15,
-        ),
+        {
+            'value': '017',
+            'exp_result': 15,
+        },
         None, None, True
     ),
     (
         "Hexadecimal value '0x1F'",
-        dict(
-            value='0x1F',
-            exp_result=31,
-        ),
+        {
+            'value': '0x1F',
+            'exp_result': 31,
+        },
         None, None, True
     ),
     (
         "Hexadecimal value '0X1f'",
-        dict(
-            value='0X1f',
-            exp_result=31,
-        ),
+        {
+            'value': '0X1f',
+            'exp_result': 31,
+        },
         None, None, True
     ),
 
     # Test invalid digits for the representation
     (
         "Binary value '1102b'",
-        dict(
-            value='1102b',
-            exp_result=None,
-        ),
+        {
+            'value': '1102b',
+            'exp_result': None,
+        },
         None, None, True
     ),
     (
         "Decimal value '12A'",
-        dict(
-            value='12A',
-            exp_result=None,
-        ),
+        {
+            'value': '12A',
+            'exp_result': None,
+        },
         None, None, True
     ),
     (
         "Octal value '018'",
-        dict(
-            value='018',
-            exp_result=None,
-        ),
+        {
+            'value': '018',
+            'exp_result': None,
+        },
         None, None, True
     ),
     (
         "Hexadecimal value '0x1G'",
-        dict(
-            value='0x1G',
-            exp_result=None,
-        ),
+        {
+            'value': '0x1G',
+            'exp_result': None,
+        },
         None, None, True
     ),
 ]

@@ -560,21 +560,17 @@ def test_complexref_instnames(conn, ns, target, ro, rc, mof, exp_rslt,
         ['TST_EP', None, 'TST_A3', 'Target', None, None, ['TST_EP'], OK],
         ['TST_EP', 'Initiator', 'TST_A3', 'Target', None, None, ['TST_EP'], OK],
         ['TST_EP', None, 'TST_A3', 'Target', 'TST_LD', None, [], OK],
-        ['TST_EP', 'Initiator', 'TST_A3', 'Target', None, None, ['TST_EP'], OK],
         ['TST_EP', 'Initiator', 'TST_A3', 'Target', 'TST_LD', None, [], OK],
         ['TST_EP', 'Initiator', 'TST_A3', 'LogicalUnit', 'TST_LD', None, ['TST_LD'], OK],  # noqa: E501
         # test for case indepence on all parameters
         ['tst_ep', 'INITIATOR', 'tst_a3', 'LOGICALUNIT', 'tst_ld', None, ['TST_LD'], OK],  # noqa: E501
 
         # test source TST_EP and Target as role
-        ['TST_EP', None, None, None, None, None, ['TST_EP', 'TST_LD'], OK],
-        ['TST_EP', None, 'TST_A3', None, None, None, ['TST_EP', 'TST_LD'], OK],
         ['TST_EP', 'Target', None, None, None, None, ['TST_EP', 'TST_LD'], OK],
         ['TST_EP', 'Target', 'TST_A3', None, None, None, ['TST_EP', 'TST_LD'], OK],  # noqa: E501
         ['TST_EP', None, 'TST_A3', 'Initiator', None, None, ['TST_EP'], OK],
         ['TST_EP', 'Target', 'TST_A3', 'Initiator', None, None, ['TST_EP'], OK],
         ['TST_EP', None, 'TST_A3', 'Initiator', 'TST_LD', None, [], OK],
-        ['TST_EP', 'Target', 'TST_A3', 'Initiator', None, None, ['TST_EP'], OK],
         ['TST_EP', 'Target', 'TST_A3', 'Initiator', 'TST_LD', None, [], OK],
         ['TST_EP', 'Target', 'TST_A3', 'LogicalUnit', 'TST_LD', None, ['TST_LD'], OK],  # noqa: E501
 
@@ -588,14 +584,11 @@ def test_complexref_instnames(conn, ns, target, ro, rc, mof, exp_rslt,
         # TODO: did we miss this option with all params in tests above
         ['TST_LD', 'LogicalUnit', 'TST_A3', 'Initiator', 'TST_EP', None, ['TST_EP'], OK],  # noqa: E501
         ['TST_LD', 'LogicalUnit', 'TST_A3', 'Initiator', None, None, ['TST_EP'], OK],  # noqa: E501
-        ['TST_LD', None, 'TST_A3', 'Initiator', 'TST_LD', None, [], OK],
-        ['TST_LD', 'LogicalUnit', 'TST_A3', 'Initiator', None, None, ['TST_EP'], OK],  # noqa: E501
-        ['TST_LD', 'LogicalUnit', 'TST_A3', 'Initiator', 'TST_EP', None, ['TST_EP'], OK],  # noqa: E501
+        ['TST_LD', None, 'TST_A3', 'Initiator', 'TST_LD', None, [], OK],  # noqa: E501
 
         ['TST_LD', 'LogicalUnit', 'TST_A3', 'Initiator', 'TST_LD', None, [], OK],  # noqa: E501
         ['TST_LD', 'LogicalUnit', 'TST_A3', 'Target', None, None, ['TST_EP'], OK],  # noqa: E501
-        ['TST_LD', None, 'TST_A3', 'Target', 'TST_LD', None, [], OK],
-        ['TST_LD', 'LogicalUnit', 'TST_A3', 'Target', None, None, ['TST_EP'], OK],  # noqa: E501
+        ['TST_LD', None, 'TST_A3', 'Target', 'TST_LD', None, [], OK],  # noqa: E501
         ['TST_LD', 'LogicalUnit', 'TST_A3', 'Target', 'TST_EP', None, ['TST_EP'], OK],  # noqa: E501
         ['TST_LD', 'LogicalUnit', 'TST_A3', 'Target', 'TST_LD', None, [], OK],
         # pylint: enable=line-too-long
@@ -721,13 +714,6 @@ def test_complexassoc_classnames(conn, ns, target, ro, rr, ac,
             OK
         ],
         [
-            ('TST_EP', 1), 'Initiator', 'TST_A3', 'Target', None, None,
-            [
-                ('TST_EP', 2)
-            ],
-            OK
-        ],
-        [
             ('TST_EP', 1), 'Initiator', 'TST_A3', 'Target', 'TST_LD', None,
             [],
             OK
@@ -741,22 +727,6 @@ def test_complexassoc_classnames(conn, ns, target, ro, rr, ac,
         ],
 
         # test source TST_EP and Target as role
-        [
-            ('TST_EP', 1), None, None, None, None, None,
-            [
-                ('TST_EP', 2),
-                ('TST_LD', 3)
-            ],
-            OK
-        ],
-        [
-            ('TST_EP', 1), None, 'TST_A3', None, None, None,
-            [
-                ('TST_EP', 2),
-                ('TST_LD', 3)
-            ],
-            OK
-        ],
         [
             ('TST_EP', 1), 'Target', None, None, None, None,
             [],
@@ -779,11 +749,6 @@ def test_complexassoc_classnames(conn, ns, target, ro, rr, ac,
         ],
         [
             ('TST_EP', 1), None, 'TST_A3', 'Initiator', 'TST_LD', None,
-            [],
-            OK
-        ],
-        [
-            ('TST_EP', 1), 'Target', 'TST_A3', 'Initiator', None, None,
             [],
             OK
         ],
@@ -841,29 +806,8 @@ def test_complexassoc_classnames(conn, ns, target, ro, rr, ac,
             OK
         ],
         [
-            ('TST_EP', 2), 'Initiator', 'TST_A3', 'Target', None, None,
-            [],
-            OK
-        ],
-        [
             ('TST_EP', 2), 'Initiator', 'TST_A3', 'Target', 'TST_LD', None,
             [],
-            OK
-        ],
-        [
-            ('TST_EP', 2), None, None, None, None, None,
-            [
-                ('TST_EP', 1),
-                ('TST_LD', 3)
-            ],
-            OK
-        ],
-        [
-            ('TST_EP', 2), None, 'TST_A3', None, None, None,
-            [
-                ('TST_EP', 1),
-                ('TST_LD', 3)
-            ],
             OK
         ],
         [
@@ -899,13 +843,6 @@ def test_complexassoc_classnames(conn, ns, target, ro, rr, ac,
         [
             ('TST_EP', 2), None, 'TST_A3', 'Initiator', 'TST_LD', None,
             [],
-            OK
-        ],
-        [
-            ('TST_EP', 2), 'Target', 'TST_A3', 'Initiator', None, None,
-            [
-                ('TST_EP', 1)
-            ],
             OK
         ],
         [
@@ -982,20 +919,6 @@ def test_complexassoc_classnames(conn, ns, target, ro, rr, ac,
             OK
         ],
         [
-            ('TST_LD', 3), 'LogicalUnit', 'TST_A3', 'Initiator', None, None,
-            [
-                ('TST_EP', 1)
-            ],
-            OK
-        ],
-        [
-            ('TST_LD', 3), 'LogicalUnit', 'TST_A3', 'Initiator', 'TST_EP', None,
-            [
-                ('TST_EP', 1)
-            ],
-            OK
-        ],
-        [
             ('TST_LD', 3), 'LogicalUnit', 'TST_A3', 'Initiator', 'TST_LD', None,
             [],
             OK
@@ -1012,13 +935,6 @@ def test_complexassoc_classnames(conn, ns, target, ro, rr, ac,
         #     [],
         #     OK
         # ],
-        [
-            ('TST_LD', 3), 'LogicalUnit', 'TST_A3', 'Target', None, None,
-            [
-                ('TST_EP', 2)
-            ],
-            OK
-        ],
         [
             ('TST_LD', 3), 'LogicalUnit', 'TST_A3', 'Target', 'TST_EP', None,
             [
@@ -1051,14 +967,6 @@ def test_complexassoc_classnames(conn, ns, target, ro, rr, ac,
         ],
 
         # add extra instance of association with multiple instances of EP
-        [
-            ('TST_EP', 1), None, None, None, None, X2,
-            [
-                ('TST_EP', 2),
-                ('TST_LD', 3)
-            ],
-            OK
-        ],
         [
             ('TST_EP', 1), None, None, None, None, X2,
             [

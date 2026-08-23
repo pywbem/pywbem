@@ -1168,8 +1168,8 @@ def result_tuple(value, tc_name):
     in place of 3
     """
     if not isinstance(value, dict):
-        raise AssertionError("WBEMConnection operation invalid tuple "
-                             "definition.")
+        raise AssertionError(  # noqa: TRY004
+            "WBEMConnection operation invalid tuple definition.")
 
     # test for both paths and instances.
     objs = None

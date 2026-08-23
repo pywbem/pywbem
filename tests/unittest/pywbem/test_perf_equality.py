@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Measure performance of equality tests.
 """
@@ -33,17 +31,17 @@ TESTCASES_PERF_EQ = [
         "CIMInstanceName with two keybindings, last one different",
         CIMInstanceName(
             'CIM_Foo',
-            keybindings=dict(
-                Chicken='Ham',
-                Beans=Uint8(42),
-            ),
+            keybindings={
+                'Chicken': 'Ham',
+                'Beans': Uint8(42),
+            },
         ),
         CIMInstanceName(
             'CIM_Foo',
-            keybindings=dict(
-                Chicken='Ham',
-                Beans=Uint8(43),
-            ),
+            keybindings={
+                'Chicken': 'Ham',
+                'Beans': Uint8(43),
+            },
         ),
     ),
     (

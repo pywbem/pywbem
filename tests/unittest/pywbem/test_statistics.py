@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Tests for statistics (`_statistics` in pywbem module).
 """
@@ -64,39 +62,39 @@ TESTCASES_STATISTICS_INIT = [
 
     (
         "Verify default arguments",
-        dict(
-            init_args=[],
-            init_kwargs={},
-            exp_attrs=dict(
-                enabled=False,
-            ),
-        ),
+        {
+            'init_args': [],
+            'init_kwargs': {},
+            'exp_attrs': {
+                'enabled': False,
+            },
+        },
         None, None, True
     ),
     (
         "Verify order of positional arguments",
-        dict(
-            init_args=[
+        {
+            'init_args': [
                 True,
             ],
-            init_kwargs={},
-            exp_attrs=dict(
-                enabled=True,
-            ),
-        ),
+            'init_kwargs': {},
+            'exp_attrs': {
+                'enabled': True,
+            },
+        },
         None, None, True
     ),
     (
         "Verify names of arguments",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                enable=True,
-            ),
-            exp_attrs=dict(
-                enabled=True,
-            ),
-        ),
+        {
+            'init_args': [],
+            'init_kwargs': {
+                'enable': True,
+            },
+            'exp_attrs': {
+                'enabled': True,
+            },
+        },
         None, None, True
     ),
 
@@ -171,40 +169,40 @@ TESTCASES_STATISTICS_GET_OP_STATISTIC = [
 
     (
         "Verify initial stats and snapshot for disabled statistics",
-        dict(
-            init_enable=False,
-            method_name='EnumerateInstances',
-            exp_snapshot_len=0,
-            exp_op_stats_attrs=dict(
-                name='disabled',
-                count=0,
-                avg_time=0,
-                min_time=float('inf'),
-                max_time=0,
-                avg_request_len=0,
-                min_request_len=float('inf'),
-                max_request_len=0,
-            ),
-        ),
+        {
+            'init_enable': False,
+            'method_name': 'EnumerateInstances',
+            'exp_snapshot_len': 0,
+            'exp_op_stats_attrs': {
+                'name': 'disabled',
+                'count': 0,
+                'avg_time': 0,
+                'min_time': float('inf'),
+                'max_time': 0,
+                'avg_request_len': 0,
+                'min_request_len': float('inf'),
+                'max_request_len': 0,
+            },
+        },
         None, None, True
     ),
     (
         "Verify initial stats and snapshot for enabled statistics",
-        dict(
-            init_enable=True,
-            method_name='EnumerateInstances',
-            exp_snapshot_len=1,
-            exp_op_stats_attrs=dict(
-                name='EnumerateInstances',
-                count=0,
-                avg_time=0,
-                min_time=float('inf'),
-                max_time=0,
-                avg_request_len=0,
-                min_request_len=float('inf'),
-                max_request_len=0,
-            ),
-        ),
+        {
+            'init_enable': True,
+            'method_name': 'EnumerateInstances',
+            'exp_snapshot_len': 1,
+            'exp_op_stats_attrs': {
+                'name': 'EnumerateInstances',
+                'count': 0,
+                'avg_time': 0,
+                'min_time': float('inf'),
+                'max_time': 0,
+                'avg_request_len': 0,
+                'min_request_len': float('inf'),
+                'max_request_len': 0,
+            },
+        },
         None, None, True
     ),
 ]

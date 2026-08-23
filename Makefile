@@ -198,6 +198,9 @@ safety_develop_policy_file := .safety-policy-develop.yml
 # Flake8 config file
 flake8_rc_file := .flake8
 
+# Ruff config file
+ruff_rc_file := .ruff.toml
+
 # Python source files to be checked by PyLint and Flake8
 py_src_files := \
     $(filter-out $(moftab_files) $(version_file), $(wildcard $(package_name)/*.py)) \
@@ -823,11 +826,11 @@ $(done_dir)/flake8_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/develop_$(pymn)_$(
 	echo "done" >$@
 	@echo "Makefile: Done running Flake8"
 
-$(done_dir)/ruff_$(pymn)_$(PACKAGE_LEVEL).done: Makefile $(py_src_files) $(py_test_files)
+$(done_dir)/ruff_$(pymn)_$(PACKAGE_LEVEL).done: Makefile $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done $(ruff_rc_file) $(py_src_files) $(py_test_files)
 	@echo "Makefile: Running Ruff"
 	rm -f $@
 	ruff --version
-	-ruff check --unsafe-fixes $(py_src_files) $(py_test_files)
+	ruff check --config $(ruff_rc_file) $(py_src_files) $(py_test_files)
 	echo "done" >$@
 	@echo "Makefile: Done running Ruff"
 

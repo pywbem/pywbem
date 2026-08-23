@@ -136,9 +136,7 @@ def _pcdata_nodes(pcdata):
         pcdata_part_list = pcdata.split("]]>")
         # ']]>' is the complete CDATA section end marker
 
-        i = 0
-        for pcdata_part in pcdata_part_list:
-            i += 1
+        for i, pcdata_part in enumerate(pcdata_part_list):
 
             left = "" if i == 1 else "]>"
             # ']>' is right part of CDATA section end marker
@@ -370,7 +368,7 @@ class SCOPE(CIMElement):
         CIMElement.__init__(self, 'SCOPE')
         if not scopes:
             scopes = {}
-        elif 'any' in scopes and scopes['any']:
+        elif scopes.get('any'):
             # scopes is a NocaseDict
             scopes = {'CLASS': True,
                       'ASSOCIATION': True,

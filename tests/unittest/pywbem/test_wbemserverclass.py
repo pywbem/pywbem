@@ -167,50 +167,50 @@ TESTCASES_CREATE_NAMESPACE = [
 
     (
         "New top level namespace",
-        dict(
-            new_namespace='abc',
-            exp_namespace='abc',
-        ),
+        {
+            'new_namespace': 'abc',
+            'exp_namespace': 'abc',
+        },
         None, None, True
     ),
     (
         "New top level namespace with leading and trailing slash",
-        dict(
-            new_namespace='/abc/',
-            exp_namespace='abc',
-        ),
+        {
+            'new_namespace': '/abc/',
+            'exp_namespace': 'abc',
+        },
         None, None, True
     ),
     (
         "New two-segment namespace with leading and trailing slash",
-        dict(
-            new_namespace='/abc/def/',
-            exp_namespace='abc/def',
-        ),
+        {
+            'new_namespace': '/abc/def/',
+            'exp_namespace': 'abc/def',
+        },
         None, None, True
     ),
     (
         "New two-segment namespace where first segment already exists",
-        dict(
-            new_namespace='interop/def',
-            exp_namespace='interop/def',
-        ),
+        {
+            'new_namespace': 'interop/def',
+            'exp_namespace': 'interop/def',
+        },
         None, None, True
     ),
     (
         "Existing Interop namespace",
-        dict(
-            new_namespace='interop',
-            exp_namespace=None,
-        ),
+        {
+            'new_namespace': 'interop',
+            'exp_namespace': None,
+        },
         CIMError, None, True
     ),
     (
         "Non-existing second Interop namespace",
-        dict(
-            new_namespace='root/interop',
-            exp_namespace=None,
-        ),
+        {
+            'new_namespace': 'root/interop',
+            'exp_namespace': None,
+        },
         CIMError, None, True
     ),
 ]
@@ -256,87 +256,87 @@ TESTCASES_DELETE_NAMESPACE = [
 
     (
         "Empty top level namespace",
-        dict(
-            namespace='abc',
-            namespace_content={'abc': []},
-            exp_namespace='abc',
-        ),
+        {
+            'namespace': 'abc',
+            'namespace_content': {'abc': []},
+            'exp_namespace': 'abc',
+        },
         None, None, True
     ),
     (
         "Empty top level namespace with leading and trailing slash",
-        dict(
-            namespace='/abc/',
-            namespace_content={'abc': []},
-            exp_namespace='abc',
-        ),
+        {
+            'namespace': '/abc/',
+            'namespace_content': {'abc': []},
+            'exp_namespace': 'abc',
+        },
         None, None, True
     ),
     (
         "Empty two-segment namespace with leading and trailing slash",
-        dict(
-            namespace='/abc/def/',
-            namespace_content={'abc/def': []},
-            exp_namespace='abc/def',
-        ),
+        {
+            'namespace': '/abc/def/',
+            'namespace_content': {'abc/def': []},
+            'exp_namespace': 'abc/def',
+        },
         None, None, True
     ),
     (
         "Empty two-segment namespace where first segment already exists",
-        dict(
-            namespace='interop/def',
-            namespace_content={'interop/def': []},
-            exp_namespace='interop/def',
-        ),
+        {
+            'namespace': 'interop/def',
+            'namespace_content': {'interop/def': []},
+            'exp_namespace': 'interop/def',
+        },
         None, None, True
     ),
     (
         "Non-existing top level namespace",
-        dict(
-            namespace='abc',
-            namespace_content={},
-            exp_namespace=None,
-        ),
+        {
+            'namespace': 'abc',
+            'namespace_content': {},
+            'exp_namespace': None,
+        },
         CIMError, None, True
     ),
     (
         "Non-empty top level namespace containing a class",
-        dict(
-            namespace='abc',
-            namespace_content={'abc': [
+        {
+            'namespace': 'abc',
+            'namespace_content': {'abc': [
                 CIMClass('Foo')
             ]},
-            exp_namespace=None,
-        ),
+            'exp_namespace': None,
+        },
         CIMError, None, True
     ),
     (
         "Non-empty top level namespace containing a qualifier type",
-        dict(
-            namespace='abc',
-            namespace_content={'abc': [
+        {
+            'namespace': 'abc',
+            'namespace_content': {'abc': [
                 CIMQualifierDeclaration('Foo', 'string')
             ]},
-            exp_namespace=None,
-        ),
+            'exp_namespace': None,
+        },
         CIMError, None, True
     ),
     (
         "Existing Interop namespace",
-        dict(
-            namespace='interop',
-            namespace_content={},
-            exp_namespace=None,
-        ),
+        {
+            'namespace': 'interop',
+            'namespace_content': {},
+            'exp_namespace': None,
+        },
         CIMError, None, True
     ),
     (
         "Second non-existing Interop namespace",
-        dict(
-            namespace='root/interop',
-            namespace_content={},
-            exp_namespace=None,
-        ),
+        {
+            'namespace': 'root/interop',
+            'namespace_content': {},
+            'exp_namespace': None,
+        },
         CIMError, None, True
     ),
 
@@ -400,32 +400,32 @@ TESTCASES_GET_CENTRAL_INSTANCES = [
     # * condition: Boolean condition for testcase to run, or 'pdb' for debugger
     (
         "Valid central class",
-        dict(
-            profile_name=('SNIA', 'Server', '1.2.0'),
-            central_class='XXX_StorageComputerSystem',
-            scoping_class=None,
-            scoping_path=None,
-            direction='snia',
-            exp_paths=[
+        {
+            'profile_name': ('SNIA', 'Server', '1.2.0'),
+            'central_class': 'XXX_StorageComputerSystem',
+            'scoping_class': None,
+            'scoping_path': None,
+            'direction': 'snia',
+            'exp_paths': [
                 CIMInstanceName('XXX_StorageComputerSystem',
                                 keybindings={'Name': "10.1.2.3",
                                              'CreationClassName':
                                              'XXX_StorageComputerSystem'},
                                 host='FakedUrl',
                                 namespace='interop'), ]
-        ),
+        },
         None, None, True
     ),
     (
         "Invalid reference direction",
-        dict(
-            profile_name=('SNIA', 'Server', '1.2.0'),
-            central_class='XXX_StorageComputerSystem',
-            scoping_class=None,
-            scoping_path=None,
-            direction='foo',
-            exp_paths=None
-        ),
+        {
+            'profile_name': ('SNIA', 'Server', '1.2.0'),
+            'central_class': 'XXX_StorageComputerSystem',
+            'scoping_class': None,
+            'scoping_path': None,
+            'direction': 'foo',
+            'exp_paths': None
+        },
         ValueError, None, True
     ),
     # TODO add more central instance tests

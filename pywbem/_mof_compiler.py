@@ -237,7 +237,7 @@ def t_COMMENT(t):
 def t_MCOMMENT(t):
     r'/\*(.|\n)*?\*/'
     t.lineno += t.value.count('\n')
-    return  # discard token
+    # Returning None discards the token
 
 # These simple tokens must also be defined as functions, in order to control
 # the order of evaluation.
@@ -328,7 +328,7 @@ def t_newline(t):  # pylint: disable=missing-docstring
     r'\n+'
     t.lexer.lineno += len(t.value)
     t.lexer.linestart = t.lexpos
-    return  # discard token
+    # Returning None discards the token
 
 
 t_ignore = ' \r\t'

@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Test CIM types.
 """
@@ -634,8 +632,8 @@ def test_number_repr(number_str_repr_tuple):
         '20140924193040.654321+000'
     ),
     (
-        datetime(year=2014, month=9, day=24, hour=19, minute=30, second=40,
-                 microsecond=654321),
+        datetime(year=2014, month=9, day=24, hour=19, minute=30,  # noqa: DTZ001
+                 second=40, microsecond=654321),
         'timestamp',
         datetime(year=2014, month=9, day=24, hour=19, minute=30, second=40,
                  microsecond=654321, tzinfo=MinutesFromUTC(0)),
@@ -958,40 +956,40 @@ TESTCASES_MINUTESFROMUTC_INIT = [
 
     (
         "Test with missing required arguments",
-        dict(
-            args=[],
-            kwargs={},
-            exp_offset=None,
-        ),
+        {
+            'args': [],
+            'kwargs': {},
+            'exp_offset': None,
+        },
         TypeError, None, True
     ),
     (
         "Test with minimal number of positional arguments",
-        dict(
-            args=[30],
-            kwargs={},
-            exp_offset=30,
-        ),
+        {
+            'args': [30],
+            'kwargs': {},
+            'exp_offset': 30,
+        },
         None, None, True
     ),
     (
         "Test with minimal number of keyword arguments",
-        dict(
-            args=[],
-            kwargs=dict(
-                offset=30,
-            ),
-            exp_offset=30,
-        ),
+        {
+            'args': [],
+            'kwargs': {
+                'offset': 30,
+            },
+            'exp_offset': 30,
+        },
         None, None, True
     ),
     (
         "Test with too many positional arguments",
-        dict(
-            args=[30, 0],
-            kwargs={},
-            exp_offset=None,
-        ),
+        {
+            'args': [30, 0],
+            'kwargs': {},
+            'exp_offset': None,
+        },
         TypeError, None, True
     ),
 ]
@@ -1038,29 +1036,29 @@ TESTCASES_MINUTESFROMUTC_UTCOFFSET = [
 
     (
         "Test with UTC offset 30 and datetime without tzinfo",
-        dict(
-            offset=30,
-            dt=datetime.now(),
-            exp_utc_offset=30,
-        ),
+        {
+            'offset': 30,
+            'dt': datetime.now(),
+            'exp_utc_offset': 30,
+        },
         None, None, True
     ),
     (
         "Test with UTC offset -30 and datetime without tzinfo",
-        dict(
-            offset=-30,
-            dt=datetime.now(),
-            exp_utc_offset=-30,
-        ),
+        {
+            'offset': -30,
+            'dt': datetime.now(),
+            'exp_utc_offset': -30,
+        },
         None, None, True
     ),
     (
         "Test with UTC offset 150 and datetime with tzinfo",
-        dict(
-            offset=150,
-            dt=datetime.now(tz=zoneinfo.ZoneInfo('US/Eastern')),
-            exp_utc_offset=150,
-        ),
+        {
+            'offset': 150,
+            'dt': datetime.now(tz=zoneinfo.ZoneInfo('US/Eastern')),
+            'exp_utc_offset': 150,
+        },
         None, None, True
     ),
 ]
@@ -1105,29 +1103,29 @@ TESTCASES_MINUTESFROMUTC_DST = [
 
     (
         "Test with UTC offset 30 and datetime without tzinfo",
-        dict(
-            offset=30,
-            dt=datetime.now(),
-            exp_dst_offset=0,
-        ),
+        {
+            'offset': 30,
+            'dt': datetime.now(),
+            'exp_dst_offset': 0,
+        },
         None, None, True
     ),
     (
         "Test with UTC offset -30 and datetime without tzinfo",
-        dict(
-            offset=-30,
-            dt=datetime.now(),
-            exp_dst_offset=0,
-        ),
+        {
+            'offset': -30,
+            'dt': datetime.now(),
+            'exp_dst_offset': 0,
+        },
         None, None, True
     ),
     (
         "Test with UTC offset 150 and datetime with tzinfo",
-        dict(
-            offset=150,
-            dt=datetime.now(tz=zoneinfo.ZoneInfo('US/Eastern')),
-            exp_dst_offset=0,
-        ),
+        {
+            'offset': 150,
+            'dt': datetime.now(tz=zoneinfo.ZoneInfo('US/Eastern')),
+            'exp_dst_offset': 0,
+        },
         None, None, True
     ),
 ]
@@ -1179,92 +1177,92 @@ TESTCASES_MINUTESFROMUTC_TZNAME = [
 
     (
         "Test with UTC offset 0 and datetime without tzinfo",
-        dict(
-            offset=0,
-            dt=datetime.now(),
-            exp_tzname='00:00',
-        ),
+        {
+            'offset': 0,
+            'dt': datetime.now(),
+            'exp_tzname': '00:00',
+        },
         None, None, True
     ),
     (
         "Test with UTC offset 30 and datetime without tzinfo",
-        dict(
-            offset=30,
-            dt=datetime.now(),
-            exp_tzname='00:30',
-        ),
+        {
+            'offset': 30,
+            'dt': datetime.now(),
+            'exp_tzname': '00:30',
+        },
         None, None, True
     ),
     (
         "Test with UTC offset -30 and datetime without tzinfo",
-        dict(
-            offset=-30,
-            dt=datetime.now(),
-            exp_tzname='-00:30',
-        ),
+        {
+            'offset': -30,
+            'dt': datetime.now(),
+            'exp_tzname': '-00:30',
+        },
         None, None, True
     ),
     (
         "Test with UTC offset 60 and datetime without tzinfo",
-        dict(
-            offset=60,
-            dt=datetime.now(),
-            exp_tzname='01:00',
-        ),
+        {
+            'offset': 60,
+            'dt': datetime.now(),
+            'exp_tzname': '01:00',
+        },
         None, None, True
     ),
     (
         "Test with UTC offset 719 and datetime without tzinfo",
-        dict(
-            offset=719,
-            dt=datetime.now(),
-            exp_tzname='11:59',
-        ),
+        {
+            'offset': 719,
+            'dt': datetime.now(),
+            'exp_tzname': '11:59',
+        },
         None, None, True
     ),
     (
         "Test with UTC offset 720 and datetime without tzinfo",
-        dict(
-            offset=720,
-            dt=datetime.now(),
-            exp_tzname='12:00',
-        ),
+        {
+            'offset': 720,
+            'dt': datetime.now(),
+            'exp_tzname': '12:00',
+        },
         None, None, True
     ),
     (
         "Test with UTC offset 790 and datetime without tzinfo",
-        dict(
-            offset=790,
-            dt=datetime.now(),
-            exp_tzname='13:10',
-        ),
+        {
+            'offset': 790,
+            'dt': datetime.now(),
+            'exp_tzname': '13:10',
+        },
         None, None, True
     ),
     (
         "Test with UTC offset 999 and datetime without tzinfo",
-        dict(
-            offset=999,
-            dt=datetime.now(),
-            exp_tzname='16:39',
-        ),
+        {
+            'offset': 999,
+            'dt': datetime.now(),
+            'exp_tzname': '16:39',
+        },
         None, None, True
     ),
     (
         "Test with UTC offset -999 and datetime without tzinfo",
-        dict(
-            offset=-999,
-            dt=datetime.now(),
-            exp_tzname='-16:39',
-        ),
+        {
+            'offset': -999,
+            'dt': datetime.now(),
+            'exp_tzname': '-16:39',
+        },
         None, None, True
     ),
     (
         "Test with UTC offset 150 and datetime with tzinfo",
-        dict(
-            offset=150,
-            dt=datetime.now(tz=zoneinfo.ZoneInfo('US/Eastern')),
-            exp_tzname='02:30',
-        ),
+        {
+            'offset': 150,
+            'dt': datetime.now(tz=zoneinfo.ZoneInfo('US/Eastern')),
+            'exp_tzname': '02:30',
+        },
         None, None, True
     ),
 ]
@@ -1309,201 +1307,201 @@ TESTCASES_CIMTYPE = [
     # Special cases
     (
         "Object is None",
-        dict(
-            obj=None,
-            exp_type_name=None,
-        ),
+        {
+            'obj': None,
+            'exp_type_name': None,
+        },
         TypeError, None, True
     ),
 
     # Boolean tests
     (
         "Object is a bool",
-        dict(
-            obj=True,
-            exp_type_name='boolean',
-        ),
+        {
+            'obj': True,
+            'exp_type_name': 'boolean',
+        },
         None, None, True
     ),
 
     # String tests
     (
         "Object is a unicode string",
-        dict(
-            obj="abc",
-            exp_type_name='string',
-        ),
+        {
+            'obj': "abc",
+            'exp_type_name': 'string',
+        },
         None, None, True
     ),
     (
         "Object is a byte string",
-        dict(
-            obj=b"abc",
-            exp_type_name='string',
-        ),
+        {
+            'obj': b"abc",
+            'exp_type_name': 'string',
+        },
         None, None, True
     ),
 
     # Integer tests
     (
         "Object is an integer",
-        dict(
-            obj=42,
-            exp_type_name=None,
-        ),
+        {
+            'obj': 42,
+            'exp_type_name': None,
+        },
         TypeError, None, True
     ),
     (
         "Object is a Uint8 number",
-        dict(
-            obj=Uint8(42),
-            exp_type_name='uint8',
-        ),
+        {
+            'obj': Uint8(42),
+            'exp_type_name': 'uint8',
+        },
         None, None, True
     ),
     (
         "Object is a Uint16 number",
-        dict(
-            obj=Uint16(42),
-            exp_type_name='uint16',
-        ),
+        {
+            'obj': Uint16(42),
+            'exp_type_name': 'uint16',
+        },
         None, None, True
     ),
     (
         "Object is a Uint32 number",
-        dict(
-            obj=Uint32(42),
-            exp_type_name='uint32',
-        ),
+        {
+            'obj': Uint32(42),
+            'exp_type_name': 'uint32',
+        },
         None, None, True
     ),
     (
         "Object is a Uint64 number",
-        dict(
-            obj=Uint64(42),
-            exp_type_name='uint64',
-        ),
+        {
+            'obj': Uint64(42),
+            'exp_type_name': 'uint64',
+        },
         None, None, True
     ),
     (
         "Object is a Sint8 number",
-        dict(
-            obj=Sint8(42),
-            exp_type_name='sint8',
-        ),
+        {
+            'obj': Sint8(42),
+            'exp_type_name': 'sint8',
+        },
         None, None, True
     ),
     (
         "Object is a Sint16 number",
-        dict(
-            obj=Sint16(42),
-            exp_type_name='sint16',
-        ),
+        {
+            'obj': Sint16(42),
+            'exp_type_name': 'sint16',
+        },
         None, None, True
     ),
     (
         "Object is a Sint32 number",
-        dict(
-            obj=Sint32(42),
-            exp_type_name='sint32',
-        ),
+        {
+            'obj': Sint32(42),
+            'exp_type_name': 'sint32',
+        },
         None, None, True
     ),
     (
         "Object is a Sint64 number",
-        dict(
-            obj=Sint64(42),
-            exp_type_name='sint64',
-        ),
+        {
+            'obj': Sint64(42),
+            'exp_type_name': 'sint64',
+        },
         None, None, True
     ),
 
     # Floating point tests
     (
         "Object is a float",
-        dict(
-            obj=42.0,
-            exp_type_name=None,
-        ),
+        {
+            'obj': 42.0,
+            'exp_type_name': None,
+        },
         TypeError, None, True
     ),
     (
         "Object is a Real32 number",
-        dict(
-            obj=Real32(42.0),
-            exp_type_name='real32',
-        ),
+        {
+            'obj': Real32(42.0),
+            'exp_type_name': 'real32',
+        },
         None, None, True
     ),
     (
         "Object is a Real64 number",
-        dict(
-            obj=Real64(42.0),
-            exp_type_name='real64',
-        ),
+        {
+            'obj': Real64(42.0),
+            'exp_type_name': 'real64',
+        },
         None, None, True
     ),
 
     # Datetime tests
     (
         "Object is a Python datetime object",
-        dict(
-            obj=datetime(year=2014, month=9, day=24, hour=19, minute=30,
-                         second=40, microsecond=654321,
-                         tzinfo=MinutesFromUTC(120)),
-            exp_type_name='datetime',
-        ),
+        {
+            'obj': datetime(year=2014, month=9, day=24, hour=19, minute=30,
+                            second=40, microsecond=654321,
+                            tzinfo=MinutesFromUTC(120)),
+            'exp_type_name': 'datetime',
+        },
         None, None, True
     ),
     (
         "Object is a Python timedelta object",
-        dict(
-            obj=timedelta(days=12345678, hours=22, minutes=44, seconds=55,
-                          microseconds=654321),
-            exp_type_name='datetime',
-        ),
+        {
+            'obj': timedelta(days=12345678, hours=22, minutes=44, seconds=55,
+                             microseconds=654321),
+            'exp_type_name': 'datetime',
+        },
         None, None, True
     ),
     (
         "Object is a CIMDateTime object",
-        dict(
-            obj=CIMDateTime('20140924193040.654321+000'),
-            exp_type_name='datetime',
-        ),
+        {
+            'obj': CIMDateTime('20140924193040.654321+000'),
+            'exp_type_name': 'datetime',
+        },
         None, None, True
     ),
 
     # Other CIM object tests
     (
         "Object is a CIMClass object",
-        dict(
-            obj=CIMClass('CIM_Foo'),
-            exp_type_name='string',  # embedded object
-        ),
+        {
+            'obj': CIMClass('CIM_Foo'),
+            'exp_type_name': 'string',  # embedded object
+        },
         None, None, True
     ),
     (
         "Object is a CIMInstance object",
-        dict(
-            obj=CIMInstance('CIM_Foo'),
-            exp_type_name='string',  # embedded object
-        ),
+        {
+            'obj': CIMInstance('CIM_Foo'),
+            'exp_type_name': 'string',  # embedded object
+        },
         None, None, True
     ),
     (
         "Object is a CIMInstanceName object",
-        dict(
-            obj=CIMInstanceName('CIM_Foo'),
-            exp_type_name='reference',
-        ),
+        {
+            'obj': CIMInstanceName('CIM_Foo'),
+            'exp_type_name': 'reference',
+        },
         None, None, True
     ),
     (
         "Object is a CIMClassName object",
-        dict(
-            obj=CIMClassName('CIM_Foo'),
-            exp_type_name=None,
-        ),
+        {
+            'obj': CIMClassName('CIM_Foo'),
+            'exp_type_name': None,
+        },
         TypeError, None, True
     ),
 ]
@@ -1550,140 +1548,140 @@ TESTCASES_TYPE_FROM_NAME = [
     # Special cases
     (
         "Type name is None",
-        dict(
-            type_name=None,
-            exp_type_obj=None,
-        ),
+        {
+            'type_name': None,
+            'exp_type_obj': None,
+        },
         ValueError, None, True
     ),
     (
         "Type name is invalid",
-        dict(
-            type_name='foo',
-            exp_type_obj=None,
-        ),
+        {
+            'type_name': 'foo',
+            'exp_type_obj': None,
+        },
         ValueError, None, True
     ),
 
     # CIM type names
     (
         "Type name is boolean",
-        dict(
-            type_name='boolean',
-            exp_type_obj=bool,
-        ),
+        {
+            'type_name': 'boolean',
+            'exp_type_obj': bool,
+        },
         None, None, True
     ),
     (
         "Type name is uint8",
-        dict(
-            type_name='uint8',
-            exp_type_obj=Uint8,
-        ),
+        {
+            'type_name': 'uint8',
+            'exp_type_obj': Uint8,
+        },
         None, None, True
     ),
     (
         "Type name is uint16",
-        dict(
-            type_name='uint16',
-            exp_type_obj=Uint16,
-        ),
+        {
+            'type_name': 'uint16',
+            'exp_type_obj': Uint16,
+        },
         None, None, True
     ),
     (
         "Type name is uint32",
-        dict(
-            type_name='uint32',
-            exp_type_obj=Uint32,
-        ),
+        {
+            'type_name': 'uint32',
+            'exp_type_obj': Uint32,
+        },
         None, None, True
     ),
     (
         "Type name is uint64",
-        dict(
-            type_name='uint64',
-            exp_type_obj=Uint64,
-        ),
+        {
+            'type_name': 'uint64',
+            'exp_type_obj': Uint64,
+        },
         None, None, True
     ),
     (
         "Type name is sint8",
-        dict(
-            type_name='sint8',
-            exp_type_obj=Sint8,
-        ),
+        {
+            'type_name': 'sint8',
+            'exp_type_obj': Sint8,
+        },
         None, None, True
     ),
     (
         "Type name is sint16",
-        dict(
-            type_name='sint16',
-            exp_type_obj=Sint16,
-        ),
+        {
+            'type_name': 'sint16',
+            'exp_type_obj': Sint16,
+        },
         None, None, True
     ),
     (
         "Type name is sint32",
-        dict(
-            type_name='sint32',
-            exp_type_obj=Sint32,
-        ),
+        {
+            'type_name': 'sint32',
+            'exp_type_obj': Sint32,
+        },
         None, None, True
     ),
     (
         "Type name is sint64",
-        dict(
-            type_name='sint64',
-            exp_type_obj=Sint64,
-        ),
+        {
+            'type_name': 'sint64',
+            'exp_type_obj': Sint64,
+        },
         None, None, True
     ),
     (
         "Type name is real32",
-        dict(
-            type_name='real32',
-            exp_type_obj=Real32,
-        ),
+        {
+            'type_name': 'real32',
+            'exp_type_obj': Real32,
+        },
         None, None, True
     ),
     (
         "Type name is real64",
-        dict(
-            type_name='real64',
-            exp_type_obj=Real64,
-        ),
+        {
+            'type_name': 'real64',
+            'exp_type_obj': Real64,
+        },
         None, None, True
     ),
     (
         "Type name is string",
-        dict(
-            type_name='string',
-            exp_type_obj=str,
-        ),
+        {
+            'type_name': 'string',
+            'exp_type_obj': str,
+        },
         None, None, True
     ),
     (
         "Type name is char16",
-        dict(
-            type_name='char16',
-            exp_type_obj=str,
-        ),
+        {
+            'type_name': 'char16',
+            'exp_type_obj': str,
+        },
         None, None, True
     ),
     (
         "Type name is datetime",
-        dict(
-            type_name='datetime',
-            exp_type_obj=CIMDateTime,
-        ),
+        {
+            'type_name': 'datetime',
+            'exp_type_obj': CIMDateTime,
+        },
         None, None, True
     ),
     (
         "Type name is reference",
-        dict(
-            type_name='reference',
-            exp_type_obj=CIMInstanceName,
-        ),
+        {
+            'type_name': 'reference',
+            'exp_type_obj': CIMInstanceName,
+        },
         None, None, True
     ),
 

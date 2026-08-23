@@ -80,9 +80,9 @@ def _uprint(dest, text):  # pylint: disable=too-many-branches
 
     elif isinstance(dest, (str, bytes)):
         if isinstance(text, str):
-            kw = dict(mode='a', encoding='utf-8')
+            kw = {'mode': 'a', 'encoding': 'utf-8'}
         else:
-            kw = dict(mode='ab')
+            kw = {'mode': 'ab'}
         with open(dest, **kw) as fn:  # pylint: disable=unspecified-encoding
             fn.write(text)
     else:
@@ -387,7 +387,7 @@ class ExecuteTests:
         table = tabulate(table_rows, header, tablefmt=self.tbl_output_format)
 
         # print statistics to terminal
-        print("")
+        print()
         _uprint(None, title)
         _uprint(None, table)
 

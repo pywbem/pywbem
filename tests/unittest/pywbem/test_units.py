@@ -39,126 +39,126 @@ TESTCASES_SIUNIT_OBJ = [
 
     (
         "No input argument (cim_obj is required)",
-        dict(
-            in_kwargs={},
-            exp_result=None,
-        ),
+        {
+            'in_kwargs': {},
+            'exp_result': None,
+        },
         TypeError, None, True
     ),
     (
         "cim_obj is None",
-        dict(
-            in_kwargs=dict(
-                cim_obj=None,
-            ),
-            exp_result=None,
-        ),
+        {
+            'in_kwargs': {
+                'cim_obj': None,
+            },
+            'exp_result': None,
+        },
         TypeError, None, True
     ),
     (
         "cim_obj has invalid type",
-        dict(
-            in_kwargs=dict(
-                cim_obj=42,
-            ),
-            exp_result=None,
-        ),
+        {
+            'in_kwargs': {
+                'cim_obj': 42,
+            },
+            'exp_result': None,
+        },
         TypeError, None, True
     ),
     (
         "cim_obj is CIMProperty with PUnit #1 (byte)",
-        dict(
-            in_kwargs=dict(
-                cim_obj=CIMProperty(
+        {
+            'in_kwargs': {
+                'cim_obj': CIMProperty(
                     'P1', value='foo',
                     qualifiers=[TEST_QUAL_PUNIT1_BYTE])
-            ),
-            exp_result='B',
-        ),
+            },
+            'exp_result': 'B',
+        },
         None, None, True
     ),
     (
         "cim_obj is CIMMethod with PUnit #1 (byte)",
-        dict(
-            in_kwargs=dict(
-                cim_obj=CIMMethod(
+        {
+            'in_kwargs': {
+                'cim_obj': CIMMethod(
                     'P1', return_type='uint32',
                     qualifiers=[TEST_QUAL_PUNIT1_BYTE])
-            ),
-            exp_result='B',
-        ),
+            },
+            'exp_result': 'B',
+        },
         None, None, True
     ),
     (
         "cim_obj is CIMParameter with PUnit #1 (byte)",
-        dict(
-            in_kwargs=dict(
-                cim_obj=CIMParameter(
+        {
+            'in_kwargs': {
+                'cim_obj': CIMParameter(
                     'P1', type='uint32',
                     qualifiers=[TEST_QUAL_PUNIT1_BYTE])
-            ),
-            exp_result='B',
-        ),
+            },
+            'exp_result': 'B',
+        },
         None, None, True
     ),
     (
         "cim_obj is CIMProperty with PUnit #2 (byte)",
-        dict(
-            in_kwargs=dict(
-                cim_obj=CIMProperty(
+        {
+            'in_kwargs': {
+                'cim_obj': CIMProperty(
                     'P1', value='foo',
                     qualifiers=[TEST_QUAL_PUNIT2_BYTE])
-            ),
-            exp_result='B',
-        ),
+            },
+            'exp_result': 'B',
+        },
         None, None, True
     ),
     (
         "cim_obj is CIMProperty with Units #1 (Bytes)",
-        dict(
-            in_kwargs=dict(
-                cim_obj=CIMProperty(
+        {
+            'in_kwargs': {
+                'cim_obj': CIMProperty(
                     'P1', value='foo',
                     qualifiers=[TEST_QUAL_UNITS1_BYTES])
-            ),
-            exp_result='B',
-        ),
+            },
+            'exp_result': 'B',
+        },
         None, None, True
     ),
     (
         "cim_obj is CIMProperty with Units #2 (Bytes)",
-        dict(
-            in_kwargs=dict(
-                cim_obj=CIMProperty(
+        {
+            'in_kwargs': {
+                'cim_obj': CIMProperty(
                     'P1', value='foo',
                     qualifiers=[TEST_QUAL_UNITS2_BYTES])
-            ),
-            exp_result='B',
-        ),
+            },
+            'exp_result': 'B',
+        },
         None, None, True
     ),
     (
         "cim_obj is CIMProperty with PUnit #1 (byte) and Units (Meters)",
-        dict(
-            in_kwargs=dict(
-                cim_obj=CIMProperty(
+        {
+            'in_kwargs': {
+                'cim_obj': CIMProperty(
                     'P1', value='foo',
                     qualifiers=[TEST_QUAL_PUNIT1_BYTE, TEST_QUAL_UNITS_METERS])
-            ),
-            exp_result='B',
-        ),
+            },
+            'exp_result': 'B',
+        },
         None, None, True
     ),
     (
         "cim_obj is CIMProperty with Units (Meters) and PUnit #1 (byte)",
-        dict(
-            in_kwargs=dict(
-                cim_obj=CIMProperty(
+        {
+            'in_kwargs': {
+                'cim_obj': CIMProperty(
                     'P1', value='foo',
                     qualifiers=[TEST_QUAL_UNITS_METERS, TEST_QUAL_PUNIT1_BYTE])
-            ),
-            exp_result='B',
-        ),
+            },
+            'exp_result': 'B',
+        },
         None, None, True
     ),
 ]
@@ -199,389 +199,389 @@ TESTCASES_SIUNIT_GENERAL = [
 
     (
         "No input arguments",
-        dict(
-            in_kwargs={},
-            exp_result=None,
-        ),
+        {
+            'in_kwargs': {},
+            'exp_result': None,
+        },
         None, None, True
     ),
     (
         "PUnit '' (empty string)",
-        dict(
-            in_kwargs=dict(
-                punit="",
-            ),
-            exp_result='',
-        ),
+        {
+            'in_kwargs': {
+                'punit': "",
+            },
+            'exp_result': '',
+        },
         None, None, True
     ),
     (
         "PUnit 'byte' as Unicode string",
-        dict(
-            in_kwargs=dict(
-                punit="byte",
-            ),
-            exp_result='B',
-        ),
+        {
+            'in_kwargs': {
+                'punit': "byte",
+            },
+            'exp_result': 'B',
+        },
         None, None, True
     ),
     (
         "PUnit 'byte' as binary string",
-        dict(
-            in_kwargs=dict(
-                punit=b"byte",
-            ),
-            exp_result='B',
-        ),
+        {
+            'in_kwargs': {
+                'punit': b"byte",
+            },
+            'exp_result': 'B',
+        },
         None, None, True
     ),
     (
         "Units 'Bytes' as Unicode string",
-        dict(
-            in_kwargs=dict(
-                units="Bytes",
-            ),
-            exp_result='B',
-        ),
+        {
+            'in_kwargs': {
+                'units': "Bytes",
+            },
+            'exp_result': 'B',
+        },
         None, None, True
     ),
     (
         "Units 'Bytes' as binary string",
-        dict(
-            in_kwargs=dict(
-                units=b"Bytes",
-            ),
-            exp_result='B',
-        ),
+        {
+            'in_kwargs': {
+                'units': b"Bytes",
+            },
+            'exp_result': 'B',
+        },
         None, None, True
     ),
     (
         "PUnit has precedence over Units",
-        dict(
-            in_kwargs=dict(
-                punit="byte",
-                units="Meters",
-            ),
-            exp_result='B',
-        ),
+        {
+            'in_kwargs': {
+                'punit': "byte",
+                'units': "Meters",
+            },
+            'exp_result': 'B',
+        },
         None, None, True
     ),
     (
         "PUnit 'degree' with use_ascii omitted is returned as Unicode char",
-        dict(
-            in_kwargs=dict(
-                punit="degree",
-            ),
-            exp_result='\u00B0',
-        ),
+        {
+            'in_kwargs': {
+                'punit': "degree",
+            },
+            'exp_result': '\u00B0',
+        },
         None, None, True
     ),
     (
         "PUnit 'degree' with use_ascii=False is returned as Unicode char",
-        dict(
-            in_kwargs=dict(
-                punit="degree",
-                use_ascii=False,
-            ),
-            exp_result='\u00B0',
-        ),
+        {
+            'in_kwargs': {
+                'punit': "degree",
+                'use_ascii': False,
+            },
+            'exp_result': '\u00B0',
+        },
         None, None, True
     ),
     (
         "PUnit 'degree' with use_ascii=True is returned as 7-bit ASCII text",
-        dict(
-            in_kwargs=dict(
-                punit="degree",
-                use_ascii=True,
-            ),
-            exp_result='deg',
-        ),
+        {
+            'in_kwargs': {
+                'punit': "degree",
+                'use_ascii': True,
+            },
+            'exp_result': 'deg',
+        },
         None, None, True
     ),
     (
         "PUnit 'degree celsius' with use_ascii=True",
-        dict(
-            in_kwargs=dict(
-                punit="degree celsius",
-                use_ascii=True,
-            ),
-            exp_result='degC',
-        ),
+        {
+            'in_kwargs': {
+                'punit': "degree celsius",
+                'use_ascii': True,
+            },
+            'exp_result': 'degC',
+        },
         None, None, True
     ),
     (
         "PUnit 'degree fahrenheit' with use_ascii=True",
-        dict(
-            in_kwargs=dict(
-                punit="degree fahrenheit",
-                use_ascii=True,
-            ),
-            exp_result='degF',
-        ),
+        {
+            'in_kwargs': {
+                'punit': "degree fahrenheit",
+                'use_ascii': True,
+            },
+            'exp_result': 'degF',
+        },
         None, None, True
     ),
     (
         "PUnit 'ohm' with use_ascii=True",
-        dict(
-            in_kwargs=dict(
-                punit="ohm",
-                use_ascii=True,
-            ),
-            exp_result='Ohm',
-        ),
+        {
+            'in_kwargs': {
+                'punit': "ohm",
+                'use_ascii': True,
+            },
+            'exp_result': 'Ohm',
+        },
         None, None, True
     ),
     (
         "PUnit 'permille' with use_ascii=True",
-        dict(
-            in_kwargs=dict(
-                punit="permille",
-                use_ascii=True,
-            ),
-            exp_result='1/1000',
-        ),
+        {
+            'in_kwargs': {
+                'punit': "permille",
+                'use_ascii': True,
+            },
+            'exp_result': '1/1000',
+        },
         None, None, True
     ),
     (
         "PUnit 'meter * meter' with use_ascii=True",
-        dict(
-            in_kwargs=dict(
-                punit="meter * meter",
-                use_ascii=True,
-            ),
-            exp_result='m^2',
-        ),
+        {
+            'in_kwargs': {
+                'punit': "meter * meter",
+                'use_ascii': True,
+            },
+            'exp_result': 'm^2',
+        },
         None, None, True
     ),
     (
         "PUnit 'meter * meter * meter' with use_ascii=True",
-        dict(
-            in_kwargs=dict(
-                punit="meter * meter * meter",
-                use_ascii=True,
-            ),
-            exp_result='m^3',
-        ),
+        {
+            'in_kwargs': {
+                'punit': "meter * meter * meter",
+                'use_ascii': True,
+            },
+            'exp_result': 'm^3',
+        },
         None, None, True
     ),
     (
         "Invalid type for punit argument",
-        dict(
-            in_kwargs=dict(
-                punit=42,
-            ),
-            exp_result=None,
-        ),
+        {
+            'in_kwargs': {
+                'punit': 42,
+            },
+            'exp_result': None,
+        },
         TypeError, None, True
     ),
     (
         "Invalid type for units argument",
-        dict(
-            in_kwargs=dict(
-                units=42,
-            ),
-            exp_result=None,
-        ),
+        {
+            'in_kwargs': {
+                'units': 42,
+            },
+            'exp_result': None,
+        },
         TypeError, None, True
     ),
     (
         "Invalid PUnit format",
-        dict(
-            in_kwargs=dict(
-                punit="byte + byte",
-            ),
-            exp_result=None,
-        ),
+        {
+            'in_kwargs': {
+                'punit': "byte + byte",
+            },
+            'exp_result': None,
+        },
         ValueError, None, True
     ),
     (
         "Invalid PUnit base unit",
-        dict(
-            in_kwargs=dict(
-                punit="peanuts",
-            ),
-            exp_result=None,
-        ),
+        {
+            'in_kwargs': {
+                'punit': "peanuts",
+            },
+            'exp_result': None,
+        },
         ValueError, None, True
     ),
     (
         "PUnit with modifier1 (* unknown value)",
-        dict(
-            in_kwargs=dict(
-                punit="second * 10000",
-            ),
-            exp_result='10000 s',
-        ),
+        {
+            'in_kwargs': {
+                'punit': "second * 10000",
+            },
+            'exp_result': '10000 s',
+        },
         None, None, True
     ),
     (
         "PUnit with modifier1 (/ unknown value)",
-        dict(
-            in_kwargs=dict(
-                punit="second / 10000",
-            ),
-            exp_result='1/10000 s',
-        ),
+        {
+            'in_kwargs': {
+                'punit': "second / 10000",
+            },
+            'exp_result': '1/10000 s',
+        },
         None, None, True
     ),
     (
         "PUnit with modifier2 (* unknown value)",
-        dict(
-            in_kwargs=dict(
-                punit="second * 10 ^ 4",
-            ),
-            exp_result='10^4 s',
-        ),
+        {
+            'in_kwargs': {
+                'punit': "second * 10 ^ 4",
+            },
+            'exp_result': '10^4 s',
+        },
         None, None, True
     ),
     (
         "PUnit with modifier2 (/ unknown value)",
-        dict(
-            in_kwargs=dict(
-                punit="second / 10 ^ 4",
-            ),
-            exp_result='10^-4 s',
-        ),
+        {
+            'in_kwargs': {
+                'punit': "second / 10 ^ 4",
+            },
+            'exp_result': '10^-4 s',
+        },
         None, None, True
     ),
     (
         "PUnit with modifier1 (* known value) and modifier2 (* known + exp)",
-        dict(
-            in_kwargs=dict(
-                punit="second * 10 * 10 ^ 3",
-            ),
-            exp_result='10 ks',
-        ),
+        {
+            'in_kwargs': {
+                'punit': "second * 10 * 10 ^ 3",
+            },
+            'exp_result': '10 ks',
+        },
         None, None, True
     ),
     (
         "PUnit with modifier1 (/ known value) and modifier2 (/ known + exp)",
-        dict(
-            in_kwargs=dict(
-                punit="second / 10 / 10 ^ 3",
-            ),
-            exp_result='1/10 ms',
-        ),
+        {
+            'in_kwargs': {
+                'punit': "second / 10 / 10 ^ 3",
+            },
+            'exp_result': '1/10 ms',
+        },
         None, None, True
     ),
     (
         "PUnit with modifier1 (* known value) and modifier2 (* known - exp)",
-        dict(
-            in_kwargs=dict(
-                punit="second * 10 * 10 ^ -3",
-            ),
-            exp_result='10 ms',
-        ),
+        {
+            'in_kwargs': {
+                'punit': "second * 10 * 10 ^ -3",
+            },
+            'exp_result': '10 ms',
+        },
         None, None, True
     ),
     (
         "PUnit with modifier1 (/ known value) and modifier2 (/ known - exp)",
-        dict(
-            in_kwargs=dict(
-                punit="second / 10 / 10 ^ -3",
-            ),
-            exp_result='1/10 ks',
-        ),
+        {
+            'in_kwargs': {
+                'punit': "second / 10 / 10 ^ -3",
+            },
+            'exp_result': '1/10 ks',
+        },
         None, None, True
     ),
     (
         "PUnit with modifier1 (* known value) and modifier2 (* unknown value)",
-        dict(
-            in_kwargs=dict(
-                punit="second * 1000 * 10 ^ 4",
-            ),
-            exp_result='1000 10^4 s',
-        ),
+        {
+            'in_kwargs': {
+                'punit': "second * 1000 * 10 ^ 4",
+            },
+            'exp_result': '1000 10^4 s',
+        },
         None, None, True
     ),
     (
         "PUnit with modifier1 (/ known value) and modifier2 (/ unknown value)",
-        dict(
-            in_kwargs=dict(
-                punit="second / 1000 / 10 ^ 4",
-            ),
-            exp_result='1/1000 10^-4 s',
-        ),
+        {
+            'in_kwargs': {
+                'punit': "second / 1000 / 10 ^ 4",
+            },
+            'exp_result': '1/1000 10^-4 s',
+        },
         None, None, True
     ),
     (
         "PUnit with modifier1 (* unknown value) and modifier2 (* known value)",
-        dict(
-            in_kwargs=dict(
-                punit="second * 10000 * 10 ^ 3",
-            ),
-            exp_result='10000 ks',
-        ),
+        {
+            'in_kwargs': {
+                'punit': "second * 10000 * 10 ^ 3",
+            },
+            'exp_result': '10000 ks',
+        },
         None, None, True
     ),
     (
         "PUnit with modifier1 (/ unknown value) and modifier2 (/ known value)",
-        dict(
-            in_kwargs=dict(
-                punit="second / 10000 / 10 ^ 3",
-            ),
-            exp_result='1/10000 ms',
-        ),
+        {
+            'in_kwargs': {
+                'punit': "second / 10000 / 10 ^ 3",
+            },
+            'exp_result': '1/10000 ms',
+        },
         None, None, True
     ),
     (
         "PUnit with extended format (unit1 * mod1 / unit2)",
-        dict(
-            in_kwargs=dict(
-                punit="meter * 1000 / second",
-            ),
-            exp_result='km/s',
-        ),
+        {
+            'in_kwargs': {
+                'punit': "meter * 1000 / second",
+            },
+            'exp_result': 'km/s',
+        },
         None, None, True
     ),
     (
         "PUnit with extended format (unit1 / mod2 * unit2)",
-        dict(
-            in_kwargs=dict(
-                punit="watt / 10^3 * second",
-            ),
-            exp_result='mWs',
-        ),
+        {
+            'in_kwargs': {
+                'punit': "watt / 10^3 * second",
+            },
+            'exp_result': 'mWs',
+        },
         None, None, True
     ),
     (
         "PUnit with extended format (unit1 / mod1 * mod2 / unit2)",
-        dict(
-            in_kwargs=dict(
-                punit="meter / 10 * 10^3 / second",
-            ),
-            exp_result='1/10 km/s',
-        ),
+        {
+            'in_kwargs': {
+                'punit': "meter / 10 * 10^3 / second",
+            },
+            'exp_result': '1/10 km/s',
+        },
         None, None, True
     ),
     (
         "PUnit with invalid extended format (more than one mod1)",
-        dict(
-            in_kwargs=dict(
-                punit="watt / 10 / 100",
-            ),
-            exp_result=None,
-        ),
+        {
+            'in_kwargs': {
+                'punit': "watt / 10 / 100",
+            },
+            'exp_result': None,
+        },
         ValueError, None, True
     ),
     (
         "PUnit with invalid extended format (more than one mod2)",
-        dict(
-            in_kwargs=dict(
-                punit="watt / 10^1 / 10^2",
-            ),
-            exp_result=None,
-        ),
+        {
+            'in_kwargs': {
+                'punit': "watt / 10^1 / 10^2",
+            },
+            'exp_result': None,
+        },
         ValueError, None, True
     ),
     (
         "Invalid Units value",
-        dict(
-            in_kwargs=dict(
-                units="Peanuts",
-            ),
-            exp_result=None,
-        ),
+        {
+            'in_kwargs': {
+                'units': "Peanuts",
+            },
+            'exp_result': None,
+        },
         ValueError, None, True
     ),
 ]

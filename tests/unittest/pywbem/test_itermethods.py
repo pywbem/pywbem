@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Test the  WBEMConnection iteration methods (Iter...) by mocking the lower level
 WBEMConnection methods that are called by the iteration methods.
@@ -428,13 +426,12 @@ class TestIterEnumerateInstances:
     @pytest.mark.parametrize(
         "kwargs, exp_exc",
         [
-            [dict(OperationTimeout='bla'), TypeError()],
-            [dict(OperationTimeout=-1), ValueError()],
-            [dict(MaxObjectCount=0), ValueError()],
-            [dict(MaxObjectCount=-1), ValueError()],
-            [dict(MaxObjectCount=None), ValueError()],
-            [dict(MaxObjectCount='bla'), TypeError()],
-            [dict(MaxObjectCount='bla'), TypeError()],
+            [{'OperationTimeout': 'bla'}, TypeError()],
+            [{'OperationTimeout': -1}, ValueError()],
+            [{'MaxObjectCount': 0}, ValueError()],
+            [{'MaxObjectCount': -1}, ValueError()],
+            [{'MaxObjectCount': None}, ValueError()],
+            [{'MaxObjectCount': 'bla'}, TypeError()],
         ]
     )
     @log_entry_exit
@@ -459,9 +456,9 @@ class TestIterEnumerateInstances:
     @pytest.mark.parametrize(
         "kwargs, exp_exc",
         [
-            [dict(FilterQueryLanguage='CQL'), ValueError()],
-            [dict(FilterQuery='Prop=42'), ValueError()],
-            [dict(ContinueOnError=True), ValueError()],
+            [{'FilterQueryLanguage': 'CQL'}, ValueError()],
+            [{'FilterQuery': 'Prop=42'}, ValueError()],
+            [{'ContinueOnError': True}, ValueError()],
         ]
     )
     @log_entry_exit
@@ -780,13 +777,12 @@ class TestIterEnumerateInstancePaths:
     @pytest.mark.parametrize(
         "kwargs, exp_exc",
         [
-            [dict(OperationTimeout='bla'), TypeError()],
-            [dict(OperationTimeout=-1), ValueError()],
-            [dict(MaxObjectCount=0), ValueError()],
-            [dict(MaxObjectCount=-1), ValueError()],
-            [dict(MaxObjectCount=None), ValueError()],
-            [dict(MaxObjectCount='bla'), TypeError()],
-            [dict(MaxObjectCount='bla'), TypeError()],
+            [{'OperationTimeout': 'bla'}, TypeError()],
+            [{'OperationTimeout': -1}, ValueError()],
+            [{'MaxObjectCount': 0}, ValueError()],
+            [{'MaxObjectCount': -1}, ValueError()],
+            [{'MaxObjectCount': None}, ValueError()],
+            [{'MaxObjectCount': 'bla'}, TypeError()],
         ]
     )
     @log_entry_exit
@@ -811,9 +807,9 @@ class TestIterEnumerateInstancePaths:
     @pytest.mark.parametrize(
         "kwargs, exp_exc",
         [
-            [dict(FilterQueryLanguage='CQL'), ValueError()],
-            [dict(FilterQuery='Prop=42'), ValueError()],
-            [dict(ContinueOnError=True), ValueError()],
+            [{'FilterQueryLanguage': 'CQL'}, ValueError()],
+            [{'FilterQuery': 'Prop=42'}, ValueError()],
+            [{'ContinueOnError': True}, ValueError()],
         ]
     )
     @log_entry_exit
@@ -1165,13 +1161,12 @@ class TestIterReferenceInstances:
     @pytest.mark.parametrize(
         "kwargs, exp_exc",
         [
-            [dict(OperationTimeout='bla'), TypeError()],
-            [dict(OperationTimeout=-1), ValueError()],
-            [dict(MaxObjectCount=0), ValueError()],
-            [dict(MaxObjectCount=-1), ValueError()],
-            [dict(MaxObjectCount=None), ValueError()],
-            [dict(MaxObjectCount='bla'), TypeError()],
-            [dict(MaxObjectCount='bla'), TypeError()],
+            [{'OperationTimeout': 'bla'}, TypeError()],
+            [{'OperationTimeout': -1}, ValueError()],
+            [{'MaxObjectCount': 0}, ValueError()],
+            [{'MaxObjectCount': -1}, ValueError()],
+            [{'MaxObjectCount': None}, ValueError()],
+            [{'MaxObjectCount': 'bla'}, TypeError()],
         ]
     )
     @log_entry_exit
@@ -1196,9 +1191,9 @@ class TestIterReferenceInstances:
     @pytest.mark.parametrize(
         "kwargs, exp_exc",
         [
-            [dict(FilterQueryLanguage='CQL'), ValueError()],
-            [dict(FilterQuery='Prop=42'), ValueError()],
-            [dict(ContinueOnError=True), ValueError()],
+            [{'FilterQueryLanguage': 'CQL'}, ValueError()],
+            [{'FilterQuery': 'Prop=42'}, ValueError()],
+            [{'ContinueOnError': True}, ValueError()],
         ]
     )
     @log_entry_exit
@@ -1521,13 +1516,12 @@ class TestIterReferenceInstancePaths:
     @pytest.mark.parametrize(
         "kwargs, exp_exc",
         [
-            [dict(OperationTimeout='bla'), TypeError()],
-            [dict(OperationTimeout=-1), ValueError()],
-            [dict(MaxObjectCount=0), ValueError()],
-            [dict(MaxObjectCount=-1), ValueError()],
-            [dict(MaxObjectCount=None), ValueError()],
-            [dict(MaxObjectCount='bla'), TypeError()],
-            [dict(MaxObjectCount='bla'), TypeError()],
+            [{'OperationTimeout': 'bla'}, TypeError()],
+            [{'OperationTimeout': -1}, ValueError()],
+            [{'MaxObjectCount': 0}, ValueError()],
+            [{'MaxObjectCount': -1}, ValueError()],
+            [{'MaxObjectCount': None}, ValueError()],
+            [{'MaxObjectCount': 'bla'}, TypeError()],
         ]
     )
     @log_entry_exit
@@ -1552,9 +1546,9 @@ class TestIterReferenceInstancePaths:
     @pytest.mark.parametrize(
         "kwargs, exp_exc",
         [
-            [dict(FilterQueryLanguage='CQL'), ValueError()],
-            [dict(FilterQuery='Prop=42'), ValueError()],
-            [dict(ContinueOnError=True), ValueError()],
+            [{'FilterQueryLanguage': 'CQL'}, ValueError()],
+            [{'FilterQuery': 'Prop=42'}, ValueError()],
+            [{'ContinueOnError': True}, ValueError()],
         ]
     )
     @log_entry_exit
@@ -1914,13 +1908,12 @@ class TestIterAssociatorInstances:
     @pytest.mark.parametrize(
         "kwargs, exp_exc",
         [
-            [dict(OperationTimeout='bla'), TypeError()],
-            [dict(OperationTimeout=-1), ValueError()],
-            [dict(MaxObjectCount=0), ValueError()],
-            [dict(MaxObjectCount=-1), ValueError()],
-            [dict(MaxObjectCount=None), ValueError()],
-            [dict(MaxObjectCount='bla'), TypeError()],
-            [dict(MaxObjectCount='bla'), TypeError()],
+            [{'OperationTimeout': 'bla'}, TypeError()],
+            [{'OperationTimeout': -1}, ValueError()],
+            [{'MaxObjectCount': 0}, ValueError()],
+            [{'MaxObjectCount': -1}, ValueError()],
+            [{'MaxObjectCount': None}, ValueError()],
+            [{'MaxObjectCount': 'bla'}, TypeError()],
         ]
     )
     @log_entry_exit
@@ -1945,9 +1938,9 @@ class TestIterAssociatorInstances:
     @pytest.mark.parametrize(
         "kwargs, exp_exc",
         [
-            [dict(FilterQueryLanguage='CQL'), ValueError()],
-            [dict(FilterQuery='Prop=42'), ValueError()],
-            [dict(ContinueOnError=True), ValueError()],
+            [{'FilterQueryLanguage': 'CQL'}, ValueError()],
+            [{'FilterQuery': 'Prop=42'}, ValueError()],
+            [{'ContinueOnError': True}, ValueError()],
         ]
     )
     @log_entry_exit
@@ -2278,13 +2271,12 @@ class TestIterAssociatorInstancePaths:
     @pytest.mark.parametrize(
         "kwargs, exp_exc",
         [
-            [dict(OperationTimeout='bla'), TypeError()],
-            [dict(OperationTimeout=-1), ValueError()],
-            [dict(MaxObjectCount=0), ValueError()],
-            [dict(MaxObjectCount=-1), ValueError()],
-            [dict(MaxObjectCount=None), ValueError()],
-            [dict(MaxObjectCount='bla'), TypeError()],
-            [dict(MaxObjectCount='bla'), TypeError()],
+            [{'OperationTimeout': 'bla'}, TypeError()],
+            [{'OperationTimeout': -1}, ValueError()],
+            [{'MaxObjectCount': 0}, ValueError()],
+            [{'MaxObjectCount': -1}, ValueError()],
+            [{'MaxObjectCount': None}, ValueError()],
+            [{'MaxObjectCount': 'bla'}, TypeError()],
         ]
     )
     @log_entry_exit
@@ -2309,9 +2301,9 @@ class TestIterAssociatorInstancePaths:
     @pytest.mark.parametrize(
         "kwargs, exp_exc",
         [
-            [dict(FilterQueryLanguage='CQL'), ValueError()],
-            [dict(FilterQuery='Prop=42'), ValueError()],
-            [dict(ContinueOnError=True), ValueError()],
+            [{'FilterQueryLanguage': 'CQL'}, ValueError()],
+            [{'FilterQuery': 'Prop=42'}, ValueError()],
+            [{'ContinueOnError': True}, ValueError()],
         ]
     )
     @log_entry_exit
@@ -2646,13 +2638,12 @@ class TestIterQueryInstances:
     @pytest.mark.parametrize(
         "kwargs, exp_exc",
         [
-            [dict(OperationTimeout='bla'), TypeError()],
-            [dict(OperationTimeout=-1), ValueError()],
-            [dict(MaxObjectCount=0), ValueError()],
-            [dict(MaxObjectCount=-1), ValueError()],
-            [dict(MaxObjectCount=None), ValueError()],
-            [dict(MaxObjectCount='bla'), TypeError()],
-            [dict(MaxObjectCount='bla'), TypeError()],
+            [{'OperationTimeout': 'bla'}, TypeError()],
+            [{'OperationTimeout': -1}, ValueError()],
+            [{'MaxObjectCount': 0}, ValueError()],
+            [{'MaxObjectCount': -1}, ValueError()],
+            [{'MaxObjectCount': None}, ValueError()],
+            [{'MaxObjectCount': 'bla'}, TypeError()],
         ]
     )
     @log_entry_exit
@@ -2680,8 +2671,8 @@ class TestIterQueryInstances:
     @pytest.mark.parametrize(
         "kwargs, exp_exc",
         [
-            [dict(ContinueOnError=True), ValueError()],
-            [dict(ReturnQueryResultClass=True), ValueError()],
+            [{'ContinueOnError': True}, ValueError()],
+            [{'ReturnQueryResultClass': True}, ValueError()],
         ]
     )
     @log_entry_exit

@@ -977,7 +977,7 @@ class TestClientRecorder(BaseOperationRecorder):
             return ret
         if isinstance(obj, (dict, NocaseDict)):
             ret_dict = OrderedDict()
-            for key in obj.keys():  # get keys in original case
+            for key in obj:  # get keys in original case
                 ret_dict[key] = self.toyaml(obj[key])
             return ret_dict
         if obj is None:

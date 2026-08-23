@@ -51,10 +51,7 @@ from pywbem_mock import FakedWBEMConnection  # noqa: E402
 
 
 # Ordered dict type created by yamlloader.ordereddict loaders
-if sys.version_info[0:2] >= (3, 7):
-    yaml_ordereddict = dict  # pylint: disable=invalid-name
-else:
-    yaml_ordereddict = OrderedDict  # pylint: disable=invalid-name
+yaml_ordereddict = dict  # pylint: disable=invalid-name
 
 # Name of null device
 DEV_NULL = 'nul' if sys.platform == 'win32' else '/dev/null'
@@ -74,334 +71,334 @@ DEBUG_TEST_YAML_FILE = False  # Show the generated test client YAML file
 
 # CIMProperty objects of all types and the corresponding test client YAML
 CIMPROPERTY_B1_OBJ = CIMProperty('B1', value=True)
-CIMPROPERTY_B1_TCYAML = dict(
-    pywbem_object='CIMProperty',
-    name='B1',
-    type='boolean',
-    value=True,
-    reference_class=None,
-    embedded_object=None,
-    is_array=False,
-    array_size=None,
-    class_origin=None,
-    propagated=None,
-    qualifiers=yaml_ordereddict(),
-)
+CIMPROPERTY_B1_TCYAML = {
+    'pywbem_object': 'CIMProperty',
+    'name': 'B1',
+    'type': 'boolean',
+    'value': True,
+    'reference_class': None,
+    'embedded_object': None,
+    'is_array': False,
+    'array_size': None,
+    'class_origin': None,
+    'propagated': None,
+    'qualifiers': yaml_ordereddict(),
+}
 CIMPROPERTY_C1_OBJ = CIMProperty('C1', type='char16', value='A')
-CIMPROPERTY_C1_TCYAML = dict(
-    pywbem_object='CIMProperty',
-    name='C1',
-    type='char16',
-    value='A',
-    reference_class=None,
-    embedded_object=None,
-    is_array=False,
-    array_size=None,
-    class_origin=None,
-    propagated=None,
-    qualifiers=yaml_ordereddict(),
-)
+CIMPROPERTY_C1_TCYAML = {
+    'pywbem_object': 'CIMProperty',
+    'name': 'C1',
+    'type': 'char16',
+    'value': 'A',
+    'reference_class': None,
+    'embedded_object': None,
+    'is_array': False,
+    'array_size': None,
+    'class_origin': None,
+    'propagated': None,
+    'qualifiers': yaml_ordereddict(),
+}
 CIMPROPERTY_C2_OBJ = CIMProperty('C2', type='char16', value='\u00E4')
-CIMPROPERTY_C2_TCYAML = dict(
-    pywbem_object='CIMProperty',
-    name='C2',
-    type='char16',
-    value='\u00E4',
-    reference_class=None,
-    embedded_object=None,
-    is_array=False,
-    array_size=None,
-    class_origin=None,
-    propagated=None,
-    qualifiers=yaml_ordereddict(),
-)
+CIMPROPERTY_C2_TCYAML = {
+    'pywbem_object': 'CIMProperty',
+    'name': 'C2',
+    'type': 'char16',
+    'value': '\u00E4',
+    'reference_class': None,
+    'embedded_object': None,
+    'is_array': False,
+    'array_size': None,
+    'class_origin': None,
+    'propagated': None,
+    'qualifiers': yaml_ordereddict(),
+}
 # Note that the value space of the char16 datatype is UCS-2
 CIMPROPERTY_S1_OBJ = CIMProperty('S1', type='string', value='Ham')
-CIMPROPERTY_S1_TCYAML = dict(
-    pywbem_object='CIMProperty',
-    name='S1',
-    type='string',
-    value='Ham',
-    reference_class=None,
-    embedded_object=None,
-    is_array=False,
-    array_size=None,
-    class_origin=None,
-    propagated=None,
-    qualifiers=yaml_ordereddict(),
-)
+CIMPROPERTY_S1_TCYAML = {
+    'pywbem_object': 'CIMProperty',
+    'name': 'S1',
+    'type': 'string',
+    'value': 'Ham',
+    'reference_class': None,
+    'embedded_object': None,
+    'is_array': False,
+    'array_size': None,
+    'class_origin': None,
+    'propagated': None,
+    'qualifiers': yaml_ordereddict(),
+}
 CIMPROPERTY_S2_OBJ = CIMProperty('S2', type='string', value='H\u00E4m')
-CIMPROPERTY_S2_TCYAML = dict(
-    pywbem_object='CIMProperty',
-    name='S2',
-    type='string',
-    value='H\u00E4m',
-    reference_class=None,
-    embedded_object=None,
-    is_array=False,
-    array_size=None,
-    class_origin=None,
-    propagated=None,
-    qualifiers=yaml_ordereddict(),
-)
+CIMPROPERTY_S2_TCYAML = {
+    'pywbem_object': 'CIMProperty',
+    'name': 'S2',
+    'type': 'string',
+    'value': 'H\u00E4m',
+    'reference_class': None,
+    'embedded_object': None,
+    'is_array': False,
+    'array_size': None,
+    'class_origin': None,
+    'propagated': None,
+    'qualifiers': yaml_ordereddict(),
+}
 CIMPROPERTY_S3_OBJ = CIMProperty('S3', type='string', value='A\U00010142B')
-CIMPROPERTY_S3_TCYAML = dict(
-    pywbem_object='CIMProperty',
-    name='S3',
-    type='string',
-    value='A\U00010142B',
-    reference_class=None,
-    embedded_object=None,
-    is_array=False,
-    array_size=None,
-    class_origin=None,
-    propagated=None,
-    qualifiers=yaml_ordereddict(),
-)
+CIMPROPERTY_S3_TCYAML = {
+    'pywbem_object': 'CIMProperty',
+    'name': 'S3',
+    'type': 'string',
+    'value': 'A\U00010142B',
+    'reference_class': None,
+    'embedded_object': None,
+    'is_array': False,
+    'array_size': None,
+    'class_origin': None,
+    'propagated': None,
+    'qualifiers': yaml_ordereddict(),
+}
 CIMPROPERTY_E1_OBJ = CIMProperty('E1', type='string',
                                  embedded_object='instance',
                                  value=CIMInstance('C_Emb'))
-CIMPROPERTY_E1_TCYAML = dict(
-    pywbem_object='CIMProperty',
-    name='E1',
-    type='string',
-    value=dict(
-        pywbem_object='CIMInstance',
-        classname='C_Emb',
-        properties=yaml_ordereddict(),
-        qualifiers=yaml_ordereddict(),
-        path=None,
-    ),
-    reference_class=None,
-    embedded_object='instance',
-    is_array=False,
-    array_size=None,
-    class_origin=None,
-    propagated=None,
-    qualifiers=yaml_ordereddict(),
-)
+CIMPROPERTY_E1_TCYAML = {
+    'pywbem_object': 'CIMProperty',
+    'name': 'E1',
+    'type': 'string',
+    'value': {
+        'pywbem_object': 'CIMInstance',
+        'classname': 'C_Emb',
+        'properties': yaml_ordereddict(),
+        'qualifiers': yaml_ordereddict(),
+        'path': None,
+    },
+    'reference_class': None,
+    'embedded_object': 'instance',
+    'is_array': False,
+    'array_size': None,
+    'class_origin': None,
+    'propagated': None,
+    'qualifiers': yaml_ordereddict(),
+}
 CIMPROPERTY_E2_OBJ = CIMProperty('E2', type='string',
                                  embedded_object='object',
                                  value=CIMInstance('C_Emb'))
-CIMPROPERTY_E2_TCYAML = dict(
-    pywbem_object='CIMProperty',
-    name='E2',
-    type='string',
-    value=dict(
-        pywbem_object='CIMInstance',
-        classname='C_Emb',
-        properties=yaml_ordereddict(),
-        qualifiers=yaml_ordereddict(),
-        path=None,
-    ),
-    reference_class=None,
-    embedded_object='object',
-    is_array=False,
-    array_size=None,
-    class_origin=None,
-    propagated=None,
-    qualifiers=yaml_ordereddict(),
-)
+CIMPROPERTY_E2_TCYAML = {
+    'pywbem_object': 'CIMProperty',
+    'name': 'E2',
+    'type': 'string',
+    'value': {
+        'pywbem_object': 'CIMInstance',
+        'classname': 'C_Emb',
+        'properties': yaml_ordereddict(),
+        'qualifiers': yaml_ordereddict(),
+        'path': None,
+    },
+    'reference_class': None,
+    'embedded_object': 'object',
+    'is_array': False,
+    'array_size': None,
+    'class_origin': None,
+    'propagated': None,
+    'qualifiers': yaml_ordereddict(),
+}
 CIMPROPERTY_E3_OBJ = CIMProperty('E3', type='string',
                                  embedded_object='object',
                                  value=CIMClass('C_Emb'))
-CIMPROPERTY_E3_TCYAML = dict(
-    pywbem_object='CIMProperty',
-    name='E3',
-    type='string',
-    value=dict(
-        pywbem_object='CIMClass',
-        classname='C_Emb',
-        superclass=None,
-        properties=yaml_ordereddict(),
-        methods=yaml_ordereddict(),
-        qualifiers=yaml_ordereddict(),
-        path=None,
-    ),
-    reference_class=None,
-    embedded_object='object',
-    is_array=False,
-    array_size=None,
-    class_origin=None,
-    propagated=None,
-    qualifiers=yaml_ordereddict(),
-)
+CIMPROPERTY_E3_TCYAML = {
+    'pywbem_object': 'CIMProperty',
+    'name': 'E3',
+    'type': 'string',
+    'value': {
+        'pywbem_object': 'CIMClass',
+        'classname': 'C_Emb',
+        'superclass': None,
+        'properties': yaml_ordereddict(),
+        'methods': yaml_ordereddict(),
+        'qualifiers': yaml_ordereddict(),
+        'path': None,
+    },
+    'reference_class': None,
+    'embedded_object': 'object',
+    'is_array': False,
+    'array_size': None,
+    'class_origin': None,
+    'propagated': None,
+    'qualifiers': yaml_ordereddict(),
+}
 CIMPROPERTY_U11_OBJ = CIMProperty('U11', value=Uint8(42))
-CIMPROPERTY_U11_TCYAML = dict(
-    pywbem_object='CIMProperty',
-    name='U11',
-    type='uint8',
-    value=42,
-    reference_class=None,
-    embedded_object=None,
-    is_array=False,
-    array_size=None,
-    class_origin=None,
-    propagated=None,
-    qualifiers=yaml_ordereddict(),
-)
+CIMPROPERTY_U11_TCYAML = {
+    'pywbem_object': 'CIMProperty',
+    'name': 'U11',
+    'type': 'uint8',
+    'value': 42,
+    'reference_class': None,
+    'embedded_object': None,
+    'is_array': False,
+    'array_size': None,
+    'class_origin': None,
+    'propagated': None,
+    'qualifiers': yaml_ordereddict(),
+}
 CIMPROPERTY_U21_OBJ = CIMProperty('U21', value=Uint16(4216))
-CIMPROPERTY_U21_TCYAML = dict(
-    pywbem_object='CIMProperty',
-    name='U21',
-    type='uint16',
-    value=4216,
-    reference_class=None,
-    embedded_object=None,
-    is_array=False,
-    array_size=None,
-    class_origin=None,
-    propagated=None,
-    qualifiers=yaml_ordereddict(),
-)
+CIMPROPERTY_U21_TCYAML = {
+    'pywbem_object': 'CIMProperty',
+    'name': 'U21',
+    'type': 'uint16',
+    'value': 4216,
+    'reference_class': None,
+    'embedded_object': None,
+    'is_array': False,
+    'array_size': None,
+    'class_origin': None,
+    'propagated': None,
+    'qualifiers': yaml_ordereddict(),
+}
 CIMPROPERTY_U41_OBJ = CIMProperty('U41', value=Uint32(4232))
-CIMPROPERTY_U41_TCYAML = dict(
-    pywbem_object='CIMProperty',
-    name='U41',
-    type='uint32',
-    value=4232,
-    reference_class=None,
-    embedded_object=None,
-    is_array=False,
-    array_size=None,
-    class_origin=None,
-    propagated=None,
-    qualifiers=yaml_ordereddict(),
-)
+CIMPROPERTY_U41_TCYAML = {
+    'pywbem_object': 'CIMProperty',
+    'name': 'U41',
+    'type': 'uint32',
+    'value': 4232,
+    'reference_class': None,
+    'embedded_object': None,
+    'is_array': False,
+    'array_size': None,
+    'class_origin': None,
+    'propagated': None,
+    'qualifiers': yaml_ordereddict(),
+}
 CIMPROPERTY_U81_OBJ = CIMProperty('U81', value=Uint64(4264))
-CIMPROPERTY_U81_TCYAML = dict(
-    pywbem_object='CIMProperty',
-    name='U81',
-    type='uint64',
-    value=4264,
-    reference_class=None,
-    embedded_object=None,
-    is_array=False,
-    array_size=None,
-    class_origin=None,
-    propagated=None,
-    qualifiers=yaml_ordereddict(),
-)
+CIMPROPERTY_U81_TCYAML = {
+    'pywbem_object': 'CIMProperty',
+    'name': 'U81',
+    'type': 'uint64',
+    'value': 4264,
+    'reference_class': None,
+    'embedded_object': None,
+    'is_array': False,
+    'array_size': None,
+    'class_origin': None,
+    'propagated': None,
+    'qualifiers': yaml_ordereddict(),
+}
 CIMPROPERTY_S11_OBJ = CIMProperty('S11', value=Sint8(-42))
-CIMPROPERTY_S11_TCYAML = dict(
-    pywbem_object='CIMProperty',
-    name='S11',
-    type='sint8',
-    value=-42,
-    reference_class=None,
-    embedded_object=None,
-    is_array=False,
-    array_size=None,
-    class_origin=None,
-    propagated=None,
-    qualifiers=yaml_ordereddict(),
-)
+CIMPROPERTY_S11_TCYAML = {
+    'pywbem_object': 'CIMProperty',
+    'name': 'S11',
+    'type': 'sint8',
+    'value': -42,
+    'reference_class': None,
+    'embedded_object': None,
+    'is_array': False,
+    'array_size': None,
+    'class_origin': None,
+    'propagated': None,
+    'qualifiers': yaml_ordereddict(),
+}
 CIMPROPERTY_S21_OBJ = CIMProperty('S21', value=Sint16(-4216))
-CIMPROPERTY_S21_TCYAML = dict(
-    pywbem_object='CIMProperty',
-    name='S21',
-    type='sint16',
-    value=-4216,
-    reference_class=None,
-    embedded_object=None,
-    is_array=False,
-    array_size=None,
-    class_origin=None,
-    propagated=None,
-    qualifiers=yaml_ordereddict(),
-)
+CIMPROPERTY_S21_TCYAML = {
+    'pywbem_object': 'CIMProperty',
+    'name': 'S21',
+    'type': 'sint16',
+    'value': -4216,
+    'reference_class': None,
+    'embedded_object': None,
+    'is_array': False,
+    'array_size': None,
+    'class_origin': None,
+    'propagated': None,
+    'qualifiers': yaml_ordereddict(),
+}
 CIMPROPERTY_S41_OBJ = CIMProperty('S41', value=Sint32(-4232))
-CIMPROPERTY_S41_TCYAML = dict(
-    pywbem_object='CIMProperty',
-    name='S41',
-    type='sint32',
-    value=-4232,
-    reference_class=None,
-    embedded_object=None,
-    is_array=False,
-    array_size=None,
-    class_origin=None,
-    propagated=None,
-    qualifiers=yaml_ordereddict(),
-)
+CIMPROPERTY_S41_TCYAML = {
+    'pywbem_object': 'CIMProperty',
+    'name': 'S41',
+    'type': 'sint32',
+    'value': -4232,
+    'reference_class': None,
+    'embedded_object': None,
+    'is_array': False,
+    'array_size': None,
+    'class_origin': None,
+    'propagated': None,
+    'qualifiers': yaml_ordereddict(),
+}
 CIMPROPERTY_S81_OBJ = CIMProperty('S81', value=Sint64(-4264))
-CIMPROPERTY_S81_TCYAML = dict(
-    pywbem_object='CIMProperty',
-    name='S81',
-    type='sint64',
-    value=-4264,
-    reference_class=None,
-    embedded_object=None,
-    is_array=False,
-    array_size=None,
-    class_origin=None,
-    propagated=None,
-    qualifiers=yaml_ordereddict(),
-)
+CIMPROPERTY_S81_TCYAML = {
+    'pywbem_object': 'CIMProperty',
+    'name': 'S81',
+    'type': 'sint64',
+    'value': -4264,
+    'reference_class': None,
+    'embedded_object': None,
+    'is_array': False,
+    'array_size': None,
+    'class_origin': None,
+    'propagated': None,
+    'qualifiers': yaml_ordereddict(),
+}
 CIMPROPERTY_R41_OBJ = CIMProperty('R41', value=Real32(42.0))
-CIMPROPERTY_R41_TCYAML = dict(
-    pywbem_object='CIMProperty',
-    name='R41',
-    type='real32',
-    value=42.0,
-    reference_class=None,
-    embedded_object=None,
-    is_array=False,
-    array_size=None,
-    class_origin=None,
-    propagated=None,
-    qualifiers=yaml_ordereddict(),
-)
+CIMPROPERTY_R41_TCYAML = {
+    'pywbem_object': 'CIMProperty',
+    'name': 'R41',
+    'type': 'real32',
+    'value': 42.0,
+    'reference_class': None,
+    'embedded_object': None,
+    'is_array': False,
+    'array_size': None,
+    'class_origin': None,
+    'propagated': None,
+    'qualifiers': yaml_ordereddict(),
+}
 CIMPROPERTY_R81_OBJ = CIMProperty('R81', value=Real64(42.64))
-CIMPROPERTY_R81_TCYAML = dict(
-    pywbem_object='CIMProperty',
-    name='R81',
-    type='real64',
-    value=42.64,
-    reference_class=None,
-    embedded_object=None,
-    is_array=False,
-    array_size=None,
-    class_origin=None,
-    propagated=None,
-    qualifiers=yaml_ordereddict(),
-)
+CIMPROPERTY_R81_TCYAML = {
+    'pywbem_object': 'CIMProperty',
+    'name': 'R81',
+    'type': 'real64',
+    'value': 42.64,
+    'reference_class': None,
+    'embedded_object': None,
+    'is_array': False,
+    'array_size': None,
+    'class_origin': None,
+    'propagated': None,
+    'qualifiers': yaml_ordereddict(),
+}
 CIMPROPERTY_R1_OBJ = CIMProperty('R1', value=CIMInstanceName('C1'))
-CIMPROPERTY_R1_TCYAML = dict(
-    pywbem_object='CIMProperty',
-    name='R1',
-    type='reference',
-    value=dict(
-        pywbem_object='CIMInstanceName',
-        classname='C1',
-        keybindings=yaml_ordereddict(),
-        namespace=None,
-        host=None,
-    ),
-    reference_class=None,
-    embedded_object=None,
-    is_array=False,
-    array_size=None,
-    class_origin=None,
-    propagated=None,
-    qualifiers=yaml_ordereddict(),
-)
+CIMPROPERTY_R1_TCYAML = {
+    'pywbem_object': 'CIMProperty',
+    'name': 'R1',
+    'type': 'reference',
+    'value': {
+        'pywbem_object': 'CIMInstanceName',
+        'classname': 'C1',
+        'keybindings': yaml_ordereddict(),
+        'namespace': None,
+        'host': None,
+    },
+    'reference_class': None,
+    'embedded_object': None,
+    'is_array': False,
+    'array_size': None,
+    'class_origin': None,
+    'propagated': None,
+    'qualifiers': yaml_ordereddict(),
+}
 CIMPROPERTY_D1_OBJ = CIMProperty(
     'D1',
     value=CIMDateTime('20140924193040.654321+120'))
-CIMPROPERTY_D1_TCYAML = dict(
-    pywbem_object='CIMProperty',
-    name='D1',
-    type='datetime',
-    value='20140924193040.654321+120',
-    reference_class=None,
-    embedded_object=None,
-    is_array=False,
-    array_size=None,
-    class_origin=None,
-    propagated=None,
-    qualifiers=yaml_ordereddict(),
-)
+CIMPROPERTY_D1_TCYAML = {
+    'pywbem_object': 'CIMProperty',
+    'name': 'D1',
+    'type': 'datetime',
+    'value': '20140924193040.654321+120',
+    'reference_class': None,
+    'embedded_object': None,
+    'is_array': False,
+    'array_size': None,
+    'class_origin': None,
+    'propagated': None,
+    'qualifiers': yaml_ordereddict(),
+}
 
 # CIMInstance object without path, with all property types and the test client
 # YAML object
@@ -524,7 +521,7 @@ CIMINSTANCE_WP_ALL_OBJ = CIMInstance(
     ],
     path=CIMInstanceName(
         'CIM_Foo',
-        keybindings=dict(S1=CIMPROPERTY_S1_OBJ.value),
+        keybindings={'S1': CIMPROPERTY_S1_OBJ.value},
         namespace='root/cimv2',
         host='woot.com',
     ),
@@ -559,7 +556,7 @@ CIMINSTANCE_WP_ALL_TCYAML = yaml_ordereddict([
     ('path', yaml_ordereddict([
         ('pywbem_object', 'CIMInstanceName'),
         ('classname', 'CIM_Foo'),
-        ('keybindings', dict(S1=CIMPROPERTY_S1_TCYAML['value'])),
+        ('keybindings', {'S1': CIMPROPERTY_S1_TCYAML['value']}),
         ('namespace', 'root/cimv2'),
         ('host', 'woot.com'),
     ])),
@@ -643,7 +640,7 @@ CIMINSTANCES_WP_OBJS = [
         ],
         path=CIMInstanceName(
             'CIM_Foo',
-            keybindings=dict(S1=CIMPROPERTY_S1_OBJ.value),
+            keybindings={'S1': CIMPROPERTY_S1_OBJ.value},
             namespace='root/cimv2',
             host='woot.com',
         ),
@@ -656,7 +653,7 @@ CIMINSTANCES_WP_OBJS = [
         ],
         path=CIMInstanceName(
             'CIM_Foo',
-            keybindings=dict(S1=CIMPROPERTY_S1_OBJ.value),
+            keybindings={'S1': CIMPROPERTY_S1_OBJ.value},
             namespace='root/cimv2',
             host='woot.com',
         ),
@@ -674,7 +671,7 @@ CIMINSTANCES_WP_TCYAML = [
         ('path', yaml_ordereddict([
             ('pywbem_object', 'CIMInstanceName'),
             ('classname', 'CIM_Foo'),
-            ('keybindings', dict(S1=CIMPROPERTY_S1_TCYAML['value'])),
+            ('keybindings', {'S1': CIMPROPERTY_S1_TCYAML['value']}),
             ('namespace', 'root/cimv2'),
             ('host', 'woot.com'),
         ])),
@@ -690,7 +687,7 @@ CIMINSTANCES_WP_TCYAML = [
         ('path', yaml_ordereddict([
             ('pywbem_object', 'CIMInstanceName'),
             ('classname', 'CIM_Foo'),
-            ('keybindings', dict(S1=CIMPROPERTY_S1_TCYAML['value'])),
+            ('keybindings', {'S1': CIMPROPERTY_S1_TCYAML['value']}),
             ('namespace', 'root/cimv2'),
             ('host', 'woot.com'),
         ])),
@@ -714,14 +711,14 @@ def instances_wp_tuple(request):
 # CIMInstanceName object and the test client YAML object
 CIMINSTANCENAME_OBJ = CIMInstanceName(
     'CIM_Foo',
-    keybindings=dict(S1='a'),
+    keybindings={'S1': 'a'},
     namespace='root/cimv2',
     host='woot.com',
 )
 CIMINSTANCENAME_TCYAML = yaml_ordereddict([
     ('pywbem_object', 'CIMInstanceName'),
     ('classname', 'CIM_Foo'),
-    ('keybindings', dict(S1='a')),
+    ('keybindings', {'S1': 'a'}),
     ('namespace', 'root/cimv2'),
     ('host', 'woot.com'),
 ])
@@ -878,34 +875,34 @@ TESTCASES_BASEOPERATIONRECORDER_OPEN_FILE = [
 
     (
         "Single 7-bit ASCII character",
-        dict(
-            text='A',
-            exp_bytes=b'A',
-        ),
+        {
+            'text': 'A',
+            'exp_bytes': b'A',
+        },
         None, None, True
     ),
     (
         "Single UCS-2 character resulting in 2-char UTF-8 sequence",
-        dict(
-            text='\u00E8',
-            exp_bytes=b'\xC3\xA8',
-        ),
+        {
+            'text': '\u00E8',
+            'exp_bytes': b'\xC3\xA8',
+        },
         None, None, True
     ),
     (
         "Single UCS-2 character resulting in 3-char UTF-8 sequence",
-        dict(
-            text='\u2014',
-            exp_bytes=b'\xE2\x80\x94',
-        ),
+        {
+            'text': '\u2014',
+            'exp_bytes': b'\xE2\x80\x94',
+        },
         None, None, True
     ),
     (
         "Single UCS-4 character resulting in 4-char UTF-8 sequence",
-        dict(
-            text='\U00010142',
-            exp_bytes=b'\xF0\x90\x85\x82',
-        ),
+        {
+            'text': '\U00010142',
+            'exp_bytes': b'\xF0\x90\x85\x82',
+        },
         None, None, True
     ),
 ]
@@ -958,98 +955,98 @@ TESTCASES_TESTCLIENTRECORDER_TOYAML = [
 
     (
         "Boolean value True",
-        dict(
-            obj=True,
-            exp_yaml=True,
-        ),
+        {
+            'obj': True,
+            'exp_yaml': True,
+        },
         None, None, True
     ),
     (
         "Boolean value False",
-        dict(
-            obj=False,
-            exp_yaml=False,
-        ),
+        {
+            'obj': False,
+            'exp_yaml': False,
+        },
         None, None, True
     ),
     (
         "Integer value",
-        dict(
-            obj=1234,
-            exp_yaml=1234,
-        ),
+        {
+            'obj': 1234,
+            'exp_yaml': 1234,
+        },
         None, None, True
     ),
     (
         "Uint8 value",
-        dict(
-            obj=Uint8(42),
-            exp_yaml=42,
-        ),
+        {
+            'obj': Uint8(42),
+            'exp_yaml': 42,
+        },
         None, None, True
     ),
     (
         "Float value",
-        dict(
-            obj=42.1,
-            exp_yaml=None,
-        ),
+        {
+            'obj': 42.1,
+            'exp_yaml': None,
+        },
         TypeError, None, True
     ),
     (
         "Real32 value",
-        dict(
-            obj=Real32(42.1),
-            exp_yaml=42.1,
-        ),
+        {
+            'obj': Real32(42.1),
+            'exp_yaml': 42.1,
+        },
         None, None, True
     ),
     (
         "Unicode string value",
-        dict(
-            obj='blahblah ',
-            exp_yaml='blahblah ',
-        ),
+        {
+            'obj': 'blahblah ',
+            'exp_yaml': 'blahblah ',
+        },
         None, None, True
     ),
     (
         "Byte string value",
-        dict(
-            obj=b'blahblah ',
-            exp_yaml='blahblah ',
-        ),
+        {
+            'obj': b'blahblah ',
+            'exp_yaml': 'blahblah ',
+        },
         None, None, True
     ),
     (
         "CIMDateTime object",
-        dict(
-            obj=CIMDateTime('20140924193040.654321+120'),
-            exp_yaml='20140924193040.654321+120',
-        ),
+        {
+            'obj': CIMDateTime('20140924193040.654321+120'),
+            'exp_yaml': '20140924193040.654321+120',
+        },
         None, None, True
     ),
     (
         "datetime object",
-        dict(
-            obj=datetime(year=2020, month=1, day=28, hour=14, minute=46,
-                         second=40, microsecond=654321,
-                         tzinfo=MinutesFromUTC(120)),
-            exp_yaml=CIMDateTime('20200128144640.654321+120'),
-        ),
+        {
+            'obj': datetime(year=2020, month=1, day=28, hour=14, minute=46,
+                            second=40, microsecond=654321,
+                            tzinfo=MinutesFromUTC(120)),
+            'exp_yaml': CIMDateTime('20200128144640.654321+120'),
+        },
         None, None, True
     ),
     (
         "timedelta object",
-        dict(
-            obj=timedelta(183, (13 * 60 + 25) * 60 + 42, 234567),
-            exp_yaml=CIMDateTime('00000183132542.234567:000'),
-        ),
+        {
+            'obj': timedelta(183, (13 * 60 + 25) * 60 + 42, 234567),
+            'exp_yaml': CIMDateTime('00000183132542.234567:000'),
+        },
         None, None, True
     ),
     (
         "CIMInstanceName object",
-        dict(
-            obj=CIMInstanceName(
+        {
+            'obj': CIMInstanceName(
                 'CIM_Foo',
                 keybindings=OrderedDict([
                     ('Chicken', 'Ham'),
@@ -1058,122 +1055,122 @@ TESTCASES_TESTCLIENTRECORDER_TOYAML = [
                 namespace='cimv2',
                 host='woot.com',
             ),
-            exp_yaml=dict(
-                pywbem_object='CIMInstanceName',
-                classname='CIM_Foo',
-                namespace='cimv2',
-                host='woot.com',
-                keybindings=yaml_ordereddict([
+            'exp_yaml': {
+                'pywbem_object': 'CIMInstanceName',
+                'classname': 'CIM_Foo',
+                'namespace': 'cimv2',
+                'host': 'woot.com',
+                'keybindings': yaml_ordereddict([
                     ('Chicken', 'Ham'),
                     ('Beans', 42),
                 ]),
-            ),
-        ),
+            },
+        },
         None, None, True
     ),
     (
         "CIMInstance object",
-        dict(
-            obj=CIMInstance(
+        {
+            'obj': CIMInstance(
                 'CIM_Foo',
                 properties=[
                     ('Chicken', 'Ham'),
                 ],
             ),
-            exp_yaml=dict(
-                pywbem_object='CIMInstance',
-                classname='CIM_Foo',
-                properties=yaml_ordereddict([
-                    ('Chicken', dict(
-                        pywbem_object='CIMProperty',
-                        name='Chicken',
-                        type='string',
-                        value='Ham',
-                        reference_class=None,
-                        embedded_object=None,
-                        is_array=False,
-                        array_size=None,
-                        class_origin=None,
-                        propagated=None,
-                        qualifiers=yaml_ordereddict(),
-                    )),
+            'exp_yaml': {
+                'pywbem_object': 'CIMInstance',
+                'classname': 'CIM_Foo',
+                'properties': yaml_ordereddict([
+                    ('Chicken', {
+                        'pywbem_object': 'CIMProperty',
+                        'name': 'Chicken',
+                        'type': 'string',
+                        'value': 'Ham',
+                        'reference_class': None,
+                        'embedded_object': None,
+                        'is_array': False,
+                        'array_size': None,
+                        'class_origin': None,
+                        'propagated': None,
+                        'qualifiers': yaml_ordereddict(),
+                    }),
                 ]),
-                qualifiers=yaml_ordereddict(),
-                path=None,
-            ),
-        ),
+                'qualifiers': yaml_ordereddict(),
+                'path': None,
+            },
+        },
         None, None, True
     ),
     (
         "CIMClassName object",
-        dict(
-            obj=CIMClassName(
+        {
+            'obj': CIMClassName(
                 'CIM_Foo',
                 namespace='cimv2',
                 host='woot.com',
             ),
-            exp_yaml=dict(
-                pywbem_object='CIMClassName',
-                classname='CIM_Foo',
-                namespace='cimv2',
-                host='woot.com',
-            ),
-        ),
+            'exp_yaml': {
+                'pywbem_object': 'CIMClassName',
+                'classname': 'CIM_Foo',
+                'namespace': 'cimv2',
+                'host': 'woot.com',
+            },
+        },
         None, None, True
     ),
     (
         "CIMClass object",
-        dict(
-            obj=CIMClass(
+        {
+            'obj': CIMClass(
                 'CIM_Foo',
                 properties=[
                     CIMProperty('Chicken', type='string', value='Ham'),
                 ],
             ),
-            exp_yaml=dict(
-                pywbem_object='CIMClass',
-                classname='CIM_Foo',
-                superclass=None,
-                properties=yaml_ordereddict([
-                    ('Chicken', dict(
-                        pywbem_object='CIMProperty',
-                        name='Chicken',
-                        type='string',
-                        value='Ham',
-                        reference_class=None,
-                        embedded_object=None,
-                        is_array=False,
-                        array_size=None,
-                        class_origin=None,
-                        propagated=None,
-                        qualifiers=yaml_ordereddict(),
-                    )),
+            'exp_yaml': {
+                'pywbem_object': 'CIMClass',
+                'classname': 'CIM_Foo',
+                'superclass': None,
+                'properties': yaml_ordereddict([
+                    ('Chicken', {
+                        'pywbem_object': 'CIMProperty',
+                        'name': 'Chicken',
+                        'type': 'string',
+                        'value': 'Ham',
+                        'reference_class': None,
+                        'embedded_object': None,
+                        'is_array': False,
+                        'array_size': None,
+                        'class_origin': None,
+                        'propagated': None,
+                        'qualifiers': yaml_ordereddict(),
+                    }),
                 ]),
-                methods=yaml_ordereddict(),
-                qualifiers=yaml_ordereddict(),
-                path=None,
-            ),
-        ),
+                'methods': yaml_ordereddict(),
+                'qualifiers': yaml_ordereddict(),
+                'path': None,
+            },
+        },
         None, None, True
     ),
     (
         "CIMProperty object",
-        dict(
-            obj=CIMProperty('Chicken', type='string', value='Ham'),
-            exp_yaml=dict(
-                pywbem_object='CIMProperty',
-                name='Chicken',
-                type='string',
-                value='Ham',
-                reference_class=None,
-                embedded_object=None,
-                is_array=False,
-                array_size=None,
-                class_origin=None,
-                propagated=None,
-                qualifiers=yaml_ordereddict(),
-            ),
-        ),
+        {
+            'obj': CIMProperty('Chicken', type='string', value='Ham'),
+            'exp_yaml': {
+                'pywbem_object': 'CIMProperty',
+                'name': 'Chicken',
+                'type': 'string',
+                'value': 'Ham',
+                'reference_class': None,
+                'embedded_object': None,
+                'is_array': False,
+                'array_size': None,
+                'class_origin': None,
+                'propagated': None,
+                'qualifiers': yaml_ordereddict(),
+            },
+        },
         None, None, True
     ),
     # TODO: Add testcase for reference property
@@ -1181,35 +1178,35 @@ TESTCASES_TESTCLIENTRECORDER_TOYAML = [
     # TODO: Add testcase for array property
     (
         "CIMMethod object",
-        dict(
-            obj=CIMMethod('Chicken', return_type='string'),
-            exp_yaml=dict(
-                pywbem_object='CIMMethod',
-                name='Chicken',
-                return_type='string',
-                class_origin=None,
-                propagated=None,
-                parameters=yaml_ordereddict(),
-                qualifiers=yaml_ordereddict(),
-            ),
-        ),
+        {
+            'obj': CIMMethod('Chicken', return_type='string'),
+            'exp_yaml': {
+                'pywbem_object': 'CIMMethod',
+                'name': 'Chicken',
+                'return_type': 'string',
+                'class_origin': None,
+                'propagated': None,
+                'parameters': yaml_ordereddict(),
+                'qualifiers': yaml_ordereddict(),
+            },
+        },
         None, None, True
     ),
     (
         "CIMParameter object",
-        dict(
-            obj=CIMParameter('Chicken', type='string'),
-            exp_yaml=dict(
-                pywbem_object='CIMParameter',
-                name='Chicken',
-                type='string',
-                reference_class=None,
-                embedded_object=None,
-                is_array=False,
-                array_size=None,
-                qualifiers=yaml_ordereddict(),
-            ),
-        ),
+        {
+            'obj': CIMParameter('Chicken', type='string'),
+            'exp_yaml': {
+                'pywbem_object': 'CIMParameter',
+                'name': 'Chicken',
+                'type': 'string',
+                'reference_class': None,
+                'embedded_object': None,
+                'is_array': False,
+                'array_size': None,
+                'qualifiers': yaml_ordereddict(),
+            },
+        },
         None, None, True
     ),
     # TODO: Add testcase for reference parameter
@@ -1217,73 +1214,74 @@ TESTCASES_TESTCLIENTRECORDER_TOYAML = [
     # TODO: Add testcase for array parameter
     (
         "CIMQualifier object",
-        dict(
-            obj=CIMQualifier('Chicken', type='string', value='Ham'),
-            exp_yaml=dict(
-                pywbem_object='CIMQualifier',
-                name='Chicken',
-                type='string',
-                value='Ham',
-                propagated=None,
-                tosubclass=None,
-                toinstance=None,
-                overridable=None,
-                translatable=None,
-            ),
-        ),
+        {
+            'obj': CIMQualifier('Chicken', type='string', value='Ham'),
+            'exp_yaml': {
+                'pywbem_object': 'CIMQualifier',
+                'name': 'Chicken',
+                'type': 'string',
+                'value': 'Ham',
+                'propagated': None,
+                'tosubclass': None,
+                'toinstance': None,
+                'overridable': None,
+                'translatable': None,
+            },
+        },
         None, None, True
     ),
     (
         "CIMQualifierDeclaration object",
-        dict(
-            obj=CIMQualifierDeclaration('Chicken', type='string', value='Ham'),
-            exp_yaml=dict(
-                pywbem_object='CIMQualifierDeclaration',
-                name='Chicken',
-                type='string',
-                value='Ham',
-                is_array=False,
-                array_size=None,
-                scopes=yaml_ordereddict(),
-                tosubclass=None,
-                toinstance=None,
-                overridable=None,
-                translatable=None,
-            ),
-        ),
+        {
+            'obj': CIMQualifierDeclaration(
+                'Chicken', type='string', value='Ham'),
+            'exp_yaml': {
+                'pywbem_object': 'CIMQualifierDeclaration',
+                'name': 'Chicken',
+                'type': 'string',
+                'value': 'Ham',
+                'is_array': False,
+                'array_size': None,
+                'scopes': yaml_ordereddict(),
+                'tosubclass': None,
+                'toinstance': None,
+                'overridable': None,
+                'translatable': None,
+            },
+        },
         None, None, True
     ),
     # TODO: Add testcase for array qualifier decl
     (
         "pull_path_result_tuple object for exhausted open/pull",
-        dict(
-            obj=pull_path_result_tuple(
+        {
+            'obj': pull_path_result_tuple(
                 [],
                 True,
                 None,
             ),
-            exp_yaml=dict(
-                paths=[],
-                eos=True,
-                context=None,
-            ),
-        ),
+            'exp_yaml': {
+                'paths': [],
+                'eos': True,
+                'context': None,
+            },
+        },
         None, None, True
     ),
     (
         "pull_path_result_tuple object for non-exhausted open/pull",
-        dict(
-            obj=pull_path_result_tuple(
+        {
+            'obj': pull_path_result_tuple(
                 [],
                 False,
                 ('test_rtn_context', 'root/cim_namespace'),
             ),
-            exp_yaml=dict(
-                paths=[],
-                eos=False,
-                context=['test_rtn_context', 'root/cim_namespace'],
-            ),
-        ),
+            'exp_yaml': {
+                'paths': [],
+                'eos': False,
+                'context': ['test_rtn_context', 'root/cim_namespace'],
+            },
+        },
         None, None, True
     ),
 ]
@@ -1327,206 +1325,206 @@ TESTCASES_TESTCLIENTRECORDER_RECORD = [
     (
         "InvokeMethod of instance method",
         'InvokeMethod',
-        dict(
-            namespace='cim/blah',
-            MethodName='Blah',
-            ObjectName=CIMInstanceName('C1'),
-            Params=[
+        {
+            'namespace': 'cim/blah',
+            'MethodName': 'Blah',
+            'ObjectName': CIMInstanceName('C1'),
+            'Params': [
                 CIMParameter('P1', type='string', value='abc'),
             ],
-        ),
+        },
         Uint32(42),
         None,
-        dict(
-            name='InvokeMethod',
-            pywbem_request=dict(
-                url='http://acme.com:80',
-                creds=['username', 'password'],
-                debug=False,
-                timeout=10,
-                namespace='root/cimv2',
-                operation=dict(
-                    pywbem_method='InvokeMethod',
-                    namespace='cim/blah',
-                    MethodName='Blah',
-                    ObjectName=dict(
-                        pywbem_object='CIMInstanceName',
-                        classname='C1',
-                        keybindings=yaml_ordereddict(),
-                        namespace=None,
-                        host=None,
-                    ),
-                    Params=[
-                        dict(
-                            pywbem_object='CIMParameter',
-                            name='P1',
-                            type='string',
-                            array_size=None,
-                            is_array=False,
-                            reference_class=None,
-                            embedded_object=None,
-                            qualifiers=yaml_ordereddict(),
-                        )
+        {
+            'name': 'InvokeMethod',
+            'pywbem_request': {
+                'url': 'http://acme.com:80',
+                'creds': ['username', 'password'],
+                'debug': False,
+                'timeout': 10,
+                'namespace': 'root/cimv2',
+                'operation': {
+                    'pywbem_method': 'InvokeMethod',
+                    'namespace': 'cim/blah',
+                    'MethodName': 'Blah',
+                    'ObjectName': {
+                        'pywbem_object': 'CIMInstanceName',
+                        'classname': 'C1',
+                        'keybindings': yaml_ordereddict(),
+                        'namespace': None,
+                        'host': None,
+                    },
+                    'Params': [
+                        {
+                            'pywbem_object': 'CIMParameter',
+                            'name': 'P1',
+                            'type': 'string',
+                            'array_size': None,
+                            'is_array': False,
+                            'reference_class': None,
+                            'embedded_object': None,
+                            'qualifiers': yaml_ordereddict(),
+                        }
                     ],
-                ),
-            ),
-            pywbem_response=dict(
-                result=42,
-            ),
-        ),
+                },
+            },
+            'pywbem_response': {
+                'result': 42,
+            },
+        },
     ),
     (
         "GetInstance on an instance",
         'GetInstance',
-        dict(
-            namespace='cim/blah',
-            InstanceName=CIMInstanceName('C1'),
-            LocalOnly=False,
-            IncludeQualifiers=True,
-            IncludeClassOrigin=True,
-            PropertyList=['propertyblah'],
-        ),
+        {
+            'namespace': 'cim/blah',
+            'InstanceName': CIMInstanceName('C1'),
+            'LocalOnly': False,
+            'IncludeQualifiers': True,
+            'IncludeClassOrigin': True,
+            'PropertyList': ['propertyblah'],
+        },
         CIMInstance('C1'),
         None,
-        dict(
-            name='GetInstance',
-            pywbem_request=dict(
-                url='http://acme.com:80',
-                creds=['username', 'password'],
-                debug=False,
-                timeout=10,
-                namespace='root/cimv2',
-                operation=dict(
-                    pywbem_method='GetInstance',
-                    namespace='cim/blah',
-                    IncludeClassOrigin=True,
-                    IncludeQualifiers=True,
-                    InstanceName=dict(
-                        pywbem_object='CIMInstanceName',
-                        classname='C1',
-                        keybindings=yaml_ordereddict(),
-                        namespace=None,
-                        host=None,
-                    ),
-                    LocalOnly=False,
-                    PropertyList=['propertyblah'],
-                ),
-            ),
-            pywbem_response=dict(
-                result=dict(
-                    pywbem_object='CIMInstance',
-                    classname='C1',
-                    properties=yaml_ordereddict(),
-                    qualifiers=yaml_ordereddict(),
-                    path=None,
-                ),
-            ),
-        ),
+        {
+            'name': 'GetInstance',
+            'pywbem_request': {
+                'url': 'http://acme.com:80',
+                'creds': ['username', 'password'],
+                'debug': False,
+                'timeout': 10,
+                'namespace': 'root/cimv2',
+                'operation': {
+                    'pywbem_method': 'GetInstance',
+                    'namespace': 'cim/blah',
+                    'IncludeClassOrigin': True,
+                    'IncludeQualifiers': True,
+                    'InstanceName': {
+                        'pywbem_object': 'CIMInstanceName',
+                        'classname': 'C1',
+                        'keybindings': yaml_ordereddict(),
+                        'namespace': None,
+                        'host': None,
+                    },
+                    'LocalOnly': False,
+                    'PropertyList': ['propertyblah'],
+                },
+            },
+            'pywbem_response': {
+                'result': {
+                    'pywbem_object': 'CIMInstance',
+                    'classname': 'C1',
+                    'properties': yaml_ordereddict(),
+                    'qualifiers': yaml_ordereddict(),
+                    'path': None,
+                },
+            },
+        },
     ),
     (
         "CreateInstance with properties of all types",
         'CreateInstance',
-        dict(
-            namespace='cim/blah',
-            NewInstance=CIMINSTANCE_ALL_OBJ,
-        ),
+        {
+            'namespace': 'cim/blah',
+            'NewInstance': CIMINSTANCE_ALL_OBJ,
+        },
         CIMInstanceName('C1'),
         None,
-        dict(
-            name='CreateInstance',
-            pywbem_request=dict(
-                url='http://acme.com:80',
-                creds=['username', 'password'],
-                debug=False,
-                timeout=10,
-                namespace='root/cimv2',
-                operation=dict(
-                    pywbem_method='CreateInstance',
-                    namespace='cim/blah',
-                    NewInstance=CIMINSTANCE_ALL_TCYAML,
-                ),
-            ),
-            pywbem_response=dict(
-                result=dict(
-                    pywbem_object='CIMInstanceName',
-                    classname='C1',
-                    keybindings=yaml_ordereddict(),
-                    namespace=None,
-                    host=None,
-                ),
-            ),
-        ),
+        {
+            'name': 'CreateInstance',
+            'pywbem_request': {
+                'url': 'http://acme.com:80',
+                'creds': ['username', 'password'],
+                'debug': False,
+                'timeout': 10,
+                'namespace': 'root/cimv2',
+                'operation': {
+                    'pywbem_method': 'CreateInstance',
+                    'namespace': 'cim/blah',
+                    'NewInstance': CIMINSTANCE_ALL_TCYAML,
+                },
+            },
+            'pywbem_response': {
+                'result': {
+                    'pywbem_object': 'CIMInstanceName',
+                    'classname': 'C1',
+                    'keybindings': yaml_ordereddict(),
+                    'namespace': None,
+                    'host': None,
+                },
+            },
+        },
     ),
     (
         "OpenEnumerateInstancePaths operation",
         'OpenEnumerateInstancePaths',
-        dict(
-            namespace='cim/blah',
-            ClassName='CIM_BLAH',
-            FilterQueryLanguage='WQL',
-            FilterQuery='Property = 3',
-            OperationTimeout=40,
-            ContinueOnError=False,
-            MaxObjectCount=100,
-        ),
+        {
+            'namespace': 'cim/blah',
+            'ClassName': 'CIM_BLAH',
+            'FilterQueryLanguage': 'WQL',
+            'FilterQuery': 'Property = 3',
+            'OperationTimeout': 40,
+            'ContinueOnError': False,
+            'MaxObjectCount': 100,
+        },
         pull_path_result_tuple(
             [],
             False,
             ('test_rtn_context', 'root/cim_namespace'),
         ),
         None,
-        dict(
-            name='OpenEnumerateInstancePaths',
-            pywbem_request=dict(
-                url='http://acme.com:80',
-                creds=['username', 'password'],
-                debug=False,
-                timeout=10,
-                namespace='root/cimv2',
-                operation=dict(
-                    pywbem_method='OpenEnumerateInstancePaths',
-                    namespace='cim/blah',
-                    ClassName='CIM_BLAH',
-                    ContinueOnError=False,
-                    FilterQuery='Property = 3',
-                    FilterQueryLanguage='WQL',
-                    MaxObjectCount=100,
-                    OperationTimeout=40,
-                ),
-            ),
-            pywbem_response=dict(
-                pullresult=dict(
-                    context=['test_rtn_context', 'root/cim_namespace'],
-                    eos=False,
-                    paths=[],
-                ),
-            ),
-        ),
+        {
+            'name': 'OpenEnumerateInstancePaths',
+            'pywbem_request': {
+                'url': 'http://acme.com:80',
+                'creds': ['username', 'password'],
+                'debug': False,
+                'timeout': 10,
+                'namespace': 'root/cimv2',
+                'operation': {
+                    'pywbem_method': 'OpenEnumerateInstancePaths',
+                    'namespace': 'cim/blah',
+                    'ClassName': 'CIM_BLAH',
+                    'ContinueOnError': False,
+                    'FilterQuery': 'Property = 3',
+                    'FilterQueryLanguage': 'WQL',
+                    'MaxObjectCount': 100,
+                    'OperationTimeout': 40,
+                },
+            },
+            'pywbem_response': {
+                'pullresult': {
+                    'context': ['test_rtn_context', 'root/cim_namespace'],
+                    'eos': False,
+                    'paths': [],
+                },
+            },
+        },
     ),
 
     (
         "ExportIndication with an indication with property",
         'ExportIndication',
-        dict(
-            NewIndication=CIMINSTANCE_ONE_OBJ,
-        ),
+        {
+            'NewIndication': CIMINSTANCE_ONE_OBJ,
+        },
         None,
         None,
-        dict(
-            name='ExportIndication',
-            pywbem_request=dict(
-                url='http://acme.com:80',
-                creds=['username', 'password'],
-                debug=False,
-                timeout=10,
-                namespace='root/cimv2',
-                operation=dict(
-                    pywbem_method='ExportIndication',
-                    NewIndication=CIMINSTANCE_ONE_TCYAML,
-                ),
-            ),
-            pywbem_response={},
-        ),
+        {
+            'name': 'ExportIndication',
+            'pywbem_request': {
+                'url': 'http://acme.com:80',
+                'creds': ['username', 'password'],
+                'debug': False,
+                'timeout': 10,
+                'namespace': 'root/cimv2',
+                'operation': {
+                    'pywbem_method': 'ExportIndication',
+                    'NewIndication': CIMINSTANCE_ONE_TCYAML,
+                },
+            },
+            'pywbem_response': {},
+        },
     ),
 ]
 
@@ -1544,7 +1542,7 @@ def test_TestClientRecorder_record(
     """
 
     # The code to be tested
-    if op_name.startswith('Open') or op_name.startswith('Pull'):
+    if op_name.startswith(('Open', 'Pull')):
         test_client_recorder.reset(pull_op=True)
     test_client_recorder.stage_pywbem_args(method=op_name, **op_kwargs)
     test_client_recorder.stage_pywbem_result(op_result, op_exc)
@@ -2695,7 +2693,7 @@ class TestExternLoggerDef(BaseLogOperationRecorderTests):
             conn = WBEMConnection('http://blah:5988', timeout=1)
 
             conn.GetClass('blah')
-        except Exception:  # pylint: disable=broad-except
+        except Exception:  # noqa: S110 pylint: disable=broad-except
             pass
 
         conn_id = conn.conn_id
@@ -3261,49 +3259,49 @@ TESTCASES_COPY_LOGRECORDER = [
 
     (
         "Only required init parameters",
-        dict(
-            init_kwargs=dict(
-                conn_id='test_id',
-            ),
-            enable_recorder=False,
-            record_operation=False,
-        ),
+        {
+            'init_kwargs': {
+                'conn_id': 'test_id',
+            },
+            'enable_recorder': False,
+            'record_operation': False,
+        },
         None, None, True
     ),
     (
         "All init parameters",
-        dict(
-            init_kwargs=dict(
-                conn_id='test_id',
-                detail_levels=None,
-            ),
-            enable_recorder=False,
-            record_operation=False,
-        ),
+        {
+            'init_kwargs': {
+                'conn_id': 'test_id',
+                'detail_levels': None,
+            },
+            'enable_recorder': False,
+            'record_operation': False,
+        },
         None, None, True
     ),
     (
         "With recorder enabled",
-        dict(
-            init_kwargs=dict(
-                conn_id='test_id',
-                detail_levels=None,
-            ),
-            enable_recorder=True,
-            record_operation=False,
-        ),
+        {
+            'init_kwargs': {
+                'conn_id': 'test_id',
+                'detail_levels': None,
+            },
+            'enable_recorder': True,
+            'record_operation': False,
+        },
         None, None, True
     ),
     (
         "With recorder enabled, operation performed",
-        dict(
-            init_kwargs=dict(
-                conn_id='test_id',
-                detail_levels=None,
-            ),
-            enable_recorder=True,
-            record_operation=True,
-        ),
+        {
+            'init_kwargs': {
+                'conn_id': 'test_id',
+                'detail_levels': None,
+            },
+            'enable_recorder': True,
+            'record_operation': True,
+        },
         None, None, True
     ),
 ]
@@ -3398,29 +3396,29 @@ TESTCASES_COPY_TESTCLIENTRECORDER = [
 
     (
         "Not enabled",
-        dict(
-            init_kwargs={},
-            enable_recorder=False,
-            record_operation=False,
-        ),
+        {
+            'init_kwargs': {},
+            'enable_recorder': False,
+            'record_operation': False,
+        },
         None, None, True
     ),
     (
         "With recorder enabled",
-        dict(
-            init_kwargs={},
-            enable_recorder=True,
-            record_operation=False,
-        ),
+        {
+            'init_kwargs': {},
+            'enable_recorder': True,
+            'record_operation': False,
+        },
         None, None, True
     ),
     (
         "With recorder enabled, operation performed",
-        dict(
-            init_kwargs={},
-            enable_recorder=True,
-            record_operation=True,
-        ),
+        {
+            'init_kwargs': {},
+            'enable_recorder': True,
+            'record_operation': True,
+        },
         None, None, True
     ),
 ]

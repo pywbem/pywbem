@@ -146,10 +146,9 @@ class _MockMOFWBEMConnection(ResolverMixin, BaseRepositoryConnection):
         # an instance into the repository.
         inst.path = None
 
-        try:
-            path = self.conn.CreateInstance(inst, namespace=ns)
-        except KeyError:  # pylint: disable=try-except-raise
-            raise
+        path = self.conn.CreateInstance(inst, namespace=ns)
+        # May raise KeyError
+
         return path
 
     def ModifyInstance(self, *args, **kwargs):
@@ -356,10 +355,9 @@ class _MockMOFWBEMConnection(ResolverMixin, BaseRepositoryConnection):
         qualname = args[0] if args else kwargs['QualifierName']
         ns = kwargs.get('namespace', self.default_namespace)
 
-        try:
-            qual = self.conn.GetQualifier(qualname, namespace=ns)
-        except KeyError:  # pylint: disable=try-except-raise
-            raise
+        qual = self.conn.GetQualifier(qualname, namespace=ns)
+        # May raise KeyError
+
         return qual
 
     def SetQualifier(self, *args, **kwargs):

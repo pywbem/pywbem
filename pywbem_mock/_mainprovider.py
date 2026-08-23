@@ -296,7 +296,6 @@ class MainProvider(ResolverMixin, BaseProvider):
         for cl in class_store.iter_values():
             if 'Association' in cl.qualifiers:
                 yield cl
-        return
 
     def _get_instance(self, instance_name, instance_store,
                       local_only, include_class_origin,
@@ -1775,9 +1774,7 @@ class MainProvider(ResolverMixin, BaseProvider):
         if prop.reference_class.lower() in target_classnames:
             if resultclass_names and ref_classname not in resultclass_names:
                 return False
-            if role and prop.name.lower() != role:
-                return False
-            return True
+            return not (role and prop.name.lower() != role)
         return False
 
     @staticmethod
@@ -1798,9 +1795,7 @@ class MainProvider(ResolverMixin, BaseProvider):
         if result_classes and  \
                 prop.reference_class.lower() not in result_classes:
             return False
-        if result_role and prop.name.lower() != result_role:
-            return False
-        return True
+        return not (result_role and prop.name.lower() != result_role)
 
     def _get_reference_classnames(self, namespace, classname, result_class,
                                   role):

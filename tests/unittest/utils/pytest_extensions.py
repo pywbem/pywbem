@@ -110,7 +110,7 @@ def simplified_test_function(test_func):
                                   condition)
 
         if exp_warn_types:
-            with pytest.warns(exp_warn_types) as rec_warnings:
+            with pytest.warns(exp_warn_types) as rec_warnings:  # noqa: PT031
                 if exp_exc_types:
                     with pytest.raises(exp_exc_types):
                         if condition == 'pdb':

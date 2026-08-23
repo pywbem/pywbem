@@ -5,7 +5,7 @@ Utility functions for creating random CIM objects.
 from collections import namedtuple
 import string
 import random
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 from pywbem import CIMQualifier, CIMProperty, CIMClass, CIMInstance, \
     CIMInstanceName, CIMDateTime
@@ -152,7 +152,9 @@ def random_type_value(values, type=None):
         hour = random.randint(0, 23)
         minute = random.randint(0, 59)
         second = random.randint(0, 59)
-        value = CIMDateTime(datetime(year, month, day, hour, minute, second))
+        tz = timezone(timedelta(hours=random.randint(0, 23)))
+        dt = datetime(year, month, day, hour, minute, second, tzinfo=tz)
+        value = CIMDateTime(dt)
     else:
         # The 'reference' type is intentionally not supported here
         raise AssertionError(f'Invalid CIM type name: {type}')

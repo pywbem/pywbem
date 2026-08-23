@@ -52,14 +52,14 @@ def print_debug_info():
     """
     Print debug information relevant for codepages.
     """
-    print("Debug: sys.stdout: isatty=%r, encoding=%r" %
-          (sys.stdout.isatty(), getattr(sys.stdout, 'encoding', None)),
+    print("Debug: sys.stdout: isatty={!r}, encoding={!r}".
+          format(sys.stdout.isatty(), getattr(sys.stdout, 'encoding', None)),
           file=sys.stderr)
-    print("Debug: locale.getpreferredencoding()=%r" %
-          locale.getpreferredencoding(),
+    print("Debug: locale.getpreferredencoding()={!r}".
+          format(locale.getpreferredencoding()),
           file=sys.stderr)
-    print("Debug: sys.getfilesystemencoding()=%r" %
-          sys.getfilesystemencoding(),
+    print("Debug: sys.getfilesystemencoding()={!r}".
+          format(sys.getfilesystemencoding()),
           file=sys.stderr)
 
 
@@ -70,8 +70,8 @@ def run_uprint(text):
     try:
         _uprint(None, text)
     except Exception as exc:  # pylint: disable=broad-except
-        print("Error: %s raised by: _uprint(None, %r)" %
-              (exc.__class__.__name__, text),
+        print("Error: {} raised by: _uprint(None, {!r})".
+              format(exc.__class__.__name__, text),
               file=sys.stderr)
         print_debug_info()
         sys.stderr.flush()
@@ -85,8 +85,8 @@ def run_print(text):
     try:
         print(text)
     except Exception as exc:  # pylint: disable=broad-except
-        print("Error: %s raised by: print(%r)" %
-              (exc.__class__.__name__, text),
+        print("Error: {} raised by: print({!r})".
+              format(exc.__class__.__name__, text),
               file=sys.stderr)
         print_debug_info()
         sys.stderr.flush()
@@ -104,9 +104,9 @@ def run_catch_print_exc(text):
         try:
             traceback.print_exc(file=sys.stderr)
         except Exception as exc:  # pylint: disable=broad-except
-            print("Error: %s raised when printing caught ValueError(%r)\n"
-                  "       exception using traceback.print_exc()" %
-                  (exc.__class__.__name__, text),
+            print("Error: {} raised when printing caught ValueError({!r})\n"
+                  "       exception using traceback.print_exc()".
+                  format(exc.__class__.__name__, text),
                   file=sys.stderr)
             print_debug_info()
             sys.stderr.flush()
@@ -124,9 +124,9 @@ def run_catch_print(text):
         try:
             print(exc1, file=sys.stderr)
         except Exception as exc:  # pylint: disable=broad-except
-            print("Error: %s raised when printing caught ValueError(%r)\n"
-                  "       exception using print(exc)" %
-                  (exc.__class__.__name__, text),
+            print("Error: {} raised when printing caught ValueError({!r})\n"
+                  "       exception using print(exc)".
+                  format(exc.__class__.__name__, text),
                   file=sys.stderr)
             print_debug_info()
             sys.stderr.flush()
@@ -242,18 +242,18 @@ def main():
 
     mode_func = globals().get('mode_' + mode, None)
     if not mode_func:
-        modes = [s[5:] for s in globals().keys() if s.startswith('mode_')]
-        print("Error: Invalid mode: %s; valid are: %s" %
-              (mode, ', '.join(sorted(modes))),
+        modes = [s[5:] for s in globals() if s.startswith('mode_')]
+        print("Error: Invalid mode: {}; valid are: {}".
+              format(mode, ', '.join(sorted(modes))),
               file=sys.stderr)
         sys.stderr.flush()
         sys.exit(2)
 
     run_func = globals().get('run_' + run, None)
     if not run_func:
-        runs = [s[4:] for s in globals().keys() if s.startswith('run_')]
-        print("Error: Invalid run: %s; valid are: %s" %
-              (run, ', '.join(sorted(runs))),
+        runs = [s[4:] for s in globals() if s.startswith('run_')]
+        print("Error: Invalid run: {}; valid are: {}".
+              format(run, ', '.join(sorted(runs))),
               file=sys.stderr)
         sys.stderr.flush()
         sys.exit(2)

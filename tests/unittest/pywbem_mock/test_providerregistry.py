@@ -48,13 +48,13 @@ def assert_provreg_equal(provreg1, provreg2):
         class_dict2 = ns_dict2[ns]
 
         assert sorted(class_dict1.keys()) == sorted(class_dict2.keys())
-        for cln in class_dict1.keys():
+        for cln in class_dict1:
             ptype_dict1 = class_dict1[cln]
             assert cln in class_dict2
             ptype_dict2 = class_dict2[cln]
 
             assert sorted(ptype_dict1.keys()) == sorted(ptype_dict2.keys())
-            for pt in ptype_dict1.keys():
+            for pt in ptype_dict1:
                 pobj1 = ptype_dict1[pt]
                 assert pt in ptype_dict2
                 pobj2 = ptype_dict2[pt]
@@ -195,42 +195,42 @@ TESTCASES_PROVREG_ITERITEMS = [
 
     (
         "Empty registry",
-        dict(
-            providers=[],
-        ),
+        {
+            'providers': [],
+        },
         None, None, True
     ),
     (
         "Registry with one provider",
-        dict(
-            providers=[
+        {
+            'providers': [
                 (TstMethodProvider1, 'CIM_Foo1', 'root/blah1'),
             ],
-        ),
+        },
         None, None, True
     ),
     (
         "Registry with prov for two different classes in same namespace",
-        dict(
-            providers=[
+        {
+            'providers': [
                 (TstMethodProvider1, 'CIM_Foo1', 'root/blah1'),
                 (TstInstWrProvider1, 'CIM_Foo1', 'root/blah1'),
                 (TstMethodProvider2, 'CIM_Foo2', 'root/blah1'),
                 (TstInstWrProvider2, 'CIM_Foo2', 'root/blah1'),
             ],
-        ),
+        },
         None, None, True
     ),
     (
         "Registry with prov for same class in two different namespaces",
-        dict(
-            providers=[
+        {
+            'providers': [
                 (TstMethodProvider1, 'CIM_Foo1', 'root/blah1'),
                 (TstInstWrProvider1, 'CIM_Foo1', 'root/blah1'),
                 (TstMethodProvider1, 'CIM_Foo1', 'root/blah2'),
                 (TstInstWrProvider1, 'CIM_Foo1', 'root/blah2'),
             ],
-        ),
+        },
         None, None, True
     ),
 ]
@@ -284,42 +284,42 @@ TESTCASES_PROVREG_LOAD = [
 
     (
         "Empty registry loaded with empty registry",
-        dict(
-            providers1=[],
-            providers2=[],
-        ),
+        {
+            'providers1': [],
+            'providers2': [],
+        },
         None, None, True
     ),
     (
         "Empty registry loaded with registry with one provider",
-        dict(
-            providers1=[],
-            providers2=[
+        {
+            'providers1': [],
+            'providers2': [
                 (TstMethodProvider1, 'CIM_Foo', 'root/blah'),
             ],
-        ),
+        },
         None, None, True
     ),
     (
         "Registry with one provider loaded with empty registry",
-        dict(
-            providers1=[
+        {
+            'providers1': [
                 (TstMethodProvider1, 'CIM_Foo', 'root/blah'),
             ],
-            providers2=[],
-        ),
+            'providers2': [],
+        },
         None, None, True
     ),
     (
         "Registry with one provider loaded with registry with diff. provider",
-        dict(
-            providers1=[
+        {
+            'providers1': [
                 (TstMethodProvider1, 'CIM_Foo', 'root/blah'),
             ],
-            providers2=[
+            'providers2': [
                 (TstInstWrProvider1, 'CIM_Foo', 'root/blah'),
             ],
-        ),
+        },
         None, None, True
     ),
 ]
@@ -368,28 +368,28 @@ TESTCASES_PROVREG_PICKLE = [
 
     (
         "Empty provider registry",
-        dict(
-            providers=[],
-        ),
+        {
+            'providers': [],
+        },
         None, None, True
     ),
     (
         "Provider registry with one method provider",
-        dict(
-            providers=[
+        {
+            'providers': [
                 (TstMethodProvider1, 'CIM_Foo', 'root/blah'),
             ],
-        ),
+        },
         None, None, True
     ),
     (
         "Provider registry with one method provider",
-        dict(
-            providers=[
+        {
+            'providers': [
                 (TstMethodProvider1, 'CIM_Foo', 'root/blah'),
                 (TstInstWrProvider1, 'CIM_Foo', 'root/blah'),
             ],
-        ),
+        },
         None, None, True
     ),
 ]

@@ -461,10 +461,8 @@ class OperationStatistic:
             self._exception_count += 1
 
         self._time_sum += dt
-        if dt > self._time_max:
-            self._time_max = dt
-        if dt < self._time_min:
-            self._time_min = dt
+        self._time_max = max(self._time_max, dt)
+        self._time_min = min(self._time_min, dt)
 
         if self._server_time_suspended:
             # Server time statistics has been suspended. Ignore server time
@@ -482,24 +480,18 @@ class OperationStatistic:
             # server time statistics has not been suspended. Apply the time
             # to the counnters.
             self._server_time_sum += server_time
-            if server_time > self._server_time_max:
-                self._server_time_max = server_time
-            if server_time < self._server_time_min:
-                self._server_time_min = server_time
+            self._server_time_max = max(self._server_time_max, server_time)
+            self._server_time_min = min(self._server_time_min, server_time)
 
         if request_len is not None:
             self._request_len_sum += request_len
-            if request_len > self._request_len_max:
-                self._request_len_max = request_len
-            if request_len < self._request_len_min:
-                self._request_len_min = request_len
+            self._request_len_max = max(self._request_len_max, request_len)
+            self._request_len_min = min(self._request_len_min, request_len)
 
         if reply_len is not None:
             self._reply_len_sum += reply_len
-            if reply_len > self._reply_len_max:
-                self._reply_len_max = reply_len
-            if reply_len < self._reply_len_min:
-                self._reply_len_min = reply_len
+            self._reply_len_max = max(self._reply_len_max, reply_len)
+            self._reply_len_min = min(self._reply_len_min, reply_len)
 
         return dt
 
