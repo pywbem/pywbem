@@ -331,8 +331,8 @@ class TestCreateConnection:
             ('no_verification', True),
             ('last_raw_request', '<CIM/>'),
             ('last_raw_reply', '<CIM/>'),
-            ('last_raw_reply', '<CIM/>'),
             ('last_request', '<CIM/>'),
+            ('last_reply', '<CIM/>'),
             ('last_request_len', 7),
             ('last_reply_len', 7),
         ])
