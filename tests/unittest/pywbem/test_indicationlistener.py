@@ -502,21 +502,33 @@ def test_WBEMListener_start_stop():
     """
 
     host = 'localhost'
-    http_port = '50000'  # Intentionally string-typed
+    http_port = '0'  # Intentionally string-typed, 0 = let OS assign the port
 
     listener = WBEMListener(host, http_port)
     assert listener.http_started is False
+    assert listener.http_port == int(http_port)
+    assert listener.http_bound_port is None
     assert listener.https_started is False
+    assert listener.https_port is None
+    assert listener.https_bound_port is None
 
     try:
         listener.start()
         assert listener.http_started is True
+        assert listener.http_port == int(http_port)
+        assert listener.http_bound_port is not None
         assert listener.https_started is False
+        assert listener.https_port is None
+        assert listener.https_bound_port is None
 
     finally:
         listener.stop()
         assert listener.http_started is False
+        assert listener.http_port == int(http_port)
+        assert listener.http_bound_port is None
         assert listener.https_started is False
+        assert listener.https_port is None
+        assert listener.https_bound_port is None
 
 
 @log_entry_exit
@@ -526,19 +538,19 @@ def test_WBEMListener_port_in_use():
     """
 
     host = 'localhost'
-
-    # Don't use this port in other tests, to be on the safe side
-    # as far as port reuse is concerned.
-    http_port = '50001'  # Intentionally string-typed
+    http_port = 0  # Let the OS assign the port
 
     exp_exc_type = ListenerPortError
 
-    listener1 = WBEMListener(host, http_port)
-    listener2 = WBEMListener(host, http_port)
+    listener1 = WBEMListener(host, http_port)  # Let the OS assign the port
+    listener2 = None
 
     try:
         listener1.start()
         assert listener1.http_started is True
+
+        # Set up listener 2 with the same port as listener 1
+        listener2 = WBEMListener(host, listener1.http_bound_port)
 
         try:
             # The code to be tested
@@ -557,7 +569,8 @@ def test_WBEMListener_port_in_use():
 
     finally:
         listener1.stop()
-        listener2.stop()
+        if listener2:
+            listener2.stop()
 
 
 @log_entry_exit
@@ -568,9 +581,8 @@ def test_WBEMListener_context_mgr():
 
     host = 'localhost'
 
-    # Don't use this port in other tests, to be on the safe side
-    # as far as port reuse is concerned.
-    http_port = '50002'  # Intentionally string-typed
+    http_port = 0  # Let the OS assign the port
+    http_bound_port = None
 
     # The code to be tested (is the context manager)
     with WBEMListener(host, http_port) as listener1:
@@ -580,12 +592,13 @@ def test_WBEMListener_context_mgr():
 
         listener1.start()
         assert listener1.http_started is True
+        http_bound_port = listener1.http_bound_port
 
     # Verify that CM exit stops the listener
     assert listener1.http_started is False
 
     # Verify that the TCP/IP port can be used again
-    listener2 = WBEMListener(host, http_port)
+    listener2 = WBEMListener(host, http_bound_port)
     try:
         listener2.start()
         assert listener2.http_started is True
@@ -836,7 +849,7 @@ def test_WBEMListener_send_indications(
         host = '127.0.0.1'
     else:
         host = 'localhost'
-    http_port = 50000
+    http_port = 0  # Let the OS assign the port
 
     listener = WBEMListener(host, http_port, max_ind_queue_size=max_queue)
     listener.add_callback(process_indication_callback)
@@ -846,8 +859,9 @@ def test_WBEMListener_send_indications(
 
     try:
         listener.start()
+        http_bound_port = listener.http_bound_port
         start_time = time()
-        url = f'http://{host}:{http_port}'
+        url = f'http://{host}:{http_bound_port}'
         cim_protocol_version = '1.4'
         headers = {
             'Content-Type': 'application/xml; charset=utf-8',
@@ -1004,8 +1018,7 @@ def test_WBEMListener_incorrect_method(method, exp_status):
     """
 
     host = 'localhost'
-    http_port = 50000
-    url = f'http://{host}:{http_port}'
+    http_port = 0  # Let the OS assign the port
     headers = {
         'Content-Type': 'application/xml; charset=utf-8',
         'CIMExport': 'MethodRequest',
@@ -1019,6 +1032,9 @@ def test_WBEMListener_incorrect_method(method, exp_status):
     try:
         listener.add_callback(process_indication_callback)
         listener.start()
+
+        http_bound_port = listener.http_bound_port
+        url = f'http://{host}:{http_bound_port}'
 
         # The code to be tested is running in listener thread
         response = requests.request(method, url, headers=headers, timeout=4)
@@ -1127,8 +1143,7 @@ def test_WBEMListener_incorrect_headers(desc, headers, exp_status, exp_headers):
     """
 
     host = 'localhost'
-    http_port = 50000
-    url = f'http://{host}:{http_port}'
+    http_port = 0  # Let the OS assign the port
     # headers = copy(headers)
 
     listener = WBEMListener(host, http_port)
@@ -1136,6 +1151,9 @@ def test_WBEMListener_incorrect_headers(desc, headers, exp_status, exp_headers):
     try:
         listener.add_callback(process_indication_callback)
         listener.start()
+
+        http_bound_port = listener.http_bound_port
+        url = f'http://{host}:{http_bound_port}'
 
         # The code to be tested is running in listener thread
         response = post_bsl(url, headers=headers, data=None)
@@ -1282,8 +1300,7 @@ def test_WBEMListener_incorrect_payload1(
     """
 
     host = 'localhost'
-    http_port = 50000
-    url = f'http://{host}:{http_port}'
+    http_port = 0  # Let the OS assign the port
     headers = {
         'Content-Type': 'application/xml; charset=utf-8',
         'CIMExport': 'MethodRequest',
@@ -1297,6 +1314,9 @@ def test_WBEMListener_incorrect_payload1(
     try:
         listener.add_callback(process_indication_callback)
         listener.start()
+
+        http_bound_port = listener.http_bound_port
+        url = f'http://{host}:{http_bound_port}'
 
         # The code to be tested is running in listener thread
         response = post_bsl(url, headers=headers, data=payload)
@@ -1448,8 +1468,7 @@ def test_WBEMListener_incorrect_payload2(
     """
 
     host = 'localhost'
-    http_port = 50000
-    url = f'http://{host}:{http_port}'
+    http_port = 0  # Let the OS assign the port
     headers = {
         'Content-Type': 'application/xml; charset=utf-8',
         'CIMExport': 'MethodRequest',
@@ -1463,6 +1482,9 @@ def test_WBEMListener_incorrect_payload2(
     try:
         listener.add_callback(process_indication_callback)
         listener.start()
+
+        http_bound_port = listener.http_bound_port
+        url = f'http://{host}:{http_bound_port}'
 
         # The code to be tested is running in listener thread
         response = post_bsl(url, headers=headers, data=payload)
