@@ -28,9 +28,6 @@ It supports Python 3.
 # Importing just this module is enough.
 # These are explicitly safe for 'import *'
 
-
-import sys
-
 # The config namespace is imported as a sub-namespace to make the config
 # variables accessible directly via their defining namespace. Importing
 # them into the pywbem namespace would duplicate their names and thus
@@ -60,7 +57,3 @@ from ._features import *  # noqa: F403,F401
 from ._units import *  # noqa: F403,F401
 
 from ._version import __version__  # noqa: F401
-
-# Keep these Python versions in sync with setup.py
-if sys.version_info[0:2] < (3, 9):
-    raise RuntimeError('pywbem requires Python 3.9 or higher')
