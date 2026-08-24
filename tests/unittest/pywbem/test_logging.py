@@ -103,7 +103,7 @@ class TestLoggingConfigure:
             elif log_name == 'http':
                 logger = logging.getLogger(LOGGER_HTTP_NAME)
             else:
-                assert f'Input error. log_name {log_name} '
+                raise AssertionError(f"Input error. log_name {log_name}")
 
             # TODO compare detail_level
 
