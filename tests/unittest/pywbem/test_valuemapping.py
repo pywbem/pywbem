@@ -1,6 +1,5 @@
-#!/usr/bin/env python
 """
-    Test ValueMapping class
+Test ValueMapping class
 """
 
 import re
@@ -428,9 +427,7 @@ class Test_ValueMapping:
         assert vm.tobinary('two') == 2
 
         exp_items = list(zip(exp_valuemap, values))
-        items = []
-        for item in vm.items():
-            items.append(item)
+        items = list(vm.items())
         assert items == exp_items
 
     @log_entry_exit
@@ -451,9 +448,7 @@ class Test_ValueMapping:
         assert vm.tobinary('zero') == 0
 
         exp_items = list(zip(exp_valuemap, values))
-        items = []
-        for item in vm.items():
-            items.append(item)
+        items = list(vm.items())
         assert items == exp_items
 
     @log_entry_exit
@@ -475,9 +470,7 @@ class Test_ValueMapping:
         assert vm.tobinary('one') == 1
 
         exp_items = list(zip(exp_valuemap, values))
-        items = []
-        for item in vm.items():
-            items.append(item)
+        items = list(vm.items())
         assert items == exp_items
 
     @log_entry_exit
@@ -532,9 +525,7 @@ class Test_ValueMapping:
         assert vm.tobinary('nine') == 9
 
         exp_items = list(zip(exp_valuemap, values))
-        items = []
-        for item in vm.items():
-            items.append(item)
+        items = list(vm.items())
         assert items == exp_items
 
     @log_entry_exit
@@ -570,9 +561,7 @@ class Test_ValueMapping:
         assert vm.tobinary('nine') == 9
 
         exp_items = list(zip(exp_valuemap, values))
-        items = []
-        for item in vm.items():
-            items.append(item)
+        items = list(vm.items())
         assert items == exp_items
 
     @log_entry_exit
@@ -594,9 +583,7 @@ class Test_ValueMapping:
         assert vm.tobinary('unclaimed') is None
 
         exp_items = list(zip(exp_valuemap, values))
-        items = []
-        for item in vm.items():
-            items.append(item)
+        items = list(vm.items())
         assert items == exp_items
 
     @log_entry_exit
@@ -634,9 +621,7 @@ class Test_ValueMapping:
         assert vm.tobinary('unclaimed') is None
 
         exp_items = list(zip(exp_valuemap, values))
-        items = []
-        for item in vm.items():
-            items.append(item)
+        items = list(vm.items())
         assert items == exp_items
 
     @log_entry_exit
@@ -673,9 +658,7 @@ class Test_ValueMapping:
         assert vm.tobinary('unclaimed') is None
 
         exp_items = list(zip(exp_valuemap, values))
-        items = []
-        for item in vm.items():
-            items.append(item)
+        items = list(vm.items())
         assert items == exp_items
 
     @log_entry_exit
@@ -713,9 +696,7 @@ class Test_ValueMapping:
         assert vm.tobinary(values[1]) == maxvalue
 
         exp_items = list(zip(exp_valuemap, values))
-        items = []
-        for item in vm.items():
-            items.append(item)
+        items = list(vm.items())
         assert items == exp_items
 
     @log_entry_exit
@@ -757,9 +738,7 @@ class Test_ValueMapping:
         assert vm.tobinary(values[1]) == (maxvalue - 2, maxvalue)
 
         exp_items = list(zip(exp_valuemap, values))
-        items = []
-        for item in vm.items():
-            items.append(item)
+        items = list(vm.items())
         assert items == exp_items
 
     @log_entry_exit
@@ -806,9 +785,7 @@ class Test_ValueMapping:
         assert vm.tobinary(values[3]) == maxvalue
 
         exp_items = list(zip(exp_valuemap, values))
-        items = []
-        for item in vm.items():
-            items.append(item)
+        items = list(vm.items())
         assert items == exp_items
 
     @log_entry_exit
@@ -851,9 +828,7 @@ class Test_ValueMapping:
         assert vm.tobinary(values[1]) == (maxvalue - 2, maxvalue)
 
         exp_items = list(zip(exp_valuemap, values))
-        items = []
-        for item in vm.items():
-            items.append(item)
+        items = list(vm.items())
         assert items == exp_items
 
     testcases_integer_representations = [

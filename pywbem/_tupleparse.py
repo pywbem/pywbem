@@ -746,7 +746,7 @@ class TupleParser:
 
         self.check_node(tup_tree, 'VALUE.NULL', (), (), ())
 
-        return None
+        # returns None as the null value
 
     #
     # Object naming and locating elements

@@ -869,8 +869,8 @@ def _assert_association_consistency(
     # association approaches. The algorithn we use is that the
     # first approach defines the results all subsequent approaches
     # compare against.
-    prefix = ':'.join([profile_id, source_path.to_wbem_uri(),
-                       source_role, assoc_class, far_role, far_class])
+    prefix = (f"{profile_id}:{source_path.to_wbem_uri()}:{source_role}:"
+              f"{assoc_class}:{far_role}:{far_class}")
     far_paths_id = prefix + ':far_paths'
     assoc_paths_id = prefix + ':assoc_paths'
     if not OBJECT_CACHE.has_list(conn.url, far_paths_id):

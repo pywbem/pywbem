@@ -56,167 +56,167 @@ if ENABLE_TESTS:
 
         (
             "Test None",
-            dict(
-                obj=None,
-                exp_size=size_obj(None),
-            ),
+            {
+                "obj": None,
+                "exp_size": size_obj(None),
+            },
             None, None, True
         ),
         (
             "Test int",
-            dict(
-                obj=2020,
-                exp_size=size_obj(2020),
-            ),
+            {
+                "obj": 2020,
+                "exp_size": size_obj(2020),
+            },
             None, None, True
         ),
 
         (
             "Test empty string",
-            dict(
-                obj='',
-                exp_size=size_obj(''),
-            ),
+            {
+                "obj": '',
+                "exp_size": size_obj(''),
+            },
             None, None, True
         ),
         (
             "Test string with one char",
-            dict(
-                obj='C',
-                exp_size=size_obj('C'),
-            ),
+            {
+                "obj": 'C',
+                "exp_size": size_obj('C'),
+            },
             None, None, True
         ),
         (
             "Test string with two chars",
-            dict(
-                obj='CD',
-                exp_size=size_obj('CD'),
-            ),
+            {
+                "obj": 'CD',
+                "exp_size": size_obj('CD'),
+            },
             None, None, True
         ),
         (
             "Test unicode string with two chars",
-            dict(
-                obj='CD',
-                exp_size=size_obj('CD'),
-            ),
+            {
+                "obj": 'CD',
+                "exp_size": size_obj('CD'),
+            },
             None, None, True
         ),
         (
             "Test binary string with two chars",
-            dict(
-                obj=b'CD',
-                exp_size=size_obj(b'CD'),
-            ),
+            {
+                "obj": b'CD',
+                "exp_size": size_obj(b'CD'),
+            },
             None, None, True
         ),
 
         (
             "Test empty tuple",
-            dict(
-                obj=tuple(),
-                exp_size=size_obj(tuple()),
-            ),
+            {
+                "obj": (),
+                "exp_size": size_obj(()),
+            },
             None, None, True
         ),
         (
             "Test tuple with one int item",
-            dict(
-                obj=(2000,),
-                exp_size=size_obj((42,)) + size_obj(42),
-            ),
+            {
+                "obj": (2000,),
+                "exp_size": size_obj((42,)) + size_obj(42),
+            },
             None, None, True
         ),
         (
             "Test tuple with two int items",
-            dict(
-                obj=(2000, 2001),
-                exp_size=size_obj((42, 43)) + 2 * size_obj(42),
-            ),
+            {
+                "obj": (2000, 2001),
+                "exp_size": size_obj((42, 43)) + 2 * size_obj(42),
+            },
             None, None, True
         ),
 
         (
             "Test empty list",
-            dict(
-                obj=[],
-                exp_size=size_obj([]),
-            ),
+            {
+                "obj": [],
+                "exp_size": size_obj([]),
+            },
             None, None, True
         ),
         (
             "Test list with one int item",
-            dict(
-                obj=[2000],
-                exp_size=size_obj([42]) + size_obj(42),
-            ),
+            {
+                "obj": [2000],
+                "exp_size": size_obj([42]) + size_obj(42),
+            },
             None, None, True
         ),
         (
             "Test list with two int items",
-            dict(
-                obj=[2000, 2001],
-                exp_size=size_obj([42, 43]) + 2 * size_obj(42),
-            ),
+            {
+                "obj": [2000, 2001],
+                "exp_size": size_obj([42, 43]) + 2 * size_obj(42),
+            },
             None, None, True
         ),
 
         (
             "Test empty dict",
-            dict(
-                obj={},
-                exp_size=size_obj({}),
-            ),
+            {
+                "obj": {},
+                "exp_size": size_obj({}),
+            },
             None, None, True
         ),
         (
             "Test dict with one int/int item",
-            dict(
-                obj={2000: 2001},
-                exp_size=size_obj({42: 43}) + 2 * size_obj(42),
-            ),
+            {
+                "obj": {2000: 2001},
+                "exp_size": size_obj({42: 43}) + 2 * size_obj(42),
+            },
             None, None, True
         ),
         (
             "Test dict with two int/int items",
-            dict(
-                obj={2000: 2001, 2002: 2003},
-                exp_size=size_obj({42: 43, 44: 45}) + 4 * size_obj(42),
-            ),
+            {
+                "obj": {2000: 2001, 2002: 2003},
+                "exp_size": size_obj({42: 43, 44: 45}) + 4 * size_obj(42),
+            },
             None, None, True
         ),
 
         (
             "Test empty set",
-            dict(
-                obj=set(),
-                exp_size=size_obj(set()),
-            ),
+            {
+                "obj": set(),
+                "exp_size": size_obj(set()),
+            },
             None, None, True
         ),
         (
             "Test empty frozenset",
-            dict(
-                obj=frozenset(),
-                exp_size=size_obj(frozenset()),
-            ),
+            {
+                "obj": frozenset(),
+                "exp_size": size_obj(frozenset()),
+            },
             None, None, True
         ),
         (
             "Test empty deque",
-            dict(
-                obj=deque(),
-                exp_size=size_obj(deque()),
-            ),
+            {
+                "obj": deque(),
+                "exp_size": size_obj(deque()),
+            },
             None, None, True
         ),
 
         (
             "Test CIMQualifier object (slotted)",
-            dict(
-                obj=pywbem.CIMQualifier('Q1', type='string', value=None),
-                exp_size=(
+            {
+                "obj": pywbem.CIMQualifier('Q1', type='string', value=None),
+                "exp_size": (
                     # Note: None is a shared object. total_sizeof() counts the
                     # first None object, and counts the remaining ones as
                     # references.
@@ -234,7 +234,7 @@ if ENABLE_TESTS:
                     SIZE_REF +  # _toinstance
                     SIZE_REF  # _translatable
                 ),
-            ),
+            },
             None, None, 'debug'
         ),
     ]

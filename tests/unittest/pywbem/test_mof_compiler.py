@@ -75,7 +75,7 @@ class MOFTest(unittest.TestCase):
 
         moflog_file = os.path.join(TEST_DIR, 'moflog.txt')
         # pylint: disable=consider-using-with
-        self.logfile = open(moflog_file, 'w', encoding='utf-8')
+        self.logfile = open(moflog_file, 'w', encoding='utf-8')  # noqa: SIM115
         self.mofcomp = MOFCompiler(
             MOFWBEMConnection(),
             search_paths=[TEST_DMTF_CIMSCHEMA_MOF_DIR],
@@ -93,7 +93,8 @@ class MOFTest(unittest.TestCase):
 
         moflog_file2 = os.path.join(TEST_DIR, 'moflog2.txt')
         # pylint: disable=consider-using-with
-        self.logfile2 = open(moflog_file2, 'w', encoding='utf-8')
+        self.logfile2 = open(  # noqa: SIM115
+            moflog_file2, 'w', encoding='utf-8')
         self.mofcomp2 = MOFCompiler(
             MOFWBEMConnection(),
             search_paths=None, verbose=False,
@@ -1186,8 +1187,8 @@ class TestInstCompile(CIMObjectMixin, MOFTest):
                 self.assertEqual(i['pr64'], 0.0)
 
             else:
-                self.fail("Cannot find required instance k1=%s, k2=%s" %
-                          (i['k1'], i['k2']))
+                self.fail("Cannot find required instance k1={}, k2={}".
+                          format(i['k1'], i['k2']))
 
     @log_entry_exit
     def test_invalid_property(self):
@@ -2349,54 +2350,56 @@ class TestFullSchema(MOFTest):
         # Create file for mof output
         mofout_filename = os.path.join(TEST_DIR, TMP_FILE)
 
-        # pylint: disable=consider-using-with
-        mof_out_hndl = open(mofout_filename, 'w', encoding='utf-8')
+        try:
+            with open(mofout_filename, 'w', encoding='utf-8') as mof_out_hndl:
 
-        # Output and verify the qualifier declarations
-        orig_qual_decls = repo.qualifiers[NAME_SPACE]
-        self.assertEqual(len(orig_qual_decls), TOTAL_QUALIFIERS)
-        for qn in sorted(orig_qual_decls.keys()):
-            orig_qual_decl = orig_qual_decls[qn]
-            self.assertTrue(isinstance(orig_qual_decl, CIMQualifierDeclaration))
-            print(orig_qual_decl.tomof(), file=mof_out_hndl)
+                # Output and verify the qualifier declarations
+                orig_qual_decls = repo.qualifiers[NAME_SPACE]
+                self.assertEqual(len(orig_qual_decls), TOTAL_QUALIFIERS)
+                for qn in sorted(orig_qual_decls.keys()):
+                    orig_qual_decl = orig_qual_decls[qn]
+                    self.assertTrue(
+                        isinstance(orig_qual_decl, CIMQualifierDeclaration))
+                    print(orig_qual_decl.tomof(), file=mof_out_hndl)
 
-        # Output and verify the classes
-        orig_classes = repo.classes[NAME_SPACE]
-        self.assertEqual(len(orig_classes), TOTAL_CLASSES)
-        self.assertEqual(len(repo.compile_ordered_classnames), TOTAL_CLASSES)
-        for cn in repo.compile_ordered_classnames:
-            orig_class = orig_classes[cn]
-            self.assertTrue(isinstance(orig_class, CIMClass))
-            print(orig_class.tomof(), file=mof_out_hndl)
+                # Output and verify the classes
+                orig_classes = repo.classes[NAME_SPACE]
+                self.assertEqual(len(orig_classes), TOTAL_CLASSES)
+                self.assertEqual(
+                    len(repo.compile_ordered_classnames), TOTAL_CLASSES)
+                for cn in repo.compile_ordered_classnames:
+                    orig_class = orig_classes[cn]
+                    self.assertTrue(isinstance(orig_class, CIMClass))
+                    print(orig_class.tomof(), file=mof_out_hndl)
 
-        mof_out_hndl.flush()
-        mof_out_hndl.close()
+            # Recompile the created mof output file.
+            repo2 = self.mofcomp2.handle
 
-        # Recompile the created mof output file.
-        repo2 = self.mofcomp2.handle
+            # print(f'Start recompile file={mofout_filename}')
+            # start_time = time()
+            self.mofcomp2.compile_file(mofout_filename, NAME_SPACE)
+            # print(f'elapsed recompile: {time() - start_time}'
 
-        # print(f'Start recompile file={mofout_filename}')
-        # start_time = time()
-        self.mofcomp2.compile_file(mofout_filename, NAME_SPACE)
-        # print(f'elapsed recompile: {time() - start_time}'
+            # Verify the recompiled qualifier declaractions are like the
+            # originals
+            recompiled_qual_decls = repo2.qualifiers[NAME_SPACE]
+            self.assertEqual(len(recompiled_qual_decls), len(orig_qual_decls))
+            for qn in sorted(orig_qual_decls.keys()):
+                orig_qual_decl = orig_qual_decls[qn]
+                recompiled_qual_decl = recompiled_qual_decls[qn]
+                self.assertEqual(recompiled_qual_decl, orig_qual_decl)
 
-        # Verify the recompiled qualifier declaractions are like the originals
-        recompiled_qual_decls = repo2.qualifiers[NAME_SPACE]
-        self.assertEqual(len(recompiled_qual_decls), len(orig_qual_decls))
-        for qn in sorted(orig_qual_decls.keys()):
-            orig_qual_decl = orig_qual_decls[qn]
-            recompiled_qual_decl = recompiled_qual_decls[qn]
-            self.assertEqual(recompiled_qual_decl, orig_qual_decl)
+            # Verify the recompiled classes are like the originals
+            recompiled_classes = repo2.classes[NAME_SPACE]
+            self.assertEqual(len(recompiled_classes), len(orig_classes))
+            for cn in orig_classes:
+                orig_class = orig_classes[cn]
+                recompiled_class = recompiled_classes[cn]
+                self.assertEqual(recompiled_class, orig_class)
 
-        # Verify the recompiled classes are like the originals
-        recompiled_classes = repo2.classes[NAME_SPACE]
-        self.assertEqual(len(recompiled_classes), len(orig_classes))
-        for cn in orig_classes:
-            orig_class = orig_classes[cn]
-            recompiled_class = recompiled_classes[cn]
-            self.assertEqual(recompiled_class, orig_class)
-
-        os.remove(mofout_filename)
+        finally:
+            if os.path.exists(mofout_filename):
+                os.remove(mofout_filename)
 
 
 class TestPartialSchema(MOFTest):
@@ -2851,7 +2854,7 @@ class Test_CreateInstanceWithDups(unittest.TestCase):
 
         moflog_file = os.path.join(TEST_DIR, 'moflog.txt')
         # pylint: disable=consider-using-with
-        self.logfile = open(moflog_file, 'w', encoding='utf-8')
+        self.logfile = open(moflog_file, 'w', encoding='utf-8')  # noqa: SIM115
         self.mofcomp = MOFCompiler(
             MOFWBEMConnectionInstDups(),
             search_paths=[TEST_DMTF_CIMSCHEMA_MOF_DIR],
@@ -3062,231 +3065,231 @@ TESTCASES_EMBEDDED_OBJECT_PROP_COMPILE = [
 
     (
         "Test creation of Scalar EmbeddedInstance property",
-        dict(
-            iid='TSTScalarInstance',
-            pname='EmbedInstanceScalar',
-            pstr="instance of TST_Embedded1 {\\n"
-                 "Bool1 = true;\\n"
-                 "};\\n",
-            exp_dict=dict(
-                EmbeddedObject='instance',
-                Array=False,
-            ),
-        ),
+        {
+            'iid': 'TSTScalarInstance',
+            'pname': 'EmbedInstanceScalar',
+            'pstr': "instance of TST_Embedded1 {\\n"
+                    "Bool1 = true;\\n"
+                    "};\\n",
+            'exp_dict': {
+                'EmbeddedObject': 'instance',
+                'Array': False,
+            },
+        },
         None, None, RUN
     ),
     (
         "Test creation of Scalar EmbeddedInstance property defined with r",
-        dict(
-            iid='TSTScalarInstance_rawstring',
-            pname='EmbedInstanceScalar',
-            pstr=r"instance of TST_Embedded1 {\n"
-                 r"Bool1 = true;\n"
-                 r"};\n",
-            exp_dict=dict(
-                EmbeddedObject='instance',
-                Array=False,
-            ),
-        ),
+        {
+            'iid': 'TSTScalarInstance_rawstring',
+            'pname': 'EmbedInstanceScalar',
+            'pstr': r"instance of TST_Embedded1 {\n"
+                    r"Bool1 = true;\n"
+                    r"};\n",
+            'exp_dict': {
+                'EmbeddedObject': 'instance',
+                'Array': False,
+            },
+        },
         None, None, RUN
     ),
 
     (
         "Test creation of EmbeddedInstance property Array type, one property",
-        dict(
-            iid='TSTArrayInstance',
-            pname='EmbedInstanceArray',
-            pstr=['instance of TST_Embedded1 {\\n'
-                  'Bool1 = false;\\n'
-                  '};\\n'],
-            exp_dict=dict(
-                EmbeddedObject='instance',
-                Array=True,
-                Size=1
-            ),
-        ),
+        {
+            'iid': 'TSTArrayInstance',
+            'pname': 'EmbedInstanceArray',
+            'pstr': ['instance of TST_Embedded1 {\\n'
+                     'Bool1 = false;\\n'
+                     '};\\n'],
+            'exp_dict': {
+                'EmbeddedObject': 'instance',
+                'Array': True,
+                'Size': 1
+            },
+        },
         None, None, OK
     ),
 
     (
         "Test creation of EmbeddedInstance property Array type  more props",
-        dict(
-            iid='TSTArrayInstance_multiple_properties',
-            pname='EmbedInstanceArray',
-            pstr=["instance of TST_Embedded1 {\\n"
-                  "Bool1 = false;\\n"
-                  "};\\n",
-                  "instance of TST_Embedded1 {\\n"
-                  "Bool1 = true;\\n"
-                  "};\\n", ],
-            exp_dict=dict(
-                EmbeddedObject='instance',
-                Array=True,
-                Size=2
-            ),
-        ),
+        {
+            'iid': 'TSTArrayInstance_multiple_properties',
+            'pname': 'EmbedInstanceArray',
+            'pstr': ["instance of TST_Embedded1 {\\n"
+                     "Bool1 = false;\\n"
+                     "};\\n",
+                     "instance of TST_Embedded1 {\\n"
+                     "Bool1 = true;\\n"
+                     "};\\n"],
+            'exp_dict': {
+                'EmbeddedObject': 'instance',
+                'Array': True,
+                'Size': 2
+            },
+        },
         None, None, OK
     ),
 
     (
         "Test creation of simple EmbeddedObject property",
-        dict(
-            iid='test_embedded_object_scalar',
-            pname='EmbedObjectScalar',
-            pstr="instance of TST_Embedded1 {"
-                 "Bool1 = true;"
-                 "};",
-            exp_dict=dict(
-                EmbeddedObject='object',
-                Array=False,
-            ),
-        ),
+        {
+            'iid': 'test_embedded_object_scalar',
+            'pname': 'EmbedObjectScalar',
+            'pstr': "instance of TST_Embedded1 {"
+                    "Bool1 = true;"
+                    "};",
+            'exp_dict': {
+                'EmbeddedObject': 'object',
+                'Array': False,
+            },
+        },
         None, None, OK
     ),
 
     (
         "Test for compile error in embedded instance string",
-        dict(
-            iid='test_compile_error',
-            pname='EmbedObjectScalar',
-            pstr="instancex of TST_Embedded1 {"
-                 "Bool1 = true;"
-                 "};",
-            exp_dict=dict(
-                EmbeddedObject='object',
-                Array=False,
-            ),
-        ),
+        {
+            'iid': 'test_compile_error',
+            'pname': 'EmbedObjectScalar',
+            'pstr': "instancex of TST_Embedded1 {"
+                    "Bool1 = true;"
+                    "};",
+            'exp_dict': {
+                'EmbeddedObject': 'object',
+                'Array': False,
+            },
+        },
         MOFParseError, None, OK
     ),
 
     (
         "Test for Classname not found error in compile",
-        dict(
-            iid='test_classname_notfound',
-            pname='EmbedObjectScalar',
-            pstr="instance of TST_NoClass {"
-                 "Bool1 = true;"
-                 "};",
-            exp_dict=dict(
-                EmbeddedObject='object',
-                Array=False,
-            ),
-        ),
+        {
+            'iid': 'test_classname_notfound',
+            'pname': 'EmbedObjectScalar',
+            'pstr': "instance of TST_NoClass {"
+                    "Bool1 = true;"
+                    "};",
+            'exp_dict': {
+                'EmbeddedObject': 'object',
+                'Array': False,
+            },
+        },
         MOFDependencyError, None, OK
     ),
 
     (
         "Test for embeddedproperty not found error in compile",
-        dict(
-            iid='test_embedded-property_notfound',
-            pname='EmbedObjectScalar',
-            pstr="instancex of TST_Embedded1 {"
-                 "Bool1NotFound = true;"
-                 "};",
-            exp_dict=dict(
-                EmbeddedObject='object',
-                Array=False,
-            ),
-        ),
+        {
+            'iid': 'test_embedded-property_notfound',
+            'pname': 'EmbedObjectScalar',
+            'pstr': "instancex of TST_Embedded1 {"
+                    "Bool1NotFound = true;"
+                    "};",
+            'exp_dict': {
+                'EmbeddedObject': 'object',
+                'Array': False,
+            },
+        },
         MOFParseError, None, OK
     ),
 
     (
         "Test for property not found error in compile",
-        dict(
-            iid='test_property_notfound',
-            pname='EmbedObjectScalarNOTFOUND',
-            pstr="instancex of TST_Embedded1 {"
-                 "Bool1NotFound = true;"
-                 "};",
-            exp_dict=dict(
-                EmbeddedObject='object',
-                Array=False,
-            ),
-        ),
+        {
+            'iid': 'test_property_notfound',
+            'pname': 'EmbedObjectScalarNOTFOUND',
+            'pstr': "instancex of TST_Embedded1 {"
+                    "Bool1NotFound = true;"
+                    "};",
+            'exp_dict': {
+                'EmbeddedObject': 'object',
+                'Array': False,
+            },
+        },
         MOFDependencyError, None, OK
     ),
 
     (
         "Test for property not found error in compile",
-        dict(
-            iid='test_invalidpropname',
-            pname='EmbedObjectScalar-invalid',
-            pstr="instancex of TST_Embedded1 {"
-                 "Bool1NotFound = true;"
-                 "};",
-            exp_dict=dict(
-                EmbeddedObject='object',
-                Array=False,
-            ),
-        ),
+        {
+            'iid': 'test_invalidpropname',
+            'pname': 'EmbedObjectScalar-invalid',
+            'pstr': "instancex of TST_Embedded1 {"
+                    "Bool1NotFound = true;"
+                    "};",
+            'exp_dict': {
+                'EmbeddedObject': 'object',
+                'Array': False,
+            },
+        },
         MOFParseError, None, OK
     ),
 
     (
         "Test creation compile fails arrayness mismatch",
-        dict(
-            iid='TSTScalarInstanceError_arrayness',
-            pname='EmbedInstanceScalar',
-            pstr=["instance of TST_Embedded1 {"
-                  "Bool1 = false;"
-                  "};",
-                  "instance of TST_Embedded1 {"
-                  "Bool1 = true;"
-                  "};", ],
-            exp_dict=dict(
-                EmbeddedObject='instance',
-                Array=False,
-            ),
-        ),
+        {
+            'iid': 'TSTScalarInstanceError_arrayness',
+            'pname': 'EmbedInstanceScalar',
+            'pstr': ["instance of TST_Embedded1 {"
+                     "Bool1 = false;"
+                     "};",
+                     "instance of TST_Embedded1 {"
+                     "Bool1 = true;"
+                     "};"],
+            'exp_dict': {
+                'EmbeddedObject': 'instance',
+                'Array': False,
+            },
+        },
         MOFParseError, None, OK
     ),
 
     (
         "Test creation compile class fails arrayness mismatch",
-        dict(
-            iid='TSTScalarInstanceError',
-            pname='EmbedInstanceScalar',
-            pstr="class blah{"
-                 "boolean Bool1"
-                 "};",
-            exp_dict=dict(
-                EmbeddedObject='instance',
-                Array=False,
-            ),
-        ),
+        {
+            'iid': 'TSTScalarInstanceError',
+            'pname': 'EmbedInstanceScalar',
+            'pstr': "class blah{"
+                    "boolean Bool1"
+                    "};",
+            'exp_dict': {
+                'EmbeddedObject': 'instance',
+                'Array': False,
+            },
+        },
         MOFParseError, None, OK
     ),
     (
         "Test creation compile fail single \n in embededinstancename",
-        dict(
-            iid='TSTScalarInstanceError',
-            pname='EmbedInstanceScalar',
-            pstr="class blah{\n"
-                 "boolean Bool1"
-                 "};",
-            exp_dict=dict(
-                EmbeddedObject='instance',
-                Array=False,
-            ),
-        ),
+        {
+            'iid': 'TSTScalarInstanceError',
+            'pname': 'EmbedInstanceScalar',
+            'pstr': "class blah{\n"
+                    "boolean Bool1"
+                    "};",
+            'exp_dict': {
+                'EmbeddedObject': 'instance',
+                'Array': False,
+            },
+        },
         MOFParseError, None, OK
     ),
     (
         "Test embedded qualifierdecl creation fails",
-        dict(
-            iid='TSTQualDeclCreationError',
-            pname='EmbedInstanceScalar',
-            pstr="Qualifier Key : boolean = false, "
-                 "Scope(property, reference),"
-                 "Flavor(DisableOverride, ToSubclass);"
-                 "};",
-            exp_dict=dict(
-                EmbeddedObject='instance',
-                Array=False,
-            ),
-        ),
+        {
+            'iid': 'TSTQualDeclCreationError',
+            'pname': 'EmbedInstanceScalar',
+            'pstr': "Qualifier Key : boolean = false, "
+                    "Scope(property, reference),"
+                    "Flavor(DisableOverride, ToSubclass);"
+                    "};",
+            'exp_dict': {
+                'EmbeddedObject': 'instance',
+                'Array': False,
+            },
+        },
         MOFParseError, None, OK
     ),
 
@@ -3315,7 +3318,7 @@ def test_embedded_object_property_compile(testcase, iid, pname, pstr, exp_dict):
         for strx in pstr:
             array_strings.append(f'"{strx}"')
 
-        embedd_inst_value = "{{ {0} }}".format(", ".join(array_strings))
+        embedd_inst_value = "{{ {} }}".format(", ".join(array_strings))
         inst_mof = embed_inst_template.format(iid, pname, embedd_inst_value)
     else:
         pstr = f'"{pstr}"'
@@ -3329,7 +3332,7 @@ def test_embedded_object_property_compile(testcase, iid, pname, pstr, exp_dict):
 
     # Validate instance(s) created
 
-    path = CIMInstanceName("TST_Container", keybindings=dict(InstanceID=iid))
+    path = CIMInstanceName("TST_Container", keybindings={'InstanceID': iid})
     rtn_inst = conn.GetInstance(path)
     rtn_property = rtn_inst.properties[pname]
 
@@ -3398,33 +3401,33 @@ TESTCASES_ABSTRACT_MOF_INSTANCE_COMPILE = [
     # \\ (\\n).
     (
         "Validate creation single instance of Abstract class",
-        dict(
-            instmof="instance of TST_AbstractClass { "
-                    'InstanceID = "Inst1"; '
-                    "};",
-            result_inst=CIMInstance(
+        {
+            'instmof': "instance of TST_AbstractClass { "
+                       'InstanceID = "Inst1"; '
+                       "};",
+            'result_inst': CIMInstance(
                 "TST_AbstractClass",
                 path=CIMInstanceName("TST_AbstractClass",
-                                     keybindings=dict(InstanceID='Inst1')),
+                                     keybindings={'InstanceID': 'Inst1'}),
                 properties=[
                     CIMProperty('InstanceID', value='Inst1')])
-        ),
+        },
         None, ToleratedSchemaIssueWarning, OK
     ),
 
     (
         "Validate creation single instance of not Abstract class",
-        dict(
-            instmof="instance of TST_AbstractClassSub { "
-                    'InstanceID = "Inst1"; '
-                    "};",
-            result_inst=CIMInstance(
+        {
+            'instmof': "instance of TST_AbstractClassSub { "
+                       'InstanceID = "Inst1"; '
+                       "};",
+            'result_inst': CIMInstance(
                 "TST_AbstractClassSub",
                 path=CIMInstanceName("TST_AbstractClassSub",
-                                     keybindings=dict(InstanceID='Inst1')),
+                                     keybindings={'InstanceID': 'Inst1'}),
                 properties=[
                     CIMProperty('InstanceID', value='Inst1')])
-        ),
+        },
         None, None, OK
     ),
 ]
@@ -3448,7 +3451,7 @@ def test_abstract_mof_instance_compile(testcase, instmof, result_inst):
     # Get created instance and validate instance(s) created
 
     path = CIMInstanceName(result_inst.classname,
-                           keybindings=dict(InstanceID="Inst1"))
+                           keybindings={'InstanceID': "Inst1"})
     rtn_inst = conn.GetInstance(path)
 
     # Account for differences in namespace, host in paths

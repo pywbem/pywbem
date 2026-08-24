@@ -25,7 +25,8 @@ import re
 import inspect
 from string import Formatter
 from builtins import ascii as _ascii
-from collections.abc import Mapping, Set, MutableSequence, Sequence
+from collections.abc import (
+    Mapping, Set as AbstractSet, MutableSequence, Sequence)
 
 __all__ = []
 
@@ -220,7 +221,7 @@ def _ascii2(value):
             return item_str
         return f"{value.__class__.__name__}({item_str})"
 
-    if isinstance(value, Set):
+    if isinstance(value, AbstractSet):
         items = [_ascii2(v) for v in value]
         item_str = "{" + ", ".join(items) + "}"
         if value.__class__.__name__ == 'set':
@@ -248,8 +249,7 @@ def _ascii2(value):
     if isinstance(value, str):
 
         ret = _ascii(value)  # returns type str in py2 and py3
-        if ret.startswith('u'):
-            ret = ret[1:]
+        ret = ret.removeprefix('u')
 
         # Convert /xhh into /u00hh.
         # The two look-behind patterns address at least some of the cases that
@@ -262,8 +262,7 @@ def _ascii2(value):
 
     elif isinstance(value, bytes):
         ret = _ascii(value)  # returns type str in py2 and py3
-        if ret.startswith('b'):
-            ret = ret[1:]
+        ret = ret.removeprefix('b')
 
     elif isinstance(value, (int, float)):
         # str() on Python containers calls repr() on the items. PEP 3140

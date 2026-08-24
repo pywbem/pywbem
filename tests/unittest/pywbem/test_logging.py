@@ -201,157 +201,157 @@ TESTCASES_TEST_LOGGERS_FROM_STRING = [
 
     (
         "Test 'all' string",
-        dict(
-            param='all',
-            expected_result={'level': (10, 10),
-                             'handler': (logging.FileHandler,
-                                         logging.FileHandler),
-                             'detail': ('all', 'all')},
-            log_file='Blah.log',
-            connection_defined=None
-        ),
+        {
+            'param': 'all',
+            'expected_result': {
+                'level': (10, 10),
+                'handler': (logging.FileHandler, logging.FileHandler),
+                'detail': ('all', 'all')},
+            'log_file': 'Blah.log',
+            'connection_defined': None
+        },
         None, None, OK
     ),
     (
         "Test 'all=' string",
-        dict(
-            param='all=',
-            expected_result={'level': (10, 10),
-                             'handler': (logging.FileHandler,
-                                         logging.FileHandler),
-                             'detail': ('all', 'all')},
-            log_file='Blah.log',
-            connection_defined=None
-        ),
+        {
+            'param': 'all=',
+            'expected_result': {
+                'level': (10, 10),
+                'handler': (logging.FileHandler, logging.FileHandler),
+                'detail': ('all', 'all')},
+            'log_file': 'Blah.log',
+            'connection_defined': None
+        },
         None, None, OK
     ),
     (
         "Test 'all=file' string",
-        dict(
-            param='all=file',
-            expected_result={'level': (10, 10),
-                             'handler': (logging.FileHandler,
-                                         logging.FileHandler),
-                             'detail': ('all', 'all')},
-            log_file='Blah.log',
-            connection_defined=None
-        ),
+        {
+            'param': 'all=file',
+            'expected_result': {
+                'level': (10, 10),
+                'handler': (logging.FileHandler, logging.FileHandler),
+                'detail': ('all', 'all')},
+            'log_file': 'Blah.log',
+            'connection_defined': None
+        },
         None, None, OK
     ),
     (
         "Test 'all=file:summary' string",
-        dict(
-            param='all=file:summary',
-            expected_result={'level': (10, 10),
-                             'handler': (logging.FileHandler,
-                                         logging.FileHandler),
-                             'detail': ('summary', 'summary')},
-            log_file='Blah.log',
-            connection_defined=None
-        ),
+        {
+            'param': 'all=file:summary',
+            'expected_result': {
+                'level': (10, 10),
+                'handler': (logging.FileHandler, logging.FileHandler),
+                'detail': ('summary', 'summary')},
+            'log_file': 'Blah.log',
+            'connection_defined': None
+        },
         None, None, OK
     ),
     (
         "Test 'all=file:paths' string",
-        dict(
-            param='all=file:paths',
-            expected_result={'level': (10, 10),
-                             'handler': (logging.FileHandler,
-                                         logging.FileHandler),
-                             'detail': ('path', 'path')},
-            log_file='Blah.log',
-            connection_defined=None
-        ),
+        {
+            'param': 'all=file:paths',
+            'expected_result': {
+                'level': (10, 10),
+                'handler': (logging.FileHandler, logging.FileHandler),
+                'detail': ('path', 'path')},
+            'log_file': 'Blah.log',
+            'connection_defined': None
+        },
         None, None, OK
     ),
     (
         "Test 'all=file;10' string",
-        dict(
-            param='all=file:10',
-            expected_result={'level': (10, 10),
-                             'handler': (logging.FileHandler,
-                                         logging.FileHandler),
-                             'detail': ('10', '10')},
-            log_file='Blah.log',
-            connection_defined=None
-        ),
+        {
+            'param': 'all=file:10',
+            'expected_result': {
+                'level': (10, 10),
+                'handler': (logging.FileHandler, logging.FileHandler),
+                'detail': ('10', '10')},
+            'log_file': 'Blah.log',
+            'connection_defined': None
+        },
         None, None, OK
     ),
     (
         "Test 'api=file,http=file:all' string",
-        dict(
-            param='api=file,http=file:all',
-            expected_result={'level': (10, 10),
-                             'handler': (logging.FileHandler,
-                                         logging.FileHandler),
-                             'detail': ('all', 'all')},
-            log_file='Blah.log',
-            connection_defined=None
-        ),
+        {
+            'param': 'api=file,http=file:all',
+            'expected_result': {
+                'level': (10, 10),
+                'handler': (logging.FileHandler, logging.FileHandler),
+                'detail': ('all', 'all')},
+            'log_file': 'Blah.log',
+            'connection_defined': None
+        },
         None, None, OK
     ),
     (
         "'Test api=file,http=stderr",
-        dict(
-            param='api=file,http=stderr',
-            expected_result={'level': (10, 10),
-                             'handler': (logging.FileHandler,
-                                         logging.StreamHandler),
-                             'detail': ('all', 'all')},
-            log_file='Blah.log',
-            connection_defined=None
-        ),
+        {
+            'param': 'api=file,http=stderr',
+            'expected_result': {
+                'level': (10, 10),
+                'handler': (logging.FileHandler, logging.StreamHandler),
+                'detail': ('all', 'all')},
+            'log_file': 'Blah.log',
+            'connection_defined': None
+        },
         None, None, OK
     ),
     # Error tests
     (
         "Test invalid '",
-        dict(
-            param='all=blah',
-            expected_result={},
-            log_file='Blah.log',
-            connection_defined=None
-        ),
+        {
+            'param': 'all=blah',
+            'expected_result': {},
+            'log_file': 'Blah.log',
+            'connection_defined': None
+        },
         ValueError, None, OK
     ),
     (
         "Test invalid 'api=stderr,https=blah''",
-        dict(
-            param='all=blah',
-            expected_result={},
-            log_file='Blah.log',
-            connection_defined=None
-        ),
+        {
+            'param': 'all=blah',
+            'expected_result': {},
+            'log_file': 'Blah.log',
+            'connection_defined': None
+        },
         ValueError, None, OK
     ),
     (
         "Test invalid 'all=file:all:junk'",
-        dict(
-            param='all=file:all:junk',
-            expected_result={},
-            log_file='Blah.log',
-            connection_defined=None
-        ),
+        {
+            'param': 'all=file:all:junk',
+            'expected_result': {},
+            'log_file': 'Blah.log',
+            'connection_defined': None
+        },
         ValueError, None, OK
     ),
     (
         "Test invalid 'all=file' with no log file",
-        dict(
-            param='all=file:all:junk',
-            expected_result={},
-            log_file=None,
-            connection_defined=None
-        ),
+        {
+            'param': 'all=file:all:junk',
+            'expected_result': {},
+            'log_file': None,
+            'connection_defined': None
+        },
         ValueError, None, OK
     ),
     (
         "Test invalid 'all=blah'",
-        dict(
-            param='',
-            expected_result={},
-            log_file='Blah.log',
-            connection_defined=None
-        ),
+        {
+            'param': '',
+            'expected_result': {},
+            'log_file': 'Blah.log',
+            'connection_defined': None
+        },
         ValueError, None, OK
     ),
 ]

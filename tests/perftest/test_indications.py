@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Measure performance of sending indications to the pywbem listener.
 """

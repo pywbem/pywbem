@@ -76,9 +76,6 @@ class ClientTest(unittest.TestCase):
     def setUp(self):
         """Create a connection."""
 
-        # pylint: disable=global-variable-not-assigned,global-statement
-        global args  # noqa: F824 pylint: disable=invalid-name
-
         # pylint: disable=used-before-assignment
         # pylint: disable=possibly-used-before-assignment
         self.host = args['host']
@@ -249,18 +246,18 @@ def parse_args(argv_):
               'usage.')
         sys.exit(2)
     elif argv[1] == '--help' or argv[1] == '-h':
-        print('')
+        print()
         print('Test program for client timeout of cim operations.\n')
         print('Requires OpenPegasus because it uses a special method\n')
         print('that delays the response for a defined time.\n')
         print('Tests a range of timeout values against http\n ')
         print('and https with operation that generates known delay.\n')
         print('Complete test is in a single unittest function')
-        print('')
+        print()
         print('Usage:')
         print(f'    {argv[0]} [GEN_OPTS] URL [USERNAME%%PASSWORD [UT_OPTS '
               '[UT_CLASS ...]]] ')
-        print('')
+        print()
         print('Where:')
         print('    GEN_OPTS            General options (see below).')
         print('    HOST                Name of the target WBEM server.\n'
@@ -273,7 +270,7 @@ def parse_args(argv_):
               '                        WBEM server.\n'
               '                        Requests user input if not supplier')
 
-        print('')
+        print()
         print('General options[GEN_OPTS]:')
         print('    --help, -h          Display this help text.')
         print('    -t MAXTIMEOUT       Maximum timout value in sec. to test.\n'
@@ -288,7 +285,7 @@ def parse_args(argv_):
         print('                        DMTF default port of 5988')
         print('------------------------')
         print('Unittest arguments[UT_OPTS]:')
-        print('')
+        print()
         sys.argv[1:] = ['--help']
         unittest.main()
         sys.exit(2)

@@ -111,16 +111,16 @@ def test_interop_namespace_names():
 
 TESTCASES_IS_INTEROP_NAMESPACE = [
     ("verify interop True",
-     dict(ns='interop', exp_rtn=True), None, None, OK),
+     {'ns': 'interop', 'exp_rtn': True}, None, None, OK),
 
     ("verify root/interop True",
-     dict(ns='root/interop', exp_rtn=True), None, None, OK),
+     {'ns': 'root/interop', 'exp_rtn': True}, None, None, OK),
 
     ("verify root/interop True",
-     dict(ns='root/pg_interop', exp_rtn=True), None, None, OK),
+     {'ns': 'root/pg_interop', 'exp_rtn': True}, None, None, OK),
 
     ("verify root/blah False",
-     dict(ns='root/blah', exp_rtn=False), None, None, OK),
+     {'ns': 'root/blah', 'exp_rtn': False}, None, None, OK),
 ]
 
 
@@ -148,35 +148,42 @@ TESTCASES_FIND_INTEROP_NAMESPACE = [
     # exp_ns = Expected namespace returned
 
     ("Verify interop not in enviroment returns None",
-     dict(deflt=None, nss=None, exp_ns=None), None, None, OK),
+     {'deflt': None, 'nss': None, 'exp_ns': None},
+     None, None, OK),
 
     ("Verify interop in enviroment returns interop",
-     dict(deflt=None, nss=['interop'], exp_ns='interop'), None, None, OK),
+     {'deflt': None, 'nss': ['interop'], 'exp_ns': 'interop'},
+     None, None, OK),
 
     ("Verify INTEROP in enviroment returns INTEROP",
-     dict(deflt=None, nss=['INTEROP'], exp_ns='INTEROP'), None, None, OK),
+     {'deflt': None, 'nss': ['INTEROP'], 'exp_ns': 'INTEROP'},
+     None, None, OK),
 
     ("Verify root/interop in enviroment returns interop",
-     dict(deflt=None, nss=['root/interop'], exp_ns='root/interop'), None,
-     None, OK),
+     {'deflt': None, 'nss': ['root/interop'], 'exp_ns': 'root/interop'},
+     None, None, OK),
 
     ("Verify interop in enviroment with other ns returns interop",
-     dict(deflt=None, nss=['interop', 'root/blah'], exp_ns='interop'), None,
-     None, OK),
-
-    ("Verify interop in enviroment with other ns and default returns interop",
-     dict(deflt='root/cimv2', nss=['interop', 'root/blah'], exp_ns='interop'),
+     {'deflt': None, 'nss': ['interop', 'root/blah'], 'exp_ns': 'interop'},
      None, None, OK),
 
     ("Verify interop in enviroment with other ns and default returns interop",
-     dict(deflt='root/cimv2', nss=['root/blah', 'interop'], exp_ns='interop'),
+     {'deflt': 'root/cimv2', 'nss': ['interop', 'root/blah'],
+      'exp_ns': 'interop'},
+     None, None, OK),
+
+    ("Verify interop in enviroment with other ns and default returns interop",
+     {'deflt': 'root/cimv2', 'nss': ['root/blah', 'interop'],
+      'exp_ns': 'interop'},
      None, None, OK),
 
     ("Verify interop as default can be found",
-     dict(deflt='interop', nss=None, exp_ns='interop'), None, None, OK),
+     {'deflt': 'interop', 'nss': None, 'exp_ns': 'interop'},
+     None, None, OK),
 
     ("Verify interop not in namespaces that has a namespace finds nothing",
-     dict(deflt=None, nss=['root/blah'], exp_ns=None), None, None, OK),
+     {'deflt': None, 'nss': ['root/blah'], 'exp_ns': None},
+     None, None, OK),
 ]
 
 
@@ -219,34 +226,34 @@ TESTCASES_INSTALL_NAMESPACE_PROVIDER = [
 
     (
         "Test with interop as interop namespace name",
-        dict(
-            default_ns=None,
-            ns='interop',
-        ),
+        {
+            'default_ns': None,
+            'ns': 'interop',
+        },
         None, None, OK
     ),
     (
         "Test with interop as interop namespace name and root/blah default",
-        dict(
-            default_ns='root/blah',
-            ns='interop',
-        ),
+        {
+            'default_ns': 'root/blah',
+            'ns': 'interop',
+        },
         None, None, OK
     ),
     (
         "Test with root/interop as interop namespace name",
-        dict(
-            default_ns=None,
-            ns='root/interop',
-        ),
+        {
+            'default_ns': None,
+            'ns': 'root/interop',
+        },
         None, None, OK
     ),
     (
         "Test with invalid interop namespace name",
-        dict(
-            default_ns=None,
-            ns='root/interopx',
-        ),
+        {
+            'default_ns': None,
+            'ns': 'root/interopx',
+        },
         CIMError, None, OK
     ),
 ]
@@ -308,67 +315,67 @@ TESTCASES_ADD_NAMESPACE_NAMESPACE_PROVIDER = [
 
     (
         "Test with only default and interop",
-        dict(
-            initial_ns=[],
-            interop_ns='interop',
-            final_ns=[],
-            total_exp_ns=['root/cimv2', 'interop']
-        ),
+        {
+            'initial_ns': [],
+            'interop_ns': 'interop',
+            'final_ns': [],
+            'total_exp_ns': ['root/cimv2', 'interop']
+        },
         None, None, OK
     ),
 
     (
         "Test with namespaces before and after namespace provider added",
-        dict(
-            initial_ns=['ns_before'],
-            interop_ns='interop',
-            final_ns=['ns_after'],
-            total_exp_ns=['root/cimv2', 'interop', 'ns_before', 'ns_after']
-        ),
+        {
+            'initial_ns': ['ns_before'],
+            'interop_ns': 'interop',
+            'final_ns': ['ns_after'],
+            'total_exp_ns': ['root/cimv2', 'interop', 'ns_before', 'ns_after']
+        },
         None, None, OK
     ),
     (
         "Test with mutiple added namespaces",
-        dict(
-            initial_ns=['ns_b1', 'ns_b2'],
-            interop_ns='interop',
-            final_ns=['ns_a1', "ns_a2"],
-            total_exp_ns=['root/cimv2', 'interop', 'ns_b1', 'ns_b2', 'ns_a1',
-                          'ns_a2']
-        ),
+        {
+            'initial_ns': ['ns_b1', 'ns_b2'],
+            'interop_ns': 'interop',
+            'final_ns': ['ns_a1', "ns_a2"],
+            'total_exp_ns': ['root/cimv2', 'interop', 'ns_b1', 'ns_b2', 'ns_a1',
+                             'ns_a2']
+        },
         None, None, OK
     ),
     (
         "Test with multiple interop; part of initial ns and interop_ns",
-        dict(
-            initial_ns=['ns_b1', 'ns_b2', 'interop'],
-            interop_ns='interop_ns',
-            final_ns=['ns_a1', "ns_a2"],
-            total_exp_ns=['root/cimv2', 'interop', 'ns_b1', 'ns_b2', 'ns_a1',
-                          'ns_a2']
-        ),
+        {
+            'initial_ns': ['ns_b1', 'ns_b2', 'interop'],
+            'interop_ns': 'interop_ns',
+            'final_ns': ['ns_a1', "ns_a2"],
+            'total_exp_ns': ['root/cimv2', 'interop', 'ns_b1', 'ns_b2', 'ns_a1',
+                             'ns_a2']
+        },
         CIMError, None, OK
     ),
     (
         "Test with interop interop part of initial ns and interop",
-        dict(
-            initial_ns=['ns_b1', 'ns_b2', 'interop'],
-            interop_ns='interop',
-            final_ns=['ns_a1', "ns_a2"],
-            total_exp_ns=['root/cimv2', 'interop', 'ns_b1', 'ns_b2', 'ns_a1',
-                          'ns_a2']
-        ),
+        {
+            'initial_ns': ['ns_b1', 'ns_b2', 'interop'],
+            'interop_ns': 'interop',
+            'final_ns': ['ns_a1', "ns_a2"],
+            'total_exp_ns': ['root/cimv2', 'interop', 'ns_b1', 'ns_b2', 'ns_a1',
+                             'ns_a2']
+        },
         CIMError, None, OK
     ),
     (
         "Test fails build interop second time in final_ns",
-        dict(
-            initial_ns=['ns_b1', 'ns_b2'],
-            interop_ns='interop',
-            final_ns=['ns_a1', "ns_a2", 'interop'],
-            total_exp_ns=['root/cimv2', 'interop', 'ns_b1', 'ns_b2', 'ns_a1',
-                          'ns_a2']
-        ),
+        {
+            'initial_ns': ['ns_b1', 'ns_b2'],
+            'interop_ns': 'interop',
+            'final_ns': ['ns_a1', "ns_a2", 'interop'],
+            'total_exp_ns': ['root/cimv2', 'interop', 'ns_b1', 'ns_b2', 'ns_a1',
+                             'ns_a2']
+        },
         CIMError, None, OK
     ),
 ]
@@ -469,31 +476,31 @@ TESTCASES_ADD_CIMNAMESPACE_WITH_CREATENAMESPACE = [
 
     (
         "Test with only default and interop",
-        dict(
-            initial_ns=[],
-            final_ns=[],
-            total_exp_ns=['root/cimv2', 'interop']
-        ),
+        {
+            'initial_ns': [],
+            'final_ns': [],
+            'total_exp_ns': ['root/cimv2', 'interop']
+        },
         None, None, OK
     ),
 
     (
         "Test with namespaces before and after namespace provider added",
-        dict(
-            initial_ns=['ns_before'],
-            final_ns=['ns_after'],
-            total_exp_ns=['root/cimv2', 'interop', 'ns_before', 'ns_after']
-        ),
+        {
+            'initial_ns': ['ns_before'],
+            'final_ns': ['ns_after'],
+            'total_exp_ns': ['root/cimv2', 'interop', 'ns_before', 'ns_after']
+        },
         None, None, OK
     ),
     (
         "Test with multiple added namespaces",
-        dict(
-            initial_ns=['ns_b1', 'ns_b2'],
-            final_ns=['ns_a1', "ns_a2"],
-            total_exp_ns=['root/cimv2', 'interop', 'ns_b1', 'ns_b2', 'ns_a1',
-                          'ns_a2']
-        ),
+        {
+            'initial_ns': ['ns_b1', 'ns_b2'],
+            'final_ns': ['ns_a1', "ns_a2"],
+            'total_exp_ns': ['root/cimv2', 'interop', 'ns_b1', 'ns_b2', 'ns_a1',
+                             'ns_a2']
+        },
         None, None, OK
     ),
 ]

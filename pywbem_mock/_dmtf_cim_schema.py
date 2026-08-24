@@ -453,8 +453,7 @@ class DMTFCIMSchema:
                             self.schema_zip_url, ie))
 
             with open(self.schema_zip_file, 'wb') as fp:
-                for data in ufo:
-                    fp.write(data)
+                fp.writelines(ufo)
 
         if not os.path.isdir(self.schema_mof_dir):
             print_verbose(

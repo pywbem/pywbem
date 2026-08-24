@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Unittest functions in _cim_operations.
 """
@@ -59,86 +57,86 @@ TESTCASES_INIT_WBEMCONNECTION = [
         "No optional init parameters, test defaults",
         [],
         {},
-        dict(
-            creds=None,
-            default_namespace='root/cimv2',
-            x509=None,
-            ca_certs=None,
-            no_verification=False,
-            timeout=DEFAULT_TIMEOUT,
-            use_pull_operations=False,
-            stats_enabled=False,
-            proxies=None,
-        ),
+        {
+            'creds': None,
+            'default_namespace': 'root/cimv2',
+            'x509': None,
+            'ca_certs': None,
+            'no_verification': False,
+            'timeout': DEFAULT_TIMEOUT,
+            'use_pull_operations': False,
+            'stats_enabled': False,
+            'proxies': None,
+        },
         None, None
     ),
     (
         "All optional init parameters, except x509 and ca_certs",
         [],
-        dict(
-            creds=('myuser', 'mypw'),
-            default_namespace='root/myns',
-            no_verification=True,
-            timeout=20,
-            use_pull_operations=True,
-            stats_enabled=True,
-            proxies=None,
-        ),
-        dict(
-            creds=('myuser', 'mypw'),
-            default_namespace='root/myns',
-            no_verification=True,
-            timeout=20,
-            use_pull_operations=True,
-            stats_enabled=True,
-            proxies=None,
-        ),
+        {
+            'creds': ('myuser', 'mypw'),
+            'default_namespace': 'root/myns',
+            'no_verification': True,
+            'timeout': 20,
+            'use_pull_operations': True,
+            'stats_enabled': True,
+            'proxies': None,
+        },
+        {
+            'creds': ('myuser', 'mypw'),
+            'default_namespace': 'root/myns',
+            'no_verification': True,
+            'timeout': 20,
+            'use_pull_operations': True,
+            'stats_enabled': True,
+            'proxies': None,
+        },
         None, None
     ),
     (
         "x509 parameter that is a dict with existing cert_file and "
         "existing key_file",
         ['mycertfile.tmp', 'mykeyfile.tmp'],
-        dict(
-            x509=dict(
-                cert_file='mycertfile.tmp',
-                key_file='mykeyfile.tmp',
-            ),
-        ),
-        dict(
-            x509=dict(
-                cert_file='mycertfile.tmp',
-                key_file='mykeyfile.tmp',
-            ),
-        ),
+        {
+            'x509': {
+                'cert_file': 'mycertfile.tmp',
+                'key_file': 'mykeyfile.tmp',
+            },
+        },
+        {
+            'x509': {
+                'cert_file': 'mycertfile.tmp',
+                'key_file': 'mykeyfile.tmp',
+            },
+        },
         None, None
     ),
     (
         "x509 parameter that is a dict with existing cert_file and "
         "omitted key_file",
         ['mycertfile.tmp'],
-        dict(
-            x509=dict(
-                cert_file='mycertfile.tmp',
-            ),
-        ),
-        dict(
-            x509=dict(
-                cert_file='mycertfile.tmp',
-            ),
-        ),
+        {
+            'x509': {
+                'cert_file': 'mycertfile.tmp',
+            },
+        },
+        {
+            'x509': {
+                'cert_file': 'mycertfile.tmp',
+            },
+        },
         None, None
     ),
     (
         "x509 parameter that is a dict with non-existing cert_file "
         "(invalid) and existing key_file",
         ['mykeyfile.tmp'],
-        dict(
-            x509=dict(
-                cert_file='nonexistingcertfile.tmp',
-                key_file='mykeyfile.tmp',
-            ),
-        ),
+        {
+            'x509': {
+                'cert_file': 'nonexistingcertfile.tmp',
+                'key_file': 'mykeyfile.tmp',
+            },
+        },
         {},
         IOError, "Client certificate file .* not found"
     ),
@@ -146,12 +144,12 @@ TESTCASES_INIT_WBEMCONNECTION = [
         "x509 parameter that is a dict with existing cert_file "
         "and non-existing key_file (invalid)",
         ['mycertfile.tmp'],
-        dict(
-            x509=dict(
-                cert_file='mycertfile.tmp',
-                key_file='nonexistingkeyfile.tmp',
-            ),
-        ),
+        {
+            'x509': {
+                'cert_file': 'mycertfile.tmp',
+                'key_file': 'nonexistingkeyfile.tmp',
+            },
+        },
         {},
         IOError, "Client key file .* not found"
     ),
@@ -159,12 +157,12 @@ TESTCASES_INIT_WBEMCONNECTION = [
         "x509 parameter that is a dict with cert_file=None (invalid) "
         "and key_file=None",
         [],
-        dict(
-            x509=dict(
-                cert_file=None,
-                key_file=None,
-            ),
-        ),
+        {
+            'x509': {
+                'cert_file': None,
+                'key_file': None,
+            },
+        },
         {},
         TypeError, "cert_file.* must be a string"
     ),
@@ -172,12 +170,12 @@ TESTCASES_INIT_WBEMCONNECTION = [
         "x509 parameter that is a dict with cert_file=3 (invalid) "
         " Must be a string",
         [],
-        dict(
-            x509=dict(
-                cert_file=3,
-                key_file=None,
-            ),
-        ),
+        {
+            'x509': {
+                'cert_file': 3,
+                'key_file': None,
+            },
+        },
         {},
         TypeError, "The 'cert_file' item in the x509 parameter must be a string"
     ),
@@ -185,12 +183,12 @@ TESTCASES_INIT_WBEMCONNECTION = [
         "x509 parameter that is a dict with cert_file='mycertfile.tmp' "
         " keyfile invalid type",
         [],
-        dict(
-            x509=dict(
-                cert_file='mycertfile.tmp',
-                key_file=3,
-            ),
-        ),
+        {
+            'x509': {
+                'cert_file': 'mycertfile.tmp',
+                'key_file': 3,
+            },
+        },
         {},
         TypeError, "The 'key_file' item in the x509 parameter must be a string",
     ),
@@ -198,11 +196,11 @@ TESTCASES_INIT_WBEMCONNECTION = [
         "x509 parameter that is a dict with no cert_file key "
         "and key_file=None",
         [],
-        dict(
-            x509=dict(
-                key_file=None,
-            ),
-        ),
+        {
+            'x509': {
+                'key_file': None,
+            },
+        },
         {},
         ValueError, "The x509 parameter does not have the required key "
         "'cert_file'"
@@ -211,64 +209,64 @@ TESTCASES_INIT_WBEMCONNECTION = [
     (
         "x509 parameter that is an existing file (invalid)",
         ['mycertfile.tmp'],
-        dict(
-            x509='mycertfile.tmp',
-        ),
+        {
+            'x509': 'mycertfile.tmp',
+        },
         {},
         TypeError, "x509 .* must be a dictionary"
     ),
     (
         "ca_certs parameter that is an existing file",
         ['mycacertfile.tmp'],
-        dict(
-            ca_certs='mycacertfile.tmp',
-        ),
-        dict(
-            ca_certs='mycacertfile.tmp',
-        ),
+        {
+            'ca_certs': 'mycacertfile.tmp',
+        },
+        {
+            'ca_certs': 'mycacertfile.tmp',
+        },
         None, None
     ),
     (
         "ca_certs parameter that is an integer (invalid)",
         [],
-        dict(
-            ca_certs=42,
-        ),
+        {
+            'ca_certs': 42,
+        },
         {},
         TypeError, "ca_certs .* invalid type"
     ),
     (
         "ca_certs parameter that is a non-existing file (invalid)",
         [],
-        dict(
-            ca_certs='mycacertfile.tmp',
-        ),
+        {
+            'ca_certs': 'mycacertfile.tmp',
+        },
         {},
         IOError, "file or directory not found"
     ),
     (
         "proxies parameter that is valid",
         [],
-        dict(
-            proxies={
+        {
+            'proxies': {
                 'http': 'http://user:pass@10.10.1.10:3128',
                 'https': 'http://user:pass@10.10.1.10:1080',
             },
-        ),
-        dict(
-            proxies={
+        },
+        {
+            'proxies': {
                 'http': 'http://user:pass@10.10.1.10:3128',
                 'https': 'http://user:pass@10.10.1.10:1080',
             },
-        ),
+        },
         None, None
     ),
     (
         "proxies parameter that is an invalid type",
         [],
-        dict(
-            proxies=42,
-        ),
+        {
+            'proxies': 42,
+        },
         {},
         TypeError, "proxies .* must be a dictionary .*"
     ),
@@ -326,7 +324,7 @@ class TestCreateConnection:
         'attr_name, value', [
             ('url', 'http://myserver:5988'),
             ('creds', ('x', 'y')),
-            ('x509', dict(cert_file='c', key_file='k')),
+            ('x509', {'cert_file': 'c', 'key_file': 'k'}),
             ('ca_certs', 'xxx'),
             ('no_verification', True),
             ('last_raw_request', '<CIM/>'),
@@ -357,9 +355,9 @@ class TestCreateConnection:
     @pytest.mark.parametrize(
         'kwargs, exp_default_namespace', [
             ({}, DEFAULT_NAMESPACE),
-            (dict(default_namespace=None), DEFAULT_NAMESPACE),
-            (dict(default_namespace=DEFAULT_NAMESPACE), DEFAULT_NAMESPACE),
-            (dict(default_namespace='blah'), 'blah'),
+            ({'default_namespace': None}, DEFAULT_NAMESPACE),
+            ({'default_namespace': DEFAULT_NAMESPACE}, DEFAULT_NAMESPACE),
+            ({'default_namespace': 'blah'}, 'blah'),
         ])
     @log_entry_exit
     def test_init_default_namespace(self, kwargs, exp_default_namespace):
@@ -635,75 +633,75 @@ TESTCASES_IS_SUBCLASS = [
 
     (
         "Test of valid call with strings that returns True",
-        dict(
-            init_args=['CIM_ObjectManager', 'CIM_ManagedElement'],
-            exp_attrs=True,
-        ),
+        {
+            'init_args': ['CIM_ObjectManager', 'CIM_ManagedElement'],
+            'exp_attrs': True,
+        },
         None, None, True
     ),
     (
         "Test of valid call with CIM objects that returns True",
-        dict(
-            init_args=[
+        {
+            'init_args': [
                 CIMClass('CIM_ObjectManager', superclass='CIM_WBEMService'),
                 CIMClass('CIM_ManagedElement', superclass=None),
             ],
-            exp_attrs=True,
-        ),
+            'exp_attrs': True,
+        },
         None, None, True
     ),
     (
         "Test of valid call with CIM object and string that returns True",
-        dict(
-            init_args=[
+        {
+            'init_args': [
                 CIMClass('CIM_ObjectManager', superclass='CIM_WBEMService'),
                 'CIM_ManagedElement',
             ],
-            exp_attrs=True,
-        ),
+            'exp_attrs': True,
+        },
         None, None, True
     ),
     (
         "Test of valid call with string and CIM object that returns True",
-        dict(
-            init_args=[
+        {
+            'init_args': [
                 'CIM_ObjectManager',
                 CIMClass('CIM_ManagedElement', superclass=None),
             ],
-            exp_attrs=True,
-        ),
+            'exp_attrs': True,
+        },
         None, None, True
     ),
     (
         "Test of valid call that returns False",
-        dict(
-            init_args=['CIM_ManagedElement', 'CIM_ObjectManager'],
-            exp_attrs=False,
-        ),
+        {
+            'init_args': ['CIM_ManagedElement', 'CIM_ObjectManager'],
+            'exp_attrs': False,
+        },
         None, None, True
     ),
     (
         "Test of class equal to superclass",
-        dict(
-            init_args=['CIM_ObjectManager', 'CIM_ObjectManager'],
-            exp_attrs=True,
-        ),
+        {
+            'init_args': ['CIM_ObjectManager', 'CIM_ObjectManager'],
+            'exp_attrs': True,
+        },
         None, None, True
     ),
     (
         "Test of superclass not in repo, returns False",
-        dict(
-            init_args=['CIM_ManagedElement', 'CIM_Blah'],
-            exp_attrs=False,
-        ),
+        {
+            'init_args': ['CIM_ManagedElement', 'CIM_Blah'],
+            'exp_attrs': False,
+        },
         None, None, True
     ),
     (
         "Test of class not in repo (error)",
-        dict(
-            init_args=['CIM_Blah', 'CIM_ManagedElement'],
-            exp_attrs=None,
-        ),
+        {
+            'init_args': ['CIM_Blah', 'CIM_ManagedElement'],
+            'exp_attrs': None,
+        },
         CIMError, None, True
     ),
 ]
@@ -765,253 +763,253 @@ TESTCASES_REQUEST_INVALID_PARAMS = [
     #   debugger
     (
         "Test invalid invokemethod objectname (int)",
-        dict(
-            init_kwargs={},
-            method='invokemethod',
-            args=["MethodName", 1],
-            kwargs={},
-        ),
+        {
+            'init_kwargs': {},
+            'method': 'invokemethod',
+            'args': ["MethodName", 1],
+            'kwargs': {},
+        },
         TypeError, None, OK
     ),
     (
         "Test invalid invokemethod objectname is None",
-        dict(
-            init_kwargs={},
-            method='invokemethod',
-            args=["MethodName", None],
-            kwargs={},
-        ),
+        {
+            'init_kwargs': {},
+            'method': 'invokemethod',
+            'args': ["MethodName", None],
+            'kwargs': {},
+        },
         TypeError, None, OK
     ),
     (
         "Test invalid invokemethod inferred object integer None",
-        dict(
-            init_kwargs={},
-            method='invokemethod',
-            args=[None, "ObjectName"],
-            kwargs={"param1": 1},
-        ),
+        {
+            'init_kwargs': {},
+            'method': 'invokemethod',
+            'args': [None, "ObjectName"],
+            'kwargs': {"param1": 1},
+        },
         TypeError, None, False  # Fails with connection failure.
     ),
     (
         "Test enumerateinstances, fails, classname is not CIMClassname or Str",
-        dict(
-            init_kwargs={},
-            method='enumerateinstances',
-            args=[CIMInstanceName("CIM_Blah")],
-            kwargs={},
-        ),
+        {
+            'init_kwargs': {},
+            'method': 'enumerateinstances',
+            'args': [CIMInstanceName("CIM_Blah")],
+            'kwargs': {},
+        },
         TypeError, None, OK
     ),
     (
         "Test GetInstance, invalid InstanceName tyhpe",
-        dict(
-            init_kwargs={},
-            method='getinstance',
-            args=[CIMClassName("CIM_Blah")],
-            kwargs={},
-        ),
+        {
+            'init_kwargs': {},
+            'method': 'getinstance',
+            'args': [CIMClassName("CIM_Blah")],
+            'kwargs': {},
+        },
         TypeError, None, OK
     ),
 
     (
         "Test ModifyInstance, No path in ModifiedInstance",
-        dict(
-            init_kwargs={},
-            method='modifyinstance',
-            args=[CIMInstance("CIMBlah")],
-            kwargs={},
-        ),
+        {
+            'init_kwargs': {},
+            'method': 'modifyinstance',
+            'args': [CIMInstance("CIMBlah")],
+            'kwargs': {},
+        },
         ValueError, None, OK
     ),
 
     (
         "Test EnumerateInstances, Invalid args type",
-        dict(
-            init_kwargs={},
-            method='enumerateinstances',
-            args=[CIMClass("CIMBlah")],
-            kwargs={},
-        ),
+        {
+            'init_kwargs': {},
+            'method': 'enumerateinstances',
+            'args': [CIMClass("CIMBlah")],
+            'kwargs': {},
+        },
         TypeError, None, OK
     ),
 
     (
         "Test OpenEnumerateInstances, Invalid type for operationtimeout",
-        dict(
-            init_kwargs={},
-            method='openenumerateinstances',
-            args=[CIMClass("CIMBlah")],
-            kwargs={"OperationTimeout": "shouldbeinteger"},
-        ),
+        {
+            'init_kwargs': {},
+            'method': 'openenumerateinstances',
+            'args': [CIMClass("CIMBlah")],
+            'kwargs': {"OperationTimeout": "shouldbeinteger"},
+        },
         TypeError, None, OK
     ),
 
     (
         "Test OpenEnumerateInstances, Invalid value for operationtimeout",
-        dict(
-            init_kwargs={},
-            method='openenumerateinstances',
-            args=[CIMClass("CIMBlah")],
-            kwargs={"OperationTimeout": -30},
-        ),
+        {
+            'init_kwargs': {},
+            'method': 'openenumerateinstances',
+            'args': [CIMClass("CIMBlah")],
+            'kwargs': {"OperationTimeout": -30},
+        },
         TypeError, None, OK
     ),
 
     (
         "Test OpenEnumerateInstancepaths, Invalid type for operationtimeout",
-        dict(
-            init_kwargs={},
-            method='openenumerateinstancepaths',
-            args=[CIMClass("CIMBlah")],
-            kwargs={"OperationTimeout": "shouldbeinteger"},
-        ),
+        {
+            'init_kwargs': {},
+            'method': 'openenumerateinstancepaths',
+            'args': [CIMClass("CIMBlah")],
+            'kwargs': {"OperationTimeout": "shouldbeinteger"},
+        },
         TypeError, None, OK
     ),
 
     (
         "Test OpenEnumerateInstancePaths, Invalid value for operationtimeout",
-        dict(
-            init_kwargs={},
-            method='openenumerateinstancepaths',
-            args=[CIMClass("CIMBlah")],
-            kwargs={"OperationTimeout": -30},
-        ),
+        {
+            'init_kwargs': {},
+            'method': 'openenumerateinstancepaths',
+            'args': [CIMClass("CIMBlah")],
+            'kwargs': {"OperationTimeout": -30},
+        },
         TypeError, None, OK
     ),
 
     (
         "Test pullinstancewithpath, Invalid context type",
-        dict(
-            init_kwargs={},
-            method='pullinstanceswithpath',
-            args=[1, 0],
-            kwargs={},
-        ),
+        {
+            'init_kwargs': {},
+            'method': 'pullinstanceswithpath',
+            'args': [1, 0],
+            'kwargs': {},
+        },
         TypeError, None, OK
     ),
 
     (
         "Test pullinstancewithpath, context list len ",
-        dict(
-            init_kwargs={},
-            method='pullinstanceswithpath',
-            args=[[], 0],
-            kwargs={},
-        ),
+        {
+            'init_kwargs': {},
+            'method': 'pullinstanceswithpath',
+            'args': [[], 0],
+            'kwargs': {},
+        },
         ValueError, None, OK
     ),
 
     (
         "Test IterEnumerateInstances, invalid timeout.lt 0",
-        dict(
-            init_kwargs={},
-            method='iterenumerateinstances',
-            args=[CIMClassName("CIMBlah")],
-            kwargs=dict(OperationTimeout=-1),
-        ),
+        {
+            'init_kwargs': {},
+            'method': 'iterenumerateinstances',
+            'args': [CIMClassName("CIMBlah")],
+            'kwargs': {'OperationTimeout': -1},
+        },
         ValueError, None, OK
     ),
 
     (
         "Test IterEnumerateInstances, invalid maxobjectcount == 0",
-        dict(
-            init_kwargs={},
-            method='iterenumerateinstances',
-            args=[CIMClassName("CIMBlah")],
-            kwargs=dict(MaxObjectCount=0),
-        ),
+        {
+            'init_kwargs': {},
+            'method': 'iterenumerateinstances',
+            'args': [CIMClassName("CIMBlah")],
+            'kwargs': {'MaxObjectCount': 0},
+        },
         ValueError, None, OK
     ),
 
     (
         "Test IterEnumerateInstances, Pull not allowed. with Filterquery",
-        dict(
-            init_kwargs=dict(use_pull_operations=False),
-            method='iterenumerateinstances',
-            args=[CIMClassName("CIMBlah")],
-            kwargs=dict(FilterQuery="blah"),
-        ),
+        {
+            'init_kwargs': {'use_pull_operations': False},
+            'method': 'iterenumerateinstances',
+            'args': [CIMClassName("CIMBlah")],
+            'kwargs': {'FilterQuery': "blah"},
+        },
         ValueError, None, OK
     ),
 
     (
         "Test IterEnumerateInstances, Pull not allowed. with FilterQueryLang",
-        dict(
-            init_kwargs=dict(use_pull_operations=False),
-            method='iterenumerateinstances',
-            args=[CIMClassName("CIMBlah")],
-            kwargs=dict(FilterQueryLanguage="blah"),
-        ),
+        {
+            'init_kwargs': {'use_pull_operations': False},
+            'method': 'iterenumerateinstances',
+            'args': [CIMClassName("CIMBlah")],
+            'kwargs': {'FilterQueryLanguage': "blah"},
+        },
         ValueError, None, OK
     ),
 
     (
         "Test IterEnumerateInstancePaths, invalid timeout.lt 0",
-        dict(
-            init_kwargs={},
-            method='iterenumerateinstancepaths',
-            args=[CIMClassName("CIMBlah")],
-            kwargs=dict(OperationTimeout=-1),
-        ),
+        {
+            'init_kwargs': {},
+            'method': 'iterenumerateinstancepaths',
+            'args': [CIMClassName("CIMBlah")],
+            'kwargs': {'OperationTimeout': -1},
+        },
         ValueError, None, OK
     ),
 
     (
         "Test IterEnumerateInstancePaths, invalid maxobjectcount == 0",
-        dict(
-            init_kwargs={},
-            method='iterenumerateinstancepaths',
-            args=[CIMClassName("CIMBlah")],
-            kwargs=dict(MaxObjectCount=0),
-        ),
+        {
+            'init_kwargs': {},
+            'method': 'iterenumerateinstancepaths',
+            'args': [CIMClassName("CIMBlah")],
+            'kwargs': {'MaxObjectCount': 0},
+        },
         ValueError, None, OK
     ),
 
     (
         "Test IterEnumerateInstancePaths, Pull not allowed. with Filterquery",
-        dict(
-            init_kwargs=dict(use_pull_operations=False),
-            method='iterenumerateinstancepaths',
-            args=[CIMClassName("CIMBlah")],
-            kwargs=dict(FilterQuery="blah"),
-        ),
+        {
+            'init_kwargs': {'use_pull_operations': False},
+            'method': 'iterenumerateinstancepaths',
+            'args': [CIMClassName("CIMBlah")],
+            'kwargs': {'FilterQuery': "blah"},
+        },
         ValueError, None, OK
     ),
 
     (
         "Test IterEnumerateInstancePaths, Pull not allowed. with "
         "FilterQueryLang",
-        dict(
-            init_kwargs=dict(use_pull_operations=False),
-            method='iterenumerateinstancepaths',
-            args=[CIMClassName("CIMBlah")],
-            kwargs=dict(FilterQueryLanguage="blah"),
-        ),
+        {
+            'init_kwargs': {'use_pull_operations': False},
+            'method': 'iterenumerateinstancepaths',
+            'args': [CIMClassName("CIMBlah")],
+            'kwargs': {'FilterQueryLanguage': "blah"},
+        },
         ValueError, None, OK
     ),
 
     (
         "Test IterEnumerateInstances, Pull not allowed. with "
         "ContinueOnError True",
-        dict(
-            init_kwargs=dict(use_pull_operations=False),
-            method='iterenumerateinstances',
-            args=[CIMClassName("CIMBlah")],
-            kwargs=dict(ContinueOnError=True),
-        ),
+        {
+            'init_kwargs': {'use_pull_operations': False},
+            'method': 'iterenumerateinstances',
+            'args': [CIMClassName("CIMBlah")],
+            'kwargs': {'ContinueOnError': True},
+        },
         ValueError, None, OK
     ),
 
     (
         "Test IterEnumerateInstancePaths, Pull not allowed. with "
         "ContinueOnError True",
-        dict(
-            init_kwargs=dict(use_pull_operations=False),
-            method='iterenumerateinstancepaths',
-            args=[CIMClassName("CIMBlah")],
-            kwargs=dict(ContinueOnError=True),
-        ),
+        {
+            'init_kwargs': {'use_pull_operations': False},
+            'method': 'iterenumerateinstancepaths',
+            'args': [CIMClassName("CIMBlah")],
+            'kwargs': {'ContinueOnError': True},
+        },
         ValueError, None, OK
     ),
 
@@ -1105,131 +1103,131 @@ TESTCASES_COPY_WBEMCONNECTION = [
 
     (
         "No optional init parameters, test defaults",
-        dict(
-            files=[],
-            init_kwargs=dict(
-                url='http://localhost:5988',
-            ),
-            set_debug=False,
-            add_recorder=False,
-            enable_recorder=False,
-            enable_statistics=False,
-            perform_operation=False,
-        ),
+        {
+            'files': [],
+            'init_kwargs': {
+                'url': 'http://localhost:5988',
+            },
+            'set_debug': False,
+            'add_recorder': False,
+            'enable_recorder': False,
+            'enable_statistics': False,
+            'perform_operation': False,
+        },
         None, None, True
     ),
     (
         "All optional init parameters, except x509 and ca_certs",
-        dict(
-            files=[],
-            init_kwargs=dict(
-                url='http://localhost:5988',
-                creds=('myuser', 'mypw'),
-                default_namespace='root/myns',
-                no_verification=True,
-                timeout=20,
-                use_pull_operations=True,
-                stats_enabled=True,
-                proxies={
+        {
+            'files': [],
+            'init_kwargs': {
+                'url': 'http://localhost:5988',
+                'creds': ('myuser', 'mypw'),
+                'default_namespace': 'root/myns',
+                'no_verification': True,
+                'timeout': 20,
+                'use_pull_operations': True,
+                'stats_enabled': True,
+                'proxies': {
                     'http': 'http://user:pass@10.10.1.10:3128',
                     'https': 'http://user:pass@10.10.1.10:1080',
                 },
-            ),
-            set_debug=False,
-            add_recorder=False,
-            enable_recorder=False,
-            enable_statistics=False,
-            perform_operation=False,
-        ),
+            },
+            'set_debug': False,
+            'add_recorder': False,
+            'enable_recorder': False,
+            'enable_statistics': False,
+            'perform_operation': False,
+        },
         None, None, True
     ),
     (
         "x509 parameter that is a dict with existing cert_file and "
         "existing key_file",
-        dict(
-            files=['mycertfile.tmp', 'mykeyfile.tmp'],
-            init_kwargs=dict(
-                url='http://localhost:5988',
-                x509=dict(
-                    cert_file='mycertfile.tmp',
-                    key_file='mykeyfile.tmp',
-                ),
-            ),
-            set_debug=False,
-            add_recorder=False,
-            enable_recorder=False,
-            enable_statistics=False,
-            perform_operation=False,
-        ),
+        {
+            'files': ['mycertfile.tmp', 'mykeyfile.tmp'],
+            'init_kwargs': {
+                'url': 'http://localhost:5988',
+                'x509': {
+                    'cert_file': 'mycertfile.tmp',
+                    'key_file': 'mykeyfile.tmp',
+                },
+            },
+            'set_debug': False,
+            'add_recorder': False,
+            'enable_recorder': False,
+            'enable_statistics': False,
+            'perform_operation': False,
+        },
         None, None, True
     ),
     (
         "x509 parameter that is a dict with existing cert_file and "
         "omitted key_file",
-        dict(
-            files=['mycertfile.tmp'],
-            init_kwargs=dict(
-                url='http://localhost:5988',
-                x509=dict(
-                    cert_file='mycertfile.tmp',
-                ),
-            ),
-            set_debug=False,
-            add_recorder=False,
-            enable_recorder=False,
-            enable_statistics=False,
-            perform_operation=False,
-        ),
+        {
+            'files': ['mycertfile.tmp'],
+            'init_kwargs': {
+                'url': 'http://localhost:5988',
+                'x509': {
+                    'cert_file': 'mycertfile.tmp',
+                },
+            },
+            'set_debug': False,
+            'add_recorder': False,
+            'enable_recorder': False,
+            'enable_statistics': False,
+            'perform_operation': False,
+        },
         None, None, True
     ),
     (
         "with a recorder",
-        dict(
-            files=[],
-            init_kwargs=dict(
-                url='http://localhost:5988',
-                creds=('myuser', 'mypw'),
-                default_namespace='root/myns',
-                no_verification=True,
-                timeout=20,
-                use_pull_operations=True,
-                stats_enabled=True,
-                proxies={
+        {
+            'files': [],
+            'init_kwargs': {
+                'url': 'http://localhost:5988',
+                'creds': ('myuser', 'mypw'),
+                'default_namespace': 'root/myns',
+                'no_verification': True,
+                'timeout': 20,
+                'use_pull_operations': True,
+                'stats_enabled': True,
+                'proxies': {
                     'http': 'http://user:pass@10.10.1.10:3128',
                     'https': 'http://user:pass@10.10.1.10:1080',
                 },
-            ),
-            set_debug=True,
-            add_recorder=True,
-            enable_recorder=True,
-            enable_statistics=True,
-            perform_operation=False,
-        ),
+            },
+            'set_debug': True,
+            'add_recorder': True,
+            'enable_recorder': True,
+            'enable_statistics': True,
+            'perform_operation': False,
+        },
         None, None, True
     ),
     (
         "with a recorder and an operation performed",
-        dict(
-            files=[],
-            init_kwargs=dict(
-                url='http://localhost:5988',
-                creds=('myuser', 'mypw'),
-                default_namespace='root/myns',
-                no_verification=True,
-                timeout=1,
-                use_pull_operations=True,
-                stats_enabled=True,
-                proxies={
+        {
+            'files': [],
+            'init_kwargs': {
+                'url': 'http://localhost:5988',
+                'creds': ('myuser', 'mypw'),
+                'default_namespace': 'root/myns',
+                'no_verification': True,
+                'timeout': 1,
+                'use_pull_operations': True,
+                'stats_enabled': True,
+                'proxies': {
                     'http': 'http://user:pass@10.10.1.10:3128',
                     'https': 'http://user:pass@10.10.1.10:1080',
                 },
-            ),
-            set_debug=True,
-            add_recorder=True,
-            enable_recorder=True,
-            enable_statistics=True,
-            perform_operation=True,
-        ),
+            },
+            'set_debug': True,
+            'add_recorder': True,
+            'enable_recorder': True,
+            'enable_statistics': True,
+            'perform_operation': True,
+        },
         None, None, True
     ),
 ]
@@ -1252,7 +1250,7 @@ def test_copy_conn(
                 pass
 
         # pylint: disable=consider-using-with
-        dev_null = open(DEV_NULL, 'a', encoding='utf-8')
+        dev_null = open(DEV_NULL, 'a', encoding='utf-8')  # noqa: SIM115
 
         conn = WBEMConnection(**init_kwargs)
 
@@ -1379,34 +1377,34 @@ TESTCASES_WBEMCONNECTION_ERROR = [
 
     (
         "http connection",
-        dict(
-            url='http://InvalidHostName',
-            creds=None,
-            default_namespace='root/cimv2',
-            x509=None,
-            ca_certs=None,
-            no_verification=False,
-            timeout=5,
-            use_pull_operations=False,
-            stats_enabled=False,
-            proxies=None,
-        ),
+        {
+            'url': 'http://InvalidHostName',
+            'creds': None,
+            'default_namespace': 'root/cimv2',
+            'x509': None,
+            'ca_certs': None,
+            'no_verification': False,
+            'timeout': 5,
+            'use_pull_operations': False,
+            'stats_enabled': False,
+            'proxies': None,
+        },
         ConnectionError, None
     ),
     (
         "No optional init parameters, test defaults",
-        dict(
-            url='https://InvalidHostName',
-            creds=None,
-            default_namespace='root/cimv2',
-            x509=None,
-            ca_certs=None,
-            no_verification=False,
-            timeout=5,
-            use_pull_operations=False,
-            stats_enabled=False,
-            proxies=None,
-        ),
+        {
+            'url': 'https://InvalidHostName',
+            'creds': None,
+            'default_namespace': 'root/cimv2',
+            'x509': None,
+            'ca_certs': None,
+            'no_verification': False,
+            'timeout': 5,
+            'use_pull_operations': False,
+            'stats_enabled': False,
+            'proxies': None,
+        },
         ConnectionError, None
     ),
 ]

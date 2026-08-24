@@ -31,34 +31,34 @@ TESTCASES_NOCASEDICT_UNNAMEDKEYS = [
 
     (
         "Unnamed key with unnamed keys not allowed (error)",
-        dict(
-            allow=False,
-            key=None,
-        ),
+        {
+            'allow': False,
+            'key': None,
+        },
         ValueError, None, True
     ),
     (
         "Unnamed key with unnamed keys allowed",
-        dict(
-            allow=True,
-            key=None,
-        ),
+        {
+            'allow': True,
+            'key': None,
+        },
         None, None, True
     ),
     (
         "String key with unnamed keys not allowed",
-        dict(
-            allow=False,
-            key='Dog',
-        ),
+        {
+            'allow': False,
+            'key': 'Dog',
+        },
         None, None, True
     ),
     (
         "String key with unnamed keys allowed",
-        dict(
-            allow=True,
-            key='Dog',
-        ),
+        {
+            'allow': True,
+            'key': 'Dog',
+        },
         None, None, True
     ),
 ]

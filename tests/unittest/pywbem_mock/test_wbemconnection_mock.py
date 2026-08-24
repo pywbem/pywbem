@@ -1415,9 +1415,6 @@ class TestRepoMethods:
              None],
             ['CIM_Foo_sub_sub', 'CIM_Foo_sub_sub1', True, None, None, None,
              ['cimfoo_sub_sub'], None],
-
-            ['CIM_Foo_sub', 'CIM_Foo_sub99', None, None, None, None, None,
-             CIMError(CIM_ERR_NOT_FOUND)],
         ]
     )
     @log_entry_exit
@@ -1619,7 +1616,7 @@ class TestRepoMethods:
         namespaces = INITIAL_NAMESPACES
         for ns in namespaces:
             conn.compile_mof_string(tst_instances_mof, namespace=ns)
-        print('')  # required to force output from capsys for some reason
+        print()  # required to force output from capsys for some reason
         # Test basic display repo output
         conn.display_repository()
         captured = capsys.readouterr()
@@ -3139,7 +3136,7 @@ class TestUserDefinedProviders:
             conn.register_provider(provider(conn.cimrepository),
                                    item[0])
 
-        print('')  # Added because issues with getting captured without it.
+        print()  # Added because issues with getting captured without it.
 
         # The code to be tested
         conn.display_registered_providers()
@@ -5297,8 +5294,6 @@ class TestClassOperations:
             # exp_exc: None or expected exception object
 
             ['CIM_Foo', None],
-            ['CIM_Foo', None],
-            ['CIM_Foox', CIMError(CIM_ERR_NOT_FOUND)],
             ['CIM_Foox', CIMError(CIM_ERR_NOT_FOUND)],
             # Invalid types
             [42, TypeError()],
@@ -5359,10 +5354,6 @@ class TestInstanceOperations:
             [DEFAULT_NAMESPACE, 'CIM_Foo', 'CIM_Foo1', None,
              None, None, None, None],
 
-            # Verify works with explicit inst_ns
-            [DEFAULT_NAMESPACE, 'CIM_Foo', 'CIM_Foo1', None,
-             None, None, None, None],
-
             # Test instance not found
             [DEFAULT_NAMESPACE, 'CIM_Foo', 'badid', None,
              None, None, None,
@@ -5373,10 +5364,6 @@ class TestInstanceOperations:
              None, None, None, CIMError(CIM_ERR_INVALID_NAMESPACE)],
 
             # Test Invalid classname
-            [DEFAULT_NAMESPACE, 'CIM_Foox', 'CIM_Foo1',
-             None, None, None, None, CIMError(CIM_ERR_INVALID_CLASS)],
-
-            # Invalid classname on instance
             [DEFAULT_NAMESPACE, 'CIM_Foox', 'CIM_Foo1',
              None, None, None, None, CIMError(CIM_ERR_INVALID_CLASS)],
 
@@ -5401,8 +5388,6 @@ class TestInstanceOperations:
              True, None, None, None],
 
             # Test IncludeClassOrigin
-            [DEFAULT_NAMESPACE, 'CIM_Foo', 'CIM_Foo1', None,
-             None, False, None, None],
             [DEFAULT_NAMESPACE, 'CIM_Foo', 'CIM_Foo1', None,
              None, False, None, None],
 
@@ -5960,7 +5945,6 @@ class TestInstanceOperations:
             ['CIM_Foo', True, ['InstanceID'], ['InstanceID'], 12],
             ['CIM_Foo', None, ['cimfoo_sub'], ['cimfoo_sub'], 12],
             ['CIM_Foo', True, None, ['InstanceID'], 12],
-            ['CIM_Foo', True, ['InstanceID'], ['InstanceID'], 12],
         ]
     )
     @log_entry_exit
@@ -6029,7 +6013,7 @@ class TestInstanceOperations:
                 assert inst_propnames == target_cls_propnames
 
                 # Remove properties from exp_inst not in target_cls_propnames
-                deletes = [n for n in exp_inst.properties.keys() if n not in
+                deletes = [n for n in exp_inst.properties if n not in
                            target_cls_propnames and n in exp_inst.properties]
                 for pname in deletes:
                     del exp_inst.properties[pname]
@@ -6059,7 +6043,6 @@ class TestInstanceOperations:
              CIMError(CIM_ERR_INVALID_CLASS)],
             # Invalid types
             [DEFAULT_NAMESPACE, 42, DEFAULT_NAMESPACE, TypeError()],
-            [DEFAULT_NAMESPACE, None, DEFAULT_NAMESPACE, TypeError()],
             [DEFAULT_NAMESPACE, 'CIM_Foo', 42, TypeError()],
         ]
     )
@@ -6380,14 +6363,13 @@ class TestInstanceOperations:
         conn.add_cimobjects(qdecls, namespace=ns)
         conn.add_cimobjects([c], namespace=ns)
 
+        new_inst = CIMInstance(
+            'CIM_AbstractClass',
+            properties={'InstanceID': "AbstractTestWarn"})
+
         # create the new instance
         exp_warn_types = ToleratedSchemaIssueWarning
         with pytest.warns(exp_warn_types) as rec_warnings:
-            new_inst = CIMInstance(
-                'CIM_AbstractClass',
-                properties={'InstanceID': "AbstractTestWarn"})
-
-            # NOTE: add_cimobjects does not test for Abstract
             conn.CreateInstance(new_inst)
 
         assert len(rec_warnings) == 1, \
@@ -6453,7 +6435,7 @@ class TestInstanceOperations:
                 "Create namespace that already exists",
                 ['root/blah'],
                 CIMInstance('CIM_Namespace',
-                            properties=dict(Name='root/blah')),
+                            properties={'Name': 'root/blah'}),
                 None, CIMError(CIM_ERR_ALREADY_EXISTS)
             ),
             (
@@ -6922,7 +6904,7 @@ class TestInstanceOperations:
                 "normalized name",
                 {},
                 CIMInstance('PG_Namespace',
-                            properties=dict(Name='root/blah')),
+                            properties={'Name': 'root/blah'}),
                 False,
                 'root/blah', None
             ),
@@ -6931,7 +6913,7 @@ class TestInstanceOperations:
                 "normalized name",
                 {},
                 CIMInstance('PG_Namespace',
-                            properties=dict(Name='//root/blah//')),
+                            properties={'Name': '//root/blah//'}),
                 False,
                 'root/blah', None
             ),
@@ -6939,7 +6921,7 @@ class TestInstanceOperations:
                 "Delete namespace that does not exist",
                 {},
                 CIMInstance('PG_Namespace',
-                            properties=dict(Name='root/blah')),
+                            properties={'Name': 'root/blah'}),
                 True,
                 None, CIMError(CIM_ERR_NOT_FOUND)
             ),
@@ -6947,7 +6929,7 @@ class TestInstanceOperations:
                 "Delete namespace that exists but contains a class",
                 {'root/blah': [CIMClass('CIM_Foo')]},
                 CIMInstance('PG_Namespace',
-                            properties=dict(Name='root/blah')),
+                            properties={'Name': 'root/blah'}),
                 False,
                 None, CIMError(CIM_ERR_NAMESPACE_NOT_EMPTY)
             ),
@@ -6957,11 +6939,11 @@ class TestInstanceOperations:
                     CIMInstance(
                         'CIM_Foo',
                         path=CIMInstanceName(
-                            'CIM_Foo', keybindings=dict(InstanceID='foo1'))
+                            'CIM_Foo', keybindings={'InstanceID': 'foo1'})
                     )
                 ]},
                 CIMInstance('PG_Namespace',
-                            properties=dict(Name='root/blah')),
+                            properties={'Name': 'root/blah'}),
                 False,
                 None, CIMError(CIM_ERR_NAMESPACE_NOT_EMPTY)
             ),
@@ -6971,7 +6953,7 @@ class TestInstanceOperations:
                     CIMQualifierDeclaration('Qual', type='string')
                 ]},
                 CIMInstance('PG_Namespace',
-                            properties=dict(Name='root/blah')),
+                            properties={'Name': 'root/blah'}),
                 False,
                 None, CIMError(CIM_ERR_NAMESPACE_NOT_EMPTY)
             ),
@@ -7186,7 +7168,7 @@ class TestPullOperations:
 
         if isinstance(src_inst, (list, tuple)):
             source_inst_name = CIMInstanceName(
-                src_inst[0], keybindings=dict(name=src_inst[1]), namespace=ns)
+                src_inst[0], keybindings={'name': src_inst[1]}, namespace=ns)
         else:
             assert isinstance(exp_rslt, Exception)
             source_inst_name = src_inst  # Specifies invalid type directly
@@ -7208,7 +7190,7 @@ class TestPullOperations:
             for exp in exp_rslt:
                 exp_paths.append(CIMInstanceName(
                     exp[0],
-                    keybindings=dict(InstanceID=exp[1]),
+                    keybindings={'InstanceID': exp[1]},
                     namespace=exp_ns,
                     host=conn.host))
 
@@ -7286,7 +7268,7 @@ class TestPullOperations:
 
         if isinstance(src_inst, (list, tuple)):
             source_inst_name = CIMInstanceName(
-                src_inst[0], keybindings=dict(name=src_inst[1]), namespace=ns)
+                src_inst[0], keybindings={'name': src_inst[1]}, namespace=ns)
         else:
             assert isinstance(exp_rslt, Exception)
             source_inst_name = src_inst  # Specifies invalid type directly
@@ -7310,7 +7292,7 @@ class TestPullOperations:
             for exp in exp_rslt:
                 exp_paths.append(CIMInstanceName(
                     exp[0],
-                    keybindings=dict(name=exp[1]),
+                    keybindings={'name': exp[1]},
                     namespace=exp_ns,
                     host=conn.host))
 
@@ -7391,7 +7373,7 @@ class TestPullOperations:
 
         if isinstance(src_inst, (list, tuple)):
             source_inst_name = CIMInstanceName(
-                src_inst[0], keybindings=dict(name=src_inst[1]), namespace=ns)
+                src_inst[0], keybindings={'name': src_inst[1]}, namespace=ns)
         else:
             assert isinstance(exp_rslt, Exception)
             source_inst_name = src_inst  # Specifies invalid type directly
@@ -7415,7 +7397,7 @@ class TestPullOperations:
             for exp in exp_rslt:
                 exp_paths.append(CIMInstanceName(
                     exp[0],
-                    keybindings=dict(name=exp[1]),
+                    keybindings={'name': exp[1]},
                     namespace=exp_ns))
 
             rslt_paths = [inst.path for inst in result_tuple.instances]
@@ -7819,12 +7801,9 @@ class TestQualifierOperations:
             ['Blah', 'class C_X{[blah] string p;};', CIMError(CIM_ERR_FAILED)],
             ['Blah', 'class C_X{[blah] uint32 m();};',
              CIMError(CIM_ERR_FAILED)],
-            ['Blah', 'class C_X{[blah] uint32 m();};',
-             CIMError(CIM_ERR_FAILED)],
             ['Blah', 'class C_X{[blah] uint32 m([Blah] string parm);};',
              CIMError(CIM_ERR_FAILED)],
             ['FooQualDecl1', 'class C_X{[blah] string p;};', None],
-            ['FooQualDecl1', 'class C_X{[blah] uint32 m();};', None],
             ['FooQualDecl1', 'class C_X{[blah] uint32 m();};', None],
             ['FooQualDecl1', 'class C_X{[blah] uint32 m([Blah] string parm);};',
              None],
@@ -7960,7 +7939,6 @@ class TestReferenceOperations:
              ['TST_MemberOfFamilyCollection']],
             [None, 'member', ['TST_MemberOfFamilyCollection']],
             [None, 'family', ['TST_MemberOfFamilyCollection']],
-            [None, 'family', ['TST_MemberOfFamilyCollection']],
             ['TST_Lineagexxx', None, CIMError(CIM_ERR_INVALID_PARAMETER)],
             [None, None, CIMError(CIM_ERR_INVALID_NAMESPACE)],
             # Invalid types
@@ -8084,9 +8062,6 @@ class TestReferenceOperations:
              ['TST_MemberOfFamilyCollection']],
 
             [None, 'member', None, None, None,
-             ['TST_MemberOfFamilyCollection']],
-
-            [None, 'family', None, None, None,
              ['TST_MemberOfFamilyCollection']],
 
             [None, 'family', None, None, None,
@@ -8379,7 +8354,7 @@ class TestReferenceOperations:
                 inst.path.host = conn.host
         assert len(exp_insts) == 3
 
-        inst_path = CIMInstanceName('TST_Person', keybindings=dict(name='Mike'))
+        inst_path = CIMInstanceName('TST_Person', keybindings={'name': 'Mike'})
 
         # The code to be tested
         rslt_insts = conn.References(inst_path)
@@ -8454,7 +8429,7 @@ class TestReferenceOperations:
         conn.compile_mof_string(tst_assoc_mof, namespace=ns)
 
         inst_name = CIMInstanceName('TST_Person',
-                                    keybindings=dict(name='Mike'),
+                                    keybindings={'name': 'Mike'},
                                     namespace=ns)
 
         # The code to be tested
@@ -8789,7 +8764,7 @@ class TestAssociatorOperations:
         (
             "5. ObjectName is instance path with non-existing namespace",
             CIMInstanceName('TST_Lineage', namespace='BadNameSpaceName',
-                            keybindings=dict(name='Mike')),
+                            keybindings={'name': 'Mike'}),
             None, None, None, None,
             None, None, None,
             CIMError(CIM_ERR_INVALID_NAMESPACE)
@@ -8865,7 +8840,7 @@ class TestAssociatorOperations:
         exp_ns = tst_ns or conn.default_namespace
         if isinstance(inst_name, str) and inst_name == 'buildit':
             inst_name = CIMInstanceName(cln, namespace=exp_ns,
-                                        keybindings=dict(name=name_key))
+                                        keybindings={'name': name_key})
 
         if isinstance(exp_rslt, Exception):
             exp_exc = exp_rslt
@@ -8895,12 +8870,12 @@ class TestAssociatorOperations:
 
             for inst in rslt_insts:
                 assert not inst.qualifiers
-                for inst in inst.properties.values():
-                    assert not inst.qualifiers
+                for prop in inst.properties.values():
+                    assert not prop.qualifiers
                     if ico:
-                        assert inst.class_origin
+                        assert prop.class_origin
                     else:
-                        assert inst.class_origin is None
+                        assert prop.class_origin is None
 
             if pl == "":
                 for inst in rslt_insts:
@@ -10235,7 +10210,7 @@ class TestDMTFCIMSchema:
         compilation into a new directory. This should completely clean the
         directory before the test.
         """
-        if not os.environ.get('TEST_SCHEMA_DOWNLOAD', False):
+        if not os.environ.get('TEST_SCHEMA_DOWNLOAD', None):
             pytest.skip("Test run only if TEST_SCHEMA_DOWNLOAD is non-empty.")
 
         schema = DMTFCIMSchema(DMTF_TEST_SCHEMA_VER, tst_schema_root_dir,
@@ -10284,7 +10259,7 @@ class TestDMTFCIMSchema:
         TESTSUITE_SCHEMA_DIR directory and then removes it.  It should not
         touch the existing schema.
         """
-        if not os.environ.get('TEST_SCHEMA_DOWNLOAD', False):
+        if not os.environ.get('TEST_SCHEMA_DOWNLOAD', None):
             pytest.skip("Test run only if TEST_SCHEMA_DOWNLOAD is non-empty.")
 
         schema = DMTFCIMSchema(DMTF_TEST_SCHEMA_VER, TESTSUITE_SCHEMA_DIR,
@@ -10317,7 +10292,7 @@ class TestDMTFCIMSchema:
         Test loading a second schema. This test loads a second schema
         into the TESTSUITE_SCHEMA_DIR directory and then removes it.
         """
-        if not os.environ.get('TEST_SCHEMA_DOWNLOAD', False):
+        if not os.environ.get('TEST_SCHEMA_DOWNLOAD', None):
             pytest.skip("Test run only if TEST_SCHEMA_DOWNLOAD is non-empty.")
 
         schema = DMTFCIMSchema((2, 50, 0), TESTSUITE_SCHEMA_DIR, verbose=False)
@@ -10454,18 +10429,18 @@ TESTCASES_COPY_FAKEDWBEMCONNECTION = [
 
     (
         "No init parameters, no operation performed",
-        dict(
-            init_kwargs={},
-            perform_operation=False,
-        ),
+        {
+            'init_kwargs': {},
+            'perform_operation': False,
+        },
         None, None, True
     ),
     (
         "No init parameters, with operation performed",
-        dict(
-            init_kwargs={},
-            perform_operation=True,
-        ),
+        {
+            'init_kwargs': {},
+            'perform_operation': True,
+        },
         None, None, True
     ),
 ]

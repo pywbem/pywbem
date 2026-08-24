@@ -410,7 +410,7 @@ def check_invalid_utf8_sequences(utf8_string, meaning, conn_id=None):
         # Also, the stated reason (in _msg) is not always correct.
 
         # pylint: disable=unbalanced-tuple-unpacking
-        unused_codec, unused_str, _p1, _p2, unused_msg = exc.args
+        _, _, _p1, _p2, _ = exc.args
 
         exc_txt = ("Incorrectly encoded UTF-8 Byte sequences found in "
                    f"{meaning}\n  At offset {_p1}:")

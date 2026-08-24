@@ -143,9 +143,7 @@ class ServerObjectCache:
         if server_url not in self._server_dict:
             return False
         list_dict = self._server_dict[server_url]
-        if list_name not in list_dict:
-            return False
-        return True
+        return list_name in list_dict
 
 
 ENUM_INST_CACHE = ServerObjectCache()
@@ -466,7 +464,7 @@ def server_prop_asserted(server, propname):
         return getattr(server, propname)
     except Error as exc:
         raise AssertionError(
-            "Server {0} at {1}: Getting WBEMServer.{2} failed and "
-            "raised {3} - {4}.".
+            "Server {} at {}: Getting WBEMServer.{} failed and "
+            "raised {} - {}.".
             format(server.conn.es_server.nickname, server.conn.url,
                    propname, exc.__class__.__name__, exc))

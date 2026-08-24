@@ -40,7 +40,7 @@ def assert_registry_equal(registry1, registry2):
     reg_dict1 = registry1._registry  # pylint: disable=protected-access
     reg_dict2 = registry2._registry  # pylint: disable=protected-access
     assert sorted(reg_dict1.keys()) == sorted(reg_dict2.keys())
-    for ms_path in reg_dict1.keys():
+    for ms_path in reg_dict1:
         dep_paths1 = reg_dict1[ms_path]
         assert ms_path in reg_dict2
         dep_paths2 = reg_dict2[ms_path]
@@ -121,28 +121,28 @@ TESTCASES_REGISTRY_REPR = [
 
     (
         "Empty registry",
-        dict(
-            reg_dict={},
-        ),
+        {
+            'reg_dict': {},
+        },
         None, None, True
     ),
     (
         "Registry with one item",
-        dict(
-            reg_dict={
+        {
+            'reg_dict': {
                 'mock1': ['dep1', 'dep2'],
             },
-        ),
+        },
         None, None, True
     ),
     (
         "Registry with two items",
-        dict(
-            reg_dict={
+        {
+            'reg_dict': {
                 'mock1': ['dep1'],
                 'mock2': ['dep2', 'dep3'],
             },
-        ),
+        },
         None, None, True
     ),
 ]
@@ -197,59 +197,59 @@ TESTCASES_REGISTRY_ADD_ITER_DEPENDENTS = [
 
     (
         "Registry with no dependents",
-        dict(
-            mock_script='mock1',
-            dependents=[],
-            exp_dependents=[],
-        ),
+        {
+            'mock_script': 'mock1',
+            'dependents': [],
+            'exp_dependents': [],
+        },
         None, None, True
     ),
     (
         "Registry with two dependents, no path",
-        dict(
-            mock_script='mock1',
-            dependents=['dep1', 'dep2'],
-            exp_dependents=[
+        {
+            'mock_script': 'mock1',
+            'dependents': ['dep1', 'dep2'],
+            'exp_dependents': [
                 exp_normcwdpath('dep1'),
                 exp_normcwdpath('dep2')
             ],
-        ),
+        },
         None, None, True
     ),
     (
         "Registry with two dependents, relative path",
-        dict(
-            mock_script='rel1/mock1',
-            dependents=['rel1/dep1', 'rel2/dep2'],
-            exp_dependents=[
+        {
+            'mock_script': 'rel1/mock1',
+            'dependents': ['rel1/dep1', 'rel2/dep2'],
+            'exp_dependents': [
                 exp_normcwdpath('rel1/dep1'),
                 exp_normcwdpath('rel2/dep2')
             ],
-        ),
+        },
         None, None, True
     ),
     (
         "Registry with two dependents, absolute path",
-        dict(
-            mock_script='/rel1/mock1',
-            dependents=['/rel1/dep1', '/rel2/dep2'],
-            exp_dependents=[
+        {
+            'mock_script': '/rel1/mock1',
+            'dependents': ['/rel1/dep1', '/rel2/dep2'],
+            'exp_dependents': [
                 exp_normcwdpath('/rel1/dep1'),
                 exp_normcwdpath('/rel2/dep2')
             ],
-        ),
+        },
         None, None, True
     ),
     (
         "Registry with two dependents, unnormalized path",
-        dict(
-            mock_script='rel1/rel2/../mock1',
-            dependents=['rel1/rel2/../dep1', 'rel2/rel3/../dep2'],
-            exp_dependents=[
+        {
+            'mock_script': 'rel1/rel2/../mock1',
+            'dependents': ['rel1/rel2/../dep1', 'rel2/rel3/../dep2'],
+            'exp_dependents': [
                 exp_normcwdpath('rel1/dep1'),
                 exp_normcwdpath('rel2/dep2')
             ],
-        ),
+        },
         None, None, True
     ),
 ]
@@ -302,54 +302,54 @@ TESTCASES_REGISTRY_LOAD = [
 
     (
         "Empty registry loaded with empty registry",
-        dict(
-            reg_dict1={},
-            reg_dict2={},
-        ),
+        {
+            'reg_dict1': {},
+            'reg_dict2': {},
+        },
         None, None, True
     ),
     (
         "Empty registry loaded with registry with one item",
-        dict(
-            reg_dict1={},
-            reg_dict2={
+        {
+            'reg_dict1': {},
+            'reg_dict2': {
                 'mock1': ['dep1'],
             },
-        ),
+        },
         None, None, True
     ),
     (
         "Registry with one item loaded with empty registry",
-        dict(
-            reg_dict1={
+        {
+            'reg_dict1': {
                 'mock1': ['dep1'],
             },
-            reg_dict2={},
-        ),
+            'reg_dict2': {},
+        },
         None, None, True
     ),
     (
         "Registry with one item loaded with registry with same key",
-        dict(
-            reg_dict1={
+        {
+            'reg_dict1': {
                 'mock1': ['dep1'],
             },
-            reg_dict2={
+            'reg_dict2': {
                 'mock1': ['dep2'],
             },
-        ),
+        },
         None, None, True
     ),
     (
         "Registry with one item loaded with registry with different key",
-        dict(
-            reg_dict1={
+        {
+            'reg_dict1': {
                 'mock1': ['dep1'],
             },
-            reg_dict2={
+            'reg_dict2': {
                 'mock2': ['dep2'],
             },
-        ),
+        },
         None, None, True
     ),
 ]
@@ -399,28 +399,28 @@ TESTCASES_REGISTRY_PICKLE = [
 
     (
         "Empty registry",
-        dict(
-            reg_dict={},
-        ),
+        {
+            'reg_dict': {},
+        },
         None, None, True
     ),
     (
         "Registry with one item",
-        dict(
-            reg_dict={
+        {
+            'reg_dict': {
                 'mock1': ['dep1', 'dep2'],
             },
-        ),
+        },
         None, None, True
     ),
     (
         "Registry with two items",
-        dict(
-            reg_dict={
+        {
+            'reg_dict': {
                 'mock1': ['dep1'],
                 'mock2': ['dep2', 'dep3'],
             },
-        ),
+        },
         None, None, True
     ),
 ]

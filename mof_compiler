@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 #
 # (C) Copyright 2006-2007 Novell, Inc.
 #
@@ -324,7 +323,7 @@ Example:
                 if fname[0] != '/':
                     fname = os.path.curdir + '/' + fname
                 mofcomp.compile_file(fname, args.namespace)
-        except (Error, IOError) as exc:
+        except (OSError, Error) as exc:
             print(f'{prog}: {exc.__class__.__name__}: {exc}')
             return 1
 

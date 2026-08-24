@@ -1084,7 +1084,7 @@ class CIMInstanceName(_CIMComparisonMixin, SlottedPickleMixin):
     periods in which their public attributes remain unchanged.
     """
 
-    __slots__ = ['_classname', '_keybindings', '_host', '_namespace']
+    __slots__ = ['_classname', '_host', '_keybindings', '_namespace']
 
     def __init__(self, classname, keybindings=None, host=None, namespace=None):
         # pylint: disable=line-too-long
@@ -2324,7 +2324,7 @@ class CIMInstance(_CIMComparisonMixin, SlottedPickleMixin):
     periods in which their public attributes remain unchanged.
     """
 
-    __slots__ = ['_classname', '_properties', '_qualifiers', '_path']
+    __slots__ = ['_classname', '_path', '_properties', '_qualifiers']
 
     # pylint: disable=too-many-arguments
     def __init__(self, classname, properties=None, qualifiers=None,
@@ -3787,8 +3787,14 @@ class CIMClass(_CIMComparisonMixin, SlottedPickleMixin):
     periods in which their public attributes remain unchanged.
     """
 
-    __slots__ = ['_classname', '_properties', '_methods',
-                 '_superclass', '_qualifiers', '_path']
+    __slots__ = [
+        '_classname',
+        '_methods',
+        '_path',
+        '_properties',
+        '_qualifiers',
+        '_superclass',
+    ]
 
     # pylint: disable=too-many-arguments
     def __init__(self, classname, properties=None, methods=None,
@@ -4377,9 +4383,18 @@ class CIMProperty(_CIMComparisonMixin, SlottedPickleMixin):
     periods in which their public attributes remain unchanged.
     """
 
-    __slots__ = ['_name', '_value', '_type', '_class_origin',
-                 '_array_size', '_propagated', '_is_array',
-                 '_reference_class', '_qualifiers', '_embedded_object']
+    __slots__ = [
+        '_array_size',
+        '_class_origin',
+        '_embedded_object',
+        '_is_array',
+        '_name',
+        '_propagated',
+        '_qualifiers',
+        '_reference_class',
+        '_type',
+        '_value',
+    ]
 
     # pylint: disable=too-many-statements
     def __init__(self, name, value, type=None, class_origin=None,
@@ -5227,8 +5242,14 @@ class CIMMethod(_CIMComparisonMixin, SlottedPickleMixin):
     periods in which their public attributes remain unchanged.
     """
 
-    __slots__ = ['_name', '_return_type', '_parameters',
-                 '_class_origin', '_propagated', '_qualifiers']
+    __slots__ = [
+        '_class_origin',
+        '_name',
+        '_parameters',
+        '_propagated',
+        '_qualifiers',
+        '_return_type',
+    ]
 
     # pylint: disable=too-many-arguments
     def __init__(self, name=None, return_type=None, parameters=None,
@@ -5764,9 +5785,16 @@ class CIMParameter(_CIMComparisonMixin, SlottedPickleMixin):
     periods in which their public attributes remain unchanged.
     """
 
-    __slots__ = ['_name', '_type', '_reference_class', '_is_array',
-                 '_array_size', '_qualifiers', '_value',
-                 '_embedded_object']
+    __slots__ = [
+        '_array_size',
+        '_embedded_object',
+        '_is_array',
+        '_name',
+        '_qualifiers',
+        '_reference_class',
+        '_type',
+        '_value',
+    ]
 
     # pylint: disable=too-many-arguments
     def __init__(self, name, type, reference_class=None, is_array=None,
@@ -6480,9 +6508,16 @@ class CIMQualifier(_CIMComparisonMixin, SlottedPickleMixin):
     periods in which their public attributes remain unchanged.
     """
 
-    __slots__ = ['_name', '_value', '_type', '_propagated',
-                 '_overridable', '_tosubclass', '_toinstance',
-                 '_translatable']
+    __slots__ = [
+        '_name',
+        '_overridable',
+        '_propagated',
+        '_toinstance',
+        '_tosubclass',
+        '_translatable',
+        '_type',
+        '_value',
+    ]
 
     # pylint: disable=too-many-arguments
     def __init__(self, name, value, type=None, propagated=None,
@@ -7086,9 +7121,18 @@ class CIMQualifierDeclaration(_CIMComparisonMixin, SlottedPickleMixin):
     periods in which their public attributes remain unchanged.
     """
 
-    __slots__ = ['_name', '_type', '_value', '_is_array',
-                 '_array_size', '_scopes', '_overridable',
-                 '_tosubclass', '_toinstance', '_translatable']
+    __slots__ = [
+        '_array_size',
+        '_is_array',
+        '_name',
+        '_overridable',
+        '_scopes',
+        '_toinstance',
+        '_tosubclass',
+        '_translatable',
+        '_type',
+        '_value',
+    ]
 
     # Order of scopes when externalizing the qualifier declaration
     _ordered_scopes = ["CLASS", "ASSOCIATION", "INDICATION",
@@ -8117,7 +8161,7 @@ def _check_embedded_object(embedded_object, type, value, element_kind,
                                 builtin_type(v0)))
         else:
             if not isinstance(value, (CIMInstance, CIMClass)):
-                raise ValueError(
+                raise ValueError(  # noqa: TRY004
                     _format("{0} {1!A} specifies embedded_object {2!A} but "
                             "the Python type of its value is invalid: {3} "
                             "(must be CIMInstance or CIMClass)",

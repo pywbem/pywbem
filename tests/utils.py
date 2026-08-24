@@ -77,12 +77,12 @@ def skip_if_moftab_regenerated():
     if test_installed and pywbem_not_tolerant and \
             (mofparsetab_mismatch or moflextab_mismatch):
         pytest.skip("Cannot run this MOF testcase against an installed "
-                    "pywbem (version {0}, installed at {1}) because that "
+                    "pywbem (version {}, installed at {}) because that "
                     "pywbem version does not tolerate table version mismatches "
                     "between the current ply package and the generated pywbem "
-                    "mof*tab files: yacc table version: current ply: {2}, "
-                    "_mofparsetab.py: {3}, lex table version: current ply: "
-                    "{4}, _moflextab.py: {5}".
+                    "mof*tab files: yacc table version: current ply: {}, "
+                    "_mofparsetab.py: {}, lex table version: current ply: "
+                    "{}, _moflextab.py: {}".
                     format(pywbem.__version__, pywbem.__file__,
                            yacc.__tabversion__, mofparsetab_version,
                            lex.__tabversion__, moflextab_version))

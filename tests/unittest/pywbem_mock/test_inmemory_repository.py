@@ -112,11 +112,11 @@ TESTCASES_OBJSTORE = [
 
     (
         "Test with a class",
-        dict(
-            init_args=[CIMClass],
-            cls_kwargs=dict(
-                classname='CIM_Foo',
-                properties=[
+        {
+            'init_args': [CIMClass],
+            'cls_kwargs': {
+                'classname': 'CIM_Foo',
+                'properties': [
                     CIMProperty(
                         'P1', None, type='string',
                         qualifiers=[
@@ -125,19 +125,19 @@ TESTCASES_OBJSTORE = [
                     ),
                     CIMProperty('P2', value='Cheese'),
                 ]
-            ),
-            inst_kwargs=None,
-            qual_kwargs=None,
-        ),
+            },
+            'inst_kwargs': None,
+            'qual_kwargs': None,
+        },
         None, None, True
     ),
     (
         "Test with an instance. Note the class used to build instance path",
-        dict(
-            init_args=[CIMInstance],
-            cls_kwargs=dict(
-                classname='CIM_Foo',
-                properties=[
+        {
+            'init_args': [CIMInstance],
+            'cls_kwargs': {
+                'classname': 'CIM_Foo',
+                'properties': [
                     CIMProperty(
                         'P1', None, type='string',
                         qualifiers=[
@@ -146,30 +146,30 @@ TESTCASES_OBJSTORE = [
                     ),
                     CIMProperty('P2', value='Cheese'),
                 ]
-            ),
-            inst_kwargs=dict(
-                classname='CIM_Foo',
-                properties=[
+            },
+            'inst_kwargs': {
+                'classname': 'CIM_Foo',
+                'properties': [
                     CIMProperty('P1', value='Ham'),
                     CIMProperty('P2', value='Cheese'),
                 ]
-            ),
-            qual_kwargs=None,
+            },
+            'qual_kwargs': None,
 
-        ),
+        },
         None, None, True
     ),
     (
         "Test with an qualifier declaration",
-        dict(
-            init_args=[CIMQualifierDeclaration],
-            cls_kwargs=None,
-            inst_kwargs=None,
-            qual_kwargs=dict(
-                name='Abstract',
-                type='string',
-                value='blah'),
-        ),
+        {
+            'init_args': [CIMQualifierDeclaration],
+            'cls_kwargs': None,
+            'inst_kwargs': None,
+            'qual_kwargs': {
+                'name': 'Abstract',
+                'type': 'string',
+                'value': 'blah'},
+        },
         None, None, True
     ),
 ]
@@ -433,10 +433,10 @@ TEST_OBJECTS2 = [
     [
         (
             "Test basic setup of repository and execution of object mgt ",
-            dict(
-                init_args="root/blah",
-                init_objs=TEST_OBJECTS
-            ),
+            {
+                'init_args': "root/blah",
+                'init_objs': TEST_OBJECTS
+            },
             True,
         ),
     ],
@@ -573,22 +573,25 @@ def test_repository_valid_methods(desc, args, condition, capsys):
     [
         (
             "Test basic setup of repository and execution of object mgt ",
-            dict(
-                init_args="root/blah",
-                init_objs=TEST_OBJECTS,
-                err_names={'classes': 'CIM_NotExist',
-                           'instances': CIMInstanceName(
-                               'NotExist', keybindings=NocaseDict(P1="P1")),
-                           'qualifiers': 'NotExist'},
-                valid_names={'classes': 'Foo',
-                             'instances': CIMInstanceName(
-                                 'Foo', keybindings=NocaseDict(P1="P1")),
-                             'qualifiers': 'Qual1'},
-                valid_objs={'classes': 'Foo',
-                            'instances': CIMInstanceName(
-                                'Foo', keybindings=NocaseDict(P1="P1")),
-                            'qualifiers': 'Qual1'},
-            ),
+            {
+                'init_args': "root/blah",
+                'init_objs': TEST_OBJECTS,
+                'err_names': {
+                    'classes': 'CIM_NotExist',
+                    'instances': CIMInstanceName(
+                        'NotExist', keybindings=NocaseDict(P1="P1")),
+                    'qualifiers': 'NotExist'},
+                'valid_names': {
+                    'classes': 'Foo',
+                    'instances': CIMInstanceName(
+                        'Foo', keybindings=NocaseDict(P1="P1")),
+                    'qualifiers': 'Qual1'},
+                'valid_objs': {
+                    'classes': 'Foo',
+                    'instances': CIMInstanceName(
+                        'Foo', keybindings=NocaseDict(P1="P1")),
+                    'qualifiers': 'Qual1'},
+            },
             True,
         ),
     ],
@@ -686,26 +689,26 @@ TESTCASES_REPO_PICKLE = [
 
     (
         "Empty repo with no initial namespace",
-        dict(
-            init_namespace=None,
-            init_objects=[],
-        ),
+        {
+            'init_namespace': None,
+            'init_objects': [],
+        },
         None, None, True
     ),
     (
         "Empty repo with initial namespace",
-        dict(
-            init_namespace="root/blah",
-            init_objects=[],
-        ),
+        {
+            'init_namespace': "root/blah",
+            'init_objects': [],
+        },
         None, None, True
     ),
     (
         "Repo with some test objects",
-        dict(
-            init_namespace="root/blah",
-            init_objects=TEST_OBJECTS,
-        ),
+        {
+            'init_namespace': "root/blah",
+            'init_objects': TEST_OBJECTS,
+        },
         None, None, True
     ),
 ]
@@ -753,104 +756,104 @@ TESTCASES_REPO_LOAD = [
 
     (
         "Empty repo loaded with empty repo",
-        dict(
-            init_namespace1=None,
-            init_objects1=[],
-            init_namespace2=None,
-            init_objects2=[],
-        ),
+        {
+            'init_namespace1': None,
+            'init_objects1': [],
+            'init_namespace2': None,
+            'init_objects2': [],
+        },
         None, None, True
     ),
     (
         "Empty repo loaded with repo with initial namespace",
-        dict(
-            init_namespace1=None,
-            init_objects1=[],
-            init_namespace2="root/blah",
-            init_objects2=[],
-        ),
+        {
+            'init_namespace1': None,
+            'init_objects1': [],
+            'init_namespace2': "root/blah",
+            'init_objects2': [],
+        },
         None, None, True
     ),
     (
         "Empty repo loaded with repo with some test objects",
-        dict(
-            init_namespace1=None,
-            init_objects1=[],
-            init_namespace2="root/blah",
-            init_objects2=TEST_OBJECTS,
-        ),
+        {
+            'init_namespace1': None,
+            'init_objects1': [],
+            'init_namespace2': "root/blah",
+            'init_objects2': TEST_OBJECTS,
+        },
         None, None, True
     ),
 
     (
         "Repo with initial namespace loaded with empty repo",
-        dict(
-            init_namespace1="root/blah",
-            init_objects1=[],
-            init_namespace2=None,
-            init_objects2=[],
-        ),
+        {
+            'init_namespace1': "root/blah",
+            'init_objects1': [],
+            'init_namespace2': None,
+            'init_objects2': [],
+        },
         None, None, True
     ),
     (
         "Repo with initial namespace loaded with repo with initial namespace",
-        dict(
-            init_namespace1="root/blah",
-            init_objects1=[],
-            init_namespace2="root/blah",
-            init_objects2=[],
-        ),
+        {
+            'init_namespace1': "root/blah",
+            'init_objects1': [],
+            'init_namespace2': "root/blah",
+            'init_objects2': [],
+        },
         None, None, True
     ),
     (
         "Repo with initial namespace loaded with repo with some test objects",
-        dict(
-            init_namespace1="root/blah",
-            init_objects1=[],
-            init_namespace2="root/blah",
-            init_objects2=TEST_OBJECTS,
-        ),
+        {
+            'init_namespace1': "root/blah",
+            'init_objects1': [],
+            'init_namespace2': "root/blah",
+            'init_objects2': TEST_OBJECTS,
+        },
         None, None, True
     ),
 
     (
         "Repo with test objects loaded with empty repo",
-        dict(
-            init_namespace1="root/blah",
-            init_objects1=TEST_OBJECTS,
-            init_namespace2=None,
-            init_objects2=[],
-        ),
+        {
+            'init_namespace1': "root/blah",
+            'init_objects1': TEST_OBJECTS,
+            'init_namespace2': None,
+            'init_objects2': [],
+        },
         None, None, True
     ),
     (
         "Repo with test objects loaded with repo with initial namespace",
-        dict(
-            init_namespace1="root/blah",
-            init_objects1=TEST_OBJECTS,
-            init_namespace2="root/blah",
-            init_objects2=[],
-        ),
+        {
+            'init_namespace1': "root/blah",
+            'init_objects1': TEST_OBJECTS,
+            'init_namespace2': "root/blah",
+            'init_objects2': [],
+        },
         None, None, True
     ),
     (
         "Repo with test objects loaded with repo with test objects #2",
-        dict(
-            init_namespace1="root/blah",
-            init_objects1=TEST_OBJECTS,
-            init_namespace2="root/blah",
-            init_objects2=TEST_OBJECTS2,
-        ),
+        {
+            'init_namespace1': "root/blah",
+            'init_objects1': TEST_OBJECTS,
+            'init_namespace2': "root/blah",
+            'init_objects2': TEST_OBJECTS2,
+        },
         None, None, True
     ),
     (
         "Repo with test objects #2 loaded with repo with test objects",
-        dict(
-            init_namespace1="root/blah",
-            init_objects1=TEST_OBJECTS2,
-            init_namespace2="root/blah",
-            init_objects2=TEST_OBJECTS,
-        ),
+        {
+            'init_namespace1': "root/blah",
+            'init_objects1': TEST_OBJECTS2,
+            'init_namespace2': "root/blah",
+            'init_objects2': TEST_OBJECTS,
+        },
         None, None, True
     ),
 ]

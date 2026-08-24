@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Test cases for _tupletree module and Unicode/XML check functions.
 """

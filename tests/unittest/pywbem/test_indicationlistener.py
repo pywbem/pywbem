@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Test _listener.py module.
 """
@@ -60,310 +58,310 @@ TESTCASES_WBEMLISTENER_INIT = [
     # Success cases
     (
         "Verify order of positional arguments",
-        dict(
-            init_args=[
+        {
+            'init_args': [
                 'woot.com',
                 6997,
                 6998,
                 'certfile.pem',
                 'keyfile.pem',
             ],
-            init_kwargs={},
-            exp_attrs=dict(
-                host='woot.com',
-                http_port=6997,
-                https_port=6998,
-                certfile='certfile.pem',
-                keyfile='keyfile.pem',
-            ),
-        ),
+            'init_kwargs': {},
+            'exp_attrs': {
+                'host': 'woot.com',
+                'http_port': 6997,
+                'https_port': 6998,
+                'certfile': 'certfile.pem',
+                'keyfile': 'keyfile.pem',
+            },
+        },
         None, None, True
     ),
     (
         "Verify names of keyword arguments",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                host='woot.com',
-                http_port=6997,
-                https_port=6998,
-                certfile='certfile.pem',
-                keyfile='keyfile.pem',
-                max_ind_queue_size=9,
-            ),
-            exp_attrs=dict(
-                host='woot.com',
-                http_port=6997,
-                https_port=6998,
-                certfile='certfile.pem',
-                keyfile='keyfile.pem',
-                max_ind_queue_size=9
+        {
+            'init_args': [],
+            'init_kwargs': {
+                'host': 'woot.com',
+                'http_port': 6997,
+                'https_port': 6998,
+                'certfile': 'certfile.pem',
+                'keyfile': 'keyfile.pem',
+                'max_ind_queue_size': 9,
+            },
+            'exp_attrs': {
+                'host': 'woot.com',
+                'http_port': 6997,
+                'https_port': 6998,
+                'certfile': 'certfile.pem',
+                'keyfile': 'keyfile.pem',
+                'max_ind_queue_size': 9
 
-            ),
-        ),
+            },
+        },
         None, None, True
     ),
     (
         "Verify minimal arguments for success with http_port as integer",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                host='woot.com',
-                http_port=6997,
-            ),
-            exp_attrs=dict(
-                host='woot.com',
-                http_port=6997,
-                https_port=None,
-                certfile=None,
-                keyfile=None,
-            ),
-        ),
+        {
+            'init_args': [],
+            'init_kwargs': {
+                'host': 'woot.com',
+                'http_port': 6997,
+            },
+            'exp_attrs': {
+                'host': 'woot.com',
+                'http_port': 6997,
+                'https_port': None,
+                'certfile': None,
+                'keyfile': None,
+            },
+        },
         None, None, True
     ),
     (
         "Verify minimal arguments for success with http_port as string",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                host='woot.com',
-                http_port='6997',
-            ),
-            exp_attrs=dict(
-                host='woot.com',
-                http_port=6997,
-                https_port=None,
-                certfile=None,
-                keyfile=None,
-            ),
-        ),
+        {
+            'init_args': [],
+            'init_kwargs': {
+                'host': 'woot.com',
+                'http_port': '6997',
+            },
+            'exp_attrs': {
+                'host': 'woot.com',
+                'http_port': 6997,
+                'https_port': None,
+                'certfile': None,
+                'keyfile': None,
+            },
+        },
         None, None, True
     ),
     (
         "Verify full arguments for success with http_port",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                host='woot.com',
-                http_port=6997,
-                https_port=None,
-                certfile=None,
-                keyfile=None,
-                max_ind_queue_size=0,
-            ),
-            exp_attrs=dict(
-                host='woot.com',
-                http_port=6997,
-                https_port=None,
-                certfile=None,
-                keyfile=None,
-                max_ind_queue_size=0,
+        {
+            'init_args': [],
+            'init_kwargs': {
+                'host': 'woot.com',
+                'http_port': 6997,
+                'https_port': None,
+                'certfile': None,
+                'keyfile': None,
+                'max_ind_queue_size': 0,
+            },
+            'exp_attrs': {
+                'host': 'woot.com',
+                'http_port': 6997,
+                'https_port': None,
+                'certfile': None,
+                'keyfile': None,
+                'max_ind_queue_size': 0,
 
-            ),
-        ),
+            },
+        },
         None, None, True
     ),
     (
         "Verify minimal arguments for success with https_port as integer",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                host='woot.com',
-                https_port=6998,
-                certfile='certfile.pem',
-                keyfile='keyfile.pem',
-            ),
-            exp_attrs=dict(
-                host='woot.com',
-                http_port=None,
-                https_port=6998,
-                certfile='certfile.pem',
-                keyfile='keyfile.pem',
-            ),
-        ),
+        {
+            'init_args': [],
+            'init_kwargs': {
+                'host': 'woot.com',
+                'https_port': 6998,
+                'certfile': 'certfile.pem',
+                'keyfile': 'keyfile.pem',
+            },
+            'exp_attrs': {
+                'host': 'woot.com',
+                'http_port': None,
+                'https_port': 6998,
+                'certfile': 'certfile.pem',
+                'keyfile': 'keyfile.pem',
+            },
+        },
         None, None, True
     ),
     (
         "Verify minimal arguments for success with https_port as string",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                host='woot.com',
-                https_port='6998',
-                certfile='certfile.pem',
-                keyfile='keyfile.pem',
-            ),
-            exp_attrs=dict(
-                host='woot.com',
-                http_port=None,
-                https_port=6998,
-                certfile='certfile.pem',
-                keyfile='keyfile.pem',
-            ),
-        ),
+        {
+            'init_args': [],
+            'init_kwargs': {
+                'host': 'woot.com',
+                'https_port': '6998',
+                'certfile': 'certfile.pem',
+                'keyfile': 'keyfile.pem',
+            },
+            'exp_attrs': {
+                'host': 'woot.com',
+                'http_port': None,
+                'https_port': 6998,
+                'certfile': 'certfile.pem',
+                'keyfile': 'keyfile.pem',
+            },
+        },
         None, None, True
     ),
     (
         "Verify full arguments for success with https_port",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                host='woot.com',
-                http_port=None,
-                https_port=6998,
-                certfile='certfile.pem',
-                keyfile='keyfile.pem',
-            ),
-            exp_attrs=dict(
-                host='woot.com',
-                http_port=None,
-                https_port=6998,
-                certfile='certfile.pem',
-                keyfile='keyfile.pem',
-            ),
-        ),
+        {
+            'init_args': [],
+            'init_kwargs': {
+                'host': 'woot.com',
+                'http_port': None,
+                'https_port': 6998,
+                'certfile': 'certfile.pem',
+                'keyfile': 'keyfile.pem',
+            },
+            'exp_attrs': {
+                'host': 'woot.com',
+                'http_port': None,
+                'https_port': 6998,
+                'certfile': 'certfile.pem',
+                'keyfile': 'keyfile.pem',
+            },
+        },
         None, None, True
     ),
     (
         "Verify use of direct_call argument",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                host='woot.com',
-                http_port=None,
-                https_port=6998,
-                certfile='certfile.pem',
-                keyfile='keyfile.pem',
-            ),
-            exp_attrs=dict(
-                host='woot.com',
-                http_port=None,
-                https_port=6998,
-                certfile='certfile.pem',
-                keyfile='keyfile.pem',
-            ),
-        ),
+        {
+            'init_args': [],
+            'init_kwargs': {
+                'host': 'woot.com',
+                'http_port': None,
+                'https_port': 6998,
+                'certfile': 'certfile.pem',
+                'keyfile': 'keyfile.pem',
+            },
+            'exp_attrs': {
+                'host': 'woot.com',
+                'http_port': None,
+                'https_port': 6998,
+                'certfile': 'certfile.pem',
+                'keyfile': 'keyfile.pem',
+            },
+        },
         None, None, True
     ),
     (
         "Verify valid max_ind_queue_size argument",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                host='woot.com',
-                http_port=None,
-                https_port=6998,
-                certfile='certfile.pem',
-                keyfile='keyfile.pem',
-                max_ind_queue_size=1000,
-            ),
-            exp_attrs=dict(
-                host='woot.com',
-                http_port=None,
-                https_port=6998,
-                certfile='certfile.pem',
-                keyfile='keyfile.pem',
-                max_ind_queue_size=1000,
+        {
+            'init_args': [],
+            'init_kwargs': {
+                'host': 'woot.com',
+                'http_port': None,
+                'https_port': 6998,
+                'certfile': 'certfile.pem',
+                'keyfile': 'keyfile.pem',
+                'max_ind_queue_size': 1000,
+            },
+            'exp_attrs': {
+                'host': 'woot.com',
+                'http_port': None,
+                'https_port': 6998,
+                'certfile': 'certfile.pem',
+                'keyfile': 'keyfile.pem',
+                'max_ind_queue_size': 1000,
 
-            ),
-        ),
+            },
+        },
         None, None, True
     ),
 
     # Failure cases
     (
         "Verify failure when providing invalid type for http_port",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                host='woot.com',
-                http_port=12.1,
-            ),
-            exp_attrs=None,
-        ),
+        {
+            'init_args': [],
+            'init_kwargs': {
+                'host': 'woot.com',
+                'http_port': 12.1,
+            },
+            'exp_attrs': None,
+        },
         TypeError, None, True
     ),
     (
         "Verify failure when providing invalid type for https_port",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                host='woot.com',
-                https_port=12.1,
-                certfile='certfile.pem',
-                keyfile='keyfile.pem',
-            ),
-            exp_attrs=None,
-        ),
+        {
+            'init_args': [],
+            'init_kwargs': {
+                'host': 'woot.com',
+                'https_port': 12.1,
+                'certfile': 'certfile.pem',
+                'keyfile': 'keyfile.pem',
+            },
+            'exp_attrs': None,
+        },
         TypeError, None, True
     ),
     (
         "Verify failure when providing no certfile with https_port",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                host='woot.com',
-                https_port=6998,
-                certfile=None,
-                keyfile='keyfile.pem',
-            ),
-            exp_attrs=None,
-        ),
+        {
+            'init_args': [],
+            'init_kwargs': {
+                'host': 'woot.com',
+                'https_port': 6998,
+                'certfile': None,
+                'keyfile': 'keyfile.pem',
+            },
+            'exp_attrs': None,
+        },
         ValueError, None, True
     ),
     (
         "Verify failure when providing no keyfile with https_port",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                host='woot.com',
-                https_port=6998,
-                certfile='certfile.pem',
-                keyfile=None,
-            ),
-            exp_attrs=None,
-        ),
+        {
+            'init_args': [],
+            'init_kwargs': {
+                'host': 'woot.com',
+                'https_port': 6998,
+                'certfile': 'certfile.pem',
+                'keyfile': None,
+            },
+            'exp_attrs': None,
+        },
         ValueError, None, True
     ),
     (
         "Verify failure when providing no port",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                host='woot.com',
-                http_port=None,
-                https_port=None,
-            ),
-            exp_attrs=None,
-        ),
+        {
+            'init_args': [],
+            'init_kwargs': {
+                'host': 'woot.com',
+                'http_port': None,
+                'https_port': None,
+            },
+            'exp_attrs': None,
+        },
         ValueError, None, True
     ),
     (
         "Verify failure when providing invalid type max_ind_queue_size",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                host='woot.com',
-                http_port=None,
-                https_port=None,
-                max_ind_queue_size="fred",
-            ),
-            exp_attrs=None,
-        ),
+        {
+            'init_args': [],
+            'init_kwargs': {
+                'host': 'woot.com',
+                'http_port': None,
+                'https_port': None,
+                'max_ind_queue_size': "fred",
+            },
+            'exp_attrs': None,
+        },
         ValueError, None, True
     ),
     (
         "Verify failure when providing invalid max_ind_queue_size integer",
-        dict(
-            init_args=[],
-            init_kwargs=dict(
-                host='woot.com',
-                http_port=None,
-                https_port=None,
-                max_ind_queue_size=-1,
-            ),
-            exp_attrs=None,
-        ),
+        {
+            'init_args': [],
+            'init_kwargs': {
+                'host': 'woot.com',
+                'http_port': None,
+                'https_port': None,
+                'max_ind_queue_size': -1,
+            },
+            'exp_attrs': None,
+        },
         ValueError, None, True
     ),
 ]
@@ -1516,51 +1514,51 @@ THREAD_INIT_TESTCASES = [
     (
         "ExceptionHandlingThread",
         ExceptionHandlingThread,
-        dict(
-            target=None,
-            name='foo',
-        ),
-        dict(
-            name=(str, 'foo'),
-            exception=(NoneType, None),
-        )
+        {
+            'target': None,
+            'name': 'foo',
+        },
+        {
+            'name': (str, 'foo'),
+            'exception': (NoneType, None),
+        }
     ),
     (
         "StoppableThread",
         StoppableThread,
-        dict(
-            target=None,
-            name='foo',
-        ),
-        dict(
-            name=(str, 'foo'),
-            stop_event=(threading.Event, NOCHECK_VALUE),
-        )
+        {
+            'target': None,
+            'name': 'foo',
+        },
+        {
+            'name': (str, 'foo'),
+            'stop_event': (threading.Event, NOCHECK_VALUE),
+        }
     ),
     (
         "ServerThread",
         ServerThread,
-        dict(
-            target=None,
-            name='foo',
-        ),
-        dict(
-            name=(str, 'foo'),
-            exception=(NoneType, None),
-        )
+        {
+            'target': None,
+            'name': 'foo',
+        },
+        {
+            'name': (str, 'foo'),
+            'exception': (NoneType, None),
+        }
     ),
     (
         "CallbackThread",
         CallbackThread,
-        dict(
-            target=None,
-            name='foo',
-        ),
-        dict(
-            name=(str, 'foo'),
-            exception=(NoneType, None),
-            stop_event=(threading.Event, NOCHECK_VALUE),
-        )
+        {
+            'target': None,
+            'name': 'foo',
+        },
+        {
+            'name': (str, 'foo'),
+            'exception': (NoneType, None),
+            'stop_event': (threading.Event, NOCHECK_VALUE),
+        }
     ),
 ]
 
@@ -1636,7 +1634,7 @@ def test_thread_stoppable(thread_class):
     # when the Python process running pytest terminates.
     thread = thread_class(
         target=func_holder.thread_func,
-        kwargs=dict(interval=thread_interval),
+        kwargs={'interval': thread_interval},
         name='foo',
         daemon=True)
     func_holder.thread = thread
@@ -1726,7 +1724,7 @@ def test_thread_exchdl(thread_class, exc):
     # when the Python process running pytest terminates.
     thread = thread_class(
         target=func_holder.thread_func,
-        kwargs=dict(exc=exc),
+        kwargs={'exc': exc},
         name='foo',
         daemon=True)
     func_holder.thread = thread

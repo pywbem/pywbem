@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Test _exceptions module.
 """
@@ -109,19 +107,19 @@ def _assert_connection(exc, conn_id_kwarg, exp_conn_str):
     ),
     (
         ListenerError,
-        tuple(),
+        (),
     ),
     (
         ListenerCertificateError,
-        tuple(),
+        (),
     ),
     (
         ListenerPortError,
-        tuple(),
+        (),
     ),
     (
         ListenerPromptError,
-        tuple(),
+        (),
     ),
 ], scope='module')
 def message_exception_info(request):
@@ -155,8 +153,8 @@ def message_arg(request):
 @pytest.fixture(params=[
     # Tuple of (conn_id_kwarg, exp_conn_str)
     ({}, TEST_CONN_STR_NONE),
-    (dict(conn_id=None), TEST_CONN_STR_NONE),
-    (dict(conn_id=TEST_CONN_ID), TEST_CONN_STR),
+    ({'conn_id': None}, TEST_CONN_STR_NONE),
+    ({'conn_id': TEST_CONN_ID}, TEST_CONN_STR),
 ], scope='module')
 def conn_info(request):
     """
@@ -173,8 +171,8 @@ def conn_info(request):
 @pytest.fixture(params=[
     # Tuple of (request_data_kwarg, exp_request_data)
     ({}, None),
-    (dict(request_data=None), None),
-    (dict(request_data=b'<CIM/>'), b'<CIM/>'),
+    ({'request_data': None}, None),
+    ({'request_data': b'<CIM/>'}, b'<CIM/>'),
 ], scope='module')
 def request_data_info(request):
     """
@@ -192,8 +190,8 @@ def request_data_info(request):
 @pytest.fixture(params=[
     # Tuple of (response_data_kwarg, exp_request_data)
     ({}, None),
-    (dict(response_data=None), None),
-    (dict(response_data=b'<CIM/>'), b'<CIM/>'),
+    ({'response_data': None}, None),
+    ({'response_data': b'<CIM/>'}, b'<CIM/>'),
 ], scope='module')
 def response_data_info(request):
     """

@@ -136,7 +136,7 @@ class InMemoryObjectStore(BaseObjectStore):
         Only copies the names for those objects that use CIMNamespaceName
         as the name. The others are immutable ex. classname.
         """
-        for name in self._data.keys():
+        for name in self._data:
             if self._copy_names:
                 # Using .copy is sufficient for CIMNamespace name.
                 yield name.copy()

@@ -3943,10 +3943,7 @@ class PegasusServerTestBase(ClientTest):
         if self.is_pegasus_server():
             namespaces = self.get_namespaces()
 
-            if 'test/TestProvider' in namespaces:
-                return True
-
-            return False
+            return 'test/TestProvider' in namespaces
 
         return False
 
@@ -4004,7 +4001,7 @@ class PegasusServerTestBase(ClientTest):
         # TODO ks 5/16 figure out why we could not get instances of a class
         #  and whether we should continue. do more than raise. This
         #  is an assert
-        except CIMError:  # pylint: disable=try-except-raise
+        except CIMError:  # noqa: TRY203 pylint: disable=try-except-raise
             raise
 
     def get_registered_profiles(self):
@@ -4592,9 +4589,7 @@ class IterEnumerateInstances(PegasusServerTestBase):
         """
         iterator = self.cimcall(self.conn.IterEnumerateInstances, TEST_CLASS,
                                 namespace=TEST_CLASS_NAMESPACE)
-        iter_instances = []
-        for inst in iterator:
-            iter_instances.append(inst)
+        iter_instances = list(iterator)
 
         self.assertInstancesValid(iter_instances,
                                   namespace=TEST_CLASS_NAMESPACE)
@@ -4800,9 +4795,7 @@ class IterEnumerateInstances(PegasusServerTestBase):
         """
         iterator = self.cimcall(self.conn.IterEnumerateInstances,
                                 TEST_CLASS, namespace=TEST_CLASS_NAMESPACE)
-        iter_instances = []
-        for inst in iterator:
-            iter_instances.append(inst)
+        iter_instances = list(iterator)
 
         self.assertInstancesValid(iter_instances)
 
@@ -4951,9 +4944,7 @@ class IterEnumerateInstancePaths(PegasusServerTestBase):
         """
         iterator = self.cimcall(self.conn.IterEnumerateInstancePaths,
                                 TEST_CLASS, namespace=TEST_CLASS_NAMESPACE)
-        iter_paths = []
-        for path in iterator:
-            iter_paths.append(path)
+        iter_paths = list(iterator)
 
         self.assertPathsValid(iter_paths)
 
@@ -6804,13 +6795,13 @@ def parse_args(argv_):
               'usage.')
         sys.exit(2)
     elif argv[1] == '--help' or argv[1] == '-h':
-        print('')
+        print()
         print('Test program for CIM operations.')
-        print('')
+        print()
         print('Usage:')
         print(f'    {argv[0]} [GEN_OPTS] URL [USERNAME%%PASSWORD [UT_OPTS '
               '[UT_CLASS ...]]] ')
-        print('')
+        print()
         print('Where:')
         print('    GEN_OPTS            General options (see below).')
         print('    URL                 URL of the target WBEM server.\n'
@@ -6829,7 +6820,7 @@ def parse_args(argv_):
         print('    UT_OPTS             Unittest options (see below).')
         print('    UT_CLASS            Name of testcase class (e.g.\n'
               '                        EnumerateInstances).')
-        print('')
+        print()
         print('General options[GEN_OPTS]:')
         print('    --help, -h          Display this help text.')
         print('    -n NAMESPACE        Use this CIM namespace instead of '
@@ -6850,7 +6841,7 @@ def parse_args(argv_):
               '                        suffix.')
         print('    -hl                 List of individual tests')
 
-        print('')
+        print()
         print('Examples:')
         print(f'    {argv[0]} https://9.10.11.12 username%password')
         print(f'    {argv[0]} --log https://myhostusername%password')
@@ -6859,7 +6850,7 @@ def parse_args(argv_):
 
         print('------------------------')
         print('Unittest arguments[UT_OPTS]:')
-        print('')
+        print()
         sys.argv[1:] = ['--help']
         unittest.main()
         sys.exit(2)

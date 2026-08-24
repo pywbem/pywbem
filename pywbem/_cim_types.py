@@ -371,7 +371,7 @@ class CIMDateTime(_CIMComparisonMixin, CIMType):
     hash value being based on their public attributes.
     """
 
-    __slots__ = ['__timedelta', '__datetime', '__precision']
+    __slots__ = ['__datetime', '__precision', '__timedelta']
 
     #: The name of the CIM datatype ``"datetime"``
     cimtype = 'datetime'

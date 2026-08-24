@@ -175,8 +175,8 @@ class ResolverMixin:  # pylint: disable=too-few-public-methods
 
             # Error if obj_name in superclass_objects and not override,
             # except parameters which have no override concept.
-            if 'Override' not in new_objects[obj_name].qualifiers:
-                if not isinstance(new_objects[obj_name], CIMParameter):
+            if 'Override' not in new_obj.qualifiers:
+                if not isinstance(new_obj, CIMParameter):
                     raise CIMError(
                         CIM_ERR_INVALID_PARAMETER,
                         _format("{0} {1!A} in {2!A} duplicates {0} in "
@@ -187,7 +187,7 @@ class ResolverMixin:  # pylint: disable=too-few-public-methods
 
             # process object override
             # get override name
-            override_name = new_objects[obj_name].qualifiers["override"].value
+            override_name = new_obj.qualifiers["override"].value
             if isinstance(new_obj, (CIMParameter, CIMProperty)):
                 if new_obj.type == 'reference':
                     if override_name != obj_name:
@@ -334,7 +334,7 @@ class ResolverMixin:  # pylint: disable=too-few-public-methods
                 if inh_qual.overridable:
                     # if not in new quals, copy to new quals, else ignore
                     if inh_qname not in new_quals:
-                        new_quals[inh_qname] = inherited_quals[inh_qname].copy()
+                        new_quals[inh_qname] = inh_qual.copy()
                         new_quals[inh_qname].propagated = True
                     else:
                         new_quals[inh_qname].propagated = False
@@ -344,11 +344,8 @@ class ResolverMixin:  # pylint: disable=too-few-public-methods
                 else:  # not overridable
                     if inh_qname in new_quals:
                         # Allow for same qualifier definition in subclass
-                        if new_quals[inh_qname].value != \
-                                inherited_quals[inh_qname].value \
-                                or \
-                                new_quals[inh_qname].type != \
-                                inherited_quals[inh_qname].type:
+                        if new_quals[inh_qname].value != inh_qual.value \
+                                or new_quals[inh_qname].type != inh_qual.type:
                             raise CIMError(
                                 CIM_ERR_INVALID_PARAMETER,
                                 _format("Invalid new_class {0!A}:{1!A} "
@@ -359,7 +356,7 @@ class ResolverMixin:  # pylint: disable=too-few-public-methods
                         new_quals[inh_qname].propagated = True
 
                     else:  # not in new class, add it
-                        new_quals[inh_qname] = inherited_quals[inh_qname].copy()
+                        new_quals[inh_qname] = inh_qual.copy()
                         new_quals[inh_qname].propagated = True
 
             else:  # not tosubclass, i.e. restricted.
@@ -433,11 +430,9 @@ class ResolverMixin:  # pylint: disable=too-few-public-methods
         # Validate the attributes of all qualifiers in the new class and that
         # their value is True
         if qualifier_store:
-            if 'ASSOCIATION' in new_class.qualifiers and \
-                    new_class.qualifiers['ASSOCIATION']:
+            if new_class.qualifiers.get('ASSOCIATION'):
                 class_scope = 'ASSOCIATION'
-            elif 'INDICATION' in new_class.qualifiers and \
-                    new_class.qualifiers['INDICATION']:
+            elif new_class.qualifiers.get('INDICATION'):
                 class_scope = 'INDICATION'
             else:
                 class_scope = 'CLASS'

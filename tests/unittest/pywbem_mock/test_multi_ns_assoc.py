@@ -422,16 +422,16 @@ TESTCASES_MULTI_NAMESPACES = [
 
     (
         "Test association in one namespace. Assures model/test works",
-        dict(
+        {
             # first namespace becomes the default namespace
-            namespaces=['ns1', 'ns2'],
-            class_mof=[TST_CLASSES_MOF],
-            inst_mof=[INSTANCE_INITIAL_ENDPOINTS],
-            assoc_inst_mof=[ASSOCIATION_MOF_SAME_NS],
-            source_clns=['TST_Person', 'TST_Group'],
-            assoc_clns='TST_MemberOfGroup',
-            delete_ns=None,
-            exp_rtn={
+            'namespaces': ['ns1', 'ns2'],
+            'class_mof': [TST_CLASSES_MOF],
+            'inst_mof': [INSTANCE_INITIAL_ENDPOINTS],
+            'assoc_inst_mof': [ASSOCIATION_MOF_SAME_NS],
+            'source_clns': ['TST_Person', 'TST_Group'],
+            'assoc_clns': 'TST_MemberOfGroup',
+            'delete_ns': None,
+            'exp_rtn': {
                 'ns1':
                     {'ENUM':
                         {'TST_Person': ['/ns1:TST_Person.name="Mike"'],
@@ -457,22 +457,22 @@ TESTCASES_MULTI_NAMESPACES = [
                         {'TST_Person': [],
                          'TST_Group': []}, },
             },
-        ),
+        },
         None, None, OK
     ),
 
     (
         "Test association cross namespaces with MemberOfGroup",
-        dict(
+        {
             # first namespace becomes the default namespace
-            namespaces=['ns1', 'ns2'],
-            class_mof=[TST_CLASSES_MOF],
-            inst_mof=[INSTANCE_INITIAL_ENDPOINTS],
-            assoc_inst_mof=[ASSOCIATION_MOF_CROSS_NS],
-            source_clns=['TST_Person', 'TST_Group'],
-            assoc_clns='TST_MemberOfGroup',
-            delete_ns=None,
-            exp_rtn={
+            'namespaces': ['ns1', 'ns2'],
+            'class_mof': [TST_CLASSES_MOF],
+            'inst_mof': [INSTANCE_INITIAL_ENDPOINTS],
+            'assoc_inst_mof': [ASSOCIATION_MOF_CROSS_NS],
+            'source_clns': ['TST_Person', 'TST_Group'],
+            'assoc_clns': 'TST_MemberOfGroup',
+            'delete_ns': None,
+            'exp_rtn': {
                 'ns1':
                     {'ENUM':
                         {'TST_Person': ['/ns1:TST_Person.name="Mike"'],
@@ -498,23 +498,23 @@ TESTCASES_MULTI_NAMESPACES = [
                         {'TST_Person': [],
                          'TST_Group': ['/ns1:TST_Person.name="Mike"']}}
             },
-        ),
+        },
         None, None, OK
     ),
 
     (
         "Test association cross namespaces with MemberOfGroup delete from "
         "alternate namespace",
-        dict(
+        {
             # first namespace becomes the default namespace
-            namespaces=['ns1', 'ns2'],
-            class_mof=[TST_CLASSES_MOF],
-            inst_mof=[INSTANCE_INITIAL_ENDPOINTS],
-            assoc_inst_mof=[ASSOCIATION_MOF_CROSS_NS],
-            source_clns=['TST_Person', 'TST_Group'],
-            assoc_clns='TST_MemberOfGroup',
-            delete_ns='ns2',
-            exp_rtn={
+            'namespaces': ['ns1', 'ns2'],
+            'class_mof': [TST_CLASSES_MOF],
+            'inst_mof': [INSTANCE_INITIAL_ENDPOINTS],
+            'assoc_inst_mof': [ASSOCIATION_MOF_CROSS_NS],
+            'source_clns': ['TST_Person', 'TST_Group'],
+            'assoc_clns': 'TST_MemberOfGroup',
+            'delete_ns': 'ns2',
+            'exp_rtn': {
                 'ns1':
                     {'ENUM':
                         {'TST_Person': ['/ns1:TST_Person.name="Mike"'],
@@ -540,22 +540,22 @@ TESTCASES_MULTI_NAMESPACES = [
                         {'TST_Person': [],
                          'TST_Group': ['/ns1:TST_Person.name="Mike"']}}
             },
-        ),
+        },
         None, None, OK
     ),
 
     (
         "Test association TST_MemberOfGroupNoID (refs as keys) cross ns",
-        dict(
+        {
             # first namespace becomes the default namespace
-            namespaces=['ns1', 'ns2'],
-            class_mof=[TST_CLASSES_MOF],
-            inst_mof=[INSTANCE_INITIAL_ENDPOINTS],
-            assoc_inst_mof=[ASSOCNOID_MOF_CROSS_NS],
-            source_clns=['TST_Person', 'TST_Group'],
-            assoc_clns='TST_MemberOfGroupNoID',
-            delete_ns=None,
-            exp_rtn={
+            'namespaces': ['ns1', 'ns2'],
+            'class_mof': [TST_CLASSES_MOF],
+            'inst_mof': [INSTANCE_INITIAL_ENDPOINTS],
+            'assoc_inst_mof': [ASSOCNOID_MOF_CROSS_NS],
+            'source_clns': ['TST_Person', 'TST_Group'],
+            'assoc_clns': 'TST_MemberOfGroupNoID',
+            'delete_ns': None,
+            'exp_rtn': {
                 'ns1':
                     {'ENUM':
                         {'TST_Person': ['/ns1:TST_Person.name="Mike"'],
@@ -577,22 +577,22 @@ TESTCASES_MULTI_NAMESPACES = [
                         {'TST_Person': [],
                          'TST_Group': ['/ns1:TST_Person.name="Mike"']}}
             },
-        ),
+        },
         None, None, OK
     ),
 
     (
         "Test 3way association TST_MemberOfGroup3EP cross  3 namespaces",
-        dict(
+        {
             # first namespace becomes the default namespace
-            namespaces=['ns1', 'ns2', 'ns3'],
-            class_mof=[TST_CLASSES_MOF],
-            inst_mof=[INSTANCE_INITIAL_ENDPOINTS],
-            assoc_inst_mof=[ASSOCIATIONX_3WAY_MOF_CROSS_NS],
-            source_clns=['TST_Person', 'TST_Group', 'TST_THIRD_EP'],
-            assoc_clns='TST_MemberOfGroup3EP',
-            delete_ns='ns1',
-            exp_rtn={
+            'namespaces': ['ns1', 'ns2', 'ns3'],
+            'class_mof': [TST_CLASSES_MOF],
+            'inst_mof': [INSTANCE_INITIAL_ENDPOINTS],
+            'assoc_inst_mof': [ASSOCIATIONX_3WAY_MOF_CROSS_NS],
+            'source_clns': ['TST_Person', 'TST_Group', 'TST_THIRD_EP'],
+            'assoc_clns': 'TST_MemberOfGroup3EP',
+            'delete_ns': 'ns1',
+            'exp_rtn': {
                 'ns1':
                     {'ENUM':
                         {'TST_Person': ['/ns1:TST_Person.name="Mike"'],
@@ -645,7 +645,7 @@ TESTCASES_MULTI_NAMESPACES = [
                          'TST_THIRD_EP': ['/ns1:TST_Person.name="Mike"',
                                           '/ns2:TST_Group.name="ns2group1"']}},
             },
-        ),
+        },
         None, None, OK
     ),
 
@@ -747,139 +747,139 @@ TESTCASES_MULTI_NAMESPACES_ERRORS = [
 
     (
         "Test fails with assoc class missing from second namespace",
-        dict(
+        {
             # first namespace becomes the default namespace
-            namespaces=['ns1', 'ns2'],
-            class_mof=[TST_CLASSES_MOF],
-            remove_classes={'ns2': ['TST_MemberOfGroup']},
-            inst_mof=[INSTANCE_INITIAL_ENDPOINTS],
-            assoc_inst_mof=[ASSOCIATION_MOF_CROSS_NS],
-            assoc_inst_obj=None,
-            source_clns=['TST_Person', 'TST_Group'],
-            assoc_clns='TST_MemberOfGroupNoID',
-            delete_ns=None,
-            exp_rtn=None
-        ),
+            'namespaces': ['ns1', 'ns2'],
+            'class_mof': [TST_CLASSES_MOF],
+            'remove_classes': {'ns2': ['TST_MemberOfGroup']},
+            'inst_mof': [INSTANCE_INITIAL_ENDPOINTS],
+            'assoc_inst_mof': [ASSOCIATION_MOF_CROSS_NS],
+            'assoc_inst_obj': None,
+            'source_clns': ['TST_Person', 'TST_Group'],
+            'assoc_clns': 'TST_MemberOfGroupNoID',
+            'delete_ns': None,
+            'exp_rtn': None
+        },
         MOFRepositoryError, None, OK
     ),
 
     (
         "Test fails,assoc instance already exists",
-        dict(
+        {
             # first namespace becomes the default namespace
-            namespaces=['ns1', 'ns2'],
-            class_mof=[TST_CLASSES_MOF],
-            remove_classes={'ns2': ['TST_MemberOfGroup']},
-            inst_mof=[INSTANCE_INITIAL_ENDPOINTS],
-            assoc_inst_mof=[ASSOCIATION_MOF_CROSS_NS],
-            assoc_inst_obj=None,
-            source_clns=['TST_Person', 'TST_Group'],
-            assoc_clns='TST_MemberOfGroupNoID',
-            delete_ns=None,
-            exp_rtn=None
-        ),
+            'namespaces': ['ns1', 'ns2'],
+            'class_mof': [TST_CLASSES_MOF],
+            'remove_classes': {'ns2': ['TST_MemberOfGroup']},
+            'inst_mof': [INSTANCE_INITIAL_ENDPOINTS],
+            'assoc_inst_mof': [ASSOCIATION_MOF_CROSS_NS],
+            'assoc_inst_obj': None,
+            'source_clns': ['TST_Person', 'TST_Group'],
+            'assoc_clns': 'TST_MemberOfGroupNoID',
+            'delete_ns': None,
+            'exp_rtn': None
+        },
         MOFRepositoryError, None, OK
     ),
 
     (
         "Test  bad end-points paths (do not exist) fails",
-        dict(
-            namespaces=['ns1', 'ns2'],
-            class_mof=[TST_CLASSES_MOF],
-            remove_classes={'ns2': ['TST_MemberOfGroup']},
-            inst_mof=[INSTANCE_INITIAL_ENDPOINTS],
-            assoc_inst_mof=[],
+        {
+            'namespaces': ['ns1', 'ns2'],
+            'class_mof': [TST_CLASSES_MOF],
+            'remove_classes': {'ns2': ['TST_MemberOfGroup']},
+            'inst_mof': [INSTANCE_INITIAL_ENDPOINTS],
+            'assoc_inst_mof': [],
             # Association instance with  invalid reference properties
-            assoc_inst_obj=CIMInstance(
+            'assoc_inst_obj': CIMInstance(
                 'TST_MemberOfGroup',
                 path=CIMInstanceName(
-                    "TST_MemberOfGroup", keybindings=dict(InstanceID="blah"),
+                    "TST_MemberOfGroup", keybindings={'InstanceID': "blah"},
                     namespace='ns1'),
-                properties=dict(
-                    InstanceID=CIMProperty("InstanceID", "blah"),
-                    member=CIMProperty(
+                properties={
+                    'InstanceID': CIMProperty("InstanceID", "blah"),
+                    'member': CIMProperty(
                         "member",
                         CIMInstanceName('TST_PERSON',
-                                        keybindings=dict(name="fred"),
+                                        keybindings={'name': "fred"},
                                         namespace='ns1')),
-                    group=CIMProperty(
+                    'group': CIMProperty(
                         'group',
                         CIMInstanceName('TST_Group',
-                                        keybindings=dict(name="john"),
-                                        namespace='ns2')))),
-            source_clns=['TST_Person', 'TST_Group'],
-            assoc_clns='TST_MemberOfGroup',
-            delete_ns=None,
-            exp_rtn=None
-        ),
+                                        keybindings={'name': "john"},
+                                        namespace='ns2'))}),
+            'source_clns': ['TST_Person', 'TST_Group'],
+            'assoc_clns': 'TST_MemberOfGroup',
+            'delete_ns': None,
+            'exp_rtn': None
+        },
         CIMError, None, OK
     ),
 
     (
         "Test  bad 2nd end-point path (instance does not exist) fails",
-        dict(
-            namespaces=['ns1', 'ns2'],
-            class_mof=[TST_CLASSES_MOF],
-            remove_classes={'ns2': ['TST_MemberOfGroup']},
-            inst_mof=[INSTANCE_INITIAL_ENDPOINTS],
-            assoc_inst_mof=[],
+        {
+            'namespaces': ['ns1', 'ns2'],
+            'class_mof': [TST_CLASSES_MOF],
+            'remove_classes': {'ns2': ['TST_MemberOfGroup']},
+            'inst_mof': [INSTANCE_INITIAL_ENDPOINTS],
+            'assoc_inst_mof': [],
             # Association instance with  invalid reference properties
-            assoc_inst_obj=CIMInstance(
+            'assoc_inst_obj': CIMInstance(
                 'TST_MemberOfGroup',
                 path=CIMInstanceName(
-                    "TST_MemberOfGroup", keybindings=dict(InstanceID="blah"),
+                    "TST_MemberOfGroup", keybindings={'InstanceID': "blah"},
                     namespace='ns1'),
-                properties=dict(
-                    InstanceID=CIMProperty("InstanceID", "blah"),
-                    member=CIMProperty(
+                properties={
+                    'InstanceID': CIMProperty("InstanceID", "blah"),
+                    'member': CIMProperty(
                         "member",
                         CIMInstanceName('TST_PERSON',
-                                        keybindings=dict(name="Mike"),
+                                        keybindings={'name': "Mike"},
                                         namespace='ns1')),
-                    group=CIMProperty(
+                    'group': CIMProperty(
                         'group',
                         CIMInstanceName('TST_Group',
-                                        keybindings=dict(name="john"),
-                                        namespace='ns2')))),
-            source_clns=['TST_Person', 'TST_Group'],
-            assoc_clns='TST_MemberOfGroup',
-            delete_ns=None,
-            exp_rtn=None
-        ),
+                                        keybindings={'name': "john"},
+                                        namespace='ns2'))}),
+            'source_clns': ['TST_Person', 'TST_Group'],
+            'assoc_clns': 'TST_MemberOfGroup',
+            'delete_ns': None,
+            'exp_rtn': None
+        },
         CIMError, None, OK
     ),
 
     (
         "Test bad 2nd end-point path  namespace does not exist) fails",
-        dict(
-            namespaces=['ns1', 'ns2'],
-            class_mof=[TST_CLASSES_MOF],
-            remove_classes={'ns2': ['TST_MemberOfGroup']},
-            inst_mof=[INSTANCE_INITIAL_ENDPOINTS],
-            assoc_inst_mof=[],
+        {
+            'namespaces': ['ns1', 'ns2'],
+            'class_mof': [TST_CLASSES_MOF],
+            'remove_classes': {'ns2': ['TST_MemberOfGroup']},
+            'inst_mof': [INSTANCE_INITIAL_ENDPOINTS],
+            'assoc_inst_mof': [],
             # Association instance with  invalid reference properties
-            assoc_inst_obj=CIMInstance(
+            'assoc_inst_obj': CIMInstance(
                 'TST_MemberOfGroup',
                 path=CIMInstanceName(
-                    "TST_MemberOfGroup", keybindings=dict(InstanceID="blah"),
+                    "TST_MemberOfGroup", keybindings={'InstanceID': "blah"},
                     namespace='ns1'),
-                properties=dict(
-                    InstanceID=CIMProperty("InstanceID", "blah"),
-                    member=CIMProperty(
+                properties={
+                    'InstanceID': CIMProperty("InstanceID", "blah"),
+                    'member': CIMProperty(
                         "member",
                         CIMInstanceName('TST_PERSON',
-                                        keybindings=dict(name="Mike"),
+                                        keybindings={'name': "Mike"},
                                         namespace='ns1')),
-                    group=CIMProperty(
+                    'group': CIMProperty(
                         'group',
                         CIMInstanceName('TST_Group',
-                                        keybindings=dict(name="ns2group1"),
-                                        namespace='InvalidNS')))),
-            source_clns=['TST_Person', 'TST_Group'],
-            assoc_clns='TST_MemberOfGroup',
-            delete_ns=None,
-            exp_rtn=None
-        ),
+                                        keybindings={'name': "ns2group1"},
+                                        namespace='InvalidNS'))}),
+            'source_clns': ['TST_Person', 'TST_Group'],
+            'assoc_clns': 'TST_MemberOfGroup',
+            'delete_ns': None,
+            'exp_rtn': None
+        },
         CIMError, None, OK
     ),
 
@@ -1028,20 +1028,24 @@ TESTCASES_MULTI_NAMESPACES_MODIFY_INSTANCE = [
 
     (
         "Test association Modify in one namespace. Modify ExtraPropStr prop",
-        dict(
+        {
             # first namespace becomes the default namespace
-            namespaces=['ns1', 'ns2'],
-            class_mof=[TST_CLASSES_MOF],
-            inst_mof=[INSTANCE_INITIAL_ENDPOINTS],
-            assoc_inst_mof=[ASSOCIATION_MOF_SAME_NS],
-            source_clns=['TST_Person', 'TST_Group'],
-            assoc_clns='TST_MemberOfGroup',
-            property_mods=('/ns1:TST_MemberOfGroup.InstanceID="G1MikeNS1"',
-                           (("ExtraPropStr", "NewStringVal"),)),
-            prop_list=None,
-            delete_ns='ns1',
-            delete_assoc_inst_test=None,
-            exp_rtn={
+            'namespaces': ['ns1', 'ns2'],
+            'class_mof': [TST_CLASSES_MOF],
+            'inst_mof': [INSTANCE_INITIAL_ENDPOINTS],
+            'assoc_inst_mof': [ASSOCIATION_MOF_SAME_NS],
+            'source_clns': ['TST_Person', 'TST_Group'],
+            'assoc_clns': 'TST_MemberOfGroup',
+            'property_mods': (
+                '/ns1:TST_MemberOfGroup.InstanceID="G1MikeNS1"',
+                (
+                    ("ExtraPropStr", "NewStringVal"),
+                )
+            ),
+            'prop_list': None,
+            'delete_ns': 'ns1',
+            'delete_assoc_inst_test': None,
+            'exp_rtn': {
                 'ns1':
                     {'ENUM':
                         {'TST_Person': ['/ns1:TST_Person.name="Mike"'],
@@ -1067,28 +1071,32 @@ TESTCASES_MULTI_NAMESPACES_MODIFY_INSTANCE = [
                         {'TST_Person': [],
                          'TST_Group': []}, },
             },
-        ),
+        },
         None, None, OK
     ),
 
     (
         "Test association modify cross namespaces with MemberOfGroup. No prop "
         "values in instance",
-        dict(
+        {
             # first namespace becomes the default namespace
-            namespaces=['ns1', 'ns2'],
-            class_mof=[TST_CLASSES_MOF],
-            inst_mof=[INSTANCE_INITIAL_ENDPOINTS],
-            assoc_inst_mof=[ASSOCIATION_MOF_CROSS_NS_NO_EXTRAPROPS],
-            source_clns=['TST_Person', 'TST_Group'],
-            assoc_clns='TST_MemberOfGroup',
-            property_mods=('/ns1:TST_MemberOfGroup.InstanceID="G1MikeNS1"',
-                           (("ExtraPropStr", "NewStringVal"),
-                            ("ExtraPropInt", Uint32(88888)))),
-            prop_list=None,
-            delete_ns='ns1',
-            delete_assoc_inst_test=None,
-            exp_rtn={
+            'namespaces': ['ns1', 'ns2'],
+            'class_mof': [TST_CLASSES_MOF],
+            'inst_mof': [INSTANCE_INITIAL_ENDPOINTS],
+            'assoc_inst_mof': [ASSOCIATION_MOF_CROSS_NS_NO_EXTRAPROPS],
+            'source_clns': ['TST_Person', 'TST_Group'],
+            'assoc_clns': 'TST_MemberOfGroup',
+            'property_mods': (
+                '/ns1:TST_MemberOfGroup.InstanceID="G1MikeNS1"',
+                (
+                    ("ExtraPropStr", "NewStringVal"),
+                    ("ExtraPropInt", Uint32(88888))
+                )
+            ),
+            'prop_list': None,
+            'delete_ns': 'ns1',
+            'delete_assoc_inst_test': None,
+            'exp_rtn': {
                 'ns1':
                     {'ENUM':
                         {'TST_Person': ['/ns1:TST_Person.name="Mike"'],
@@ -1114,28 +1122,32 @@ TESTCASES_MULTI_NAMESPACES_MODIFY_INSTANCE = [
                         {'TST_Person': [],
                          'TST_Group': ['/ns1:TST_Person.name="Mike"']}}
             },
-        ),
+        },
         None, None, OK
     ),
 
     (
         "Test association modify cross namespaces with MemberOfGroup modifiy 2 "
         "properties",
-        dict(
+        {
             # first namespace becomes the default namespace
-            namespaces=['ns1', 'ns2'],
-            class_mof=[TST_CLASSES_MOF],
-            inst_mof=[INSTANCE_INITIAL_ENDPOINTS],
-            assoc_inst_mof=[ASSOCIATION_MOF_CROSS_NS],
-            source_clns=['TST_Person', 'TST_Group'],
-            assoc_clns='TST_MemberOfGroup',
-            property_mods=('/ns1:TST_MemberOfGroup.InstanceID="G1MikeNS1"',
-                           (("ExtraPropStr", "NewStringVal"),
-                            ("ExtraPropInt", Uint32(88888)))),
-            prop_list=None,
-            delete_ns='ns1',
-            delete_assoc_inst_test=None,
-            exp_rtn={
+            'namespaces': ['ns1', 'ns2'],
+            'class_mof': [TST_CLASSES_MOF],
+            'inst_mof': [INSTANCE_INITIAL_ENDPOINTS],
+            'assoc_inst_mof': [ASSOCIATION_MOF_CROSS_NS],
+            'source_clns': ['TST_Person', 'TST_Group'],
+            'assoc_clns': 'TST_MemberOfGroup',
+            'property_mods': (
+                '/ns1:TST_MemberOfGroup.InstanceID="G1MikeNS1"',
+                (
+                    ("ExtraPropStr", "NewStringVal"),
+                    ("ExtraPropInt", Uint32(88888)),
+                )
+            ),
+            'prop_list': None,
+            'delete_ns': 'ns1',
+            'delete_assoc_inst_test': None,
+            'exp_rtn': {
                 'ns1':
                     {'ENUM':
                         {'TST_Person': ['/ns1:TST_Person.name="Mike"'],
@@ -1161,28 +1173,32 @@ TESTCASES_MULTI_NAMESPACES_MODIFY_INSTANCE = [
                         {'TST_Person': [],
                          'TST_Group': ['/ns1:TST_Person.name="Mike"']}}
             },
-        ),
+        },
         None, None, OK
     ),
 
     (
         "Test association modify cross namespaces with MemberOfGroup mod 2 prop"
         " and property list with both properties",
-        dict(
+        {
             # first namespace becomes the default namespace
-            namespaces=['ns1', 'ns2'],
-            class_mof=[TST_CLASSES_MOF],
-            inst_mof=[INSTANCE_INITIAL_ENDPOINTS],
-            assoc_inst_mof=[ASSOCIATION_MOF_CROSS_NS],
-            source_clns=['TST_Person', 'TST_Group'],
-            assoc_clns='TST_MemberOfGroup',
-            property_mods=('/ns1:TST_MemberOfGroup.InstanceID="G1MikeNS1"',
-                           (("ExtraPropStr", "NewStringVal"),
-                            ("ExtraPropInt", Uint32(88888)))),
-            prop_list=["ExtraPropStr", "ExtraPropInt"],
-            delete_ns='ns1',
-            delete_assoc_inst_test=None,
-            exp_rtn={
+            'namespaces': ['ns1', 'ns2'],
+            'class_mof': [TST_CLASSES_MOF],
+            'inst_mof': [INSTANCE_INITIAL_ENDPOINTS],
+            'assoc_inst_mof': [ASSOCIATION_MOF_CROSS_NS],
+            'source_clns': ['TST_Person', 'TST_Group'],
+            'assoc_clns': 'TST_MemberOfGroup',
+            'property_mods': (
+                '/ns1:TST_MemberOfGroup.InstanceID="G1MikeNS1"',
+                (
+                    ("ExtraPropStr", "NewStringVal"),
+                    ("ExtraPropInt", Uint32(88888)),
+                )
+            ),
+            'prop_list': ["ExtraPropStr", "ExtraPropInt"],
+            'delete_ns': 'ns1',
+            'delete_assoc_inst_test': None,
+            'exp_rtn': {
                 'ns1':
                     {'ENUM':
                         {'TST_Person': ['/ns1:TST_Person.name="Mike"'],
@@ -1208,7 +1224,7 @@ TESTCASES_MULTI_NAMESPACES_MODIFY_INSTANCE = [
                         {'TST_Person': [],
                          'TST_Group': ['/ns1:TST_Person.name="Mike"']}}
             },
-        ),
+        },
         None, None, OK
     ),
 
@@ -1216,20 +1232,24 @@ TESTCASES_MULTI_NAMESPACES_MODIFY_INSTANCE = [
     (
         "Test association modify cross namespaces with MemberOfGroup delete "
         "from alternate namespace",
-        dict(
+        {
             # first namespace becomes the default namespace
-            namespaces=['ns1', 'ns2'],
-            class_mof=[TST_CLASSES_MOF],
-            inst_mof=[INSTANCE_INITIAL_ENDPOINTS],
-            assoc_inst_mof=[ASSOCIATION_MOF_CROSS_NS],
-            source_clns=['TST_Person', 'TST_Group'],
-            assoc_clns='TST_MemberOfGroup',
-            property_mods=('/ns1:TST_MemberOfGroup.InstanceID="G1MikeNS1"',
-                           (("ExtraPropStr", "NewStringVal"),)),
-            prop_list=None,
-            delete_ns='ns2',
-            delete_assoc_inst_test=None,
-            exp_rtn={
+            'namespaces': ['ns1', 'ns2'],
+            'class_mof': [TST_CLASSES_MOF],
+            'inst_mof': [INSTANCE_INITIAL_ENDPOINTS],
+            'assoc_inst_mof': [ASSOCIATION_MOF_CROSS_NS],
+            'source_clns': ['TST_Person', 'TST_Group'],
+            'assoc_clns': 'TST_MemberOfGroup',
+            'property_mods': (
+                '/ns1:TST_MemberOfGroup.InstanceID="G1MikeNS1"',
+                (
+                    ("ExtraPropStr", "NewStringVal"),
+                )
+            ),
+            'prop_list': None,
+            'delete_ns': 'ns2',
+            'delete_assoc_inst_test': None,
+            'exp_rtn': {
                 'ns1':
                     {'ENUM':
                         {'TST_Person': ['/ns1:TST_Person.name="Mike"'],
@@ -1255,35 +1275,37 @@ TESTCASES_MULTI_NAMESPACES_MODIFY_INSTANCE = [
                         {'TST_Person': [],
                          'TST_Group': ['/ns1:TST_Person.name="Mike"']}}
             },
-        ),
+        },
         None, None, OK
     ),
 
     (
         "Test association modify TST_MemberOfGroupNoID (refs as keys) cross ns",
-        dict(
+        {
             # first namespace becomes the default namespace
-            namespaces=['ns1', 'ns2'],
-            class_mof=[TST_CLASSES_MOF],
-            inst_mof=[INSTANCE_INITIAL_ENDPOINTS],
-            assoc_inst_mof=[ASSOCNOID_MOF_CROSS_NS],
-            source_clns=['TST_Person', 'TST_Group'],
-            assoc_clns='TST_MemberOfGroupNoID',
-            property_mods=(MEMBEROFGROUPNOIDNS1,
-                           (("ExtraPropStr", "NewStringVal"),)),
-            prop_list=None,
-            delete_ns='ns1',
-            delete_assoc_inst_test=None,
-            exp_rtn={
+            'namespaces': ['ns1', 'ns2'],
+            'class_mof': [TST_CLASSES_MOF],
+            'inst_mof': [INSTANCE_INITIAL_ENDPOINTS],
+            'assoc_inst_mof': [ASSOCNOID_MOF_CROSS_NS],
+            'source_clns': ['TST_Person', 'TST_Group'],
+            'assoc_clns': 'TST_MemberOfGroupNoID',
+            'property_mods': (
+                MEMBEROFGROUPNOIDNS1,
+                (
+                    ("ExtraPropStr", "NewStringVal"),
+                )
+            ),
+            'prop_list': None,
+            'delete_ns': 'ns1',
+            'delete_assoc_inst_test': None,
+            'exp_rtn': {
                 'ns1':
                     {'ENUM':
                         {'TST_Person': ['/ns1:TST_Person.name="Mike"'],
                          'TST_Group': [],
-                         'TST_MemberOfGroupNoID':
-                             [MEMBEROFGROUPNOIDNS1]},
+                         'TST_MemberOfGroupNoID': [MEMBEROFGROUPNOIDNS1]},
                      'REF':
-                        {'TST_Person':
-                             [MEMBEROFGROUPNOIDNS1]},
+                        {'TST_Person': [MEMBEROFGROUPNOIDNS1]},
                      'ASSOC':
                         {'TST_Group': [],
                          'TST_Person': ['/ns2:TST_Group.name="ns2group1"']}},
@@ -1291,35 +1313,37 @@ TESTCASES_MULTI_NAMESPACES_MODIFY_INSTANCE = [
                     {'ENUM':
                         {'TST_Person': [],
                          'TST_Group': ['/ns2:TST_Group.name="ns2group1"'],
-                         'TST_MemberOfGroupNoID':
-                             [MEMBEROFGROUPNOIDNS2]},
+                         'TST_MemberOfGroupNoID': [MEMBEROFGROUPNOIDNS2]},
                      'REF':
-                        {'TST_Group':
-                            [MEMBEROFGROUPNOIDNS2]},
+                        {'TST_Group': [MEMBEROFGROUPNOIDNS2]},
                      'ASSOC':
                         {'TST_Person': [],
                          'TST_Group': ['/ns1:TST_Person.name="Mike"']}}
             },
-        ),
+        },
         None, None, OK
     ),
 
     (
         "Test 3way association modify TST_MemberOfGroup3EP cross  3 namespaces",
-        dict(
+        {
             # first namespace becomes the default namespace
-            namespaces=['ns1', 'ns2', 'ns3'],
-            class_mof=[TST_CLASSES_MOF],
-            inst_mof=[INSTANCE_INITIAL_ENDPOINTS],
-            assoc_inst_mof=[ASSOCIATIONX_3WAY_MOF_CROSS_NS],
-            source_clns=['TST_Person', 'TST_Group', 'TST_THIRD_EP'],
-            assoc_clns='TST_MemberOfGroup3EP',
-            property_mods=('/ns1:TST_MemberOfGroup3EP.InstanceID="G1MikeAxNs3"',
-                           (("ExtraPropStr", "NewStringVal"),)),
-            prop_list=None,
-            delete_ns='ns1',
-            delete_assoc_inst_test=None,
-            exp_rtn={
+            'namespaces': ['ns1', 'ns2', 'ns3'],
+            'class_mof': [TST_CLASSES_MOF],
+            'inst_mof': [INSTANCE_INITIAL_ENDPOINTS],
+            'assoc_inst_mof': [ASSOCIATIONX_3WAY_MOF_CROSS_NS],
+            'source_clns': ['TST_Person', 'TST_Group', 'TST_THIRD_EP'],
+            'assoc_clns': 'TST_MemberOfGroup3EP',
+            'property_mods': (
+                '/ns1:TST_MemberOfGroup3EP.InstanceID="G1MikeAxNs3"',
+                (
+                    ("ExtraPropStr", "NewStringVal"),
+                )
+            ),
+            'prop_list': None,
+            'delete_ns': 'ns1',
+            'delete_assoc_inst_test': None,
+            'exp_rtn': {
                 'ns1':
                     {'ENUM':
                         {'TST_Person': ['/ns1:TST_Person.name="Mike"'],
@@ -1372,31 +1396,36 @@ TESTCASES_MULTI_NAMESPACES_MODIFY_INSTANCE = [
                          'TST_THIRD_EP': ['/ns1:TST_Person.name="Mike"',
                                           '/ns2:TST_Group.name="ns2group1"']}},
             },
-        ),
+        },
         None, None, OK
     ),
 
     (
         "Test association modify cross namespaces with MemberOfGroup and"
         "ref prop modification",
-        dict(
+        {
             # first namespace becomes the default namespace
-            namespaces=['ns1', 'ns2'],
-            class_mof=[TST_CLASSES_MOF],
-            inst_mof=[INSTANCE_INITIAL_ENDPOINTS],
-            assoc_inst_mof=[ASSOCIATION_MOF_CROSS_NS],
-            source_clns=['TST_Person', 'TST_Group'],
-            assoc_clns='TST_MemberOfGroup',
-            property_mods=(
+            'namespaces': ['ns1', 'ns2'],
+            'class_mof': [TST_CLASSES_MOF],
+            'inst_mof': [INSTANCE_INITIAL_ENDPOINTS],
+            'assoc_inst_mof': [ASSOCIATION_MOF_CROSS_NS],
+            'source_clns': ['TST_Person', 'TST_Group'],
+            'assoc_clns': 'TST_MemberOfGroup',
+            'property_mods': (
                 '/ns1:TST_MemberOfGroup.InstanceID="G1MikeNS1"',
                 # Modify group reference property
-                (("group", CIMInstanceName("TST_Group", namespace='ns2',
-                                           keybindings={"name":
-                                                        "NotExist"})), )),
-            prop_list=None,
-            delete_ns='ns1',
-            delete_assoc_inst_test=None,
-            exp_rtn={
+                (
+                    (
+                        "group",
+                        CIMInstanceName("TST_Group", namespace='ns2',
+                                        keybindings={"name": "NotExist"})
+                    ),
+                )
+            ),
+            'prop_list': None,
+            'delete_ns': 'ns1',
+            'delete_assoc_inst_test': None,
+            'exp_rtn': {
                 'ns1':
                     {'ENUM':
                         {'TST_Person': ['/ns1:TST_Person.name="Mike"'],
@@ -1422,28 +1451,33 @@ TESTCASES_MULTI_NAMESPACES_MODIFY_INSTANCE = [
                         {'TST_Person': [],
                          'TST_Group': ['/ns1:TST_Person.name="Mike"']}}
             },
-        ),
+        },
         CIMError, None, OK
     ),
 
     (
         "Test association modify cross namespaces with a shadow assoc inst "
         "missing",
-        dict(
+        {
             # first namespace becomes the default namespace
-            namespaces=['ns1', 'ns2'],
-            class_mof=[TST_CLASSES_MOF],
-            inst_mof=[INSTANCE_INITIAL_ENDPOINTS],
-            assoc_inst_mof=[ASSOCIATION_MOF_CROSS_NS],
-            source_clns=['TST_Person', 'TST_Group'],
-            assoc_clns='TST_MemberOfGroup',
-            property_mods=('/ns1:TST_MemberOfGroup.InstanceID="G1MikeNS1"',
-                           ((CIMProperty("member", type="reference",
-                                         value=None),))),
-            prop_list=None,
-            delete_ns='ns1',
-            delete_assoc_inst_test=None,
-            exp_rtn={
+            'namespaces': ['ns1', 'ns2'],
+            'class_mof': [TST_CLASSES_MOF],
+            'inst_mof': [INSTANCE_INITIAL_ENDPOINTS],
+            'assoc_inst_mof': [ASSOCIATION_MOF_CROSS_NS],
+            'source_clns': ['TST_Person', 'TST_Group'],
+            'assoc_clns': 'TST_MemberOfGroup',
+            'property_mods': (
+                '/ns1:TST_MemberOfGroup.InstanceID="G1MikeNS1"',
+                (
+                    (
+                        CIMProperty("member", type="reference", value=None),
+                    )
+                )
+            ),
+            'prop_list': None,
+            'delete_ns': 'ns1',
+            'delete_assoc_inst_test': None,
+            'exp_rtn': {
                 'ns1':
                     {'ENUM':
                         {'TST_Person': ['/ns1:TST_Person.name="Mike"'],
@@ -1469,28 +1503,33 @@ TESTCASES_MULTI_NAMESPACES_MODIFY_INSTANCE = [
                         {'TST_Person': [],
                          'TST_Group': ['/ns1:TST_Person.name="Mike"']}}
             },
-        ),
+        },
         CIMError, None, OK
     ),
 
     (
         "Test association modify cross namespaces with MemberOfGroup mod "
         "ref to Null",
-        dict(
+        {
             # first namespace becomes the default namespace
-            namespaces=['ns1', 'ns2'],
-            class_mof=[TST_CLASSES_MOF],
-            inst_mof=[INSTANCE_INITIAL_ENDPOINTS],
-            assoc_inst_mof=[ASSOCIATION_MOF_CROSS_NS],
-            source_clns=['TST_Person', 'TST_Group'],
-            assoc_clns='TST_MemberOfGroup',
-            property_mods=('/ns1:TST_MemberOfGroup.InstanceID="G1MikeNS1"',
-                           ((CIMProperty("member", type="reference",
-                                         value=None),))),
-            prop_list=None,
-            delete_ns='ns1',
-            delete_assoc_inst_test=None,
-            exp_rtn={
+            'namespaces': ['ns1', 'ns2'],
+            'class_mof': [TST_CLASSES_MOF],
+            'inst_mof': [INSTANCE_INITIAL_ENDPOINTS],
+            'assoc_inst_mof': [ASSOCIATION_MOF_CROSS_NS],
+            'source_clns': ['TST_Person', 'TST_Group'],
+            'assoc_clns': 'TST_MemberOfGroup',
+            'property_mods': (
+                '/ns1:TST_MemberOfGroup.InstanceID="G1MikeNS1"',
+                (
+                    (
+                        CIMProperty("member", type="reference", value=None),
+                    )
+                )
+            ),
+            'prop_list': None,
+            'delete_ns': 'ns1',
+            'delete_assoc_inst_test': None,
+            'exp_rtn': {
                 'ns1':
                     {'ENUM':
                         {'TST_Person': ['/ns1:TST_Person.name="Mike"'],
@@ -1516,7 +1555,7 @@ TESTCASES_MULTI_NAMESPACES_MODIFY_INSTANCE = [
                         {'TST_Person': [],
                          'TST_Group': ['/ns1:TST_Person.name="Mike"']}}
             },
-        ),
+        },
         CIMError, None, RUN
     ),
 

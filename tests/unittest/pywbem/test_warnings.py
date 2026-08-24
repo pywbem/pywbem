@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Test _warnings module.
 """
@@ -99,8 +97,8 @@ def simple_args(request):
 @pytest.fixture(params=[
     # Tuple of (conn_id_kwarg, exp_conn_str)
     ({}, TEST_CONN_STR_NONE),
-    (dict(conn_id=None), TEST_CONN_STR_NONE),
-    (dict(conn_id=TEST_CONN_ID), TEST_CONN_STR),
+    ({'conn_id': None}, TEST_CONN_STR_NONE),
+    ({'conn_id': TEST_CONN_ID}, TEST_CONN_STR),
 ], scope='module')
 def conn_info(request):
     """

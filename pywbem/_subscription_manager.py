@@ -185,14 +185,14 @@ def validate_persistence_type(pt):
     if pt is None:
         return None
     if not isinstance(pt, str):
-        raise ValueError(
+        raise ValueError(  # noqa: TRY004
             _format("The persistence_type must be a string. Type {0} not "
                     "allowed.", type(pt)))
 
     persistence_type_dict = NocaseDict([('permanent', 2), ('transient', 3)])
 
     if pt not in persistence_type_dict:
-        raise ValueError(
+        raise ValueError(  # noqa: TRY004
             _format("The persistence_type string must be one of: {0}."
                     " The value '{1}' is invalid",
                     ", ".join(list(persistence_type_dict.keys())), pt))
