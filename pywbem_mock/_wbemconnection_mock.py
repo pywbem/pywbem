@@ -327,15 +327,14 @@ class FakedWBEMConnection(WBEMConnection):
         # Attribute will always be boolean
         if disable is None:
             disable = False
-        if isinstance(disable, bool):
-            # pylint: disable=attribute-defined-outside-init
-            self._disable_pull_operations = disable
-            # modify the parameter in the mainprovider
-            self._mainprovider.disable_pull_operations = disable
-        else:
-            raise ValueError(
+        if not isinstance(disable, bool):
+            raise TypeError(
                 _format('Invalid type for disable_pull_operations: {0!A}, '
                         'must be a boolean', disable))
+        # pylint: disable=attribute-defined-outside-init
+        self._disable_pull_operations = disable
+        # modify the parameter in the mainprovider
+        self._mainprovider.disable_pull_operations = disable
 
     def __str__(self):
         return _format(

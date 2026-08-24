@@ -991,7 +991,7 @@ class TestFakedWBEMConnection:
         "disable, exp_exec", [[False, None],
                               [None, None],
                               [True, None],
-                              [1, ValueError]])
+                              [1, TypeError]])
     @log_entry_exit
     def test_disable_pull(self, tst_classeswqualifiers, tst_instances,
                           set_on_init, disable, exp_exec):

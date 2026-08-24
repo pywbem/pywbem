@@ -186,7 +186,7 @@ class MainProvider(ResolverMixin, BaseProvider):
             # pylint: disable=attribute-defined-outside-init
             self._disable_pull_operations = disable
         else:
-            raise ValueError(
+            raise TypeError(
                 _format('Invalid type for disable_pull_operations: {0!A}, '
                         'must be a boolean', disable))
 
