@@ -909,7 +909,7 @@ $(done_dir)/flake8_$(pymn)_$(PACKAGE_LEVEL).done: $(done_dir)/develop_$(pymn)_$(
 	echo "done" >$@
 	@echo "Makefile: Done running Flake8"
 
-$(done_dir)/ruff_$(pymn)_$(PACKAGE_LEVEL).done: Makefile $(py_src_files) $(py_test_files)
+$(done_dir)/ruff_$(pymn)_$(PACKAGE_LEVEL).done: Makefile $(done_dir)/develop_$(pymn)_$(PACKAGE_LEVEL).done $(py_src_files) $(py_test_files)
 	@echo "Makefile: Running Ruff"
 	-$(call RM_FUNC,$@)
 	ruff --version
