@@ -8,7 +8,8 @@
 # environment, but are not specified in requirements.txt.
 
 
-# Base dependencies (must be consistent with base-requirements.txt)
+# Base dependencies
+# (must be consistent with base-requirements.txt)
 
 pip==26.0.1; python_version == '3.9'
 pip==26.1.2; python_version >= '3.10'
@@ -17,38 +18,28 @@ setuptools-scm==9.2.0
 wheel==0.46.2
 
 
-# Direct dependencies for install (must be consistent with requirements.txt)
+# Direct dependencies for install
+# (must be consistent with requirements.txt)
 
 ply==3.10
 PyYAML==6.0.2
-# requests version 2.32.0 required by safety issue 71064 (2.32.0, 2.32.1 yanked)
 requests==2.32.5; python_version == '3.9'
 requests==2.33.0; python_version >= '3.10'
 yamlloader==0.5.5
-
-# typing-extensions
 typing-extensions==4.14.1
 
 
-# Indirect dependencies for install that are needed for some reason (must be consistent with requirements.txt)
-
-urllib3==2.6.3; python_version == '3.9'
-urllib3==2.7.0; python_version >= '3.10'
-certifi==2024.07.04
-
-# requests 2.31 requires idna>=2.5,<4
-# anyio 3.1.0 depends on idna>=2.8
-# idna>3 requires using requests >=2.26.0
-idna==3.15
+# Indirect dependencies for install that are needed for some reason
+# (must be consistent with requirements.txt)
 
 
 # All other indirect dependencies for install that are not in requirements.txt
 
-# requests>=2.26.0 uses charset-normalizer instead of chardet; both are not used by any other package
-chardet==3.0.2; python_version <= '3.9'
-charset-normalizer==2.0.0; python_version >= '3.10'
-packaging==24.2
+certifi==2024.07.04
+charset-normalizer==2.0.0
+idna==3.15
+packaging==25.0
+tomli==2.2.1; python_version <= '3.10'  # used by a number of packages; built-in to Python>=3.11
+urllib3==2.6.3; python_version == '3.9'
+urllib3==2.7.0; python_version >= '3.10'
 vcs-versioning==2.2.2
-tomli==2.0.1; python_version <= '3.10'  # used by a number of packages; built-in to Python>=3.11
-
-# funcsigs; is covered in direct deps for develop, from mock
