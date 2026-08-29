@@ -199,11 +199,12 @@ mccabe==0.7.0
 mdurl==0.1.2
 mistune==3.3.0
 more-itertools==4.0.0
-nab-index==0.0.13
+mypy_extensions==1.1.0
+nab-index==0.0.15
 nab-project==0.0.15
 nab-provider==0.0.15
 nab-python==0.0.13
-nab-resolver==0.0.13
+nab-resolver==0.0.15
 nbclient==0.10.2
 nbconvert==7.17.1
 nbformat==5.10.4
