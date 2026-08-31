@@ -16,6 +16,25 @@ Change log
    .. include:: tmp_changes.rst
 
 .. towncrier start
+pywbem 1.9.1
+------------
+
+Released: 2026-08-31
+
+**Bug fixes:**
+
+* Test: Fixed an assertion in unit test module test_logging.py.
+
+* Fixed safety issues up to 2026-08-31.
+
+* Test: Fixed duplicated attribute in test_attrs_readonly().
+
+* Development: Tolerate premature deletion of local release/start branches.
+
+* Test: Tolerate the presence of pytest's LogCaptureHandler on our loggers. Pytest
+  9.1.0 started setting that up even when invoked with -s.
+
+
 pywbem 1.9.0
 ------------
 
