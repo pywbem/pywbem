@@ -80,6 +80,14 @@ security:
             reason: Fixed jupyter-server version 2.20.0 requires Python>=3.10 and is used there
         SFTY-20260725-27090:
             reason: Fixed nltk version 3.9.3 requires Python>=3.10 and is used there
+        SFTY-20260731-71411:
+            reason: Fixed nltk version 3.9.3 requires Python>=3.10 and is used there
+        SFTY-20260731-74449:
+            reason: Fixed nltk version 3.9.3 requires Python>=3.10 and is used there
+        SFTY-20260731-78787:
+            reason: Fixed nltk version 3.9.3 requires Python>=3.10 and is used there
+        SFTY-20260731-83123:
+            reason: Fixed nltk version 3.9.3 requires Python>=3.10 and is used there
 
     # Continue with exit code 0 when vulnerabilities are found.
     continue-on-vulnerability-error: False
