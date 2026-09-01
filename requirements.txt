@@ -7,7 +7,10 @@
 # Direct dependencies for install
 # (must be consistent with minimum-constraints-install.txt)
 
-ply>=3.10
+# The ply project has been archived, see https://github.com/dabeaz/ply#important-notice---december-21-2025
+# When fixes are necessary, we will vendor the ply package into pywbem and will fix the vendored version.
+ply>=3.11
+
 PyYAML>=6.0.2
 requests>=2.32.5; python_version == '3.9'
 requests>=2.33.0; python_version >= '3.10'

@@ -1,0 +1,4 @@
+The "ply" project has been archived, see
+https://github.com/dabeaz/ply#important-notice---december-21-2025
+Added a reminder into the requirements.txt file that we will vendor in and fix
+the "ply" package when fixes are necessary.
