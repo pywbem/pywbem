@@ -81,11 +81,11 @@ security:
         SFTY-20260725-27090:
             reason: Fixed nltk version 3.9.3 requires Python>=3.10 and is used there
         SFTY-20260731-71411:
-            reason: Fixed nltk version 3.9.3 requires Python>=3.10 and is used there
+            reason: Fixed nltk version 3.10.0 requires Python>=3.10 and is used there
         SFTY-20260731-74449:
-            reason: Fixed nltk version 3.9.3 requires Python>=3.10 and is used there
+            reason: Fixed nltk version 3.10.0 requires Python>=3.10 and is used there
         SFTY-20260731-78787:
-            reason: Fixed nltk version 3.9.3 requires Python>=3.10 and is used there
+            reason: Fixed nltk version 3.10.0 requires Python>=3.10 and is used there
         SFTY-20260731-83123:
             reason: Fixed nltk version 3.9.3 requires Python>=3.10 and is used there
 
