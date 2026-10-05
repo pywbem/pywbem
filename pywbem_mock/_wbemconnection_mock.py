@@ -1213,8 +1213,10 @@ class FakedWBEMConnection(WBEMConnection):
     #
     ########################################################################
 
-    def _mock_imethodcall(self, methodname, namespace, response_params_rqd=None,
-                          **params):  # pylint: disable=unused-argument
+    def _mock_imethodcall(
+            self, methodname, namespace,
+            response_params_rqd=None,  # pylint: disable=unused-argument
+            **params):
         """
         Mocks the WBEMConnection._imethodcall() method.
 
